@@ -87,7 +87,7 @@ function EditPostSales(props) {
 
   const getPurchaseOrdersDetails = async () => {
     try {
-      const res = await fetch(`${API}/orden_compra_det_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_po=${codPo}`, {
+      const res = await fetch(`${API}/orden_compra_det_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_po=${codPo}&tipo_comprobante=PO`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + sessionStorage.getItem('token')

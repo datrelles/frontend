@@ -87,7 +87,7 @@ function NewPostSales(props) {
       await rowsDeleted.data.forEach((deletedRow) => {
         const deletedRowIndex = deletedRow.dataIndex;
         const deletedRowValue = excelData[deletedRowIndex];
-        const newExcelData = excelData.filter((row) => row.COD_PRODUCTO !== deletedRowValue.COD_PRODUCTO );
+        const newExcelData = excelData.filter((row) => row.COD_PRODUCTO !== deletedRowValue.COD_PRODUCTO);
         setExcelData(newExcelData);
         console.log(deletedRowValue);
       });
@@ -209,9 +209,10 @@ function NewPostSales(props) {
       })
     })
     const data = await res.json();
-    console.log(data)
+    console.log(data.mensaje)
     if (!data.error) {
       enqueueSnackbar('¡Creado exitosamente!', { variant: 'success' });
+      setCodPo(data.mensaje)
     } else {
       enqueueSnackbar(data.error, { variant: 'error' });
     }
@@ -220,14 +221,20 @@ function NewPostSales(props) {
 
   const handleChange3 = (e) => {
     e.preventDefault();
-      setTimeout(async () => {
+    setTimeout(async () => {
       const res = await fetch(`${API}/orden_compra_det`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + sessionStorage.getItem('token')
         },
-        body: JSON.stringify({excelData: excelData})
+        body: JSON.stringify({
+          orders: excelData,
+          cod_po: codPo,
+          empresa: sessionStorage.getItem('currentEnterprise'),
+          usuario_crea: sessionStorage.getItem('currentUser'),
+          cod_agencia: sessionStorage.getItem('currentBranch')
+        })
       });
 
       const data = await res.json();
@@ -239,7 +246,7 @@ function NewPostSales(props) {
         enqueueSnackbar(data.error, { variant: 'error' });
       }
     });
-    
+
   }
 
   const TabPanel = ({ value, index, children }) => (
@@ -277,20 +284,20 @@ function NewPostSales(props) {
 
       for (let i = 1; i < jsonData.length; i++) {
         const row = jsonData[i];
-      
-      const obj = {};
-      for (let j = 0; j < properties.length; j++) {
-        const property = properties[j];
-        obj[property] = row[j];
-      }
 
-      newExcelData.push(obj);
-    }
-    setExcelData(newExcelData)
-    console.log(excelData)
+        const obj = {};
+        for (let j = 0; j < properties.length; j++) {
+          const property = properties[j];
+          obj[property] = row[j];
+        }
+
+        newExcelData.push(obj);
+      }
+      setExcelData(newExcelData)
+      console.log(excelData)
     };
     reader.readAsArrayBuffer(file);
-    
+
   };
 
   return (
@@ -453,7 +460,7 @@ function NewPostSales(props) {
                   Subir en Lote
                 </Button>
               </div>
-              <MUIDataTable title={"Detalle Orden de Compra"} data={excelData} columns={columns} options={options}/>
+              <MUIDataTable title={"Detalle Orden de Compra"} data={excelData} columns={columns} options={options} />
             </TabPanel>
             <TabPanel value={tabValue} index={1}>
               <p>Productos aquí</p>

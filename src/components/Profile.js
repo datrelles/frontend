@@ -4,6 +4,7 @@ import Header from "./Header";
 import useToken from "./useToken";
 import '../styles/Profile.css'
 import { useNavigate } from 'react-router-dom';
+import { ContactSupportOutlined } from '@material-ui/icons';
 
 
 
@@ -18,6 +19,7 @@ function Profile(props) {
 
   const [enterprises, setEnterprises] = useState([])
   const [branches, setBranches] = useState([])
+  const [defaultEnterprise, setDefaultEnterprise] = useState("")
 
 
   const getEnterprises = async () => {
@@ -36,6 +38,21 @@ function Profile(props) {
       value: item.NOMBRE
     }));
     setEnterprises(newData)
+  }
+
+  const getDefaultEnterprise = async () => {
+
+    const res = await fetch(`${API}/enterprise_default/${sessionStorage.getItem('currentUser')}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + props.token
+      }
+    })
+
+    const data = await res.json();
+    sessionStorage.setItem('currentEnterprise', data[0].EMPRESA_DEFECTO);
+    setDefaultEnterprise(data[0].EMPRESA_DEFECTO)
 
   }
 
@@ -59,23 +76,25 @@ function Profile(props) {
 
   useEffect(() => {
     getEnterprises();
+    getDefaultEnterprise();
   }, [])
 
 
   const handleChange = async (selectedOptions) => {
     console.log(selectedOptions.selectedValue);
     const selectedOption = enterprises.find((enterprise) => enterprise.value == selectedOptions.selectedValue);
-    const selectedKey = selectedOption ? selectedOption.key : 0;
+    const selectedKey = selectedOption ? selectedOption.key : defaultEnterprise;
     console.log(selectedKey);
     sessionStorage.setItem('currentEnterprise', selectedKey);
+    sessionStorage.setItem('currentBranch', 0);
     getBranches(selectedKey);
 
   }
 
   const handleChange1 = async (selectedOptions) => {
     console.log(selectedOptions.selectedValue);
-    const selectedOption = branches.find((branch) => branch.value == selectedOptions.selectedValue);
-    const selectedKey = selectedOption ? selectedOption.key : 0;
+    const selectedOption = branches.find((branch) => branch.value == selectedOptions.selectedValue); 
+    const selectedKey = selectedOption ? selectedOption.key : branches[0].key;
     console.log(selectedKey);
     sessionStorage.setItem('currentBranch', selectedKey);
   }
