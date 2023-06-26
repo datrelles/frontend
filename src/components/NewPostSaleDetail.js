@@ -3,29 +3,24 @@ import React, { useState, useEffect } from "react";
 import Navbar0 from "./Navbar0";
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
-import FormControl from '@mui/material/FormControl';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputLabel from '@mui/material/InputLabel';
 import InputAdornment from '@mui/material/InputAdornment';
 import moment from 'moment';
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import AddIcon from '@material-ui/icons/Add';
 import Autocomplete from '@mui/material/Autocomplete';
-
-
-
-
-
+import { useNavigate } from 'react-router-dom';
+import Button from '@mui/material/Button';
+import ButtonGroup from '@mui/material/ButtonGroup';
 
 
 const API = process.env.REACT_APP_API;
-
 
 function NewPostSaleDetail(props) {
 
 
   const location = useLocation();
   const [formData, setFormData] = useState(location.state)
+  const navigate = useNavigate();
 
   const [cantidadPedido, setCantidadPedido] = useState(formData.cantidad_pedido)
   const [codPo, setCodPo] = useState(location.state)
@@ -47,13 +42,24 @@ function NewPostSaleDetail(props) {
   const [usuarioModifica, setUsuarioModifica] = useState(formData.usuario_modifica)
   const [productsList, setProductsList] = useState([])
 
-
   const { enqueueSnackbar } = useSnackbar();
 
-
+  const unidadesMedida = [
+    {
+      name: "U",
+      label: "Unidad"
+    },
+    {
+      name: "PCS",
+      label: "Piezas"
+    },
+    {
+      name: "SET",
+      label: "Set"
+    }
+  ]
 
   useEffect(() => {
-    console.log(location.state)
     getProductsList()
 
   }, [])
@@ -69,41 +75,53 @@ function NewPostSaleDetail(props) {
         'Authorization': 'Bearer ' + sessionStorage.getItem('token')
       },
       body: JSON.stringify({
-
         cod_po: codPo,
-        secuencia: secuencia,
         empresa: sessionStorage.getItem('currentEnterprise'),
-        cod_producto: codProducto,
-        cod_producto_modelo: codProductoModelo,
-        nombre: nombre,
-        nombre_c: nombreChina,
-        nombre_i: nombreIngles,
-        costo_sistema: parseFloat(costoSistema),
-        fob: parseFloat(fob),
-        fobTotal: parseFloat(fobTotal),
-        cantidad_pedido: parseInt(cantidadPedido, 10),
-        saldo_producto: parseInt(saldoProducto, 10),
-        unidad_medida: unidadMedida,
         usuario_crea: sessionStorage.getItem('currentUser'),
-        fecha_crea: moment().format('DD/MM/YYYY'),
-        usuario_modifica: sessionStorage.getItem('currentUser'),
-        fecha_modifica: moment().format('DD/MM/YYYY'),
-        exportar: false,
-        nombre_mod_prov: '',
-        nombre_comercial: '',
-        tipo_comprobante: 'PO'
+        orders: [{
+          secuencia: secuencia,
+          COD_PRODUCTO: codProducto,
+          COD_PRODUCTO_MODELO: codProductoModelo,
+          NOMBRE_PROVEEDOR: nombre,
+          nombre_c: nombreChina,
+          NOMBRE_INGLES: nombreIngles,
+          costo_sistema: parseFloat(costoSistema),
+          fob: parseFloat(fob),
+          fobTotal: parseFloat(fobTotal),
+          PEDIDO: parseInt(cantidadPedido, 10),
+          saldo_producto: parseInt(saldoProducto, 10),
+          UNIDAD_MEDIDA: unidadMedida,
+          fecha_crea: moment().format('DD/MM/YYYY'),
+          usuario_modifica: sessionStorage.getItem('currentUser'),
+          fecha_modifica: moment().format('DD/MM/YYYY'),
+          exportar: false,
+          nombre_mod_prov: '',
+          NOMBRE_COMERCIAL: '',
+          tipo_comprobante: 'PO',
+          AGRUPADO: false
+        }]
+
       })
     })
     const data = await res.json();
-    console.log(data)
+    console.log(data.mensaje)
     setFormData(location.state)
+
     if (!data.error) {
-      enqueueSnackbar('¡Guardado exitosamente!', { variant: 'success' });
+      setCodPo(data.cod_po)
+      if (data.cod_producto_no_existe)
+        enqueueSnackbar(data.mensaje + ' ' + data.cod_producto_modelo_no_existe, { variant: 'warning' });
+      if (data.unidad_medida_no_existe)
+        enqueueSnackbar(data.mensaje + ' ' + data.unidad_medida_no_existe, { variant: 'warning' });
+      if (data.cod_producto_modelo_no_existe)
+        enqueueSnackbar(data.mensaje + ' ' + data.cod_producto_modelo_no_existe, { variant: 'warning' });
+      if (!data.cod_producto_no_existe && !data.unidad_medida_no_existe && !data.cod_producto_modelo_no_existe) {
+        enqueueSnackbar(data.mensaje, { variant: 'success' });
+      }
     } else {
       enqueueSnackbar(data.error, { variant: 'error' });
-      setFormData(location.state)
-
     }
+
 
   }
 
@@ -113,12 +131,6 @@ function NewPostSaleDetail(props) {
     </div>
   );
 
-  const opciones = [
-    'Opción 1',
-    'Opción 2',
-    'Opción 3',
-  ];
-
   const getProductsList = async () => {
     const res = await fetch(`${API}/productos`, {
       headers: {
@@ -127,29 +139,61 @@ function NewPostSaleDetail(props) {
       }
     })
     const data = await res.json();
+    console.log(data)
     const list = data.map((item) => ({
       nombre: item.nombre,
       cod_producto: item.cod_producto,
+      costo: item.costo
     }));
     setProductsList(list)
   }
 
   const handleProviderChange = (event, value) => {
     if (value) {
-      const proveedorSeleccionado = productsList.find((producto) => producto.nombre === value);
-      if (proveedorSeleccionado) {
-        setCodProducto(proveedorSeleccionado.cod_producto);
-        setNombre(proveedorSeleccionado.nombre);
+      const productoSeleccionado = productsList.find((producto) => producto.nombre === value);
+      if (productoSeleccionado) {
+        setCodProducto(productoSeleccionado.cod_producto);
+        setNombre(productoSeleccionado.nombre);
+        setCostoSistema(productoSeleccionado.costo)
       }
     } else {
       setCodProducto('');
       setNombre('');
     }
-  };
+  }
+
+  const handleMeasureChange = (event, value) => {
+    if (value) {
+      const unidadSeleccionada = unidadesMedida.find((unidad) => unidad.label === value);
+      if (unidadSeleccionada) {
+        setUnidadMedida(unidadSeleccionada.name);
+      }
+    } else {
+      setUnidadMedida('');
+    }
+  }
+
+
 
   return (
     <div>
       <Navbar0 />
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'right',
+          '& > *': {
+            m: 1,
+          },
+        }}
+      >
+        <ButtonGroup variant="text" aria-label="text button group" >
+          <Button onClick={() => { navigate('/dashboard') }}>Módulos</Button>
+          <Button onClick={() => { navigate('/postSales') }}>Ordenes de Compra</Button>
+          <Button onClick={() => { navigate(-1) }}>Editar Orden de Compra</Button>
+        </ButtonGroup>
+      </Box>
       <Box
         component="form"
         sx={{
@@ -303,15 +347,26 @@ function NewPostSaleDetail(props) {
                 },
               }}
             />
-            <TextField
-              required
-              id="unidad-medida"
-              label="Unidad de Medida"
-              type="text"
-              onChange={e => setUnidadMedida(e.target.value)}
-              value={unidadMedida}
-              className="form-control"
-            />
+            <Autocomplete
+            id="unidad-medida"
+            options={unidadesMedida.map((unidadesMedida) => unidadesMedida.label)}
+            onChange={handleMeasureChange}
+            style={{ width: `580px` }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                required
+                label="Unidad de Medida"
+                type="text"
+                value={unidadMedida}
+                className="form-control"
+                style={{ width: `100%` }}
+                InputProps={{
+                  ...params.InputProps,
+                }}
+              />
+            )}
+          />
             <TextField
               required
               id="saldo-producto"

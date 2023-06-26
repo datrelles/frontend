@@ -3,14 +3,14 @@ import React, { useState, useEffect } from "react";
 import Navbar0 from "./Navbar0";
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
-import FormControl from '@mui/material/FormControl';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputLabel from '@mui/material/InputLabel';
 import InputAdornment from '@mui/material/InputAdornment';
 import moment from 'moment';
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import SaveIcon from '@material-ui/icons/Save';
-
+import Button from '@mui/material/Button';
+import ButtonGroup from '@mui/material/ButtonGroup';
+import { useNavigate } from 'react-router-dom';
+import Autocomplete from '@mui/material/Autocomplete';
 
 
 
@@ -23,6 +23,7 @@ function PostSaleDetails(props) {
 
   const location = useLocation();
   const [formData, setFormData] = useState(location.state)
+  const navigate = useNavigate();
 
   const [cantidadPedido, setCantidadPedido] = useState(formData.cantidad_pedido)
   const [codPo, setCodPo] = useState(formData.cod_po)
@@ -50,7 +51,20 @@ function PostSaleDetails(props) {
     setFormData(location.state)
   }, [])
 
-
+  const unidadesMedida = [
+    {
+      name: "U",
+      label: "Unidad"
+    },
+    {
+      name: "PCS",
+      label: "Piezas"
+    },
+    {
+      name: "SET",
+      label: "Set"
+    }
+  ]
 
   const handleChange2 = async (e) => {
     e.preventDefault();
@@ -101,9 +115,36 @@ function PostSaleDetails(props) {
     </div>
   );
 
+  const handleMeasureChange = (event, value) => {
+    if (value) {
+      const unidadSeleccionada = unidadesMedida.find((unidad) => unidad.label === value);
+      if (unidadSeleccionada) {
+        setUnidadMedida(unidadSeleccionada.name);
+      }
+    } else {
+      setUnidadMedida('');
+    }
+  }
+
   return (
     <div>
       <Navbar0 />
+      <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'right',
+            '& > *': {
+              m: 1,
+            },
+          }}
+        >
+          <ButtonGroup variant="text" aria-label="text button group" > 
+            <Button onClick={() => {navigate('/dashboard')}}>Módulos</Button>
+            <Button onClick={() => {navigate('/postSales')}}>Ordenes de Compra</Button>
+            <Button onClick={() => {navigate(-1)}}>Editar Orden de Compra</Button>
+          </ButtonGroup>
+        </Box>
       <Box
         component="form"
         sx={{
@@ -253,15 +294,27 @@ function PostSaleDetails(props) {
                 },
               }}
             />
-            <TextField
-              required
-              id="unidad-medida"
-              label="Unidad de Medida"
-              type="text"
-              onChange={e => setUnidadMedida(e.target.value)}
-              value={unidadMedida}
-              className="form-control"
-            />
+            <Autocomplete
+            id="unidad-medida"
+            options={unidadesMedida.map((unidadesMedida) => unidadesMedida.label)}
+            onChange={handleMeasureChange}
+            style={{ width: `580px` }}
+            value={unidadMedida}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                required
+                label="Unidad de Medida"
+                type="text"
+                value={unidadMedida}
+                className="form-control"
+                style={{ width: `100%` }}
+                InputProps={{
+                  ...params.InputProps,
+                }}
+              />
+            )}
+          />
             <TextField
               required
               id="saldo-producto"

@@ -11,7 +11,8 @@ import SaveIcon from '@material-ui/icons/Save';
 import AddIcon from '@material-ui/icons/Add';
 import Autocomplete from '@mui/material/Autocomplete';
 import Button from '@mui/material/Button';
-
+import ButtonGroup from '@mui/material/ButtonGroup';
+import { useNavigate } from 'react-router-dom';
 
 
 
@@ -21,8 +22,9 @@ const API = process.env.REACT_APP_API;
 function NewPostSales(props) {
 
   const [tabValue, setTabValue] = useState(0);
+  const navigate = useNavigate();
 
-  const [codPo, setCodPo] = useState("0");
+  const [codPo, setCodPo] = useState("");
   const [blNo, setBlNo] = useState("");
   const [codItem, setCodItem] = useState("1");
   const [codModelo, setCodModelo] = useState("");
@@ -103,7 +105,7 @@ function NewPostSales(props) {
 
   const columns = [
     {
-      name: "COD_MODELO",
+      name: "COD_PRODUCTO_MODELO",
       label: "Codigo Modelo"
     },
     {
@@ -182,72 +184,58 @@ function NewPostSales(props) {
 
   const handleChange2 = async (e) => {
     e.preventDefault();
-    const res = await fetch(`${API}/orden_compra_cab`, {
+    const res = await fetch(`${API}/orden_compra_total`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + sessionStorage.getItem('token')
       },
       body: JSON.stringify({
-        empresa: sessionStorage.getItem('currentEnterprise'),
-        tipo_comprobante: tipoCombrobante,
-        cod_agencia: sessionStorage.getItem('currentBranch'),
-        bodega: sessionStorage.getItem('currentBranch'),
-        cod_proveedor: codProveedor,
-        nombre: nombre,
-        proforma: proforma,
-        invoice: invoice,
-        bl_no: blNo,
-        cod_po_padre: codPoPadre,
-        cod_modelo: codModelo,
-        cod_item: codItem,
-        fecha_crea: moment().format('DD/MM/YYYY'),
-        usuario_crea: sessionStorage.getItem('currentUser'),
-        fecha_modifica: moment().format('DD/MM/YYYY'),
-        usuario_modifica: sessionStorage.getItem('currentUser'),
+        cabecera: {   
+          empresa: sessionStorage.getItem('currentEnterprise'),
+          tipo_comprobante: tipoCombrobante,
+          cod_agencia: sessionStorage.getItem('currentBranch'),
+          bodega: sessionStorage.getItem('currentBranch'),
+          cod_proveedor: codProveedor,
+          nombre: nombre,
+          proforma: proforma,
+          invoice: invoice,
+          bl_no: blNo,
+          cod_po_padre: codPoPadre,
+          cod_modelo: codModelo,
+          cod_item: codItem,
+          fecha_crea: moment().format('DD/MM/YYYY'),
+          usuario_crea: sessionStorage.getItem('currentUser'),
+          fecha_modifica: moment().format('DD/MM/YYYY'),
+          usuario_modifica: sessionStorage.getItem('currentUser')
+        },
+        detalles: excelData
 
       })
     })
     const data = await res.json();
     console.log(data.mensaje)
     if (!data.error) {
-      enqueueSnackbar('¡Creado exitosamente!', { variant: 'success' });
-      setCodPo(data.mensaje)
+      setCodPo(data.cod_po)
+      if (data.cod_producto_no_existe)
+        enqueueSnackbar('Orden de compra creada exitosamente', { variant: 'success' });
+        enqueueSnackbar(data.mensaje +' '+ data.cod_producto_modelo_no_existe, { variant: 'warning' });
+      if (data.unidad_medida_no_existe)
+        enqueueSnackbar('Orden de compra creada exitosamente', { variant: 'success' });
+        enqueueSnackbar(data.mensaje +' '+ data.unidad_medida_no_existe, { variant: 'warning' });
+      if (data.cod_producto_modelo_no_existe)
+        enqueueSnackbar('Orden de compra creada exitosamente', { variant: 'success' }); 
+        enqueueSnackbar(data.mensaje +' '+ data.cod_producto_modelo_no_existe, { variant: 'warning' });
+      if (!data.cod_producto_no_existe && !data.unidad_medida_no_existe && !data.cod_producto_modelo_no_existe){
+        enqueueSnackbar(data.mensaje, { variant: 'success' });
+      }
     } else {
       enqueueSnackbar(data.error, { variant: 'error' });
     }
 
   }
 
-  const handleChange3 = (e) => {
-    e.preventDefault();
-    setTimeout(async () => {
-      const res = await fetch(`${API}/orden_compra_det`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-        },
-        body: JSON.stringify({
-          orders: excelData,
-          cod_po: codPo,
-          empresa: sessionStorage.getItem('currentEnterprise'),
-          usuario_crea: sessionStorage.getItem('currentUser'),
-          cod_agencia: sessionStorage.getItem('currentBranch')
-        })
-      });
-
-      const data = await res.json();
-      console.log(data);
-
-      if (!data.error) {
-        enqueueSnackbar('¡Creado exitosamente!', { variant: 'success' });
-      } else {
-        enqueueSnackbar(data.error, { variant: 'error' });
-      }
-    });
-
-  }
+  
 
   const TabPanel = ({ value, index, children }) => (
     <div hidden={value !== index}>
@@ -303,6 +291,21 @@ function NewPostSales(props) {
   return (
     <div>
       <Navbar0 />
+      <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'right',
+            '& > *': {
+              m: 1,
+            },
+          }}
+        >
+          <ButtonGroup variant="text" aria-label="text button group" > 
+            <Button style={{ width: `100px`, marginTop: '10px', marginRight: '10px', color:'#1976d2'}} onClick={() => {navigate('/dashboard')}}>Módulos</Button>
+            <Button style={{ marginTop: '10px', marginRight: '10px', color:'#1976d2'}} onClick={() => {navigate('/postSales')}}>Ordenes de Compra</Button>
+          </ButtonGroup>
+        </Box>
       <Box
         component="form"
         sx={{
@@ -430,14 +433,6 @@ function NewPostSales(props) {
             </Tabs>
             <TabPanel value={tabValue} index={0}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-                <button
-                  className="btn btn-primary btn-block"
-                  type="button"
-                  style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px', height: '45px' }}
-                /* onClick={handleChange2} */
-                >
-                  <AddIcon /> Nuevo
-                </button>
                 <input
                   accept=".xlsx, .xls"
                   id="file-upload"
@@ -447,18 +442,10 @@ function NewPostSales(props) {
                   onChange={handleFileUpload}
                 />
                 <label htmlFor="file-upload">
-                  <Button variant="contained" component="span" style={{ backgroundColor: 'firebrick', color: 'white', height: '45px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
+                  <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '45px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
                     Cargar en Lote
                   </Button>
                 </label>
-                <Button
-                  variant="contained"
-                  component="span"
-                  style={{ backgroundColor: 'firebrick', color: 'white', height: '45px', width: '170px', borderRadius: '5px' }}
-                  onClick={handleChange3}
-                >
-                  Subir en Lote
-                </Button>
               </div>
               <MUIDataTable title={"Detalle Orden de Compra"} data={excelData} columns={columns} options={options} />
             </TabPanel>

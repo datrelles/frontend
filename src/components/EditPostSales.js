@@ -13,6 +13,10 @@ import AddIcon from '@material-ui/icons/Add';
 import CheckIcon from '@material-ui/icons/Check';
 import Autocomplete from '@mui/material/Autocomplete';
 import InputAdornment from '@mui/material/InputAdornment';
+import * as XLSX from 'xlsx'
+import Button from '@mui/material/Button';
+import ButtonGroup from '@mui/material/ButtonGroup';
+
 
 
 
@@ -28,7 +32,7 @@ function EditPostSales(props) {
   const location = useLocation();
   const [formData, setFormData] = useState(location.state)
   const [tabValue, setTabValue] = useState(0);
-
+  const [excelData, setExcelData] = useState(['']);
 
 
   const [blNo, setBlNo] = useState(formData.bl_no)
@@ -169,7 +173,7 @@ function EditPostSales(props) {
   const handleRowClick = (rowData, rowMeta) => {
     const row = details.filter(item => item.secuencia === rowData[0])[0];
     console.log(row)
-    navigate('/postSaleDetails', { state: row });
+    navigate('/postSaleDetails', { state: row, orden: formData});
   }
 
   const handleProviderChange = (event, value) => {
@@ -316,6 +320,29 @@ function EditPostSales(props) {
 
     }
 
+    const res2 = await fetch(`${API}/orden_compra_det`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+      },
+      body: JSON.stringify({
+        orders: excelData.slice(1),
+        cod_po: codPo,
+        empresa: sessionStorage.getItem('currentEnterprise'),
+        usuario_crea: sessionStorage.getItem('currentUser'),
+        cod_agencia: sessionStorage.getItem('currentBranch')
+      })
+    });
+    const data2 = await res2.json();
+      console.log(data2);
+
+      if (!data2.error) {
+        enqueueSnackbar('¡Creado exitosamente!', { variant: 'success' });
+      } else {
+        enqueueSnackbar(data2.error, { variant: 'error' });
+      }
+
   }
 
   const handleChange4 = async (e) => {
@@ -356,9 +383,37 @@ function EditPostSales(props) {
 
   const handleChange3 = async (e) => {
     e.preventDefault();
-    navigate('/newPostSaleDetail', { state: codPo });
-
+    navigate('/newPostSaleDetail', { state: codPo, orden: location.state});
   }
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+      const properties = jsonData[0];
+
+
+      for (let i = 1; i < jsonData.length; i++) {
+        const row = jsonData[i];
+
+        const obj = {};
+        for (let j = 0; j < properties.length; j++) {
+          const property = properties[j];
+          obj[property] = row[j];
+        }
+
+        excelData.push(obj);
+      }
+        console.log(excelData.slice[1])
+    };
+    reader.readAsArrayBuffer(file);
+
+  };
 
   const TabPanel = ({ value, index, children }) => (
     <div hidden={value !== index}>
@@ -369,6 +424,21 @@ function EditPostSales(props) {
   return (
     <div>
       <Navbar0 />
+      <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'right',
+            '& > *': {
+              m: 1,
+            },
+          }}
+        >
+          <ButtonGroup variant="text" aria-label="text button group" > 
+            <Button style={{ width: `100px`, marginTop: '10px', marginRight: '10px', color:'#1976d2'}} onClick={() => {navigate('/dashboard')}}>Módulos</Button>
+            <Button style={{ marginTop: '10px', marginRight: '10px', color:'#1976d2'}} onClick={() => {navigate('/postSales')}}>Ordenes de Compra</Button>
+          </ButtonGroup>
+        </Box>
       <Box
         component="form"
         sx={{
@@ -525,14 +595,27 @@ function EditPostSales(props) {
               <Tab label="Productos" />
             </Tabs>
             <TabPanel value={tabValue} index={0}>
-              <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
                 <button
                   className="btn btn-primary btn-block"
                   type="button"
-                  style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
+                  style={{ marginBottom: '10px', marginTop: '10px', marginRight: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
                   onClick={handleChange3}>
                   <AddIcon /> Nuevo
                 </button>
+                <input
+                  accept=".xlsx, .xls"
+                  id="file-upload"
+                  multiple
+                  type="file"
+                  style={{ display: 'none' }}
+                  onChange={handleFileUpload}
+                />
+                <label htmlFor="file-upload">
+                  <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
+                    Cargar en Lote
+                  </Button>
+                </label>
               </div>
               <MUIDataTable title={"Detalle Orden de Compra"} data={details} columns={columns} options={options} />
             </TabPanel>

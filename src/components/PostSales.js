@@ -1,7 +1,7 @@
 import Navbar0 from "./Navbar0";
 import { makeStyles } from '@mui/styles';
 import { toast } from 'react-toastify';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect} from "react";
 import MUIDataTable from "mui-datatables";
 import { useNavigate } from 'react-router-dom';
 import AddIcon from '@material-ui/icons/Add';
@@ -15,7 +15,10 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { TextField } from '@mui/material';
 import { format } from 'date-fns'
 import moment from "moment";
-import { FiberPin } from "@material-ui/icons";
+
+import Button from '@mui/material/Button';
+import ButtonGroup from '@mui/material/ButtonGroup';
+import Box from '@mui/material/Box';
 
 
 
@@ -30,17 +33,17 @@ const useStyles = makeStyles({
 
 function PostSales(props) {
   const [purchaseOrders, setPurchaseOrders] = useState([])
-  const [fromDate, setFromDate] = useState(null);  //default desde currente date to 3 months ago
+  const [fromDate, setFromDate] = useState(moment().subtract(3,"months"));
   const [toDate, setToDate] = useState(moment);
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
-  
+
   const classes = useStyles();
-  
+
 
   const getPurchaseOrders = async () => {
     try {
-      const res = await fetch(`${API}/orden_compra_cab_param?empresa=${sessionStorage.getItem('currentEnterprise')}&fecha_inicio=${format(new Date(fromDate),'dd/MM/yyyy')}&fecha_fin=${format(new Date(toDate),'dd/MM/yyyy')}`,
+      const res = await fetch(`${API}/orden_compra_cab_param?empresa=${sessionStorage.getItem('currentEnterprise')}&fecha_inicio=${format(new Date(fromDate), 'dd/MM/yyyy')}&fecha_fin=${format(new Date(toDate), 'dd/MM/yyyy')}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -55,6 +58,7 @@ function PostSales(props) {
       } else {
         const data = await res.json();
         setPurchaseOrders(data)
+        console.log('Ejecucion de GetPurchaseOrders')
       }
     } catch (error) {
       toast.error('Sesión caducada. Por favor, inicia sesión nuevamente.');
@@ -79,7 +83,7 @@ function PostSales(props) {
       await rowsDeleted.data.forEach((deletedRow) => {
         const deletedRowIndex = deletedRow.dataIndex;
         const deletedRowValue = purchaseOrders[deletedRowIndex];
-        fetch(`${API}/eliminar_orden_compra_total/${deletedRowValue.cod_po}/${sessionStorage.getItem('currentEnterprise')}`, {
+        fetch(`${API}/eliminar_orden_compra_total/${deletedRowValue.cod_po}/${sessionStorage.getItem('currentEnterprise')}/PO`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -107,22 +111,14 @@ function PostSales(props) {
 
   const handleChangeDate = async (e) => {
     e.preventDefault();
-      getPurchaseOrders()
-    }
-    
+    getPurchaseOrders()
+  }
+
 
   const columns = [
     {
       name: "cod_po",
       label: "Referencia"
-    },
-    {
-      name: "invoice",
-      label: "Invoice"
-    },
-    {
-      name: "bl_no",
-      label: "BL No"
     },
     {
       name: "nombre",
@@ -182,6 +178,20 @@ function PostSales(props) {
     <SnackbarProvider>
       <div>
         <Navbar0 />
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'right',
+            '& > *': {
+              m: 1,
+            },
+          }}
+        >
+          <ButtonGroup variant="text" aria-label="text button group" > 
+            <Button onClick={() => {navigate('/dashboard')}}>Módulos</Button>
+          </ButtonGroup>
+        </Box>
         <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
           <button
             className="btn btn-primary btn-block"
@@ -213,19 +223,19 @@ function PostSales(props) {
                     onChange={(newValue) => setToDate(newValue)}
                     renderInput={(params) => <TextField {...params} />}
                     format="DD/MM/YYYY"
-                    
+
                   />
                 </DemoContainer>
               </LocalizationProvider>
             </div>
             <div>
-            <button
-            className="btn btn-primary btn-block"
-            type="button"
-            style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
-            onClick={handleChangeDate} >
-            <SearchIcon /> Buscar
-          </button>
+              <button
+                className="btn btn-primary btn-block"
+                type="button"
+                style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
+                onClick={handleChangeDate} >
+                <SearchIcon /> Buscar
+              </button>
             </div>
           </div>
         </div>
