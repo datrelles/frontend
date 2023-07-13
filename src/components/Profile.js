@@ -57,21 +57,22 @@ function Profile(props) {
   }
 
   const getBranches = async (selectedKey) => {
+    if (sessionStorage.getItem('currentEnterprise')){
+      const res = await fetch(`${API}/branch/${sessionStorage.getItem('currentUser')}/${selectedKey}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + props.token
+        }
+      })
 
-    const res = await fetch(`${API}/branch/${sessionStorage.getItem('currentUser')}/${selectedKey}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + props.token
-      }
-    })
-
-    const data = await res.json();
-    const newData = data.map(item => ({
-      key: item.COD_AGENCIA,
-      value: item.NOMBRE
-    }));
-    setBranches(newData)
+      const data = await res.json();
+      const newData = data.map(item => ({
+        key: item.COD_AGENCIA,
+        value: item.NOMBRE
+      }));
+      setBranches(newData)
+    }
   }
 
   useEffect(() => {
