@@ -57,7 +57,7 @@ function Profile(props) {
   }
 
   const getBranches = async (selectedKey) => {
-    if (sessionStorage.getItem('currentUser')){
+    if (selectedKey){
       const res = await fetch(`${API}/branch/${sessionStorage.getItem('currentUser')}/${selectedKey}`, {
         method: 'GET',
         headers: {
