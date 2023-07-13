@@ -18,7 +18,7 @@ function Dashboard(props) {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + props.token
+        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
       }
     })
 

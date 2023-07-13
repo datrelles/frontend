@@ -26,21 +26,22 @@ function App() {
   const [authorized, setAuthorized] = useState(false);
 
   useEffect(() => {
-    const checkAuthorization = async () => {
-      const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token
-        }
-      });
-      const data = await res.json();
-      const isAuthorized = data.some((item) => item.COD_SISTEMA.includes('IMP'));
-      setAuthorized(isAuthorized);
-    };
+    if (sessionStorage.getItem('currentEnterprise')){
+      const checkAuthorization = async () => {
+        const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          }
+        });
+        const data = await res.json();
+        const isAuthorized = data.some((item) => item.COD_SISTEMA.includes('IMP'));
+        setAuthorized(isAuthorized);
+      };
 
     checkAuthorization();
-  }, [token]);
+  }}, [token]);
 
 
   return (
