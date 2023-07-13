@@ -4,9 +4,9 @@ import { toast } from 'react-toastify';
 import React, { useState, useEffect} from "react";
 import MUIDataTable from "mui-datatables";
 import { useNavigate } from 'react-router-dom';
-import AddIcon from '@material-ui/icons/Add';
 import SearchIcon from '@material-ui/icons/Search';
 import LinearProgress from '@mui/material/LinearProgress';
+
 
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
@@ -34,9 +34,9 @@ const useStyles = makeStyles({
 
 function PostSales(props) {
   const [purchaseOrders, setPurchaseOrders] = useState([])
-  const [statusList, setStatusList] = useState([])
   const [fromDate, setFromDate] = useState(moment().subtract(3,"months"));
   const [toDate, setToDate] = useState(moment);
+  const [statusList, setStatusList] = useState([])
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
 
@@ -45,7 +45,7 @@ function PostSales(props) {
 
   const getPurchaseOrders = async () => {
     try {
-      const res = await fetch(`${API}/orden_compra_cab_param?empresa=${sessionStorage.getItem('currentEnterprise')}&fecha_inicio=${format(new Date(fromDate), 'dd/MM/yyyy')}&fecha_fin=${format(new Date(toDate), 'dd/MM/yyyy')}&cod_items[]=0&cod_items[]=2`,
+      const res = await fetch(`${API}/orden_compra_cab_param?empresa=${sessionStorage.getItem('currentEnterprise')}&fecha_inicio=${format(new Date(fromDate), 'dd/MM/yyyy')}&fecha_fin=${format(new Date(toDate), 'dd/MM/yyyy')}&cod_items[]=1&cod_items[]=3&cod_items[]=4&cod_items[]=5&cod_items[]=6&cod_items[]=7&cod_items[]=8`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -60,7 +60,7 @@ function PostSales(props) {
       } else {
         const data = await res.json();
         setPurchaseOrders(data)
-        console.log(data)
+        console.log('Ejecucion de GetPurchaseOrders')
       }
     } catch (error) {
       toast.error('Sesión caducada. Por favor, inicia sesión nuevamente.');
@@ -107,28 +107,9 @@ function PostSales(props) {
     }
   };
 
-  const handleChange2 = async (e) => {
-    e.preventDefault();
-    navigate('/newPostSales');
-  }
-
   const handleChangeDate = async (e) => {
     e.preventDefault();
     getPurchaseOrders()
-  }
-
-  const getStatusList = async () => {
-    const res = await fetch(`${API}/estados_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_modelo=IMPR`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-      }
-    })
-    const data = await res.json();
-    setStatusList(data.map((item) => ({
-      nombre: item.nombre,
-      cod: item.cod_item,
-    })));
   }
 
   const renderProgress = (value) => {
@@ -147,7 +128,8 @@ function PostSales(props) {
             backgroundColor: backgroundColor
           }
         }}
-        variant= "determinate" value={progress}/>
+
+        variant="determinate" value={progress} />
         <span>{name}</span>
       </div>
     );
@@ -167,6 +149,23 @@ function PostSales(props) {
     }else
     return "silver"
   }
+
+  const getStatusList = async () => {
+    const res = await fetch(`${API}/estados_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_modelo=IMPR`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+      }
+    })
+    const data = await res.json();
+    setStatusList(data.map((item) => ({
+      nombre: item.nombre,
+      cod: item.cod_item,
+    })));
+  }
+
+
+
 
   const columns = [
     {
@@ -253,13 +252,6 @@ function PostSales(props) {
           </ButtonGroup>
         </Box>
         <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
-          <button
-            className="btn btn-primary btn-block"
-            type="button"
-            style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
-            onClick={handleChange2} >
-            <AddIcon /> Nuevo
-          </button>
           <div className={classes.datePickersContainer}>
             <div>
               <LocalizationProvider dateAdapter={AdapterDayjs}>

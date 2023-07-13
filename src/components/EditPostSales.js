@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import React, { useState, useEffect } from "react";
 import Navbar0 from "./Navbar0";
 import Box from '@mui/material/Box';
@@ -16,11 +16,9 @@ import InputAdornment from '@mui/material/InputAdornment';
 import * as XLSX from 'xlsx'
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
+import TableRow from "@material-ui/core/TableRow";
+import TableCell from "@material-ui/core/TableCell";
 
-
-
-
-import { useNavigate } from 'react-router-dom';
 
 
 const API = process.env.REACT_APP_API;
@@ -198,13 +196,6 @@ function EditPostSales(props) {
 
   }, [])
 
-/*   useEffect(() => {
-    // Clear the formData state when the page is refreshed
-    if (window.location.reload) {
-      setFormData(null);
-    }
-  }, [window.location.reload]); */
-
   const columns = [
     {
       name: "secuencia",
@@ -229,6 +220,10 @@ function EditPostSales(props) {
     {
       name: "cantidad_pedido",
       label: "Cantidad"
+    },
+    {
+      name: "saldo_producto",
+      label: "Saldo"
     },
     {
       name: "costo_sistema",
@@ -281,7 +276,39 @@ function EditPostSales(props) {
         delete: "Borrar",
         deleteAria: "Borrar fila seleccionada"
       }
-    }
+    },
+    customRowRender: (data, dataIndex, rowIndex) => {
+      const colors = {
+        "green": "#00ff00",
+        "white": "#ffffff",
+        "red": "#f2bdcd",
+      };
+  
+      let backgroundColor = colors.grey;
+      if (parseInt(data[6]) < 0) {
+        backgroundColor = colors.red;
+      } else if (parseInt(data["saldo_producto"]) == 0 || data["saldo_producto"]==null) {
+        backgroundColor = colors.white;
+      }
+  
+      return (
+        <TableRow 
+        onClick={() => handleRowClick(data)}
+        style={{ backgroundColor: backgroundColor }}>
+          <TableCell />
+          <TableCell>{data[0]}</TableCell>
+          <TableCell>{data[1]}</TableCell>
+          <TableCell>{data[2]}</TableCell>
+          <TableCell>{data[3]}</TableCell>
+          <TableCell>{data[4]}</TableCell>
+          <TableCell>{data[5]}</TableCell>
+          <TableCell>{data[6]}</TableCell>
+          <TableCell>{data[7]}</TableCell>
+          <TableCell>{data[8]}</TableCell>
+          <TableCell>{data[9]}</TableCell>
+        </TableRow>
+      );
+    },
   }
 
 
@@ -366,7 +393,7 @@ function EditPostSales(props) {
         usuario_modifica: sessionStorage.getItem('currentUser'),
         fecha_modifica: moment().format('DD/MM/YYYY'),
         cod_modelo: codModelo,
-        cod_item: 2,
+        cod_item: 3,
         fecha_crea: fechaCrea
       })
     })

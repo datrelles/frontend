@@ -1,13 +1,31 @@
 import Navbar0 from "./Navbar0";
 import React, { useState, useEffect } from "react";
 import { Link } from 'react-router-dom';
-import repuestos from '../img/icon_repuestos.PNG';
-import garantias from '../img/icon_warranty.PNG';
-import contabilidad from '../img/icon_contable.png';
+import REP from '../img/icon_repuestos.PNG';
+import IMP from '../img/ship.png';
+import CONT from '../img/icon_contable.png';
 import massline from '../img/default.png';
 
+const API = process.env.REACT_APP_API;
 
 function Dashboard(props) {
+
+  const [moduleList, setModuleList] = useState([])
+
+  const getModules = async () => {
+
+    const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + props.token
+      }
+    })
+
+    const data = await res.json();
+    console.log(data)
+    setModuleList(data)
+  }
 
   function HoverImage(props) {
     const [isHovered, setIsHovered] = useState(false);
@@ -39,6 +57,26 @@ function Dashboard(props) {
     );
   }
 
+  useEffect(() => {
+    getModules();
+  }, [])
+
+  const listaElementos = moduleList.map((module) => (
+    <div className="col-lg-2 col-md-3 col-sm-5 pb-3">
+      <div className="avatar white text-center">
+        <Link to={module.RUTA}>
+          <HoverImage src={require('../img/ship.png')} alt={module.SISTEMA} style={{ marginBottom: '10px' }} />
+        </Link>
+      </div>
+      <div className="text-center mt-2">
+        <h6 className="font-weight-bold pt-2 mb-0">{module.SISTEMA}</h6>
+        <p className="text-muted mb-0">
+          <small>Empresa: {sessionStorage.getItem('currentEnterprise')}</small>
+        </p>
+      </div>
+    </div>
+  ));
+
   return (
     <div>
       <Navbar0 />
@@ -61,142 +99,7 @@ function Dashboard(props) {
               </ul>
             </div>
             <div className="card-body">
-              <div className="row pt-4">
-                <div className="col-lg-2 col-md-3 col-sm-5 pb-3">
-                  <div className="avatar white text-center">
-                    <Link to="/postSales">
-                      <HoverImage src={repuestos} alt="Repuestos" style={{ marginBottom: '10px' }} />
-                    </Link>
-                  </div>
-                  <div className="text-center mt-2">
-                    <h6 className="font-weight-bold pt-2 mb-0">Repuestos</h6>
-                    <p className="text-muted mb-0">
-                      <small>Empresa: {sessionStorage.getItem('currentEnterprise')}</small>
-                    </p>
-                  </div>
-                </div>
-                <div className="col-lg-2 col-md-3 col-sm-5 pb-3">
-                  <div className="avatar white text-center">
-                    <HoverImage src={garantias} alt="Repuestos" style={{ marginBottom: '10px' }} />
-                  </div>
-                  <div className="text-center mt-2">
-                    <h6 className="font-weight-bold pt-2 mb-0">Garantías</h6>
-                    <p className="text-muted mb-0">
-                      <small>Empresa: {sessionStorage.getItem('currentEnterprise')}</small>
-                    </p>
-                  </div>
-                </div>
-                <div className="col-lg-2 col-md-3 col-sm-5 pb-3">
-                  <div className="avatar white text-center">
-                    <HoverImage src={contabilidad} alt="Repuestos" style={{ marginBottom: '10px' }} />
-                  </div>
-                  <div className="text-center mt-2">
-                    <h6 className="font-weight-bold pt-2 mb-0">Contabilidad</h6>
-                    <p className="text-muted mb-0">
-                      <small>Empresa: {sessionStorage.getItem('currentEnterprise')}</small>
-                    </p>
-                  </div>
-                </div>
-                <div className="col-lg-2 col-md-3 col-sm-5 pb-3">
-                  <div className="avatar white text-center">
-                    <HoverImage src={massline} alt="Repuestos" style={{ marginBottom: '10px' }} />
-                  </div>
-                  <div className="text-center mt-2">
-                    <h6 className="font-weight-bold pt-2 mb-0">Modulo Empresarial</h6>
-                    <p className="text-muted mb-0">
-                      <small>Empresa: {sessionStorage.getItem('currentEnterprise')}</small>
-                    </p>
-                  </div>
-                </div>
-                <div className="col-lg-2 col-md-3 col-sm-5 pb-3">
-                  <div className="avatar white text-center">
-                    <HoverImage src={massline} alt="Repuestos" style={{ marginBottom: '10px' }} />
-                  </div>
-                  <div className="text-center mt-2">
-                    <h6 className="font-weight-bold pt-2 mb-0">Modulo Empresarial</h6>
-                    <p className="text-muted mb-0">
-                      <small>Empresa: {sessionStorage.getItem('currentEnterprise')}</small>
-                    </p>
-                  </div>
-                </div>
-                <div className="col-lg-2 col-md-3 col-sm-5 pb-3">
-                  <div className="avatar white text-center">
-                    <HoverImage src={massline} alt="Repuestos" style={{ marginBottom: '10px' }} />
-                  </div>
-                  <div className="text-center mt-2">
-                    <h6 className="font-weight-bold pt-2 mb-0">Modulo Empresarial</h6>
-                    <p className="text-muted mb-0">
-                      <small>Empresa: {sessionStorage.getItem('currentEnterprise')}</small>
-                    </p>
-                  </div>
-                </div>
-                <div className="col-lg-2 col-md-3 col-sm-5 pb-3">
-                  <div className="avatar white text-center">
-                    <HoverImage src={massline} alt="Repuestos" style={{ marginBottom: '10px' }} />
-                  </div>
-                  <div className="text-center mt-2">
-                    <h6 className="font-weight-bold pt-2 mb-0">Modulo Empresarial</h6>
-                    <p className="text-muted mb-0">
-                      <small>Empresa: {sessionStorage.getItem('currentEnterprise')}</small>
-                    </p>
-                  </div>
-                </div>
-                <div className="col-lg-2 col-md-3 col-sm-5 pb-3">
-                  <div className="avatar white text-center">
-                    <HoverImage src={massline} alt="Repuestos" style={{ marginBottom: '10px' }} />
-                  </div>
-                  <div className="text-center mt-2">
-                    <h6 className="font-weight-bold pt-2 mb-0">Modulo Empresarial</h6>
-                    <p className="text-muted mb-0">
-                      <small>Empresa: {sessionStorage.getItem('currentEnterprise')}</small>
-                    </p>
-                  </div>
-                </div>
-                <div className="col-lg-2 col-md-3 col-sm-5 pb-3">
-                  <div className="avatar white text-center">
-                    <HoverImage src={massline} alt="Repuestos" style={{ marginBottom: '10px' }} />
-                  </div>
-                  <div className="text-center mt-2">
-                    <h6 className="font-weight-bold pt-2 mb-0">Modulo Empresarial</h6>
-                    <p className="text-muted mb-0">
-                      <small>Empresa: {sessionStorage.getItem('currentEnterprise')}</small>
-                    </p>
-                  </div>
-                </div>
-                <div className="col-lg-2 col-md-3 col-sm-5 pb-3">
-                  <div className="avatar white text-center">
-                    <HoverImage src={massline} alt="Repuestos" style={{ marginBottom: '10px' }} />
-                  </div>
-                  <div className="text-center mt-2">
-                    <h6 className="font-weight-bold pt-2 mb-0">Modulo Empresarial</h6>
-                    <p className="text-muted mb-0">
-                      <small>Empresa: {sessionStorage.getItem('currentEnterprise')}</small>
-                    </p>
-                  </div>
-                </div>
-                <div className="col-lg-2 col-md-3 col-sm-5 pb-3">
-                  <div className="avatar white text-center">
-                    <HoverImage src={massline} alt="Repuestos" style={{ marginBottom: '10px' }} />
-                  </div>
-                  <div className="text-center mt-2">
-                    <h6 className="font-weight-bold pt-2 mb-0">Modulo Empresarial</h6>
-                    <p className="text-muted mb-0">
-                      <small>Empresa: {sessionStorage.getItem('currentEnterprise')}</small>
-                    </p>
-                  </div>
-                </div>
-                <div className="col-lg-2 col-md-3 col-sm-5 pb-3">
-                  <div className="avatar white text-center">
-                    <HoverImage src={massline} alt="Repuestos" style={{ marginBottom: '10px' }} />
-                  </div>
-                  <div className="text-center mt-2">
-                    <h6 className="font-weight-bold pt-2 mb-0">Modulo Empresarial</h6>
-                    <p className="text-muted mb-0">
-                      <small>Empresa: {sessionStorage.getItem('currentEnterprise')}</small>
-                    </p>
-                  </div>
-                </div>
-              </div>
+            <div className="row pt-4">{listaElementos}</div>
             </div>
             <div className="card-footer white text-center py-3">
               <a href="#!">View All Users</a>

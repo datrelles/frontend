@@ -68,32 +68,33 @@ function PostSaleDetails(props) {
 
   const handleChange2 = async (e) => {
     e.preventDefault();
-    const res = await fetch(`${API}/orden_compra_det/${codPo}/${sessionStorage.getItem('currentEnterprise')}/${secuencia}`, {
+    const res = await fetch(`${API}/orden_compra_det/${codPo}/${sessionStorage.getItem('currentEnterprise')}/PO`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + sessionStorage.getItem('token')
       },
       body: JSON.stringify({
-
-        cod_po: codPo,
-        secuencia: secuencia,
-        empresa: sessionStorage.getItem('currentEnterprise'),
-        cod_producto: codProducto,
-        cod_producto_modelo: codProductoModelo,
-        nombre: nombre,
-        nombre_china: nombreChina,
-        nombre_ingles: nombreIngles,
-        costo_sistema: parseFloat(costoSistema),
-        fob: parseFloat(fob),
-        fobTotal: parseFloat(fobTotal),
-        cantidad_pedido: parseInt(cantidadPedido, 10),
-        saldo_producto: parseInt(saldoProducto, 10),
-        unidad_medida: unidadMedida,
-        usuario_crea: usuarioCrea,
-        fecha_crea: fechaCrea,
         usuario_modifica: sessionStorage.getItem('currentUser'),
-        fecha_modifica: moment().format('DD/MM/YYYY')
+        cod_po: codPo,
+        empresa: sessionStorage.getItem('currentEnterprise'),
+        orders:[{   
+          secuencia: secuencia,
+          cod_producto: codProducto,
+          cod_producto_modelo: codProductoModelo,
+          nombre: nombre,
+          nombre_china: nombreChina,
+          nombre_ingles: nombreIngles,
+          costo_sistema: parseFloat(costoSistema),
+          fob: parseFloat(fob),
+          fobTotal: parseFloat(fobTotal),
+          cantidad_pedido: parseInt(cantidadPedido, 10),
+          saldo_producto: parseInt(saldoProducto, 10), 
+          unidad_medida: unidadMedida,
+          usuario_crea: usuarioCrea,
+          fecha_crea: fechaCrea,
+          fecha_modifica: moment().format('DD/MM/YYYY'),
+        }]
       })
     })
     const data = await res.json();
