@@ -41,20 +41,20 @@ function Profile(props) {
   }
 
   const getDefaultEnterprise = async () => {
-
-    const res = await fetch(`${API}/enterprise_default/${sessionStorage.getItem('currentUser')}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + props.token
-      }
-    })
+    if (sessionStorage.getItem('currentUser')){
+      const res = await fetch(`${API}/enterprise_default/${sessionStorage.getItem('currentUser')}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + props.token
+        }
+      })
 
     const data = await res.json();
     sessionStorage.setItem('currentEnterprise', data[0].EMPRESA_DEFECTO);
     setDefaultEnterprise(data[0].EMPRESA_DEFECTO)
 
-  }
+  }}
 
   const getBranches = async (selectedKey) => {
     if (selectedKey){
