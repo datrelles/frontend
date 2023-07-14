@@ -25,22 +25,22 @@ function App() {
 
   const [authorized, setAuthorized] = useState(false);
 
+  const checkAuthorization = async () => {
+    const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      }
+    });
+    const data = await res.json();
+    setAuthorized(data.some((item) => item.COD_SISTEMA.includes('IMP')));
+  };
+
+
   useEffect(() => {
     if (sessionStorage.getItem('currentEnterprise')){
-      const checkAuthorization = async () => {
-        const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token
-          }
-        });
-        const data = await res.json();
-        const isAuthorized = data.some((item) => item.COD_SISTEMA.includes('IMP'));
-        setAuthorized(isAuthorized);
-      };
-
-    checkAuthorization();
+      checkAuthorization();
   }}, [token]);
 
 
@@ -63,11 +63,11 @@ function App() {
                   <Route exact path="/newPostSales" element={<NewPostSales token={token} setToken={setToken} />}></Route>
                   <Route exact path="/postSaleDetails" element={<PostSaleDetails token={token} setToken={setToken} />}></Route>
                   <Route exact path="/newPostSaleDetail" element={<NewPostSaleDetail token={token} setToken={setToken} />}></Route>
-                  {authorized ? (
+                  {authorized ? 
                     <Route exact path="/imports" element={<Imports token={token} setToken={setToken} />} />
-                  ) : (
+                   : 
                     <Route path="/" element={<Login setToken={setToken} />} />
-                  )}
+                  }
                   <Route exact path="/settings" element={<Settings token={token} setToken={setToken} />}></Route>
                 </Routes>
               </>

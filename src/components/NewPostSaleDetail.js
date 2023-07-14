@@ -41,6 +41,7 @@ function NewPostSaleDetail(props) {
   const [usuarioCrea, setUsuarioCrea] = useState(formData.usuario_crea)
   const [usuarioModifica, setUsuarioModifica] = useState(formData.usuario_modifica)
   const [productsList, setProductsList] = useState([])
+  const [productModelList, setProductModelList] = useState([])
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -61,6 +62,7 @@ function NewPostSaleDetail(props) {
 
   useEffect(() => {
     getProductsList()
+    getProductModelList()
 
   }, [])
 
@@ -148,6 +150,22 @@ function NewPostSaleDetail(props) {
     setProductsList(list)
   }
 
+  const getProductModelList = async () => {
+    const res = await fetch(`${API}/producto_modelo`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+      }
+    })
+    const data = await res.json();
+    console.log(data)
+    const list = data.map((item) => ({
+      codigo: item.cod_producto,
+      nombre: item.nombre,
+    }));
+    setProductModelList(list)
+  }
+
   const handleProviderChange = (event, value) => {
     if (value) {
       const productoSeleccionado = productsList.find((producto) => producto.nombre === value);
@@ -159,6 +177,17 @@ function NewPostSaleDetail(props) {
     } else {
       setCodProducto('');
       setNombre('');
+    }
+  }
+
+  const handleProductModelChange = (event, value) => {
+    if (value) {
+      const productoSeleccionado = productModelList.find((producto) => producto.nombre === value);
+      if (productoSeleccionado) {
+        setCodProductoModelo(productoSeleccionado.codigo);
+      }
+    } else {
+      setCodProductoModelo('');
     }
   }
 
@@ -239,22 +268,25 @@ function NewPostSaleDetail(props) {
               },
             }}
           />
-          <TextField
-            disabled
-            id="cod-producto"
-            label="Codigo Producto"
-            type="text"
-            value={codProducto}
-            className="form-control"
-          />
-          <TextField
-            required
-            id="cod-producto-modelo"
-            label="Codigo Producto Modelo"
-            type="text"
-            onChange={e => setCodProductoModelo(e.target.value)}
-            value={codProductoModelo}
-            className="form-control"
+          <Autocomplete
+            id="ProductoModelo"
+            options={productModelList.map((producto) => producto.nombre)}
+            onChange={handleProductModelChange}
+            style={{ width: `290px` }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                required
+                label="Producto Modelo"
+                type="text"
+                value={nombre}
+                className="form-control"
+                style={{ width: `100%` }}
+                InputProps={{
+                  ...params.InputProps,
+                }}
+              />
+            )}
           />
           <Autocomplete
             id="Producto"
@@ -276,8 +308,16 @@ function NewPostSaleDetail(props) {
               />
             )}
           />
+           <TextField
+            disabled
+            id="cod-producto"
+            label="Codigo Producto"
+            type="text"
+            value={codProducto}
+            className="form-control"
+          />
           <TextField
-            required
+            disabled
             id="costo-sistema"
             label="Costo Sistema"
             type="number"
@@ -294,44 +334,6 @@ function NewPostSaleDetail(props) {
               },
             }}
           />
-          <TextField
-            required
-            id="fob"
-            label="Fob"
-            type="number"
-            onChange={e => setFob(e.target.value)}
-            value={fob}
-            className="form-control"
-            style={{ width: `130px` }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">$</InputAdornment>
-              ),
-              inputProps: {
-                style: { textAlign: 'right' },
-              },
-            }}
-          />
-          <TextField
-            required
-            id="fob-total"
-            label="Fob Total"
-            type="number"
-            onChange={e => setFobTotal(e.target.value)}
-            value={fobTotal}
-            className="form-control"
-            style={{ width: `130px` }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">$</InputAdornment>
-              ),
-              inputProps: {
-                style: { textAlign: 'right' },
-              },
-            }}
-          />
-          <div>
-
             <TextField
               required
               id="cantidad-pedido"
@@ -340,7 +342,7 @@ function NewPostSaleDetail(props) {
               onChange={e => setCantidadPedido(e.target.value)}
               value={cantidadPedido}
               className="form-control"
-              style={{ width: `130px` }}
+              style={{ width: `160px` }}
               InputProps={{
                 inputProps: {
                   style: { textAlign: 'right' },
@@ -351,7 +353,7 @@ function NewPostSaleDetail(props) {
             id="unidad-medida"
             options={unidadesMedida.map((unidadesMedida) => unidadesMedida.label)}
             onChange={handleMeasureChange}
-            style={{ width: `580px` }}
+            style={{ width: `120px` }}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -360,7 +362,7 @@ function NewPostSaleDetail(props) {
                 type="text"
                 value={unidadMedida}
                 className="form-control"
-                style={{ width: `100%` }}
+                style={{ width: `160%` }}
                 InputProps={{
                   ...params.InputProps,
                 }}
@@ -368,21 +370,20 @@ function NewPostSaleDetail(props) {
             )}
           />
             <TextField
-              required
+              disabled
               id="saldo-producto"
               label="Saldo Producto"
               type="text"
               onChange={e => setSaldoProducto(e.target.value)}
               value={saldoProducto}
               className="form-control"
-              style={{ width: `130px` }}
+              style={{ width: `160px` }}
               InputProps={{
                 inputProps: {
                   style: { textAlign: 'right' },
                 },
               }}
             />
-          </div>
         </div>
 
 

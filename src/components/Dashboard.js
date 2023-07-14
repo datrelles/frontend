@@ -102,7 +102,7 @@ function Dashboard(props) {
             <div className="row pt-4">{listaElementos}</div>
             </div>
             <div className="card-footer white text-center py-3">
-              <a href="#!">View All Users</a>
+              <a href="#!">Modulos Empresariales</a>
             </div>
           </div>
         </section>

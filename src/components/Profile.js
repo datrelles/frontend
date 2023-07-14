@@ -7,9 +7,6 @@ import { useNavigate } from 'react-router-dom';
 import { ContactSupportOutlined } from '@material-ui/icons';
 
 
-
-
-
 const API = process.env.REACT_APP_API;
 
 
@@ -51,8 +48,8 @@ function Profile(props) {
       })
 
     const data = await res.json();
-    sessionStorage.setItem('currentEnterprise', data[0].EMPRESA_DEFECTO);
-    setDefaultEnterprise(data[0].EMPRESA_DEFECTO)
+    sessionStorage.setItem('currentEnterprise', data[0].EMPRESA_ACTUAL);
+    setDefaultEnterprise(data[0].EMPRESA_ACTUAL)
 
   }}
 
@@ -94,10 +91,12 @@ function Profile(props) {
 
   const handleChange1 = async (selectedOptions) => {
     console.log(selectedOptions.selectedValue);
-    const selectedOption = branches.find((branch) => branch.value == selectedOptions.selectedValue); 
-    const selectedKey = selectedOption ? selectedOption.key : branches[0].key;
-    console.log(selectedKey);
-    sessionStorage.setItem('currentBranch', selectedKey);
+    const selectedOption = branches.find((branch) => branch.value == selectedOptions.selectedValue);
+    if (branches[0]){ 
+      const selectedKey = selectedOption ? selectedOption.key : branches[0].key;
+      console.log(selectedKey);
+      sessionStorage.setItem('currentBranch', selectedKey);
+    }
   }
 
   const handleChange2 = () => {

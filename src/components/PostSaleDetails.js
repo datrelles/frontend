@@ -30,6 +30,7 @@ function PostSaleDetails(props) {
   const [codProducto, setCodProducto] = useState(formData.cod_producto)
   const [codProductoModelo, setCodProductoModelo] = useState(formData.cod_producto_modelo)
   const [costoSistema, setCostoSistema] = useState(formData.costo_sistema)
+  const [costoCotizado, setCostoCotizado] = useState(formData.costo_cotizado)
   const [empresa, setEmpresa] = useState(formData.empresa)
   const [fechaCrea, setFechaCrea] = useState(formData.fecha_crea)
   const [fechaModifica, setFechaModifica] = useState(formData.fecha_modifica)
@@ -43,12 +44,14 @@ function PostSaleDetails(props) {
   const [unidadMedida, setUnidadMedida] = useState(formData.unidad_medida)
   const [usuarioCrea, setUsuarioCrea] = useState(formData.usuario_crea)
   const [usuarioModifica, setUsuarioModifica] = useState(formData.usuario_modifica)
+  const [productModelList, setProductModelList] = useState([])
 
   const { enqueueSnackbar } = useSnackbar();
 
 
   useEffect(() => {
     setFormData(location.state)
+    getProductModelList()
   }, [])
 
   const unidadesMedida = [
@@ -65,6 +68,33 @@ function PostSaleDetails(props) {
       label: "Set"
     }
   ]
+
+  const getProductModelList = async () => {
+    const res = await fetch(`${API}/producto_modelo`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+      }
+    })
+    const data = await res.json();
+    console.log(data)
+    const list = data.map((item) => ({
+      codigo: item.cod_producto,
+      nombre: item.nombre,
+    }));
+    setProductModelList(list)
+  }
+
+  const handleProductModelChange = (event, value) => {
+    if (value) {
+      const productoSeleccionado = productModelList.find((producto) => producto.nombre === value);
+      if (productoSeleccionado) {
+        setCodProductoModelo(productoSeleccionado.codigo);
+      }
+    } else {
+      setCodProductoModelo('');
+    }
+  }
 
   const handleChange2 = async (e) => {
     e.preventDefault();
@@ -86,6 +116,7 @@ function PostSaleDetails(props) {
           nombre_china: nombreChina,
           nombre_ingles: nombreIngles,
           costo_sistema: parseFloat(costoSistema),
+          costo_cotizado: parseFloat(costoCotizado),
           fob: parseFloat(fob),
           fobTotal: parseFloat(fobTotal),
           cantidad_pedido: parseInt(cantidadPedido, 10),
@@ -191,8 +222,28 @@ function PostSaleDetails(props) {
               },
             }}
           />
+          <Autocomplete
+            id="ProductoModelo"
+            options={productModelList.map((producto) => producto.nombre)}
+            onChange={handleProductModelChange}
+            style={{ width: `290px` }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                required
+                label="Producto Modelo"
+                type="text"
+                value={nombre}
+                className="form-control"
+                style={{ width: `100%` }}
+                InputProps={{
+                  ...params.InputProps,
+                }}
+              />
+            )}
+          />
           <TextField
-            required
+            disabled
             id="cod-producto"
             label="Codigo Producto"
             type="text"
@@ -201,16 +252,7 @@ function PostSaleDetails(props) {
             className="form-control"
           />
           <TextField
-            required
-            id="cod-producto-modelo"
-            label="Codigo Producto Modelo"
-            type="text"
-            onChange={e => setCodProductoModelo(e.target.value)}
-            value={codProductoModelo}
-            className="form-control"
-          />
-          <TextField
-            required
+            disabled
             id="producto"
             label="Producto"
             type="text"
@@ -225,12 +267,30 @@ function PostSaleDetails(props) {
             }}
           />
           <TextField
-            required
+            disabled
             id="costo-sistema"
             label="Costo Sistema"
             type="number"
             onChange={e => setCostoSistema(e.target.value)}
             value={costoSistema}
+            className="form-control"
+            style={{ width: `130px` }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">$</InputAdornment>
+              ),
+              inputProps: {
+                style: { textAlign: 'right' },
+              },
+            }}
+          />
+          <TextField
+            required
+            id="costo-cotizado"
+            label="Costo Cotizado"
+            type="number"
+            onChange={e => setCostoCotizado(e.target.value)}
+            value={costoCotizado}
             className="form-control"
             style={{ width: `130px` }}
             InputProps={{
@@ -261,7 +321,7 @@ function PostSaleDetails(props) {
             }}
           />
           <TextField
-            required
+            disabled
             id="fob-total"
             label="Fob Total"
             type="number"
@@ -299,7 +359,7 @@ function PostSaleDetails(props) {
             id="unidad-medida"
             options={unidadesMedida.map((unidadesMedida) => unidadesMedida.label)}
             onChange={handleMeasureChange}
-            style={{ width: `580px` }}
+            style={{ width: `160px` }}
             value={unidadMedida}
             renderInput={(params) => (
               <TextField
