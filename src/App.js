@@ -22,7 +22,7 @@ const API = process.env.REACT_APP_API;
 
 function App() {
   const { token, removeToken, setToken } = useToken();
-  const [authorizedSystems, setAuthorizedSystems] = useState([]);
+  const [authorizedSystems, setAuthorizedSystems] = useState(['IMP','REP']);
 
   const checkAuthorization = async () => {
     const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
