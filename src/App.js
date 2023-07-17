@@ -22,10 +22,9 @@ const API = process.env.REACT_APP_API;
 
 function App() {
   const { token, removeToken, setToken } = useToken();
+  const [authorized, setAuthorized] = useState(true);
 
-  const [authorized, setAuthorized] = useState(false);
-
-  const checkAuthorization = async () => {
+  const checkAuthorization = async (route) => {
     const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
       method: 'GET',
       headers: {
@@ -34,7 +33,7 @@ function App() {
       }
     });
     const data = await res.json();
-    setAuthorized(data.some((item) => item.COD_SISTEMA.includes('IMP')));
+    setAuthorized(data.some((item) => item.COD_SISTEMA.includes(route)));
   };
 
 
@@ -43,6 +42,7 @@ function App() {
       checkAuthorization();
   }}, [token]);
 
+  
 
   return (
     <div>
