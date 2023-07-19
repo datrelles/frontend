@@ -1,4 +1,4 @@
-#Iniciando la aplicacion Frontend para Massline Shineray
+# Iniciando la aplicacion Frontend para Massline Shineray
 
 ## Requerimientos necesarios para la ejecucion de la app
 
