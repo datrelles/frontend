@@ -8,6 +8,8 @@ su version 20.4.0 o superior y npm en su version 9.7.2 o superior.
 El proyecto depende de librerias especificas, estas se encuentran en el archivo package.json, en dependencies.
   *Ejecutando el comando npm install se instalaran todas las librerias listadas en package.json
 
+### `npm install`
+
 ## Configuraciones necesarias
 
 Se debe tener en cuenta que el repositorio requiere que en archivo .env se cambien las variables de entorno acorde 
