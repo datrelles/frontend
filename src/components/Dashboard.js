@@ -11,7 +11,7 @@ const API = process.env.REACT_APP_API;
 function Dashboard(props) {
 
   const [moduleList, setModuleList] = useState([])
-
+  const [menus, setMenus] = useState([])
   const getModules = async () => {
 
     const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
@@ -65,7 +65,7 @@ function Dashboard(props) {
     <div className="col-lg-2 col-md-3 col-sm-5 pb-3">
       <div className="avatar white text-center">
         <Link to={module.RUTA}>
-          <HoverImage src={require('../img/ship.png')} alt={module.SISTEMA} style={{ marginBottom: '10px' }} />
+          <HoverImage src={require(`../img/${module.PATH_IMAGEN}`)} alt={module.SISTEMA} style={{ marginBottom: '10px' }} />
         </Link>
       </div>
       <div className="text-center mt-2">
@@ -79,7 +79,7 @@ function Dashboard(props) {
 
   return (
     <div>
-      <Navbar0 />
+      <Navbar0 menus={menus}/>
       <div className="container my-5">
 
         <section className="team-section">

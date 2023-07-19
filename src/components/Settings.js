@@ -6,6 +6,8 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Navbar0 from "./Navbar0";
 import { styled } from '@mui/system';
+import { useState, useEffect } from "react";
+
 
 
 function TabPanel(props) {
@@ -56,6 +58,7 @@ function a11yProps(index) {
 
 export default function VerticalTabs() {
   const [value, setValue] = React.useState(0);
+  const [menus, setMenus] = useState([]);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -63,7 +66,7 @@ export default function VerticalTabs() {
 
   return (
     <div>
-      <Navbar0 />
+      <Navbar0 menus={menus}/>
       <Box
         sx={{ flexGrow: 1, bgcolor: 'background.paper', display: 'flex', maxHeight: '100%' }}
       >

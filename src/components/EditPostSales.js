@@ -31,7 +31,7 @@ function EditPostSales(props) {
   const [formData, setFormData] = useState(location.state)
   const [tabValue, setTabValue] = useState(0);
   const [excelData, setExcelData] = useState(['']);
-
+  const [menus, setMenus] = useState([])
 
   const [blNo, setBlNo] = useState(formData.bl_no)
   const [codItem, setCodItem] = useState(formData.cod_item)
@@ -450,7 +450,7 @@ function EditPostSales(props) {
 
   return (
     <div>
-      <Navbar0 />
+      <Navbar0 menus={menus}/>
       <Box
           sx={{
             display: 'flex',

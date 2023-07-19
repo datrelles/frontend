@@ -37,6 +37,7 @@ function PostSales(props) {
   const [fromDate, setFromDate] = useState(moment().subtract(3,"months"));
   const [toDate, setToDate] = useState(moment);
   const [statusList, setStatusList] = useState([])
+  const [menus, setMenus] = useState([])
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
 
@@ -67,9 +68,33 @@ function PostSales(props) {
     }
   }
 
+  const getMenus = async () => {
+    try {
+      const res = await fetch(`${API}/menus/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}/IMP`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + props.token
+          }
+        });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          toast.error('Sesión caducada.');
+        }
+      } else {
+        const data = await res.json();
+        setMenus(data)
+        console.log(data)
+      }
+    } catch (error) {
+    }
+  }
+
   useEffect(() => {
     getPurchaseOrders();
     getStatusList();
+    getMenus();
     setToDate(null);
     setFromDate(null);
   }, [])
@@ -164,9 +189,6 @@ function PostSales(props) {
     })));
   }
 
-
-
-
   const columns = [
     {
       name: "cod_po",
@@ -236,7 +258,7 @@ function PostSales(props) {
   return (
     <SnackbarProvider>
       <div>
-        <Navbar0 />
+        <Navbar0 menus={menus}/>
         <Box
           sx={{
             display: 'flex',

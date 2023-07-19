@@ -38,6 +38,7 @@ function NewPostSales(props) {
   const [details, setDetails] = useState([]);
   const { enqueueSnackbar } = useSnackbar();
   const [estado, setEstado] = useState("");
+  const [menus, setMenus] = useState([]);
 
   const [excelData, setExcelData] = useState(['']);
 
@@ -290,7 +291,7 @@ function NewPostSales(props) {
 
   return (
     <div>
-      <Navbar0 />
+      <Navbar0 menus={menus}/>
       <Box
           sx={{
             display: 'flex',

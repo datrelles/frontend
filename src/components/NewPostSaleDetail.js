@@ -21,7 +21,7 @@ function NewPostSaleDetail(props) {
   const location = useLocation();
   const [formData, setFormData] = useState(location.state)
   const navigate = useNavigate();
-
+  const [menus, setMenus] = useState([]);
   const [cantidadPedido, setCantidadPedido] = useState(formData.cantidad_pedido)
   const [codPo, setCodPo] = useState(location.state)
   const [codProducto, setCodProducto] = useState('')
@@ -206,7 +206,7 @@ function NewPostSaleDetail(props) {
 
   return (
     <div>
-      <Navbar0 />
+      <Navbar0  menus={menus}/>
       <Box
         sx={{
           display: 'flex',
