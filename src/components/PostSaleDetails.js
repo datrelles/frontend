@@ -20,7 +20,7 @@ const API = process.env.REACT_APP_API;
 
 function PostSaleDetails(props) {
 
-
+  const [menus, setMenus] = useState([]);
   const location = useLocation();
   const [formData, setFormData] = useState(location.state)
   const navigate = useNavigate();
@@ -160,7 +160,7 @@ function PostSaleDetails(props) {
 
   return (
     <div>
-      <Navbar0 />
+       <Navbar0  menus={menus}/>
       <Box
           sx={{
             display: 'flex',
