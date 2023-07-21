@@ -1,10 +1,6 @@
 import Navbar0 from "./Navbar0";
 import React, { useState, useEffect } from "react";
 import { Link } from 'react-router-dom';
-import REP from '../img/icon_repuestos.PNG';
-import IMP from '../img/ship.png';
-import CONT from '../img/icon_contable.png';
-import massline from '../img/default.png';
 
 const API = process.env.REACT_APP_API;
 

@@ -8,13 +8,10 @@ import moment from 'moment';
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import { Tabs, Tab } from '@material-ui/core';
 import SaveIcon from '@material-ui/icons/Save';
-import AddIcon from '@material-ui/icons/Add';
 import Autocomplete from '@mui/material/Autocomplete';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import { useNavigate } from 'react-router-dom';
-
-
 
 const API = process.env.REACT_APP_API;
 
@@ -146,7 +143,6 @@ function NewPostSales(props) {
   const options = {
     filterType: 'dropdown',
     onRowsDelete: handleDeleteRows,
-    /*  onRowClick: handleRowClick, */
     textLabels: {
       body: {
         noMatch: "Lo siento, no se encontraron registros",
