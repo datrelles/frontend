@@ -64,7 +64,7 @@ function Dashboard(props) {
   const listaElementos = moduleList.map((module) => (
     <div className="col-lg-2 col-md-3 col-sm-5 pb-3">
       <div className="avatar white text-center">
-        <Link to={module.RUTA}>
+        <Link to={`${module.RUTA}?sistema=${module.COD_SISTEMA}`}>
           <HoverImage src={require(`../img/${module.PATH_IMAGEN}`)} alt={module.SISTEMA} style={{ marginBottom: '10px' }} />
         </Link>
       </div>

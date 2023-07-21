@@ -14,6 +14,7 @@ import PostSaleDetails from "./components/PostSaleDetails";
 import NewPostSaleDetail from "./components/NewPostSaleDetail";
 import Imports from "./components/Imports";
 import Settings from "./components/Settings";
+import Menus from "./components/Menus";
 
 const API = process.env.REACT_APP_API;
 
@@ -62,6 +63,7 @@ function App() {
                     <Route path="/" element={<Login setToken={setToken} />} />
                   }
                   <Route exact path="/editPostSales" element={<EditPostSales token={token} setToken={setToken} />}></Route>
+                  <Route exact path="/menus" element={<Menus token={token} setToken={setToken} />}></Route>
                   <Route exact path="/newPostSales" element={<NewPostSales token={token} setToken={setToken} />}></Route>
                   <Route exact path="/postSaleDetails" element={<PostSaleDetails token={token} setToken={setToken} />}></Route>
                   <Route exact path="/newPostSaleDetail" element={<NewPostSaleDetail token={token} setToken={setToken} />}></Route>
