@@ -9,6 +9,7 @@ import moment from 'moment';
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import { Tabs, Tab } from '@material-ui/core';
 import SaveIcon from '@material-ui/icons/Save';
+import SendIcon from '@material-ui/icons/Send';
 import AddIcon from '@material-ui/icons/Add';
 import CheckIcon from '@material-ui/icons/Check';
 import Autocomplete from '@mui/material/Autocomplete';
@@ -50,10 +51,23 @@ function EditPostSales(props) {
   const [usuarioModifica, setUsuarioModifica] = useState(formData.usuario_modifica)
   const [estado, setEstado] = useState("");
   const [providersList, setProvidersList] = useState([])
+  const [authorizedSystems, setAuthorizedSystems] = useState([]);
 
 
   const [details, setDetails] = useState([])
   const { enqueueSnackbar } = useSnackbar();
+
+  const checkAuthorization = async () => {
+    const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+      }
+    });
+    const data = await res.json();
+    setAuthorizedSystems(data.map(row => row.COD_SISTEMA));
+  };
 
 
   const getPurchaseOrder = async () => {
@@ -192,6 +206,7 @@ function EditPostSales(props) {
     getPurchaseOrdersDetails();
     getStatusList();
     getProvidersList();
+    checkAuthorization();
 
 
   }, [])
@@ -393,7 +408,43 @@ function EditPostSales(props) {
         usuario_modifica: sessionStorage.getItem('currentUser'),
         fecha_modifica: moment().format('DD/MM/YYYY'),
         cod_modelo: codModelo,
-        cod_item: 3,
+        cod_item: 2,
+        fecha_crea: fechaCrea
+      })
+    })
+    const data = await res.json();
+    console.log(data)
+    if (!data.error) {
+      enqueueSnackbar('¡Aprobado exitosamente!', { variant: 'success' });
+    } else {
+      enqueueSnackbar(data.error, { variant: 'error' });
+    }
+    setEstado('PEDIDO');
+
+  }
+
+  const handleChangeSend = async (e) => {
+    e.preventDefault();
+    const res = await fetch(`${API}/orden_compra_cab/${codPo}/${sessionStorage.getItem('currentEnterprise')}/PO`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+      },
+      body: JSON.stringify({
+        empresa: sessionStorage.getItem('currentEnterprise'),
+        tipo_comprobante: tipoCombrobante,
+        bodega: sessionStorage.getItem('currentBranch'),
+        cod_proveedor: codProveedor,
+        nombre: nombre,
+        proforma: proforma,
+        invoice: invoice,
+        bl_no: blNo,
+        cod_po_padre: codPoPadre,
+        usuario_modifica: sessionStorage.getItem('currentUser'),
+        fecha_modifica: moment().format('DD/MM/YYYY'),
+        cod_modelo: codModelo,
+        cod_item: 1,
         fecha_crea: fechaCrea
       })
     })
@@ -463,7 +514,7 @@ function EditPostSales(props) {
         >
           <ButtonGroup variant="text" aria-label="text button group" > 
             <Button style={{ width: `100px`, marginTop: '10px', marginRight: '10px', color:'#1976d2'}} onClick={() => {navigate('/dashboard')}}>Módulos</Button>
-            <Button style={{ marginTop: '10px', marginRight: '10px', color:'#1976d2'}} onClick={() => {navigate('/postSales')}}>Ordenes de Compra</Button>
+            <Button style={{ marginTop: '10px', marginRight: '10px', color:'#1976d2'}} onClick={() => {navigate(-1)}}>Ordenes de Compra</Button>
           </ButtonGroup>
         </Box>
       <Box
@@ -488,8 +539,17 @@ function EditPostSales(props) {
             <button
               className="btn btn-primary btn-block"
               type="button"
+              style={{ marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
+              onClick={handleChangeSend}
+              disabled={!authorizedSystems.includes('REP')}>
+              <SendIcon /> Solicitar
+            </button>
+            <button
+              className="btn btn-primary btn-block"
+              type="button"
               style={{ marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px' }}
-              onClick={handleChange4}>
+              onClick={handleChange4}
+              disabled={!authorizedSystems.includes('IMP')}>
               <CheckIcon /> Aprobar
             </button>
           </div>

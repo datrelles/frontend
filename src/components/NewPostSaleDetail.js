@@ -66,8 +66,6 @@ function NewPostSaleDetail(props) {
 
   }, [])
 
-
-
   const handleChange2 = async (e) => {
     e.preventDefault();
     const res = await fetch(`${API}/orden_compra_det`, {
@@ -123,15 +121,7 @@ function NewPostSaleDetail(props) {
     } else {
       enqueueSnackbar(data.error, { variant: 'error' });
     }
-
-
   }
-
-  const TabPanel = ({ value, index, children }) => (
-    <div hidden={value !== index}>
-      {value === index && children}
-    </div>
-  );
 
   const getProductsList = async () => {
     const res = await fetch(`${API}/productos`, {
@@ -167,6 +157,7 @@ function NewPostSaleDetail(props) {
   }
 
   const handleProviderChange = (event, value) => {
+    
     if (value) {
       const productoSeleccionado = productsList.find((producto) => producto.nombre === value);
       if (productoSeleccionado) {

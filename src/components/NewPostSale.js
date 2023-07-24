@@ -23,7 +23,7 @@ function NewPostSales(props) {
 
   const [codPo, setCodPo] = useState("");
   const [blNo, setBlNo] = useState("");
-  const [codItem, setCodItem] = useState("1");
+  const [codItem, setCodItem] = useState("0");
   const [codModelo, setCodModelo] = useState("");
   const [codPoPadre, setCodPoPadre] = useState("");
   const [codProveedor, setCodProveedor] = useState("");
