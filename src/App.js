@@ -4,6 +4,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Users from "./components/Users";
 import Login from "./components/Login";
+import Protected from "./components/Protected";
 import useToken from "./components/useToken";
 import Profile from "./components/Profile";
 import Dashboard from "./components/Dashboard";
@@ -22,7 +23,7 @@ const API = process.env.REACT_APP_API;
 
 function App() {
   const { token, removeToken, setToken } = useToken();
-  const [authorizedSystems, setAuthorizedSystems] = useState(['IMP','REP', 'GAR']);
+  const [authorizedSystems, setAuthorizedSystems] = useState(['IMP', 'REP', 'GAR']);
 
   const checkAuthorization = async () => {
     const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
@@ -38,11 +39,12 @@ function App() {
 
 
   useEffect(() => {
-    if (sessionStorage.getItem('currentEnterprise')){
+    if (sessionStorage.getItem('currentEnterprise')) {
       checkAuthorization();
-  }}, [token]);
+    }
+  }, [token]);
 
-  
+
 
   return (
     <div>
@@ -57,21 +59,13 @@ function App() {
                   <Route path="/users" element={<Users token={token} setToken={setToken} />} />
                   <Route exact path="/profile" element={<Profile token={token} setToken={setToken} />}></Route>
                   <Route exact path="/dashboard" element={<Dashboard token={token} setToken={setToken} />}></Route>
-                  {authorizedSystems.includes('REP') ? 
-                    <Route exact path="/postSales" element={<PostSales token={token} setToken={setToken} />}></Route>
-                   : 
-                    <Route path="/" element={<Login setToken={setToken} />} />
-                  }
+                  <Route exact path="/postSales" element={<Protected isLoggedIn={authorizedSystems.includes('REP')}><PostSales token={token} setToken={setToken} /></Protected>}></Route>
                   <Route exact path="/editPostSales" element={<EditPostSales token={token} setToken={setToken} />}></Route>
                   <Route exact path="/menus" element={<Menus token={token} setToken={setToken} />}></Route>
                   <Route exact path="/newPostSales" element={<NewPostSales token={token} setToken={setToken} />}></Route>
                   <Route exact path="/postSaleDetails" element={<PostSaleDetails token={token} setToken={setToken} />}></Route>
                   <Route exact path="/newPostSaleDetail" element={<NewPostSaleDetail token={token} setToken={setToken} />}></Route>
-                  {authorizedSystems.includes('IMP') ? 
-                    <Route exact path="/imports" element={<Imports token={token} setToken={setToken} />} />
-                   : 
-                    <Route path="/" element={<Login setToken={setToken} />} />
-                  }
+                  <Route exact path="/imports" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><Imports token={token} setToken={setToken} /></Protected>}/>
                   <Route exact path="/settings" element={<Settings token={token} setToken={setToken} />}></Route>
                 </Routes>
               </>
