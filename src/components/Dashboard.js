@@ -36,7 +36,7 @@ function Dashboard(props) {
 
     const imageStyle = {
       width: '100%',
-      borderRadius: '50%',
+      borderRadius: '25%',
       boxShadow: isHovered ? '0 0 10px rgba(0, 0, 0, 0.6)' : 'none',
       transform: isHovered ? 'scale(1.1)' : 'none',
       transition: 'all 0.3s ease-in-out',
