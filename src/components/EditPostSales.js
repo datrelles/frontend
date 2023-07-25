@@ -185,7 +185,7 @@ function EditPostSales(props) {
   const handleRowClick = (rowData, rowMeta) => {
     const row = details.filter(item => item.secuencia === rowData[0])[0];
     console.log(row)
-    navigate('/postSaleDetails', { state: row, orden: formData});
+    navigate('/postSaleDetails', { state: row, orden: formData });
   }
 
   const handleProviderChange = (event, value) => {
@@ -298,18 +298,18 @@ function EditPostSales(props) {
         "white": "#ffffff",
         "red": "#f2bdcd",
       };
-  
+
       let backgroundColor = colors.grey;
       if (parseInt(data[6]) < 0) {
         backgroundColor = colors.red;
-      } else if (parseInt(data["saldo_producto"]) == 0 || data["saldo_producto"]==null) {
+      } else if (parseInt(data["saldo_producto"]) == 0 || data["saldo_producto"] == null) {
         backgroundColor = colors.white;
       }
-  
+
       return (
-        <TableRow 
-        onClick={() => handleRowClick(data)}
-        style={{ backgroundColor: backgroundColor }}>
+        <TableRow
+          onClick={() => handleRowClick(data)}
+          style={{ backgroundColor: backgroundColor }}>
           <TableCell />
           <TableCell>{data[0]}</TableCell>
           <TableCell>{data[1]}</TableCell>
@@ -377,13 +377,13 @@ function EditPostSales(props) {
       })
     });
     const data2 = await res2.json();
-      console.log(data2);
+    console.log(data2);
 
-      if (!data2.error) {
-        enqueueSnackbar('¡Creado exitosamente!', { variant: 'success' });
-      } else {
-        enqueueSnackbar(data2.error, { variant: 'error' });
-      }
+    if (!data2.error) {
+      enqueueSnackbar('¡Creado exitosamente!', { variant: 'success' });
+    } else {
+      enqueueSnackbar(data2.error, { variant: 'error' });
+    }
 
   }
 
@@ -461,7 +461,7 @@ function EditPostSales(props) {
 
   const handleChange3 = async (e) => {
     e.preventDefault();
-    navigate('/newPostSaleDetail', { state: codPo, orden: location.state});
+    navigate('/newPostSaleDetail', { state: codPo, orden: location.state });
   }
 
   const handleFileUpload = (event) => {
@@ -487,7 +487,7 @@ function EditPostSales(props) {
 
         excelData.push(obj);
       }
-        console.log(excelData.slice[1])
+      console.log(excelData.slice[1])
     };
     reader.readAsArrayBuffer(file);
 
@@ -501,22 +501,22 @@ function EditPostSales(props) {
 
   return (
     <div>
-      <Navbar0 menus={menus}/>
+      <Navbar0 menus={menus} />
       <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'right',
-            '& > *': {
-              m: 1,
-            },
-          }}
-        >
-          <ButtonGroup variant="text" aria-label="text button group" > 
-            <Button style={{ width: `100px`, marginTop: '10px', marginRight: '10px', color:'#1976d2'}} onClick={() => {navigate('/dashboard')}}>Módulos</Button>
-            <Button style={{ marginTop: '10px', marginRight: '10px', color:'#1976d2'}} onClick={() => {navigate(-1)}}>Ordenes de Compra</Button>
-          </ButtonGroup>
-        </Box>
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'right',
+          '& > *': {
+            m: 1,
+          },
+        }}
+      >
+        <ButtonGroup variant="text" aria-label="text button group" >
+          <Button style={{ width: `100px`, marginTop: '10px', marginRight: '10px', color: '#1976d2' }} onClick={() => { navigate('/dashboard') }}>Módulos</Button>
+          <Button style={{ marginTop: '10px', marginRight: '10px', color: '#1976d2' }} onClick={() => { navigate(-1) }}>Ordenes de Compra</Button>
+        </ButtonGroup>
+      </Box>
       <Box
         component="form"
         sx={{
@@ -536,22 +536,33 @@ function EditPostSales(props) {
               onClick={handleChange2}>
               <SaveIcon /> Guardar
             </button>
-            <button
-              className="btn btn-primary btn-block"
-              type="button"
-              style={{ marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
-              onClick={handleChangeSend}
-              disabled={!authorizedSystems.includes('REP')}>
-              <SendIcon /> Solicitar
-            </button>
-            <button
-              className="btn btn-primary btn-block"
-              type="button"
-              style={{ marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px' }}
-              onClick={handleChange4}
-              disabled={!authorizedSystems.includes('IMP')}>
-              <CheckIcon /> Aprobar
-            </button>
+            {authorizedSystems.includes('REP') && (
+              <button
+                className="btn btn-primary btn-block"
+                type="button"
+                style={{ marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
+                onClick={handleChangeSend}>
+                <SendIcon /> Solicitar
+              </button>
+            )}
+            {authorizedSystems.includes('REP') && (
+              <button
+                className="btn btn-primary btn-block"
+                type="button"
+                style={{ marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
+                onClick={handleChangeSend}>
+                <CheckIcon /> Aprob. Comer.
+              </button>
+            )}
+            {authorizedSystems.includes('IMP') && (
+              <button
+                className="btn btn-primary btn-block"
+                type="button"
+                style={{ marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px' }}
+                onClick={handleChange4}>
+                <CheckIcon /> Cotizar
+              </button>
+            )}
           </div>
           <TextField
             disabled
@@ -623,8 +634,8 @@ function EditPostSales(props) {
                 },
               }}
             />
-              
-            
+
+
           </div>
           <TextField
             required
@@ -675,7 +686,7 @@ function EditPostSales(props) {
               },
             }}
           />
-          
+
           <div>
             <Tabs value={tabValue} onChange={(event, newValue) => setTabValue(newValue)}>
               <Tab label="Detalles" />
