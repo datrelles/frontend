@@ -474,7 +474,8 @@ function EditPostSales(props) {
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
       const properties = jsonData[0];
-
+      
+      const newExcelData = [];
 
       for (let i = 1; i < jsonData.length; i++) {
         const row = jsonData[i];
@@ -485,9 +486,11 @@ function EditPostSales(props) {
           obj[property] = row[j];
         }
 
-        excelData.push(obj);
+        newExcelData.push(obj);
       }
-      console.log(excelData.slice[1])
+      setExcelData(newExcelData)
+      setDetails((prevDetails) => [...prevDetails, ...newExcelData])
+      console.log(newExcelData)
     };
     reader.readAsArrayBuffer(file);
 
