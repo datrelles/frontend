@@ -12,6 +12,8 @@ import Autocomplete from '@mui/material/Autocomplete';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+
 
 const API = process.env.REACT_APP_API;
 
@@ -93,8 +95,31 @@ function NewPostSales(props) {
       });
     }
   };
+  const getMenus = async () => {
+    try {
+      const res = await fetch(`${API}/menus/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}/${sessionStorage.getItem('currentSystem')}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+          }
+        });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          toast.error('Sesión caducada.');
+        }
+      } else {
+        const data = await res.json();
+        setMenus(data)
+        console.log(data)
+      }
+    } catch (error) {
+    }
+  }
 
   useEffect(() => {
+    getMenus();
     getPurchaseOrdersDetails();
     getProvidersList();
     getStatusList();
@@ -103,39 +128,39 @@ function NewPostSales(props) {
 
   const columns = [
     {
-      name: "COD_PRODUCTO_MODELO",
+      name: "cod_producto_modelo",
       label: "Codigo Modelo"
     },
     {
-      name: "MODELO",
+      name: "modelo",
       label: "Modelo Moto"
     },
     {
-      name: "COD_PRODUCTO",
+      name: "cod_producto",
       label: "Codigo Producto"
     },
     {
-      name: "NOMBRE_INGLES",
+      name: "nombre_ingles",
       label: "Nombre Ingles"
     },
     {
-      name: "NOMBRE",
+      name: "nombre",
       label: "Nombre Producto"
     },
     {
-      name: "PEDIDO",
+      name: "pedido",
       label: "Pedido"
     },
     {
-      name: "AGRUPADO",
+      name: "agrupado",
       label: "Es Agrupado"
     },
     {
-      name: "NOMBRE_PROVEEDOR",
+      name: "nombre_proveedor",
       label: "NOMBRE PROVEEDOR"
     },
     {
-      name: "NOMBRE_COMERCIAL",
+      name: "nombre_comercial",
       label: "NOMBRE COMERCIAL"
     },
   ]

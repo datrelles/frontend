@@ -75,6 +75,7 @@ function Profile(props) {
   useEffect(() => {
     getEnterprises();
     getDefaultEnterprise();
+    sessionStorage.removeItem('currentSystem')
   }, [])
 
 

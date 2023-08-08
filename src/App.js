@@ -14,6 +14,9 @@ import NewPostSales from "./components/NewPostSale";
 import PostSaleDetails from "./components/PostSaleDetails";
 import NewPostSaleDetail from "./components/NewPostSaleDetail";
 import Imports from "./components/Imports";
+import Shipment from "./components/Shipment";
+import EditShipment from "./components/EditShipment";
+import PackingList from "./components/PackingList";
 import Settings from "./components/Settings";
 import Menus from "./components/Menus";
 
@@ -66,6 +69,9 @@ function App() {
                   <Route exact path="/postSaleDetails" element={<PostSaleDetails token={token} setToken={setToken} />}></Route>
                   <Route exact path="/newPostSaleDetail" element={<NewPostSaleDetail token={token} setToken={setToken} />}></Route>
                   <Route exact path="/imports" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><Imports token={token} setToken={setToken} /></Protected>}/>
+                  <Route exact path="/shipment" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><Shipment token={token} setToken={setToken} /></Protected>}/>
+                  <Route exact path="/editShipment" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><EditShipment token={token} setToken={setToken} /></Protected>}/>
+                  <Route exact path="/packingList" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><PackingList token={token} setToken={setToken} /></Protected>}/>
                   <Route exact path="/settings" element={<Settings token={token} setToken={setToken} />}></Route>
                 </Routes>
               </>

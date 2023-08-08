@@ -46,6 +46,7 @@ function Navbar0(props) {
     sessionStorage.removeItem('currentEnterprise');
     sessionStorage.removeItem('currentBranch');
     sessionStorage.removeItem("token");
+    sessionStorage.removeItem('currentSystem')
     navigate('/')
   }
 

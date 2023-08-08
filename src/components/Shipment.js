@@ -4,9 +4,9 @@ import { toast } from 'react-toastify';
 import React, { useState, useEffect} from "react";
 import MUIDataTable from "mui-datatables";
 import { useNavigate } from 'react-router-dom';
-import AddIcon from '@material-ui/icons/Add';
 import SearchIcon from '@material-ui/icons/Search';
 import LinearProgress from '@mui/material/LinearProgress';
+
 
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
@@ -32,11 +32,11 @@ const useStyles = makeStyles({
   },
 });
 
-function PostSales(props) {
-  const [purchaseOrders, setPurchaseOrders] = useState([])
-  const [statusList, setStatusList] = useState([])
+function Shipment(props) {
+  const [shipments, setShipments] = useState([])
   const [fromDate, setFromDate] = useState(moment().subtract(3,"months"));
   const [toDate, setToDate] = useState(moment);
+  const [statusList, setStatusList] = useState([])
   const [menus, setMenus] = useState([])
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
@@ -44,9 +44,9 @@ function PostSales(props) {
   const classes = useStyles();
 
 
-  const getPurchaseOrders = async () => {
+  const getShipments = async () => {
     try {
-      const res = await fetch(`${API}/orden_compra_cab_param?empresa=${sessionStorage.getItem('currentEnterprise')}&fecha_inicio=${format(new Date(fromDate), 'dd/MM/yyyy')}&fecha_fin=${format(new Date(toDate), 'dd/MM/yyyy')}&cod_items[]=0&cod_items[]=2`,
+      const res = await fetch(`${API}/embarque_param?empresa=${sessionStorage.getItem('currentEnterprise')}&fecha_inicio=${format(new Date(fromDate), 'dd/MM/yyyy')}&fecha_fin=${format(new Date(toDate), 'dd/MM/yyyy')}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -60,8 +60,7 @@ function PostSales(props) {
         }
       } else {
         const data = await res.json();
-        setPurchaseOrders(data)
-        console.log(data)
+        setShipments(data)
       }
     } catch (error) {
       toast.error('Sesión caducada. Por favor, inicia sesión nuevamente.');
@@ -92,16 +91,16 @@ function PostSales(props) {
   }
 
   useEffect(() => {
-    getPurchaseOrders();
-    getMenus();
+    getShipments();
     getStatusList();
+    getMenus();
     setToDate(null);
     setFromDate(null);
   }, [])
 
   const handleRowClick = (rowData, rowMeta) => {
-    const row = purchaseOrders.filter(item => item.cod_po === rowData[0])[0];
-    navigate('/editPostSales', { state: row });
+    const row = shipments.filter(item => item.codigo_bl_house === rowData[0])[0];
+    navigate('/editShipment', { state: row }); 
     console.log(row)
   }
 
@@ -110,7 +109,7 @@ function PostSales(props) {
     if (userResponse) {
       await rowsDeleted.data.forEach((deletedRow) => {
         const deletedRowIndex = deletedRow.dataIndex;
-        const deletedRowValue = purchaseOrders[deletedRowIndex];
+        const deletedRowValue = shipments[deletedRowIndex];
         fetch(`${API}/eliminar_orden_compra_total/${deletedRowValue.cod_po}/${sessionStorage.getItem('currentEnterprise')}/PO`, {
           method: 'DELETE',
           headers: {
@@ -132,32 +131,13 @@ function PostSales(props) {
     }
   };
 
-  const handleChange2 = async (e) => {
-    e.preventDefault();
-    navigate('/newPostSales');
-  }
-
   const handleChangeDate = async (e) => {
     e.preventDefault();
-    getPurchaseOrders()
-  }
-
-  const getStatusList = async () => {
-    const res = await fetch(`${API}/estados_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_modelo=IMPR`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-      }
-    })
-    const data = await res.json();
-    setStatusList(data.map((item) => ({
-      nombre: item.nombre,
-      cod: item.cod_item,
-    })));
+    getShipments()
   }
 
   const renderProgress = (value) => {
-    const progress = parseInt(value*100/(statusList.length-2), 10);
+    const progress = parseInt(value*100/(statusList.length-1), 10);
     let name = '';
     if (statusList.find((objeto) => objeto.cod === value)){
       name = statusList.find((objeto) => objeto.cod === value).nombre
@@ -172,7 +152,8 @@ function PostSales(props) {
             backgroundColor: backgroundColor
           }
         }}
-        variant= "determinate" value={progress}/>
+
+        variant="determinate" value={progress} />
         <span>{name}</span>
       </div>
     );
@@ -193,23 +174,45 @@ function PostSales(props) {
     return "silver"
   }
 
+  const getStatusList = async () => {
+    const res = await fetch(`${API}/estados_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_modelo=BL`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+      }
+    })
+    const data = await res.json();
+    setStatusList(data.map((item) => ({
+      nombre: item.nombre,
+      cod: item.cod_item,
+    })));
+  }
+
   const columns = [
     {
-      name: "cod_po",
-      label: "Referencia"
+      name: "codigo_bl_house",
+      label: "BL House"
     },
     {
-      name: "nombre",
-      label: "Proveedor"
+      name: "descripcion",
+      label: "Descripcion"
     },
     {
-      name: "fecha_crea",
-      label: "Fecha Pedido"
+      name: "fecha_adicion",
+      label: "fecha adicion"
     },
     {
-      name: "proforma",
-      label: "Proforma"
+        name: "fecha_llegada",
+        label: "fecha llegada"
+      },
+    {
+      name: "naviera",
+      label: "Naviera"
     },
+    {
+        name: "numero_tracking",
+        label: "Numero Tracking"
+      },
     {
       name: "cod_item",
       label: "Estado",
@@ -278,13 +281,6 @@ function PostSales(props) {
           </ButtonGroup>
         </Box>
         <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
-          <button
-            className="btn btn-primary btn-block"
-            type="button"
-            style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
-            onClick={handleChange2} >
-            <AddIcon /> Nuevo
-          </button>
           <div className={classes.datePickersContainer}>
             <div>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -325,8 +321,8 @@ function PostSales(props) {
           </div>
         </div>
         <MUIDataTable
-          title={"Ordenes de Compra"}
-          data={purchaseOrders}
+          title={"Embarques"}
+          data={shipments}
           columns={columns}
           options={options}
         />
@@ -335,4 +331,4 @@ function PostSales(props) {
   )
 }
 
-export default PostSales
+export default Shipment

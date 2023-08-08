@@ -32,6 +32,7 @@ function EditPostSales(props) {
   const [formData, setFormData] = useState(location.state)
   const [tabValue, setTabValue] = useState(0);
   const [excelData, setExcelData] = useState(['']);
+  const [excelDataPack, setExcelDataPack] = useState(['']);
   const [menus, setMenus] = useState([])
 
   const [blNo, setBlNo] = useState(formData.bl_no)
@@ -55,7 +56,31 @@ function EditPostSales(props) {
 
 
   const [details, setDetails] = useState([])
+  const [packingList, setPackingList] = useState([])
   const { enqueueSnackbar } = useSnackbar();
+
+  const getMenus = async () => {
+    try {
+      const res = await fetch(`${API}/menus/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}/${sessionStorage.getItem('currentSystem')}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+          }
+        });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          toast.error('Sesión caducada.');
+        }
+      } else {
+        const data = await res.json();
+        setMenus(data)
+        console.log(data)
+      }
+    } catch (error) {
+    }
+  }
 
   const checkAuthorization = async () => {
     const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
@@ -137,6 +162,27 @@ function EditPostSales(props) {
     setEstado(list.find((objeto) => objeto.cod === codItem).nombre)
   }
 
+  const getPackingList = async () => {
+    try {
+      const res = await fetch(`${API}/packinglist_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_po=${codPo}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        }
+      })
+      if (!res.ok) {
+        if (res.status === 401) {
+          toast.error('Sesión caducada.');
+        }
+      } else {
+        const data = await res.json();
+        setPackingList(data)
+      }
+    } catch (error) {
+      toast.error('Sesión caducada. Por favor, inicia sesión nuevamente.');
+    }
+  }
+
   const getProvidersList = async () => {
     const res = await fetch(`${API}/proveedores_ext?empresa=${sessionStorage.getItem('currentEnterprise')}`, {
       headers: {
@@ -202,12 +248,13 @@ function EditPostSales(props) {
   };
 
   useEffect(() => {
+    getMenus();
     getPurchaseOrder();
     getPurchaseOrdersDetails();
     getStatusList();
     getProvidersList();
     checkAuthorization();
-
+    getPackingList();
 
   }, [])
 
@@ -326,6 +373,73 @@ function EditPostSales(props) {
     },
   }
 
+  const columnsPacking = [
+    {
+      name: "secuencia",
+      label: "Secuencia"
+    },
+    {
+      name: "cod_producto",
+      label: "Codigo Producto"
+    },
+    {
+      name: "cantidad",
+      label: "Cantidad"
+    },
+    {
+      name: "fob",
+      label: "Fob"
+    },
+    {
+      name: "codigo_bl_house",
+      label: "Embarque"
+    },
+    {
+      name: "cod_liquidacion",
+      label: "Codigo Liquidacion"
+    },
+
+  ]
+
+  const optionsPacking = {
+    filterType: 'dropdown',
+    onRowsDelete: handleDeleteRows,
+    onRowClick: handleRowClick,
+    textLabels: {
+      body: {
+        noMatch: "Lo siento, no se encontraron registros",
+        toolTip: "Ordenar",
+        columnHeaderTooltip: column => `Ordenar por ${column.label}`
+      },
+      pagination: {
+        next: "Siguiente",
+        previous: "Anterior",
+        rowsPerPage: "Filas por página:",
+        displayRows: "de"
+      },
+      toolbar: {
+        search: "Buscar",
+        downloadCsv: "Descargar CSV",
+        print: "Imprimir",
+        viewColumns: "Ver columnas",
+        filterTable: "Filtrar tabla"
+      },
+      filter: {
+        all: "Todos",
+        title: "FILTROS",
+        reset: "REINICIAR"
+      },
+      viewColumns: {
+        title: "Mostrar columnas",
+        titleAria: "Mostrar/Ocultar columnas de tabla"
+      },
+      selectedRows: {
+        text: "fila(s) seleccionada(s)",
+        delete: "Borrar",
+        deleteAria: "Borrar fila seleccionada"
+      }
+    }
+  }
 
   const handleChange2 = async (e) => {
     e.preventDefault();
@@ -385,6 +499,30 @@ function EditPostSales(props) {
       enqueueSnackbar(data2.error, { variant: 'error' });
     }
 
+    const res3 = await fetch(`${API}/packinglist`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+      },
+      body: JSON.stringify({
+        packings: excelDataPack.slice(1),
+        cod_po: codPo,
+        empresa: sessionStorage.getItem('currentEnterprise'),
+        usuario_crea: sessionStorage.getItem('currentUser'),
+        cod_agencia: sessionStorage.getItem('currentBranch'),
+        tipo_comprobante: "PO"
+      })
+    });
+    const data3 = await res3.json();
+    console.log(data3);
+
+    if (!data3.error) {
+      enqueueSnackbar('¡Creado exitosamente!', { variant: 'success' });
+    } else {
+      enqueueSnackbar(data3.error, { variant: 'error' });
+    }
+
   }
 
   const handleChange4 = async (e) => {
@@ -416,10 +554,11 @@ function EditPostSales(props) {
     console.log(data)
     if (!data.error) {
       enqueueSnackbar('¡Aprobado exitosamente!', { variant: 'success' });
+      setEstado('COTIZADO');
     } else {
       enqueueSnackbar(data.error, { variant: 'error' });
     }
-    setEstado('PEDIDO');
+    
 
   }
 
@@ -451,11 +590,49 @@ function EditPostSales(props) {
     const data = await res.json();
     console.log(data)
     if (!data.error) {
-      enqueueSnackbar('¡Aprobado exitosamente!', { variant: 'success' });
+      enqueueSnackbar('¡Solicitado exitosamente!', { variant: 'success' });
+      setEstado('SOLICITADO');
     } else {
       enqueueSnackbar(data.error, { variant: 'error' });
     }
-    setEstado('PEDIDO');
+    
+
+  }
+
+  const handleChangeAprob = async (e) => {
+    e.preventDefault();
+    const res = await fetch(`${API}/orden_compra_cab/${codPo}/${sessionStorage.getItem('currentEnterprise')}/PO`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+      },
+      body: JSON.stringify({
+        empresa: sessionStorage.getItem('currentEnterprise'),
+        tipo_comprobante: tipoCombrobante,
+        bodega: sessionStorage.getItem('currentBranch'),
+        cod_proveedor: codProveedor,
+        nombre: nombre,
+        proforma: proforma,
+        invoice: invoice,
+        bl_no: blNo,
+        cod_po_padre: codPoPadre,
+        usuario_modifica: sessionStorage.getItem('currentUser'),
+        fecha_modifica: moment().format('DD/MM/YYYY'),
+        cod_modelo: codModelo,
+        cod_item: 3,
+        fecha_crea: fechaCrea
+      })
+    })
+    const data = await res.json();
+    console.log(data)
+    if (!data.error) {
+      enqueueSnackbar('¡Aprobado exitosamente!', { variant: 'success' });
+      setEstado('APROBACION COMERCIAL');
+    } else {
+      enqueueSnackbar(data.error, { variant: 'error' });
+    }
+    
 
   }
 
@@ -490,6 +667,38 @@ function EditPostSales(props) {
       }
       setExcelData(newExcelData)
       setDetails((prevDetails) => [...prevDetails, ...newExcelData])
+      console.log(newExcelData)
+    };
+    reader.readAsArrayBuffer(file);
+
+  };
+
+  const handleFileUpload2 = (event) => {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+      const properties = jsonData[0];
+      
+      const newExcelData = [];
+
+      for (let i = 1; i < jsonData.length; i++) {
+        const row = jsonData[i];
+
+        const obj = {};
+        for (let j = 0; j < properties.length; j++) {
+          const property = properties[j];
+          obj[property] = row[j];
+        }
+
+        newExcelData.push(obj);
+      }
+      setExcelDataPack(newExcelData)
+      setPackingList((prevDetails) => [...prevDetails, ...newExcelData])
       console.log(newExcelData)
     };
     reader.readAsArrayBuffer(file);
@@ -535,7 +744,7 @@ function EditPostSales(props) {
             <button
               className="btn btn-primary btn-block"
               type="button"
-              style={{ marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
+              style={{width: '220px', marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
               onClick={handleChange2}>
               <SaveIcon /> Guardar
             </button>
@@ -543,7 +752,7 @@ function EditPostSales(props) {
               <button
                 className="btn btn-primary btn-block"
                 type="button"
-                style={{ marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
+                style={{width: '220px', marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
                 onClick={handleChangeSend}>
                 <SendIcon /> Solicitar
               </button>
@@ -552,16 +761,16 @@ function EditPostSales(props) {
               <button
                 className="btn btn-primary btn-block"
                 type="button"
-                style={{ marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
-                onClick={handleChangeSend}>
-                <CheckIcon /> Aprob. Comer.
+                style={{ width: '220px', marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
+                onClick={handleChangeAprob}>
+                <CheckIcon /> Aprobar
               </button>
             )}
             {authorizedSystems.includes('IMP') && (
               <button
                 className="btn btn-primary btn-block"
                 type="button"
-                style={{ marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px' }}
+                style={{width: '200px', marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px' }}
                 onClick={handleChange4}>
                 <CheckIcon /> Cotizar
               </button>
@@ -693,7 +902,7 @@ function EditPostSales(props) {
           <div>
             <Tabs value={tabValue} onChange={(event, newValue) => setTabValue(newValue)}>
               <Tab label="Detalles" />
-              <Tab label="Productos" />
+              <Tab label="Packinglist" />
             </Tabs>
             <TabPanel value={tabValue} index={0}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
@@ -721,7 +930,22 @@ function EditPostSales(props) {
               <MUIDataTable title={"Detalle Orden de Compra"} data={details} columns={columns} options={options} />
             </TabPanel>
             <TabPanel value={tabValue} index={1}>
-              <p>Productos aquí</p>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
+                <input
+                  accept=".xlsx, .xls"
+                  id="file-upload"
+                  multiple
+                  type="file"
+                  style={{ display: 'none' }}
+                  onChange={handleFileUpload2}
+                />
+                <label htmlFor="file-upload">
+                  <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
+                    Cargar en Lote
+                  </Button>
+                </label>
+              </div>
+              <MUIDataTable title={"Packinglist Orden de Compra"} data={packingList} columns={columnsPacking} options={optionsPacking} />
             </TabPanel>
           </div>
         </div>
