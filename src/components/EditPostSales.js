@@ -510,7 +510,6 @@ function EditPostSales(props) {
         cod_po: codPo,
         empresa: sessionStorage.getItem('currentEnterprise'),
         usuario_crea: sessionStorage.getItem('currentUser'),
-        cod_agencia: sessionStorage.getItem('currentBranch'),
         tipo_comprobante: "PO"
       })
     });

@@ -33,7 +33,7 @@ const useStyles = makeStyles({
   datePickersContainer: {
     display: 'flex',
     flexDirection: 'column',
-    width: '300px'
+    width: '310px'
   },
 });
 
@@ -67,6 +67,8 @@ function EditShipment(props) {
   const [naviera, setNaviera] = useState(formData.naviera)
   const [numeroTracking, setNumeroTracking] = useState(formData.numero_tracking)
   const [tipoFlete, setTipoFlete] = useState(formData.tipo_flete)
+  const [codRegimen, setCodRegimen] = useState(formData.cod_regimen) //Falta enviar desde el get de embarque este campo
+  const [nroMrn, setNroMrn] = useState(formData.nro_mrn) //Falta enviar desde el get de embarque este campo
 
   const [estado, setEstado] = useState("");
   const [authorizedSystems, setAuthorizedSystems] = useState([]);
@@ -157,7 +159,9 @@ function EditShipment(props) {
       nombre: item.nombre,
       cod: item.cod_item,
     }));
-    setEstado(list.find((objeto) => objeto.cod === codItem).nombre)
+    if(codItem){
+      setEstado(list.find((objeto) => objeto.cod === codItem).nombre)
+    }
     setStatusList(list)
   }
 
@@ -196,8 +200,13 @@ function EditShipment(props) {
       }
     })
     const data = await res.json();
-    setPuertoNombre(data.find((objeto) => objeto.cod_puerto === codPuertoEmbarque).descripcion)
-    setPuertoDesNombre(data.find((objeto) => objeto.cod_puerto === codPuertoDesembarque).descripcion)
+    if (codPuertoEmbarque){
+      setPuertoNombre(data.find((objeto) => objeto.cod_puerto === codPuertoEmbarque).descripcion)
+    }
+    if (codPuertoDesembarque){
+      setPuertoDesNombre(data.find((objeto) => objeto.cod_puerto === codPuertoDesembarque).descripcion)
+    }
+
     setPuertoList(data)
 
   }
@@ -210,7 +219,9 @@ function EditShipment(props) {
       }
     })
     const data = await res.json();
-    setNavieraNombre(data.find((objeto) => objeto.codigo === naviera).nombre)
+    if (naviera){
+      setNavieraNombre(data.find((objeto) => objeto.codigo === naviera).nombre)
+    }
     setNavieraList(data)
 
   }
@@ -228,7 +239,9 @@ function EditShipment(props) {
       nombre: item.nombre,
       cod: item.cod_aforo,
     }));
-    setNombreAforo(list.find((objeto) => objeto.cod === formData.cod_aforo).nombre)
+    if(formData.cod_aforo){
+      setNombreAforo(list.find((objeto) => objeto.cod === formData.cod_aforo).nombre)
+    }
   }
 
 
@@ -484,7 +497,7 @@ function EditShipment(props) {
         costo_contenedor: costoContenedor,
         descripcion,
         tipo_flete: tipoFlete,
-        modificado_por: sessionStorage.getItem('currentEnterprise'),
+        modificado_por: sessionStorage.getItem('currentUser'),
         cod_modelo: codModelo,
         cod_item: codItem,
         cod_aforo: codAforo
@@ -733,6 +746,15 @@ function EditShipment(props) {
                     }}
                   />
                 )}
+              />
+              <TextField
+                required
+                id="cod-regimen"
+                label="Codigo Regimen"
+                type="text"
+                onChange={e => setCodRegimen(e.target.value)}
+                value={codRegimen}
+                className="form-control"
               />
             </Grid>
             <Grid item xs={4}>

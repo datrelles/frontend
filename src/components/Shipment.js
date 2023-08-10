@@ -6,6 +6,7 @@ import MUIDataTable from "mui-datatables";
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@material-ui/icons/Search';
 import LinearProgress from '@mui/material/LinearProgress';
+import AddIcon from '@material-ui/icons/Add';
 
 
 import { SnackbarProvider, useSnackbar } from 'notistack';
@@ -97,6 +98,11 @@ function Shipment(props) {
     setToDate(null);
     setFromDate(null);
   }, [])
+
+  const handleChange2 = async (e) => {
+    e.preventDefault();
+    navigate('/newShipment');
+  }
 
   const handleRowClick = (rowData, rowMeta) => {
     const row = shipments.filter(item => item.codigo_bl_house === rowData[0])[0];
@@ -281,6 +287,13 @@ function Shipment(props) {
           </ButtonGroup>
         </Box>
         <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
+        <button
+            className="btn btn-primary btn-block"
+            type="button"
+            style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
+            onClick={handleChange2} >
+            <AddIcon /> Nuevo
+          </button>
           <div className={classes.datePickersContainer}>
             <div>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
