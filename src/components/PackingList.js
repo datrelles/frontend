@@ -171,7 +171,7 @@ function PackingList(props) {
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h5 style={{ marginTop: '20px' }}>Editar Detalle de Orden de Compra</h5>
+            <h5 style={{ marginTop: '20px' }}>Editar PackingList</h5>
             <button
               className="btn btn-primary btn-block"
               type="button"

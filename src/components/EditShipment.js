@@ -82,8 +82,11 @@ function EditShipment(props) {
   const [navieraNombre, setNavieraNombre] = useState("")
   const [statusList, setStatusList] = useState([])
   const [fleteList, setFleteList] = useState([{ cod: "C", nombre: "AL COBRO" }, { cod: "P", nombre: "PREPAGADO" }])
-  const [fleteNombre, setFleteNombre] = useState(fleteList.find((flete) => flete.cod === formData.tipo_flete).nombre)
+  const foundFlete = fleteList.find((flete) => flete.cod === formData.tipo_flete);
+  const [fleteNombre, setFleteNombre] = useState(foundFlete ? foundFlete.nombre : "")
   const [packingList, setPackingList] = useState([])
+  const [regimenList, setRegimenList] = useState([])
+  const [regimenNombre, setRegimenNombre] = useState("")
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -159,7 +162,7 @@ function EditShipment(props) {
       nombre: item.nombre,
       cod: item.cod_item,
     }));
-    if(codItem){
+    if (codItem) {
       setEstado(list.find((objeto) => objeto.cod === codItem).nombre)
     }
     setStatusList(list)
@@ -200,10 +203,10 @@ function EditShipment(props) {
       }
     })
     const data = await res.json();
-    if (codPuertoEmbarque){
+    if (codPuertoEmbarque) {
       setPuertoNombre(data.find((objeto) => objeto.cod_puerto === codPuertoEmbarque).descripcion)
     }
-    if (codPuertoDesembarque){
+    if (codPuertoDesembarque) {
       setPuertoDesNombre(data.find((objeto) => objeto.cod_puerto === codPuertoDesembarque).descripcion)
     }
 
@@ -219,12 +222,27 @@ function EditShipment(props) {
       }
     })
     const data = await res.json();
-    if (naviera){
+    if (naviera) {
       setNavieraNombre(data.find((objeto) => objeto.codigo === naviera).nombre)
     }
     setNavieraList(data)
 
   }
+
+  const getRegimenList = async () => {
+    const res = await fetch(`${API}/regimen_aduana`, {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        }
+    })
+    const data = await res.json();
+    if (codRegimen) {
+        setRegimenNombre(data.find((objeto) => objeto.cod_regimen === codRegimen).descripcion)
+    }
+    setRegimenList(data)
+
+}
 
   const getAforoNombre = async () => {
 
@@ -239,7 +257,7 @@ function EditShipment(props) {
       nombre: item.nombre,
       cod: item.cod_aforo,
     }));
-    if(formData.cod_aforo){
+    if (formData.cod_aforo) {
       setNombreAforo(list.find((objeto) => objeto.cod === formData.cod_aforo).nombre)
     }
   }
@@ -333,6 +351,19 @@ function EditShipment(props) {
     }
   };
 
+  const handleRegimenChange = (event, value) => {
+    if (value) {
+        const regimenSeleccionado = regimenList.find((regimen) => regimen.descripcion === value);
+        if (regimenSeleccionado) {
+            setCodRegimen(regimenSeleccionado.cod_regimen);
+            setRegimenNombre(regimenSeleccionado.descripcion)
+        }
+    } else {
+        setCodRegimen('');
+        setRegimenNombre('')
+    }
+};
+
   const handleStatusChange = (event, value) => {
     if (value) {
       const statusSeleccionado = statusList.find((status) => status.nombre === value);
@@ -371,6 +402,7 @@ function EditShipment(props) {
     getMenus();
     getPuertoList();
     getNavieralist();
+    getRegimenList();
   }, [])
 
   const columns = [
@@ -500,7 +532,9 @@ function EditShipment(props) {
         modificado_por: sessionStorage.getItem('currentUser'),
         cod_modelo: codModelo,
         cod_item: codItem,
-        cod_aforo: codAforo
+        cod_aforo: codAforo,
+        cod_regimen: codRegimen,
+        nro_mrn: nroMrn
       })
     })
     const data = await res.json();
@@ -747,13 +781,33 @@ function EditShipment(props) {
                   />
                 )}
               />
+              <Autocomplete
+                id="regimen"
+                options={regimenList.map((regimen) => regimen.descripcion)}
+                value={regimenNombre}
+                onChange={handleRegimenChange}
+                style={{ width: `500px` }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    required
+                    label="Regimen"
+                    type="text"
+                    className="form-control"
+                    style={{ width: `100%` }}
+                    InputProps={{
+                      ...params.InputProps,
+                    }}
+                  />
+                )}
+              />
               <TextField
                 required
-                id="cod-regimen"
-                label="Codigo Regimen"
+                id="nro-mrn"
+                label="Nro Mrn"
                 type="text"
-                onChange={e => setCodRegimen(e.target.value)}
-                value={codRegimen}
+                onChange={e => setNroMrn(e.target.value)}
+                value={nroMrn}
                 className="form-control"
               />
             </Grid>
@@ -797,42 +851,42 @@ function EditShipment(props) {
                 className="form-control"
               />
               <div className={classes.datePickersContainer}>
-              <div>
-              <LocalizationProvider dateAdapter={AdapterDayjs} >
-                <DemoContainer components={['DatePicker', 'DatePicker']}>
-                  <DatePicker
-                    label="Fecha Embarque"
-                    value={dayjs(formData.fecha_embarque, "DD/MM/YYYY")}
-                    onChange={(newValue) => setFechaEmbarque(format(new Date(newValue), 'dd/MM/yyyy'))}
-                    format={'DD/MM/YYYY'}
-                  />
-                </DemoContainer>
-              </LocalizationProvider>
-              </div>
-              <div>
-              <LocalizationProvider dateAdapter={AdapterDayjs} >
-                <DemoContainer components={['DatePicker', 'DatePicker']}>
-                  <DatePicker
-                    label="Fecha Llegada"
-                    value={dayjs(formData.fecha_llegada, "DD/MM/YYYY")}
-                    onChange={(newValue) => setFechaLlegada(format(new Date(newValue), 'dd/MM/yyyy'))}
-                    format={'DD/MM/YYYY'}
-                  />
-                </DemoContainer>
-              </LocalizationProvider>
-              </div>
-              <div>
-              <LocalizationProvider dateAdapter={AdapterDayjs} >
-                <DemoContainer components={['DatePicker', 'DatePicker']}>
-                  <DatePicker
-                    label="Fecha Bodega"
-                    value={dayjs(formData.fecha_bodega, "DD/MM/YYYY")}
-                    onChange={(newValue) => setFechaBodega(format(new Date(newValue), 'dd/MM/yyyy'))}
-                    format={'DD/MM/YYYY'}
-                  />
-                </DemoContainer>
-              </LocalizationProvider>
-              </div>
+                <div>
+                  <LocalizationProvider dateAdapter={AdapterDayjs} >
+                    <DemoContainer components={['DatePicker', 'DatePicker']}>
+                      <DatePicker
+                        label="Fecha Embarque"
+                        value={dayjs(formData.fecha_embarque, "DD/MM/YYYY")}
+                        onChange={(newValue) => setFechaEmbarque(format(new Date(newValue), 'dd/MM/yyyy'))}
+                        format={'DD/MM/YYYY'}
+                      />
+                    </DemoContainer>
+                  </LocalizationProvider>
+                </div>
+                <div>
+                  <LocalizationProvider dateAdapter={AdapterDayjs} >
+                    <DemoContainer components={['DatePicker', 'DatePicker']}>
+                      <DatePicker
+                        label="Fecha Llegada"
+                        value={dayjs(formData.fecha_llegada, "DD/MM/YYYY")}
+                        onChange={(newValue) => setFechaLlegada(format(new Date(newValue), 'dd/MM/yyyy'))}
+                        format={'DD/MM/YYYY'}
+                      />
+                    </DemoContainer>
+                  </LocalizationProvider>
+                </div>
+                <div>
+                  <LocalizationProvider dateAdapter={AdapterDayjs} >
+                    <DemoContainer components={['DatePicker', 'DatePicker']}>
+                      <DatePicker
+                        label="Fecha Bodega"
+                        value={dayjs(formData.fecha_bodega, "DD/MM/YYYY")}
+                        onChange={(newValue) => setFechaBodega(format(new Date(newValue), 'dd/MM/yyyy'))}
+                        format={'DD/MM/YYYY'}
+                      />
+                    </DemoContainer>
+                  </LocalizationProvider>
+                </div>
               </div>
               <TextField
                 required

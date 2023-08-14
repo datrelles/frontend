@@ -84,6 +84,8 @@ function NewShipment(props) {
     const [fleteNombre, setFleteNombre] = useState("")
     const [packingList, setPackingList] = useState([])
     const [providerList, setProviderList] = useState([])
+    const [regimenList, setRegimenList] = useState([])
+    const [regimenNombre, setRegimenNombre] = useState("")
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -230,6 +232,21 @@ function NewShipment(props) {
 
     }
 
+    const getRegimenList = async () => {
+        const res = await fetch(`${API}/regimen_aduana`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            }
+        })
+        const data = await res.json();
+        if (codRegimen) {
+            setRegimenNombre(data.find((objeto) => objeto.cod_regimen === codRegimen).descripcion)
+        }
+        setRegimenList(data)
+
+    }
+
     const getAforoNombre = async () => {
 
         const res = await fetch(`${API}/tipo_aforo_param?empresa=${sessionStorage.getItem('currentEnterprise')}`, {
@@ -340,6 +357,20 @@ function NewShipment(props) {
         }
     };
 
+    const handleRegimenChange = (event, value) => {
+        if (value) {
+            const regimenSeleccionado = regimenList.find((regimen) => regimen.descripcion === value);
+            if (regimenSeleccionado) {
+                setCodRegimen(regimenSeleccionado.cod_regimen);
+                setRegimenNombre(regimenSeleccionado.descripcion)
+            }
+        } else {
+            setCodRegimen('');
+            setRegimenNombre('')
+        }
+    };
+
+
     const handleStatusChange = (event, value) => {
         if (value) {
             const statusSeleccionado = statusList.find((status) => status.nombre === value);
@@ -378,6 +409,7 @@ function NewShipment(props) {
         getMenus();
         getPuertoList();
         getNavieralist();
+        getRegimenList();
     }, [])
 
     const columns = [
@@ -478,7 +510,8 @@ function NewShipment(props) {
                 cod_modelo: codModelo,
                 cod_item: codItem,
                 cod_aforo: codAforo,
-                cod_regimen: codRegimen
+                cod_regimen: codRegimen,
+                nro_mrn: nroMrn
             })
         })
         const data = await res.json();
@@ -734,14 +767,25 @@ function NewShipment(props) {
                                     />
                                 )}
                             />
-                            <TextField
-                                required
-                                id="codigo-regimen"
-                                label="Codigo Regimen"
-                                type="text"
-                                onChange={e => setCodRegimen(e.target.value)}
-                                value={codRegimen}
-                                className="form-control"
+                            <Autocomplete
+                                id="regimen"
+                                options={regimenList.map((regimen) => regimen.descripcion)}
+                                value={regimenNombre}
+                                onChange={handleRegimenChange}
+                                style={{ width: `500px` }}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        required
+                                        label="Regimen"
+                                        type="text"
+                                        className="form-control"
+                                        style={{ width: `100%` }}
+                                        InputProps={{
+                                            ...params.InputProps,
+                                        }}
+                                    />
+                                )}
                             />
                             <TextField
                                 required

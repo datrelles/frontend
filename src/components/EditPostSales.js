@@ -234,6 +234,12 @@ function EditPostSales(props) {
     navigate('/postSaleDetails', { state: row, orden: formData });
   }
 
+  const handleRowClickPack = (rowData, rowMeta) => {
+    const row = packingList.filter(item => item.secuencia === rowData[0])[0];
+    console.log(row)
+    navigate('/packingList', { state: row, orden: formData });
+  }
+
   const handleProviderChange = (event, value) => {
     if (value) {
       const proveedorSeleccionado = providersList.find((proveedor) => proveedor.nombre === value);
@@ -404,7 +410,7 @@ function EditPostSales(props) {
   const optionsPacking = {
     filterType: 'dropdown',
     onRowsDelete: handleDeleteRows,
-    onRowClick: handleRowClick,
+    onRowClick: handleRowClickPack,
     textLabels: {
       body: {
         noMatch: "Lo siento, no se encontraron registros",
