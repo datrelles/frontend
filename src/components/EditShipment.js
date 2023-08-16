@@ -67,8 +67,8 @@ function EditShipment(props) {
   const [naviera, setNaviera] = useState(formData.naviera)
   const [numeroTracking, setNumeroTracking] = useState(formData.numero_tracking)
   const [tipoFlete, setTipoFlete] = useState(formData.tipo_flete)
-  const [codRegimen, setCodRegimen] = useState(formData.cod_regimen) //Falta enviar desde el get de embarque este campo
-  const [nroMrn, setNroMrn] = useState(formData.nro_mrn) //Falta enviar desde el get de embarque este campo
+  const [codRegimen, setCodRegimen] = useState(formData.cod_regimen)
+  const [nroMrn, setNroMrn] = useState(formData.nro_mrn) 
 
   const [estado, setEstado] = useState("");
   const [authorizedSystems, setAuthorizedSystems] = useState([]);
@@ -121,6 +121,26 @@ function EditShipment(props) {
       } else {
         const data = await res.json();
         setAgente(data[0].agente)
+        setBuque(data[0].buque)
+        setCodAforo(data[0].cod_aforo)
+        setCodItem(data[0].cod_item)
+        setCodModelo(data[0].cod_modelo)
+        setCodProveedor(data[0].cod_proveedor)
+        setCodPuertoDesembarque(data[0].cod_puerto_desembarque)
+        setCodPuertoEmbarque(data[0].cod_puerto_embarque)
+        setCodigoBlHouse(data[0].codigo_bl_house)
+        setCodigoBlMaster(data[0].codigo_bl_master)
+        setCostoContenedor(data[0].costo_contenedor)
+        setDescripcion(data[0].descripcion)
+        setFechaBodega(data[0].fecha_bodega)
+        setFechaEmbarque(data[0].fecha_embarque)
+        setFechaLlegada(data[0].fecha_llegada)
+        setModificadoPor(data[0].modificado_por)
+        setNaviera(data[0].naviera)
+        setNumeroTracking(data[0].numero_tracking)
+        setTipoFlete(data[0].tipo_flete)
+        setCodRegimen(data[0].cod_regimen)
+        setNroMrn(data[0].nro_mrn)
 
       }
     } catch (error) {
@@ -392,8 +412,8 @@ function EditShipment(props) {
 
 
   useEffect(() => {
-    getAforoNombre();
     getShipment();
+    getAforoNombre();
     getAforoList();
     getPackingList();
     getStatusList();
@@ -932,7 +952,7 @@ function EditShipment(props) {
           </Grid>
           <div>
             <Tabs value={tabValue} onChange={(event, newValue) => setTabValue(newValue)}>
-              <Tab label="Detalles" />
+              <Tab label="Packinglist" />
               <Tab label="Productos" />
             </Tabs>
             <TabPanel value={tabValue} index={0}>

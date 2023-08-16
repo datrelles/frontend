@@ -18,6 +18,7 @@ import Shipment from "./components/Shipment";
 import EditShipment from "./components/EditShipment";
 import NewShipment from "./components/NewShipment";
 import PackingList from "./components/PackingList";
+import PackingListTotal from "./components/PackingListTotal";
 import Settings from "./components/Settings";
 import Menus from "./components/Menus";
 
@@ -74,6 +75,7 @@ function App() {
                   <Route exact path="/editShipment" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><EditShipment token={token} setToken={setToken} /></Protected>}/>
                   <Route exact path="/newShipment" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><NewShipment token={token} setToken={setToken} /></Protected>}/>
                   <Route exact path="/packingList" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><PackingList token={token} setToken={setToken} /></Protected>}/>
+                  <Route exact path="/packinglistTotal" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><PackingListTotal token={token} setToken={setToken} /></Protected>}/>
                   <Route exact path="/settings" element={<Settings token={token} setToken={setToken} />}></Route>
                 </Routes>
               </>
