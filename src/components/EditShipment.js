@@ -6,6 +6,7 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import { toast } from 'react-toastify';
 import MUIDataTable from "mui-datatables";
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import moment from 'moment';
 import { SnackbarProvider, useSnackbar } from 'notistack';
@@ -631,6 +632,57 @@ function EditShipment(props) {
     }
   }
 
+  const getMuiTheme = () =>
+        createTheme({
+            components: {
+                MuiTableCell: {
+                    styleOverrides: {
+                        root: {
+                            paddingLeft: '3px', // Relleno a la izquierda
+                            paddingRight: '3px',
+                            paddingTop: '0px', // Ajusta el valor en el encabezado si es necesario
+                            paddingBottom: '0px',
+                            backgroundColor: '#00000',
+                            whiteSpace: 'nowrap',
+                            flex: 1,
+                            borderBottom: '1px solid #ddd',
+                            borderRight: '1px solid #ddd',
+                            fontSize: '14px'
+                        },
+                        head: {
+                            backgroundColor: 'firebrick', // Color de fondo para las celdas de encabezado
+                            color: '#ffffff', // Color de texto para las celdas de encabezado
+                            fontWeight: 'bold', // Añadimos negrita para resaltar el encabezado
+                            paddingLeft: '0px',
+                            paddingRight: '0px',
+                            fontSize: '12px'
+                        },
+                    }
+                },
+                MuiTable: {
+                    styleOverrides: {
+                        root: {
+                            borderCollapse: 'collapse', // Fusionamos los bordes de las celdas
+                        },
+                    },
+                },
+                MuiTableHead: {
+                    styleOverrides: {
+                        root: {
+                            borderBottom: '5px solid #ddd', // Línea inferior más gruesa para el encabezado
+                        },
+                    },
+                },
+                MuiToolbar: {
+                    styleOverrides: {
+                        regular: {
+                            minHeight: '10px',
+                        }
+                    }
+                }
+            }
+        });
+
   return (
     <div>
       <Navbar0 menus={menus} />
@@ -978,7 +1030,9 @@ function EditShipment(props) {
                   </Button>
                 </label>
               </div>
+              <ThemeProvider theme={getMuiTheme()}>
               <MUIDataTable title={"Packinglist de Embarque"} data={packingList} columns={columns} options={options} />
+              </ThemeProvider>
             </TabPanel>
             <TabPanel value={tabValue} index={1}>
               <p>Productos aquí</p>

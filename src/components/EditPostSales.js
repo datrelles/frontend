@@ -5,6 +5,7 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import { toast } from 'react-toastify';
 import MUIDataTable from "mui-datatables";
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import moment from 'moment';
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import { Tabs, Tab } from '@material-ui/core';
@@ -267,7 +268,10 @@ function EditPostSales(props) {
   const columns = [
     {
       name: "secuencia",
-      label: "Secuencia"
+      label: "Secuencia",
+      options: {
+        display: false, // Oculta la columna
+    },
     },
     {
       name: "cod_producto",
@@ -344,45 +348,16 @@ function EditPostSales(props) {
         delete: "Borrar",
         deleteAria: "Borrar fila seleccionada"
       }
-    },
-    customRowRender: (data, dataIndex, rowIndex) => {
-      const colors = {
-        "green": "#00ff00",
-        "white": "#ffffff",
-        "red": "#f2bdcd",
-      };
-
-      let backgroundColor = colors.grey;
-      if (parseInt(data[6]) < 0) {
-        backgroundColor = colors.red;
-      } else if (parseInt(data["saldo_producto"]) == 0 || data["saldo_producto"] == null) {
-        backgroundColor = colors.white;
-      }
-
-      return (
-        <TableRow
-          onClick={() => handleRowClick(data)}
-          style={{ backgroundColor: backgroundColor }}>
-          <TableCell />
-          <TableCell>{data[0]}</TableCell>
-          <TableCell>{data[1]}</TableCell>
-          <TableCell>{data[2]}</TableCell>
-          <TableCell>{data[3]}</TableCell>
-          <TableCell>{data[4]}</TableCell>
-          <TableCell>{data[5]}</TableCell>
-          <TableCell>{data[6]}</TableCell>
-          <TableCell>{data[7]}</TableCell>
-          <TableCell>{data[8]}</TableCell>
-          <TableCell>{data[9]}</TableCell>
-        </TableRow>
-      );
-    },
+    }
   }
 
   const columnsPacking = [
     {
       name: "secuencia",
-      label: "Secuencia"
+      label: "Secuencia",
+      options: {
+        display: false, // Oculta la columna
+    },
     },
     {
       name: "cod_producto",
@@ -716,6 +691,57 @@ function EditPostSales(props) {
     </div>
   );
 
+  const getMuiTheme = () =>
+        createTheme({
+            components: {
+                MuiTableCell: {
+                    styleOverrides: {
+                        root: {
+                            paddingLeft: '3px', // Relleno a la izquierda
+                            paddingRight: '3px',
+                            paddingTop: '0px', // Ajusta el valor en el encabezado si es necesario
+                            paddingBottom: '0px',
+                            backgroundColor: '#00000',
+                            whiteSpace: 'nowrap',
+                            flex: 1,
+                            borderBottom: '1px solid #ddd',
+                            borderRight: '1px solid #ddd',
+                            fontSize: '14px'
+                        },
+                        head: {
+                            backgroundColor: 'firebrick', // Color de fondo para las celdas de encabezado
+                            color: '#ffffff', // Color de texto para las celdas de encabezado
+                            fontWeight: 'bold', // Añadimos negrita para resaltar el encabezado
+                            paddingLeft: '0px',
+                            paddingRight: '0px',
+                            fontSize: '12px'
+                        },
+                    }
+                },
+                MuiTable: {
+                    styleOverrides: {
+                        root: {
+                            borderCollapse: 'collapse', // Fusionamos los bordes de las celdas
+                        },
+                    },
+                },
+                MuiTableHead: {
+                    styleOverrides: {
+                        root: {
+                            borderBottom: '5px solid #ddd', // Línea inferior más gruesa para el encabezado
+                        },
+                    },
+                },
+                MuiToolbar: {
+                    styleOverrides: {
+                        regular: {
+                            minHeight: '10px',
+                        }
+                    }
+                }
+            }
+        });
+
   return (
     <div>
       <Navbar0 menus={menus} />
@@ -863,28 +889,6 @@ function EditPostSales(props) {
             value={proforma}
             className="form-control"
           />
-
-
-          <TextField
-            required
-            id="invoice"
-            label="Invoice"
-            type="text"
-            onChange={e => setInvoice(e.target.value)}
-            value={invoice}
-            className="form-control"
-            style={{ width: `140px` }}
-          />
-          <TextField
-            required
-            id="blNo"
-            label="Bl No."
-            type="text"
-            onChange={e => setBlNo(e.target.value)}
-            value={blNo}
-            className="form-control"
-            style={{ width: `140px` }}
-          />
           <TextField
             required
             id="codModelo"
@@ -932,7 +936,9 @@ function EditPostSales(props) {
                   </Button>
                 </label>
               </div>
+              <ThemeProvider theme={getMuiTheme()}>
               <MUIDataTable title={"Detalle Orden de Compra"} data={details} columns={columns} options={options} />
+              </ThemeProvider>
             </TabPanel>
             <TabPanel value={tabValue} index={1}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
@@ -950,7 +956,9 @@ function EditPostSales(props) {
                   </Button>
                 </label>
               </div>
+              <ThemeProvider theme={getMuiTheme()}>
               <MUIDataTable title={"Packinglist Orden de Compra"} data={packingList} columns={columnsPacking} options={optionsPacking} />
+              </ThemeProvider>
             </TabPanel>
           </div>
         </div>

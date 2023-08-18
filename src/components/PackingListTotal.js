@@ -3,6 +3,7 @@ import { makeStyles } from '@mui/styles';
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
 import MUIDataTable from "mui-datatables";
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@material-ui/icons/Search';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -151,29 +152,6 @@ function PackingListTotal(props) {
         getPackingList()
     }
 
-    const renderProgress = (value) => {
-        const progress = parseInt(value * 100 / (statusList.length - 1), 10);
-        let name = '';
-        if (statusList.find((objeto) => objeto.cod === value)) {
-            name = statusList.find((objeto) => objeto.cod === value).nombre
-        }
-        const backgroundColor = getBackgroundColor(progress);
-        return (
-            <div>
-                <LinearProgress
-                    sx={{
-                        backgroundColor: 'silver',
-                        '& .MuiLinearProgress-bar': {
-                            backgroundColor: backgroundColor
-                        }
-                    }}
-
-                    variant="determinate" value={progress} />
-                <span>{name}</span>
-            </div>
-        );
-    };
-
     function getBackgroundColor(progress) {
         if (progress <= 20) {
             return "#FF3F33";
@@ -206,7 +184,10 @@ function PackingListTotal(props) {
     const columns = [
         {
             name: "secuencia",
-            label: "Secuencia"
+            label: "Secuencia",
+            options: {
+                display: false, // Oculta la columna
+            },
         },
         {
             name: "codigo_bl_house",
@@ -214,11 +195,19 @@ function PackingListTotal(props) {
                 customBodyRender: (value, tableMeta) => (
                     <span
                         style={{ cursor: 'pointer' }}
+                        onMouseOver={(e) => {
+                            e.target.style.color = 'blue';
+                            e.target.style.textDecoration = 'underline'
+                        }}
+                        onMouseOut={(e) => {
+                            e.target.style.color = 'black';
+                            e.target.style.textDecoration = 'none'
+                        }} 
                         onClick={() => handleRowClick(value)}
                     >
                         {value}
                     </span>
-                ),
+                )
             },
             label: "Embarque"
         },
@@ -232,7 +221,7 @@ function PackingListTotal(props) {
         },
         {
             name: "cantidad",
-            label: "Cantidad"
+            label: "Cant."
         },
         {
             name: "fob",
@@ -242,7 +231,28 @@ function PackingListTotal(props) {
             name: "estado",
             label: "Estado",
             options: {
-                customBodyRender: (value) => renderProgress(value),
+                customBodyRender: (value) => {
+                    const progress = parseInt(value * 100 / (statusList.length - 1), 10);
+                    let name = '';
+                    if (statusList.find((objeto) => objeto.cod === value)) {
+                        name = statusList.find((objeto) => objeto.cod === value).nombre
+                    }
+                    const backgroundColor = getBackgroundColor(progress);
+                    return (
+                        <div>
+                            <LinearProgress
+                                sx={{
+                                    backgroundColor: 'silver',
+                                    '& .MuiLinearProgress-bar': {
+                                        backgroundColor: backgroundColor
+                                    }
+                                }}
+
+                                variant="determinate" value={progress} />
+                            <span>{name}</span>
+                        </div>
+                    );
+                }
             },
         },
         {
@@ -251,6 +261,14 @@ function PackingListTotal(props) {
                 customBodyRender: (value, tableMeta) => (
                     <span
                         style={{ cursor: 'pointer' }}
+                        onMouseOver={(e) => {
+                            e.target.style.color = 'blue';
+                            e.target.style.textDecoration = 'underline'
+                        }}
+                        onMouseOut={(e) => {
+                            e.target.style.color = 'black';
+                            e.target.style.textDecoration = 'none'
+                        }} 
                         onClick={() => handleRowClick2(value)}
                     >
                         {value}
@@ -302,6 +320,58 @@ function PackingListTotal(props) {
         }
 
     }
+
+    const getMuiTheme = () =>
+        createTheme({
+            components: {
+                MuiTableCell: {
+                    styleOverrides: {
+                        root: {
+                            paddingLeft: '3px', // Relleno a la izquierda
+                            paddingRight: '3px',
+                            paddingTop: '0px', // Ajusta el valor en el encabezado si es necesario
+                            paddingBottom: '0px',
+                            backgroundColor: '#00000',
+                            whiteSpace: 'nowrap',
+                            flex: 1,
+                            borderBottom: '1px solid #ddd',
+                            borderRight: '1px solid #ddd',
+                            fontSize: '12px'
+                        },
+                        head: {
+                            backgroundColor: 'firebrick', // Color de fondo para las celdas de encabezado
+                            color: '#ffffff', // Color de texto para las celdas de encabezado
+                            fontWeight: 'bold', // Añadimos negrita para resaltar el encabezado
+                            paddingLeft: '0px',
+                            paddingRight: '0px',
+                            fontSize: '12px'
+                        },
+                    }
+                },
+                MuiTable: {
+                    styleOverrides: {
+                        root: {
+                            borderCollapse: 'collapse', // Fusionamos los bordes de las celdas
+                        },
+                    },
+                },
+                MuiTableHead: {
+                    styleOverrides: {
+                        root: {
+                            borderBottom: '5px solid #ddd', // Línea inferior más gruesa para el encabezado
+                        },
+                    },
+                },
+                MuiToolbar: {
+                    styleOverrides: {
+                        regular: {
+                            minHeight: '10px',
+                        }
+                    }
+                }
+            }
+        });
+
 
     return (
         <SnackbarProvider>
@@ -361,12 +431,14 @@ function PackingListTotal(props) {
                         </div>
                     </div>
                 </div>
-                <MUIDataTable
-                    title={"Packinglist general"}
-                    data={packingList}
-                    columns={columns}
-                    options={options}
-                />
+                <ThemeProvider theme={getMuiTheme()}>
+                    <MUIDataTable
+                        title={"Packinglist general"}
+                        data={packingList}
+                        columns={columns}
+                        options={options}
+                    />
+                </ThemeProvider>
             </div>
         </SnackbarProvider>
     )
