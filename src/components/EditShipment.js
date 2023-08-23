@@ -9,6 +9,7 @@ import MUIDataTable from "mui-datatables";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import moment from 'moment';
+import TrackingStep from "./TrackingStep";
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import { Tabs, Tab } from '@material-ui/core';
 import SaveIcon from '@material-ui/icons/Save';
@@ -69,7 +70,7 @@ function EditShipment(props) {
   const [numeroTracking, setNumeroTracking] = useState(formData.numero_tracking)
   const [tipoFlete, setTipoFlete] = useState(formData.tipo_flete)
   const [codRegimen, setCodRegimen] = useState(formData.cod_regimen)
-  const [nroMrn, setNroMrn] = useState(formData.nro_mrn) 
+  const [nroMrn, setNroMrn] = useState(formData.nro_mrn)
 
   const [estado, setEstado] = useState("");
   const [authorizedSystems, setAuthorizedSystems] = useState([]);
@@ -88,6 +89,8 @@ function EditShipment(props) {
   const [packingList, setPackingList] = useState([])
   const [regimenList, setRegimenList] = useState([])
   const [regimenNombre, setRegimenNombre] = useState("")
+
+  
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -252,18 +255,18 @@ function EditShipment(props) {
 
   const getRegimenList = async () => {
     const res = await fetch(`${API}/regimen_aduana`, {
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-        }
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+      }
     })
     const data = await res.json();
     if (codRegimen) {
-        setRegimenNombre(data.find((objeto) => objeto.cod_regimen === codRegimen).descripcion)
+      setRegimenNombre(data.find((objeto) => objeto.cod_regimen === codRegimen).descripcion)
     }
     setRegimenList(data)
 
-}
+  }
 
   const getAforoNombre = async () => {
 
@@ -374,16 +377,16 @@ function EditShipment(props) {
 
   const handleRegimenChange = (event, value) => {
     if (value) {
-        const regimenSeleccionado = regimenList.find((regimen) => regimen.descripcion === value);
-        if (regimenSeleccionado) {
-            setCodRegimen(regimenSeleccionado.cod_regimen);
-            setRegimenNombre(regimenSeleccionado.descripcion)
-        }
+      const regimenSeleccionado = regimenList.find((regimen) => regimen.descripcion === value);
+      if (regimenSeleccionado) {
+        setCodRegimen(regimenSeleccionado.cod_regimen);
+        setRegimenNombre(regimenSeleccionado.descripcion)
+      }
     } else {
-        setCodRegimen('');
-        setRegimenNombre('')
+      setCodRegimen('');
+      setRegimenNombre('')
     }
-};
+  };
 
   const handleStatusChange = (event, value) => {
     if (value) {
@@ -633,55 +636,55 @@ function EditShipment(props) {
   }
 
   const getMuiTheme = () =>
-        createTheme({
-            components: {
-                MuiTableCell: {
-                    styleOverrides: {
-                        root: {
-                            paddingLeft: '3px', // Relleno a la izquierda
-                            paddingRight: '3px',
-                            paddingTop: '0px', // Ajusta el valor en el encabezado si es necesario
-                            paddingBottom: '0px',
-                            backgroundColor: '#00000',
-                            whiteSpace: 'nowrap',
-                            flex: 1,
-                            borderBottom: '1px solid #ddd',
-                            borderRight: '1px solid #ddd',
-                            fontSize: '14px'
-                        },
-                        head: {
-                            backgroundColor: 'firebrick', // Color de fondo para las celdas de encabezado
-                            color: '#ffffff', // Color de texto para las celdas de encabezado
-                            fontWeight: 'bold', // Añadimos negrita para resaltar el encabezado
-                            paddingLeft: '0px',
-                            paddingRight: '0px',
-                            fontSize: '12px'
-                        },
-                    }
-                },
-                MuiTable: {
-                    styleOverrides: {
-                        root: {
-                            borderCollapse: 'collapse', // Fusionamos los bordes de las celdas
-                        },
-                    },
-                },
-                MuiTableHead: {
-                    styleOverrides: {
-                        root: {
-                            borderBottom: '5px solid #ddd', // Línea inferior más gruesa para el encabezado
-                        },
-                    },
-                },
-                MuiToolbar: {
-                    styleOverrides: {
-                        regular: {
-                            minHeight: '10px',
-                        }
-                    }
-                }
+    createTheme({
+      components: {
+        MuiTableCell: {
+          styleOverrides: {
+            root: {
+              paddingLeft: '3px', // Relleno a la izquierda
+              paddingRight: '3px',
+              paddingTop: '0px', // Ajusta el valor en el encabezado si es necesario
+              paddingBottom: '0px',
+              backgroundColor: '#00000',
+              whiteSpace: 'nowrap',
+              flex: 1,
+              borderBottom: '1px solid #ddd',
+              borderRight: '1px solid #ddd',
+              fontSize: '14px'
+            },
+            head: {
+              backgroundColor: 'firebrick', // Color de fondo para las celdas de encabezado
+              color: '#ffffff', // Color de texto para las celdas de encabezado
+              fontWeight: 'bold', // Añadimos negrita para resaltar el encabezado
+              paddingLeft: '0px',
+              paddingRight: '0px',
+              fontSize: '12px'
+            },
+          }
+        },
+        MuiTable: {
+          styleOverrides: {
+            root: {
+              borderCollapse: 'collapse', // Fusionamos los bordes de las celdas
+            },
+          },
+        },
+        MuiTableHead: {
+          styleOverrides: {
+            root: {
+              borderBottom: '5px solid #ddd', // Línea inferior más gruesa para el encabezado
+            },
+          },
+        },
+        MuiToolbar: {
+          styleOverrides: {
+            regular: {
+              minHeight: '10px',
             }
-        });
+          }
+        }
+      }
+    });
 
   return (
     <div>
@@ -711,6 +714,7 @@ function EditShipment(props) {
         autoComplete="off"
       >
         <div>
+
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginBottom: '20px' }}>
             <h5 style={{ marginTop: '20px', marginRight: '700px' }}>Editar Embarque</h5>
             <button
@@ -720,6 +724,9 @@ function EditShipment(props) {
               onClick={handleChange2}>
               <SaveIcon /> Guardar
             </button>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginBottom: '20px' }}>
+            {TrackingStep(Number(codItem), statusList.map(item => item.nombre))}
           </div>
           <Grid container spacing={50}>
             <Grid item xs={5}>
@@ -1031,7 +1038,7 @@ function EditShipment(props) {
                 </label>
               </div>
               <ThemeProvider theme={getMuiTheme()}>
-              <MUIDataTable title={"Packinglist de Embarque"} data={packingList} columns={columns} options={options} />
+                <MUIDataTable title={"Packinglist de Embarque"} data={packingList} columns={columns} options={options} />
               </ThemeProvider>
             </TabPanel>
             <TabPanel value={tabValue} index={1}>

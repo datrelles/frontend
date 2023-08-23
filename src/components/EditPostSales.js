@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import React, { useState, useEffect } from "react";
+import { makeStyles } from '@mui/styles';
 import Navbar0 from "./Navbar0";
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
@@ -18,16 +19,32 @@ import InputAdornment from '@mui/material/InputAdornment';
 import * as XLSX from 'xlsx'
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
+import TrackingStepOrder from "./TrackingStepOrder";
 import TableRow from "@material-ui/core/TableRow";
 import TableCell from "@material-ui/core/TableCell";
+
+import dayjs from 'dayjs';
+import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { format } from 'date-fns'
 
 
 
 const API = process.env.REACT_APP_API;
+const useStyles = makeStyles({
+  datePickersContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    width: '310px'
+  },
+});
 
 
 function EditPostSales(props) {
 
+  const classes = useStyles();
   const navigate = useNavigate();
   const location = useLocation();
   const [formData, setFormData] = useState(location.state)
@@ -54,6 +71,10 @@ function EditPostSales(props) {
   const [estado, setEstado] = useState("");
   const [providersList, setProvidersList] = useState([])
   const [authorizedSystems, setAuthorizedSystems] = useState([]);
+  const [statusList, setStatusList] = useState([])
+  const [fechaEstimadaLlegada, setFechaEstimadaLlegada] = useState(formData.fecha_estimada_llegada)
+  const [fechaEstimadaPuerto, setFechaEstimadaPuerto] = useState(formData.fecha_estimada_puerto)
+  const [fechaEstimadaProduccion, setFechaEstimadaProduccion] = useState(formData.fecha_estimada_produccion)
 
 
   const [details, setDetails] = useState([])
@@ -161,6 +182,7 @@ function EditPostSales(props) {
       cod: item.cod_item,
     }));
     setEstado(list.find((objeto) => objeto.cod === codItem).nombre)
+    setStatusList(list)
   }
 
   const getPackingList = async () => {
@@ -271,7 +293,7 @@ function EditPostSales(props) {
       label: "Secuencia",
       options: {
         display: false, // Oculta la columna
-    },
+      },
     },
     {
       name: "cod_producto",
@@ -357,7 +379,7 @@ function EditPostSales(props) {
       label: "Secuencia",
       options: {
         display: false, // Oculta la columna
-    },
+      },
     },
     {
       name: "cod_producto",
@@ -444,7 +466,10 @@ function EditPostSales(props) {
         fecha_modifica: moment().format('DD/MM/YYYY'),
         cod_modelo: codModelo,
         cod_item: codItem,
-        fecha_crea: fechaCrea
+        fecha_crea: fechaCrea,
+        fecha_estimada_llegada: fechaEstimadaLlegada,
+        fecha_estimada_produccion: fechaEstimadaProduccion,
+        fecha_estimada_puerto: fechaEstimadaPuerto
       })
     })
     const data = await res.json();
@@ -538,7 +563,7 @@ function EditPostSales(props) {
     } else {
       enqueueSnackbar(data.error, { variant: 'error' });
     }
-    
+
 
   }
 
@@ -575,7 +600,7 @@ function EditPostSales(props) {
     } else {
       enqueueSnackbar(data.error, { variant: 'error' });
     }
-    
+
 
   }
 
@@ -612,7 +637,7 @@ function EditPostSales(props) {
     } else {
       enqueueSnackbar(data.error, { variant: 'error' });
     }
-    
+
 
   }
 
@@ -620,6 +645,19 @@ function EditPostSales(props) {
     e.preventDefault();
     navigate('/newPostSaleDetail', { state: codPo, orden: location.state });
   }
+
+  const handleStatusChange = (event, value) => {
+    if (value) {
+      const statusSeleccionado = statusList.find((status) => status.nombre === value);
+      if (statusSeleccionado) {
+        setCodItem(statusSeleccionado.cod);
+        setEstado(statusSeleccionado.nombre)
+      }
+    } else {
+      setCodItem('');
+      setEstado('')
+    }
+  };
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
@@ -631,7 +669,7 @@ function EditPostSales(props) {
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
       const properties = jsonData[0];
-      
+
       const newExcelData = [];
 
       for (let i = 1; i < jsonData.length; i++) {
@@ -663,7 +701,7 @@ function EditPostSales(props) {
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
       const properties = jsonData[0];
-      
+
       const newExcelData = [];
 
       for (let i = 1; i < jsonData.length; i++) {
@@ -692,55 +730,55 @@ function EditPostSales(props) {
   );
 
   const getMuiTheme = () =>
-        createTheme({
-            components: {
-                MuiTableCell: {
-                    styleOverrides: {
-                        root: {
-                            paddingLeft: '3px', // Relleno a la izquierda
-                            paddingRight: '3px',
-                            paddingTop: '0px', // Ajusta el valor en el encabezado si es necesario
-                            paddingBottom: '0px',
-                            backgroundColor: '#00000',
-                            whiteSpace: 'nowrap',
-                            flex: 1,
-                            borderBottom: '1px solid #ddd',
-                            borderRight: '1px solid #ddd',
-                            fontSize: '14px'
-                        },
-                        head: {
-                            backgroundColor: 'firebrick', // Color de fondo para las celdas de encabezado
-                            color: '#ffffff', // Color de texto para las celdas de encabezado
-                            fontWeight: 'bold', // Añadimos negrita para resaltar el encabezado
-                            paddingLeft: '0px',
-                            paddingRight: '0px',
-                            fontSize: '12px'
-                        },
-                    }
-                },
-                MuiTable: {
-                    styleOverrides: {
-                        root: {
-                            borderCollapse: 'collapse', // Fusionamos los bordes de las celdas
-                        },
-                    },
-                },
-                MuiTableHead: {
-                    styleOverrides: {
-                        root: {
-                            borderBottom: '5px solid #ddd', // Línea inferior más gruesa para el encabezado
-                        },
-                    },
-                },
-                MuiToolbar: {
-                    styleOverrides: {
-                        regular: {
-                            minHeight: '10px',
-                        }
-                    }
-                }
+    createTheme({
+      components: {
+        MuiTableCell: {
+          styleOverrides: {
+            root: {
+              paddingLeft: '3px', // Relleno a la izquierda
+              paddingRight: '3px',
+              paddingTop: '0px', // Ajusta el valor en el encabezado si es necesario
+              paddingBottom: '0px',
+              backgroundColor: '#00000',
+              whiteSpace: 'nowrap',
+              flex: 1,
+              borderBottom: '1px solid #ddd',
+              borderRight: '1px solid #ddd',
+              fontSize: '14px'
+            },
+            head: {
+              backgroundColor: 'firebrick', // Color de fondo para las celdas de encabezado
+              color: '#ffffff', // Color de texto para las celdas de encabezado
+              fontWeight: 'bold', // Añadimos negrita para resaltar el encabezado
+              paddingLeft: '0px',
+              paddingRight: '0px',
+              fontSize: '12px'
+            },
+          }
+        },
+        MuiTable: {
+          styleOverrides: {
+            root: {
+              borderCollapse: 'collapse', // Fusionamos los bordes de las celdas
+            },
+          },
+        },
+        MuiTableHead: {
+          styleOverrides: {
+            root: {
+              borderBottom: '5px solid #ddd', // Línea inferior más gruesa para el encabezado
+            },
+          },
+        },
+        MuiToolbar: {
+          styleOverrides: {
+            regular: {
+              minHeight: '10px',
             }
-        });
+          }
+        }
+      }
+    });
 
   return (
     <div>
@@ -770,38 +808,41 @@ function EditPostSales(props) {
         autoComplete="off"
       >
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-            <h5 style={{ marginTop: '20px', marginRight: '490px' }}>Editar Orden de Compra</h5>
+          <h5>Editar Orden de Compra</h5>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginBottom: '20px', marginTop: '20px' }}>
+            {TrackingStepOrder(Number(formData.cod_item), statusList.map(item => item.nombre))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: '20px'}}>
             <button
-              className="btn btn-primary btn-block"
+              className="btn btn-primary"
               type="button"
-              style={{width: '220px', marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
+              style={{ width: '150px', marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
               onClick={handleChange2}>
               <SaveIcon /> Guardar
             </button>
             {authorizedSystems.includes('REP') && (
               <button
-                className="btn btn-primary btn-block"
+                className="btn btn-primary"
                 type="button"
-                style={{width: '220px', marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
+                style={{ width: '150px', marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
                 onClick={handleChangeSend}>
                 <SendIcon /> Solicitar
               </button>
             )}
             {authorizedSystems.includes('REP') && (
               <button
-                className="btn btn-primary btn-block"
+                className="btn btn-primary"
                 type="button"
-                style={{ width: '220px', marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
+                style={{ width: '150px', marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
                 onClick={handleChangeAprob}>
                 <CheckIcon /> Aprobar
               </button>
             )}
             {authorizedSystems.includes('IMP') && (
               <button
-                className="btn btn-primary btn-block"
+                className="btn btn-primary"
                 type="button"
-                style={{width: '200px', marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px' }}
+                style={{ width: '150px', marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px' }}
                 onClick={handleChange4}>
                 <CheckIcon /> Cotizar
               </button>
@@ -816,17 +857,6 @@ function EditPostSales(props) {
             value={codPo}
             className="form-control"
             style={{ width: `130px` }}
-          />
-
-          <TextField
-            required
-            id="tipo-comprobante"
-            label="Tipo Comprobante"
-            type="text"
-            onChange={e => setTipoComprobante(e.target.value)}
-            value={tipoCombrobante}
-            className="form-control"
-            style={{ width: `140px` }}
           />
           <TextField
             disabled
@@ -877,8 +907,6 @@ function EditPostSales(props) {
                 },
               }}
             />
-
-
           </div>
           <TextField
             required
@@ -889,25 +917,64 @@ function EditPostSales(props) {
             value={proforma}
             className="form-control"
           />
-          <TextField
-            required
-            id="codModelo"
-            label="Codigo Modelo"
-            type="text"
-            onChange={e => setCodModelo(e.target.value)}
-            value={codModelo}
-            className="form-control"
-            style={{ width: `140px` }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment></InputAdornment>
-              ),
-              inputProps: {
-                style: { textAlign: 'left' },
-              },
-            }}
-          />
-
+          <Autocomplete
+                id="estado"
+                options={statusList.map((status) => status.nombre)}
+                value={estado}
+                onChange={handleStatusChange}
+                style={{ width: `200px` }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    required
+                    label="Estado"
+                    type="text"
+                    className="form-control"
+                    style={{ width: `100%` }}
+                    InputProps={{
+                      ...params.InputProps,
+                    }}
+                  />
+                )}
+              />
+          <div className={classes.datePickersContainer}>
+                <div>
+                  <LocalizationProvider dateAdapter={AdapterDayjs} >
+                    <DemoContainer components={['DatePicker', 'DatePicker']}>
+                      <DatePicker
+                        label="Fecha Estimada Produccion"
+                        value={dayjs(formData.fecha_estimada_produccion, "DD/MM/YYYY")}
+                        onChange={(newValue) => setFechaEstimadaProduccion(format(new Date(newValue), 'dd/MM/yyyy'))}
+                        format={'DD/MM/YYYY'}
+                      />
+                    </DemoContainer>
+                  </LocalizationProvider>
+                </div>
+                <div>
+                  <LocalizationProvider dateAdapter={AdapterDayjs} >
+                    <DemoContainer components={['DatePicker', 'DatePicker']}>
+                      <DatePicker
+                        label="Fecha Estimada Puerto"
+                        value={dayjs(formData.fecha_estimada_puerto, "DD/MM/YYYY")}
+                        onChange={(newValue) => setFechaEstimadaPuerto(format(new Date(newValue), 'dd/MM/yyyy'))}
+                        format={'DD/MM/YYYY'}
+                      />
+                    </DemoContainer>
+                  </LocalizationProvider>
+                </div>
+                <div>
+                  <LocalizationProvider dateAdapter={AdapterDayjs} >
+                    <DemoContainer components={['DatePicker', 'DatePicker']}>
+                      <DatePicker
+                        label="Fecha Estimada Llegada"
+                        value={dayjs(formData.fecha_estimada_llegada, "DD/MM/YYYY")}
+                        onChange={(newValue) => setFechaEstimadaLlegada(format(new Date(newValue), 'dd/MM/yyyy'))}
+                        format={'DD/MM/YYYY'}
+                      />
+                    </DemoContainer>
+                  </LocalizationProvider>
+                </div>
+              </div>
           <div>
             <Tabs value={tabValue} onChange={(event, newValue) => setTabValue(newValue)}>
               <Tab label="Detalles" />
@@ -937,7 +1004,7 @@ function EditPostSales(props) {
                 </label>
               </div>
               <ThemeProvider theme={getMuiTheme()}>
-              <MUIDataTable title={"Detalle Orden de Compra"} data={details} columns={columns} options={options} />
+                <MUIDataTable title={"Detalle Orden de Compra"} data={details} columns={columns} options={options} />
               </ThemeProvider>
             </TabPanel>
             <TabPanel value={tabValue} index={1}>
@@ -957,7 +1024,7 @@ function EditPostSales(props) {
                 </label>
               </div>
               <ThemeProvider theme={getMuiTheme()}>
-              <MUIDataTable title={"Packinglist Orden de Compra"} data={packingList} columns={columnsPacking} options={optionsPacking} />
+                <MUIDataTable title={"Packinglist Orden de Compra"} data={packingList} columns={columnsPacking} options={optionsPacking} />
               </ThemeProvider>
             </TabPanel>
           </div>

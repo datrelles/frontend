@@ -9,7 +9,6 @@ import SearchIcon from '@material-ui/icons/Search';
 import LinearProgress from '@mui/material/LinearProgress';
 import AddIcon from '@material-ui/icons/Add';
 
-
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
