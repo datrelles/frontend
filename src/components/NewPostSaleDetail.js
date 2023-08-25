@@ -80,25 +80,25 @@ function NewPostSaleDetail(props) {
         usuario_crea: sessionStorage.getItem('currentUser'),
         orders: [{
           secuencia: secuencia,
-          COD_PRODUCTO: codProducto,
-          COD_PRODUCTO_MODELO: codProductoModelo,
-          NOMBRE_PROVEEDOR: nombre,
+          cod_producto: codProducto,
+          cod_producto_modelo: codProductoModelo,
+          nombre_proveedor: nombre,
           nombre_c: nombreChina,
-          NOMBRE_INGLES: nombreIngles,
+          nombre_ingles: nombreIngles,
           costo_sistema: parseFloat(costoSistema),
           fob: parseFloat(fob),
           fobTotal: parseFloat(fobTotal),
-          PEDIDO: parseInt(cantidadPedido, 10),
+          pedido: parseInt(cantidadPedido, 10),
           saldo_producto: parseInt(saldoProducto, 10),
-          UNIDAD_MEDIDA: unidadMedida,
+          unidad_medida: unidadMedida,
           fecha_crea: moment().format('DD/MM/YYYY'),
           usuario_modifica: sessionStorage.getItem('currentUser'),
           fecha_modifica: moment().format('DD/MM/YYYY'),
           exportar: false,
           nombre_mod_prov: '',
-          NOMBRE_COMERCIAL: '',
+          nombre_comercial: '',
           tipo_comprobante: 'PO',
-          AGRUPADO: false
+          agrupado: false
         }]
 
       })

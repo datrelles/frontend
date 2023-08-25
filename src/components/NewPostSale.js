@@ -3,6 +3,7 @@ import Navbar0 from "./Navbar0";
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import MUIDataTable from "mui-datatables";
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import * as XLSX from 'xlsx'
 import moment from 'moment';
 import { SnackbarProvider, useSnackbar } from 'notistack';
@@ -310,6 +311,58 @@ function NewPostSales(props) {
 
   };
 
+  const getMuiTheme = () =>
+    createTheme({
+      components: {
+        MuiTableCell: {
+          styleOverrides: {
+            root: {
+              paddingLeft: '3px', // Relleno a la izquierda
+              paddingRight: '3px',
+              paddingTop: '0px', // Ajusta el valor en el encabezado si es necesario
+              paddingBottom: '0px',
+              backgroundColor: '#00000',
+              whiteSpace: 'nowrap',
+              flex: 1,
+              borderBottom: '1px solid #ddd',
+              borderRight: '1px solid #ddd',
+              fontSize: '14px'
+            },
+            head: {
+              backgroundColor: 'firebrick', // Color de fondo para las celdas de encabezado
+              color: '#ffffff', // Color de texto para las celdas de encabezado
+              fontWeight: 'bold', // Añadimos negrita para resaltar el encabezado
+              paddingLeft: '0px',
+              paddingRight: '0px',
+              fontSize: '12px'
+            },
+          }
+        },
+        MuiTable: {
+          styleOverrides: {
+            root: {
+              borderCollapse: 'collapse', // Fusionamos los bordes de las celdas
+            },
+          },
+        },
+        MuiTableHead: {
+          styleOverrides: {
+            root: {
+              borderBottom: '5px solid #ddd', // Línea inferior más gruesa para el encabezado
+            },
+          },
+        },
+        MuiToolbar: {
+          styleOverrides: {
+            regular: {
+              minHeight: '10px',
+            }
+          }
+        }
+      }
+    });
+
+
   return (
     <div>
       <Navbar0 menus={menus}/>
@@ -350,6 +403,7 @@ function NewPostSales(props) {
           </div>
           <div>
             <TextField
+              disabled
               id="id"
               label="Referencia"
               type="text"
@@ -410,42 +464,12 @@ function NewPostSales(props) {
             </div>
             <TextField
               required
-              id="invoice"
-              label="Invoice"
-              type="text"
-              onChange={e => setInvoice(e.target.value)}
-              value={invoice}
-              className="form-control"
-              style={{ width: `130px` }}
-            />
-            <TextField
-              disabled
-              id="blNo"
-              label="Bl No."
-              type="text"
-              onChange={e => setBlNo(e.target.value)}
-              value={blNo}
-              className="form-control"
-              style={{ width: `130px` }}
-            />
-            <TextField
-              required
               id="proforma"
               label="Proforma"
               type="text"
               onChange={e => setProforma(e.target.value)}
               value={proforma}
               className="form-control"
-            />
-            <TextField
-              required
-              id="codModelo"
-              label="Codigo Modelo"
-              type="text"
-              onChange={e => setCodModelo(e.target.value)}
-              value={codModelo}
-              className="form-control"
-              style={{ width: `130px` }}
             />
           </div>
           <div>
@@ -469,7 +493,9 @@ function NewPostSales(props) {
                   </Button>
                 </label>
               </div>
+              <ThemeProvider theme={getMuiTheme()}>
               <MUIDataTable title={"Detalle Orden de Compra"} data={excelData} columns={columns} options={options} />
+              </ThemeProvider>
             </TabPanel>
             <TabPanel value={tabValue} index={1}>
               <p>Productos aquí</p>

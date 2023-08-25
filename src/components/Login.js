@@ -3,6 +3,9 @@ import { useNavigate, Route, Routes } from 'react-router-dom';
 import '../styles/Login.css'
 import logo from '../img/logo_massline.png';
 import logo1 from '../img/Logo-Shineray-Blanco.png';
+import SportsMotorsportsTwoToneIcon from '@mui/icons-material/SportsMotorsportsTwoTone';
+import VpnKeyIcon from '@mui/icons-material/VpnKey';
+import TwoWheelerRoundedIcon from '@mui/icons-material/TwoWheelerRounded';
 
 
 const API = process.env.REACT_APP_API;
@@ -65,7 +68,7 @@ function Login(props) {
                                             <h4 className="mt-1 mb-5 pb-1"> </h4>
                                         </div>
                                         <form>
-                                            <p>Por favor ingrese sus credenciales</p>
+                                            <p>Por favor, ingrese sus credenciales</p>
                                             <div className="form-outline mb-4">
                                                 <input type="text"
                                                     onChange={e => setName(e.target.value)}
@@ -74,7 +77,7 @@ function Login(props) {
                                                     placeholder="Usuario"
                                                     autoFocus />
                                                 <label className="form-label" htmlFor="form2Example11">
-                                                    Usuario
+                                                <SportsMotorsportsTwoToneIcon/>  Usuario
                                                 </label>
                                             </div>
                                             <div className="form-outline mb-4">
@@ -85,7 +88,7 @@ function Login(props) {
                                                     placeholder="Contraseña"
                                                 />
                                                 <label className="form-label" htmlFor="form2Example22">
-                                                    Contraseña
+                                                <VpnKeyIcon/>    Contraseña
                                                 </label>
                                             </div>
                                             <div>
@@ -103,12 +106,12 @@ function Login(props) {
                                             </div>
                                             <div className="text-center pt-1 mb-5 pb-1">
                                                 <button
-                                                    className="btn btn-primary btn-block"
+                                                   className="btn btn-primary btn-block"
                                                     type="button"
                                                     style={{ backgroundColor: 'firebrick' }}
                                                     onClick={handleSubmit}
                                                 >
-                                                    {'Ingresar'}
+                                                    {'Ingresar '} <TwoWheelerRoundedIcon/>
                                                 </button>
                                             </div>
                                         </form>

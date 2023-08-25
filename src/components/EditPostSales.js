@@ -251,6 +251,37 @@ function EditPostSales(props) {
     }
   };
 
+  const handleDeleteRowsPack = async (rowsDeleted) => {
+    const userResponse = window.confirm('¿Está seguro de eliminar estos registros?')
+    if (userResponse) {
+      await rowsDeleted.data.forEach((deletedRow) => {
+        const deletedRowIndex = deletedRow.dataIndex;
+        const deletedRowValue = packingList[deletedRowIndex];
+        console.log(deletedRowValue.secuencia);
+
+        fetch(`${API}/orden_compra_packinglist?cod_po=${codPo}&empresa=${sessionStorage.getItem('currentEnterprise')}&secuencia=${deletedRowValue.secuencia}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+          }
+        })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Error en la llamada a la API');
+            }
+            console.log('Elemento eliminado exitosamente');
+            enqueueSnackbar('¡Elementos eliminados exitosamente!', { variant: 'success' });
+          })
+          .catch(error => {
+            console.error(error);
+            enqueueSnackbar(error, { variant: 'error' });
+          });
+      });
+    }
+  };
+
+
   const handleRowClick = (rowData, rowMeta) => {
     const row = details.filter(item => item.secuencia === rowData[0])[0];
     console.log(row)
@@ -406,7 +437,7 @@ function EditPostSales(props) {
 
   const optionsPacking = {
     filterType: 'dropdown',
-    onRowsDelete: handleDeleteRows,
+    onRowsDelete: handleDeleteRowsPack,
     onRowClick: handleRowClickPack,
     textLabels: {
       body: {
@@ -865,7 +896,7 @@ function EditPostSales(props) {
             type="text"
             value={estado}
             className="form-control"
-            style={{ width: `130px` }}
+            style={{ width: `flex` }}
           />
           <div style={{ display: 'flex' }}>
             <Autocomplete
@@ -917,6 +948,7 @@ function EditPostSales(props) {
             value={proforma}
             className="form-control"
           />
+          {authorizedSystems.includes('IMP') && (
           <Autocomplete
                 id="estado"
                 options={statusList.map((status) => status.nombre)}
@@ -937,6 +969,7 @@ function EditPostSales(props) {
                   />
                 )}
               />
+                  )}
           <div className={classes.datePickersContainer}>
                 <div>
                   <LocalizationProvider dateAdapter={AdapterDayjs} >
@@ -946,6 +979,7 @@ function EditPostSales(props) {
                         value={dayjs(formData.fecha_estimada_produccion, "DD/MM/YYYY")}
                         onChange={(newValue) => setFechaEstimadaProduccion(format(new Date(newValue), 'dd/MM/yyyy'))}
                         format={'DD/MM/YYYY'}
+                        disabled={!authorizedSystems.includes('IMP')}
                       />
                     </DemoContainer>
                   </LocalizationProvider>
@@ -958,6 +992,7 @@ function EditPostSales(props) {
                         value={dayjs(formData.fecha_estimada_puerto, "DD/MM/YYYY")}
                         onChange={(newValue) => setFechaEstimadaPuerto(format(new Date(newValue), 'dd/MM/yyyy'))}
                         format={'DD/MM/YYYY'}
+                        disabled={!authorizedSystems.includes('IMP')}
                       />
                     </DemoContainer>
                   </LocalizationProvider>
@@ -970,6 +1005,7 @@ function EditPostSales(props) {
                         value={dayjs(formData.fecha_estimada_llegada, "DD/MM/YYYY")}
                         onChange={(newValue) => setFechaEstimadaLlegada(format(new Date(newValue), 'dd/MM/yyyy'))}
                         format={'DD/MM/YYYY'}
+                        disabled={!authorizedSystems.includes('IMP')}
                       />
                     </DemoContainer>
                   </LocalizationProvider>

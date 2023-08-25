@@ -6,9 +6,8 @@ import logo from '../img/logo_massline.png';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import Settings from '@mui/icons-material/Settings';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
-
-
-
+import MeetingRoomTwoToneIcon from '@mui/icons-material/MeetingRoomTwoTone';
+import HolidayVillageTwoToneIcon from '@mui/icons-material/HolidayVillageTwoTone';
 
 const API = process.env.REACT_APP_API;
 
@@ -85,8 +84,8 @@ function Navbar0(props) {
                 </ListItemIcon>
                 Soporte</NavDropdown.Item>
               <NavDropdown.Divider />
-              <NavDropdown.Item onClick={handleClick2}>Cambiar Empresa</NavDropdown.Item>
-              <NavDropdown.Item onClick={logMeOut}>Cerrar Sesión</NavDropdown.Item>
+              <NavDropdown.Item onClick={handleClick2}><HolidayVillageTwoToneIcon/> Cambiar Empresa</NavDropdown.Item>
+              <NavDropdown.Item onClick={logMeOut}> <MeetingRoomTwoToneIcon/> Cerrar Sesión</NavDropdown.Item>
             </NavDropdown>
           </Nav>
         </Navbar.Collapse>
