@@ -507,7 +507,7 @@ function EditPostSales(props) {
     console.log(data)
     setFormData(location.state)
     if (!data.error) {
-      enqueueSnackbar('¡Guardado exitosamente!', { variant: 'success' });
+      enqueueSnackbar('¡Orden Guardada!', { variant: 'success' });
     } else {
       enqueueSnackbar(data.error, { variant: 'error' });
 
@@ -520,7 +520,7 @@ function EditPostSales(props) {
         'Authorization': 'Bearer ' + sessionStorage.getItem('token')
       },
       body: JSON.stringify({
-        orders: excelData.slice(1),
+        orders: excelData,
         cod_po: codPo,
         empresa: sessionStorage.getItem('currentEnterprise'),
         usuario_crea: sessionStorage.getItem('currentUser'),
@@ -531,7 +531,7 @@ function EditPostSales(props) {
     console.log(data2);
 
     if (!data2.error) {
-      enqueueSnackbar('¡Creado exitosamente!', { variant: 'success' });
+      enqueueSnackbar('¡Detalles Guardados!', { variant: 'success' });
     } else {
       enqueueSnackbar(data2.error, { variant: 'error' });
     }
@@ -554,7 +554,7 @@ function EditPostSales(props) {
     console.log(data3);
 
     if (!data3.error) {
-      enqueueSnackbar('¡Creado exitosamente!', { variant: 'success' });
+      enqueueSnackbar('¡PackingList Guardado!', { variant: 'success' });
     } else {
       enqueueSnackbar(data3.error, { variant: 'error' });
     }
