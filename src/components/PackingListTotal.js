@@ -374,7 +374,7 @@ function PackingListTotal(props) {
 
     return (
         <SnackbarProvider>
-            <div>
+            <div style={{ marginTop: '150px'}}>
                 <Navbar0 menus={menus} />
                 <Box
                     sx={{
@@ -390,7 +390,7 @@ function PackingListTotal(props) {
                         <Button onClick={() => { navigate('/dashboard') }}>Módulos</Button>
                     </ButtonGroup>
                 </Box>
-                <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
+                {/* <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
                     <div className={classes.datePickersContainer}>
                         <div>
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -429,7 +429,7 @@ function PackingListTotal(props) {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div> */}
                 <ThemeProvider theme={getMuiTheme()}>
                     <MUIDataTable
                         title={"Packinglist general"}

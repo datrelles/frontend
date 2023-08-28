@@ -687,8 +687,8 @@ function EditShipment(props) {
     });
 
   return (
-    <div>
-      <Navbar0 menus={menus} />
+    <div style={{ marginTop: '70px', top: 0, left:0, width: "100%", zIndex: 1000}}>
+      <Navbar0 menus={menus}/>
       <Box
         sx={{
           display: 'flex',

@@ -42,7 +42,9 @@ function Menus(props) {
 
 
   return (
-        <Navbar0 menus={menus}/>
+    <div>
+        <Navbar0 menus={menus} style={{ marginTop: '70px', top: 0, left:0, width: "100%", zIndex: 1000}}/>
+    </div>
   )
 }
 

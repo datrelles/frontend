@@ -812,7 +812,7 @@ function EditPostSales(props) {
     });
 
   return (
-    <div>
+    <div style={{ marginTop: '150px'}}>
       <Navbar0 menus={menus} />
       <Box
         sx={{

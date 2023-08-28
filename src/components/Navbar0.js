@@ -52,45 +52,47 @@ function Navbar0(props) {
   const options = props.menus
 
   return (
-    <Navbar bg="light" expand="lg">
-      <Container>
-        <Navbar.Brand onClick={handleClick}>
-          <img
-            src={logo}
-            alt="Logo Empresarial"
-            style={{ height: '70px' }}
-          />
-        </Navbar.Brand>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="me-auto">
-            {options.map((option, index) => (
-              <NavDropdown key={index} title={option.title} id="basic-nav-dropdown">
-                {option.items.map((item, itemIndex) => (
-                  <NavDropdown.Item key={itemIndex} href={item.RUTA}>{item.NOMBRE}</NavDropdown.Item>
-                ))}
+    <div style={{position: "fixed", top: 0, left:0, width: "100%", zIndex: 1000}}>
+      <Navbar bg="light" expand="lg" >
+        <Container>
+          <Navbar.Brand onClick={handleClick}>
+            <img
+              src={logo}
+              alt="Logo Empresarial"
+              style={{ height: '70px' }}
+            />
+          </Navbar.Brand>
+          <Navbar.Toggle aria-controls="basic-navbar-nav" />
+          <Navbar.Collapse id="basic-navbar-nav">
+            <Nav className="me-auto">
+              {options.map((option, index) => (
+                <NavDropdown key={index} title={option.title} id="basic-nav-dropdown">
+                  {option.items.map((item, itemIndex) => (
+                    <NavDropdown.Item key={itemIndex} href={item.RUTA}>{item.NOMBRE}</NavDropdown.Item>
+                  ))}
+                </NavDropdown>
+              ))}
+            </Nav>
+            <Nav>
+              <NavDropdown title={sessionStorage.getItem('currentUser')} id="basic-nav-dropdown">
+                <NavDropdown.Item onClick={handleClick3} style={{ display: 'flex', alignItems: 'left' }}>
+                  <ListItemIcon>
+                    <Settings fontSize="small" />
+                  </ListItemIcon>Ajustes</NavDropdown.Item>
+                <NavDropdown.Item href="http://192.168.30.7" target="_blank">
+                  <ListItemIcon>
+                    <SupportAgentIcon fontSize="small" />
+                  </ListItemIcon>
+                  Soporte</NavDropdown.Item>
+                <NavDropdown.Divider />
+                <NavDropdown.Item onClick={handleClick2}><HolidayVillageTwoToneIcon /> Cambiar Empresa</NavDropdown.Item>
+                <NavDropdown.Item onClick={logMeOut}> <MeetingRoomTwoToneIcon /> Cerrar Sesión</NavDropdown.Item>
               </NavDropdown>
-            ))}
-          </Nav>
-          <Nav>
-            <NavDropdown title={sessionStorage.getItem('currentUser')} id="basic-nav-dropdown">
-              <NavDropdown.Item onClick={handleClick3} style={{ display: 'flex', alignItems: 'left' }}>
-                <ListItemIcon>
-                  <Settings fontSize="small" />
-                </ListItemIcon>Ajustes</NavDropdown.Item>
-              <NavDropdown.Item href="http://192.168.30.7" target="_blank">
-                <ListItemIcon>
-                  <SupportAgentIcon fontSize="small" />
-                </ListItemIcon>
-                Soporte</NavDropdown.Item>
-              <NavDropdown.Divider />
-              <NavDropdown.Item onClick={handleClick2}><HolidayVillageTwoToneIcon/> Cambiar Empresa</NavDropdown.Item>
-              <NavDropdown.Item onClick={logMeOut}> <MeetingRoomTwoToneIcon/> Cerrar Sesión</NavDropdown.Item>
-            </NavDropdown>
-          </Nav>
-        </Navbar.Collapse>
-      </Container>
-    </Navbar>
+            </Nav>
+          </Navbar.Collapse>
+        </Container>
+      </Navbar>
+    </div>
   )
 
 }

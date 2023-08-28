@@ -80,9 +80,9 @@ function Dashboard(props) {
   ));
 
   return (
-    <div>
+    <div style={{ marginTop: '150px'}}>
       <Navbar0 menus={menus}/>
-      <div className="container my-5">
+      <div>
 
         <section className="team-section">
           <div className="card">
