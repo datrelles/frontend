@@ -14,6 +14,7 @@ import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import FileGenerator from './FileGenerator';
 
 
 const API = process.env.REACT_APP_API;
@@ -207,6 +208,7 @@ function NewPostSales(props) {
 
   const handleChange2 = async (e) => {
     e.preventDefault();
+    enqueueSnackbar('Generando Orden de Compra...', { variant: 'success' })
     const res = await fetch(`${API}/orden_compra_total`, {
       method: 'POST',
       headers: {
@@ -238,20 +240,22 @@ function NewPostSales(props) {
     })
     const data = await res.json();
     console.log(data.mensaje)
+    var msj = ''
     if (!data.error) {
+
       setCodPo(data.cod_po)
-      if (data.cod_producto_no_existe)
-        enqueueSnackbar('Orden de compra creada exitosamente', { variant: 'success' });
-        enqueueSnackbar(data.mensaje +' '+ data.cod_producto_modelo_no_existe, { variant: 'warning' });
-      if (data.unidad_medida_no_existe)
-        enqueueSnackbar('Orden de compra creada exitosamente', { variant: 'success' });
-        enqueueSnackbar(data.mensaje +' '+ data.unidad_medida_no_existe, { variant: 'warning' });
-      if (data.cod_producto_modelo_no_existe)
-        enqueueSnackbar('Orden de compra creada exitosamente', { variant: 'success' }); 
-        enqueueSnackbar(data.mensaje +' '+ data.cod_producto_modelo_no_existe, { variant: 'warning' });
-      if (!data.cod_producto_no_existe && !data.unidad_medida_no_existe && !data.cod_producto_modelo_no_existe){
-        enqueueSnackbar(data.mensaje, { variant: 'success' });
+
+      if (data.cod_producto_no_existe) {
+        msj += 'PRODUCTOS INEXISTENTES: \n'+ data.cod_producto_no_existe + ' ';
       }
+      if (data.unidad_medida_no_existe) {
+        msj += 'PRODUCTOS CON UNIDAD INCORRECTA: \n'+ data.unidad_medida_no_existe + ' ';
+      }
+      if (data.cod_producto_modelo_no_existe) {
+        msj += 'MODELOS INEXISTENTES: \n' + data.cod_producto_modelo_no_existe + ' ';
+      }  
+      enqueueSnackbar('Orden de compra creada exitosamente', { variant: 'success' });
+      FileGenerator.generateAndDownloadTxtFile(msj, 'detalles_con_error.txt');
     } else {
       enqueueSnackbar(data.error, { variant: 'error' });
     }

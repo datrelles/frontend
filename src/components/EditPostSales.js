@@ -543,7 +543,7 @@ function EditPostSales(props) {
         'Authorization': 'Bearer ' + sessionStorage.getItem('token')
       },
       body: JSON.stringify({
-        packings: excelDataPack.slice(1),
+        packings: excelDataPack,
         cod_po: codPo,
         empresa: sessionStorage.getItem('currentEnterprise'),
         usuario_crea: sessionStorage.getItem('currentUser'),
