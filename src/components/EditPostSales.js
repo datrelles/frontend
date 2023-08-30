@@ -29,6 +29,8 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { format } from 'date-fns'
+import FileGenerator from './FileGenerator';
+
 
 
 
@@ -507,56 +509,84 @@ function EditPostSales(props) {
     console.log(data)
     setFormData(location.state)
     if (!data.error) {
-      enqueueSnackbar('¡Orden Guardada!', { variant: 'success' });
+      enqueueSnackbar('¡Guardando Orden de Compra!', { variant: 'success' });
     } else {
       enqueueSnackbar(data.error, { variant: 'error' });
 
     }
-
-    const res2 = await fetch(`${API}/orden_compra_det`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-      },
-      body: JSON.stringify({
-        orders: excelData,
-        cod_po: codPo,
-        empresa: sessionStorage.getItem('currentEnterprise'),
-        usuario_crea: sessionStorage.getItem('currentUser'),
-        cod_agencia: sessionStorage.getItem('currentBranch')
-      })
-    });
-    const data2 = await res2.json();
-    console.log(data2);
-
-    if (!data2.error) {
-      enqueueSnackbar('¡Detalles Guardados!', { variant: 'success' });
-    } else {
-      enqueueSnackbar(data2.error, { variant: 'error' });
+    if (excelData && excelData.length > 1) {
+      const res2 = await fetch(`${API}/orden_compra_det`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        },
+        body: JSON.stringify({
+          orders: excelData,
+          cod_po: codPo,
+          empresa: sessionStorage.getItem('currentEnterprise'),
+          usuario_crea: sessionStorage.getItem('currentUser'),
+          cod_agencia: sessionStorage.getItem('currentBranch')
+        })
+      });
+      const data2 = await res2.json();
+      console.log(data2);
+      var msj = ''
+      if (!data2.error) {
+        if (data2.cod_producto_no_existe) {
+          enqueueSnackbar('Existen detalles incorrectos', { variant: 'warning' });
+          msj += 'PRODUCTOS INEXISTENTES: \n' + data2.cod_producto_no_existe + ' ';
+        }
+        if (data2.unidad_medida_no_existe) {
+          msj += 'PRODUCTOS CON UNIDAD INCORRECTA: \n' + data2.unidad_medida_no_existe + ' ';
+        }
+        if (data2.cod_producto_modelo_no_existe) {
+          msj += 'MODELOS INEXISTENTES: \n' + data2.cod_producto_modelo_no_existe + ' ';
+        }
+        enqueueSnackbar('Orden de compra creada exitosamente', { variant: 'success' });
+        FileGenerator.generateAndDownloadTxtFile(msj, 'detalles_con_error.txt');
+      } else {
+        enqueueSnackbar(data2.error, { variant: 'error' });
+      }
     }
 
-    const res3 = await fetch(`${API}/packinglist`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-      },
-      body: JSON.stringify({
-        packings: excelDataPack,
-        cod_po: codPo,
-        empresa: sessionStorage.getItem('currentEnterprise'),
-        usuario_crea: sessionStorage.getItem('currentUser'),
-        tipo_comprobante: "PO"
-      })
-    });
-    const data3 = await res3.json();
-    console.log(data3);
+    if (excelDataPack && excelDataPack.length > 1) {
+      const res3 = await fetch(`${API}/packinglist`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        },
+        body: JSON.stringify({
+          packings: excelDataPack,
+          cod_po: codPo,
+          empresa: sessionStorage.getItem('currentEnterprise'),
+          usuario_crea: sessionStorage.getItem('currentUser'),
+          tipo_comprobante: "PO"
+        })
+      });
+      const data3 = await res3.json();
+      console.log(data3);
 
-    if (!data3.error) {
-      enqueueSnackbar('¡PackingList Guardado!', { variant: 'success' });
-    } else {
-      enqueueSnackbar(data3.error, { variant: 'error' });
+      if (!data3.error) {
+        if (data3.bl_no_existe) {
+          msj += 'EMBARQUES NO EXISTENTES: \n' + data3.bl_no_existe + ' ';
+        }
+        if (data3.prod_no_existe) {
+          enqueueSnackbar('Existen detalles incorrectos', { variant: 'warning' });
+          msj += 'PRODUCTOS INEXISTENTES EN DESPIECE: \n' + data3.prod_no_existe + ' ';
+        }
+        if (data3.unidad_medida_no_existe) {
+          msj += 'PRODUCTOS CON UNIDAD INCORRECTA: \n' + data3.unidad_medida_no_existe + ' ';
+        }
+        if (data3.cod_producto_no_existe) {
+          msj += 'PRODUCTOS INEXISTENTES: \n' + data3.cod_producto_no_existe + ' ';
+        }
+        enqueueSnackbar(data3.mensaje, { variant: 'success' });
+        FileGenerator.generateAndDownloadTxtFile(msj, 'packinglist_con_error.txt');
+      } else {
+        enqueueSnackbar(data3.error, { variant: 'error' });
+      }
     }
 
   }
@@ -706,13 +736,19 @@ function EditPostSales(props) {
       for (let i = 1; i < jsonData.length; i++) {
         const row = jsonData[i];
 
-        const obj = {};
-        for (let j = 0; j < properties.length; j++) {
-          const property = properties[j];
-          obj[property] = row[j];
-        }
+        // Verificar si todas las propiedades de la fila están vacías
+        const isRowEmpty = row.every((cell) => cell === "");
 
-        newExcelData.push(obj);
+        if (!isRowEmpty) {
+
+          const obj = {};
+          for (let j = 0; j < properties.length; j++) {
+            const property = properties[j];
+            obj[property] = row[j];
+          }
+
+          newExcelData.push(obj);
+        }
       }
       setExcelData(newExcelData)
       setDetails((prevDetails) => [...prevDetails, ...newExcelData])
@@ -737,14 +773,18 @@ function EditPostSales(props) {
 
       for (let i = 1; i < jsonData.length; i++) {
         const row = jsonData[i];
+        const isRowEmpty = row.every((cell) => cell === "");
 
-        const obj = {};
-        for (let j = 0; j < properties.length; j++) {
-          const property = properties[j];
-          obj[property] = row[j];
+        if (!isRowEmpty) {
+
+          const obj = {};
+          for (let j = 0; j < properties.length; j++) {
+            const property = properties[j];
+            obj[property] = row[j];
+          }
+
+          newExcelData.push(obj);
         }
-
-        newExcelData.push(obj);
       }
       setExcelDataPack(newExcelData)
       setPackingList((prevDetails) => [...prevDetails, ...newExcelData])
@@ -812,7 +852,7 @@ function EditPostSales(props) {
     });
 
   return (
-    <div style={{ marginTop: '150px'}}>
+    <div style={{ marginTop: '150px' }}>
       <Navbar0 menus={menus} />
       <Box
         sx={{
@@ -843,7 +883,7 @@ function EditPostSales(props) {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginBottom: '20px', marginTop: '20px' }}>
             {TrackingStepOrder(Number(formData.cod_item), statusList.map(item => item.nombre))}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: '20px'}}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: '20px' }}>
             <button
               className="btn btn-primary"
               type="button"
@@ -949,68 +989,68 @@ function EditPostSales(props) {
             className="form-control"
           />
           {authorizedSystems.includes('IMP') && (
-          <Autocomplete
-                id="estado"
-                options={statusList.map((status) => status.nombre)}
-                value={estado}
-                onChange={handleStatusChange}
-                style={{ width: `200px` }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    required
-                    label="Estado"
-                    type="text"
-                    className="form-control"
-                    style={{ width: `100%` }}
-                    InputProps={{
-                      ...params.InputProps,
-                    }}
-                  />
-                )}
-              />
-                  )}
+            <Autocomplete
+              id="estado"
+              options={statusList.map((status) => status.nombre)}
+              value={estado}
+              onChange={handleStatusChange}
+              style={{ width: `200px` }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  required
+                  label="Estado"
+                  type="text"
+                  className="form-control"
+                  style={{ width: `100%` }}
+                  InputProps={{
+                    ...params.InputProps,
+                  }}
+                />
+              )}
+            />
+          )}
           <div className={classes.datePickersContainer}>
-                <div>
-                  <LocalizationProvider dateAdapter={AdapterDayjs} >
-                    <DemoContainer components={['DatePicker', 'DatePicker']}>
-                      <DatePicker
-                        label="Fecha Estimada Produccion"
-                        value={dayjs(formData.fecha_estimada_produccion, "DD/MM/YYYY")}
-                        onChange={(newValue) => setFechaEstimadaProduccion(format(new Date(newValue), 'dd/MM/yyyy'))}
-                        format={'DD/MM/YYYY'}
-                        disabled={!authorizedSystems.includes('IMP')}
-                      />
-                    </DemoContainer>
-                  </LocalizationProvider>
-                </div>
-                <div>
-                  <LocalizationProvider dateAdapter={AdapterDayjs} >
-                    <DemoContainer components={['DatePicker', 'DatePicker']}>
-                      <DatePicker
-                        label="Fecha Estimada Puerto"
-                        value={dayjs(formData.fecha_estimada_puerto, "DD/MM/YYYY")}
-                        onChange={(newValue) => setFechaEstimadaPuerto(format(new Date(newValue), 'dd/MM/yyyy'))}
-                        format={'DD/MM/YYYY'}
-                        disabled={!authorizedSystems.includes('IMP')}
-                      />
-                    </DemoContainer>
-                  </LocalizationProvider>
-                </div>
-                <div>
-                  <LocalizationProvider dateAdapter={AdapterDayjs} >
-                    <DemoContainer components={['DatePicker', 'DatePicker']}>
-                      <DatePicker
-                        label="Fecha Estimada Llegada"
-                        value={dayjs(formData.fecha_estimada_llegada, "DD/MM/YYYY")}
-                        onChange={(newValue) => setFechaEstimadaLlegada(format(new Date(newValue), 'dd/MM/yyyy'))}
-                        format={'DD/MM/YYYY'}
-                        disabled={!authorizedSystems.includes('IMP')}
-                      />
-                    </DemoContainer>
-                  </LocalizationProvider>
-                </div>
-              </div>
+            <div>
+              <LocalizationProvider dateAdapter={AdapterDayjs} >
+                <DemoContainer components={['DatePicker', 'DatePicker']}>
+                  <DatePicker
+                    label="Fecha Estimada Produccion"
+                    value={dayjs(formData.fecha_estimada_produccion, "DD/MM/YYYY")}
+                    onChange={(newValue) => setFechaEstimadaProduccion(format(new Date(newValue), 'dd/MM/yyyy'))}
+                    format={'DD/MM/YYYY'}
+                    disabled={!authorizedSystems.includes('IMP')}
+                  />
+                </DemoContainer>
+              </LocalizationProvider>
+            </div>
+            <div>
+              <LocalizationProvider dateAdapter={AdapterDayjs} >
+                <DemoContainer components={['DatePicker', 'DatePicker']}>
+                  <DatePicker
+                    label="Fecha Estimada Puerto"
+                    value={dayjs(formData.fecha_estimada_puerto, "DD/MM/YYYY")}
+                    onChange={(newValue) => setFechaEstimadaPuerto(format(new Date(newValue), 'dd/MM/yyyy'))}
+                    format={'DD/MM/YYYY'}
+                    disabled={!authorizedSystems.includes('IMP')}
+                  />
+                </DemoContainer>
+              </LocalizationProvider>
+            </div>
+            <div>
+              <LocalizationProvider dateAdapter={AdapterDayjs} >
+                <DemoContainer components={['DatePicker', 'DatePicker']}>
+                  <DatePicker
+                    label="Fecha Estimada Llegada"
+                    value={dayjs(formData.fecha_estimada_llegada, "DD/MM/YYYY")}
+                    onChange={(newValue) => setFechaEstimadaLlegada(format(new Date(newValue), 'dd/MM/yyyy'))}
+                    format={'DD/MM/YYYY'}
+                    disabled={!authorizedSystems.includes('IMP')}
+                  />
+                </DemoContainer>
+              </LocalizationProvider>
+            </div>
+          </div>
           <div>
             <Tabs value={tabValue} onChange={(event, newValue) => setTabValue(newValue)}>
               <Tab label="Detalles" />

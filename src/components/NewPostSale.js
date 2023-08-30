@@ -246,6 +246,7 @@ function NewPostSales(props) {
       setCodPo(data.cod_po)
 
       if (data.cod_producto_no_existe) {
+        enqueueSnackbar('Existen detalles incorrectos', { variant: 'warning' });
         msj += 'PRODUCTOS INEXISTENTES: \n'+ data.cod_producto_no_existe + ' ';
       }
       if (data.unidad_medida_no_existe) {

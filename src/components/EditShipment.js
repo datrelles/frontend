@@ -495,39 +495,6 @@ function EditShipment(props) {
         deleteAria: "Borrar fila seleccionada"
       }
     },
-
-    /* customRowRender: (data, dataIndex, rowIndex) => {
-      const colors = {
-        "green": "#00ff00",
-        "white": "#ffffff",
-        "red": "#f2bdcd",
-      };
-
-      let backgroundColor = colors.grey;
-      if (parseInt(data[6]) < 0) {
-        backgroundColor = colors.red;
-      } else if (parseInt(data["saldo_producto"]) == 0 || data["saldo_producto"] == null) {
-        backgroundColor = colors.white;
-      }
-
-      return (
-        <TableRow
-          onClick={() => handleRowClick(data)}
-          style={{ backgroundColor: backgroundColor }}>
-          <TableCell />
-          <TableCell>{data[0]}</TableCell>
-          <TableCell>{data[1]}</TableCell>
-          <TableCell>{data[2]}</TableCell>
-          <TableCell>{data[3]}</TableCell>
-          <TableCell>{data[4]}</TableCell>
-          <TableCell>{data[5]}</TableCell>
-          <TableCell>{data[6]}</TableCell>
-          <TableCell>{data[7]}</TableCell>
-          <TableCell>{data[8]}</TableCell>
-          <TableCell>{data[9]}</TableCell>
-        </TableRow>
-      );
-    }, */
   }
 
 
@@ -590,14 +557,18 @@ function EditShipment(props) {
 
       for (let i = 1; i < jsonData.length; i++) {
         const row = jsonData[i];
+        // Verificar si todas las propiedades de la fila están vacías
+        const isRowEmpty = row.every((cell) => cell === "");
 
-        const obj = {};
-        for (let j = 0; j < properties.length; j++) {
-          const property = properties[j];
-          obj[property] = row[j];
+        if (!isRowEmpty) {
+          const obj = {};
+          for (let j = 0; j < properties.length; j++) {
+            const property = properties[j];
+            obj[property] = row[j];
+          }
+
+          newExcelData.push(obj);
         }
-
-        newExcelData.push(obj);
       }
       setExcelData(newExcelData)
       setPackingList((prevDetails) => [...prevDetails, ...newExcelData])
@@ -687,7 +658,7 @@ function EditShipment(props) {
     });
 
   return (
-    <div style={{ marginTop: '70px', top: 0, left:0, width: "100%", zIndex: 1000}}>
+    <div style={{ marginTop: '150px', top: 0, left:0, width: "100%", zIndex: 1000}}>
       <Navbar0 menus={menus}/>
       <Box
         sx={{
