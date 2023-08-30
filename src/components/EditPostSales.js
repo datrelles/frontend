@@ -567,20 +567,20 @@ function EditPostSales(props) {
       });
       const data3 = await res3.json();
       console.log(data3);
-
+      var msj = ''
       if (!data3.error) {
         if (data3.bl_no_existe) {
           msj += 'EMBARQUES NO EXISTENTES: \n' + data3.bl_no_existe + ' ';
         }
         if (data3.prod_no_existe) {
           enqueueSnackbar('Existen detalles incorrectos', { variant: 'warning' });
-          msj += 'PRODUCTOS INEXISTENTES EN DESPIECE: \n' + data3.prod_no_existe + ' ';
+          msj += 'PRODUCTOS INEXISTENTES EN DESPIECE: \n' + data3.prod_no_existe + '\n';
         }
         if (data3.unidad_medida_no_existe) {
-          msj += 'PRODUCTOS CON UNIDAD INCORRECTA: \n' + data3.unidad_medida_no_existe + ' ';
+          msj += 'PRODUCTOS CON UNIDAD INCORRECTA: \n' + data3.unidad_medida_no_existe + '\n';
         }
         if (data3.cod_producto_no_existe) {
-          msj += 'PRODUCTOS INEXISTENTES: \n' + data3.cod_producto_no_existe + ' ';
+          msj += 'PRODUCTOS NO CORRESPONDEN A DETALLES DE ORDEN: \n' + data3.cod_producto_no_existe + '\n';
         }
         enqueueSnackbar(data3.mensaje, { variant: 'success' });
         FileGenerator.generateAndDownloadTxtFile(msj, 'packinglist_con_error.txt');
@@ -1094,9 +1094,11 @@ function EditPostSales(props) {
                   onChange={handleFileUpload2}
                 />
                 <label htmlFor="file-upload">
-                  <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
-                    Cargar en Lote
-                  </Button>
+                  {authorizedSystems.includes('IMP') && (
+                    <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
+                      Cargar en Lote
+                    </Button>
+                  )}
                 </label>
               </div>
               <ThemeProvider theme={getMuiTheme()}>
