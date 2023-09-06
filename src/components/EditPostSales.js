@@ -224,76 +224,84 @@ function EditPostSales(props) {
   }
 
   const handleDeleteRows = async (rowsDeleted) => {
-    const userResponse = window.confirm('¿Está seguro de eliminar estos registros?')
-    if (userResponse) {
-      await rowsDeleted.data.forEach((deletedRow) => {
-        const deletedRowIndex = deletedRow.dataIndex;
-        const deletedRowValue = details[deletedRowIndex];
-        console.log(deletedRowValue.secuencia);
+    if ((parseInt(formData.cod_item, 10) < 6) && authorizedSystems.includes('IMP')) {
+      const userResponse = window.confirm('¿Está seguro de eliminar estos registros?')
+      if (userResponse) {
+        await rowsDeleted.data.forEach((deletedRow) => {
+          const deletedRowIndex = deletedRow.dataIndex;
+          const deletedRowValue = details[deletedRowIndex];
+          console.log(deletedRowValue.secuencia);
 
-        fetch(`${API}/orden_compra_det/${codPo}/${sessionStorage.getItem('currentEnterprise')}/${deletedRowValue.secuencia}/PO`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-          }
-        })
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Error en la llamada a la API');
+          fetch(`${API}/orden_compra_det/${codPo}/${sessionStorage.getItem('currentEnterprise')}/${deletedRowValue.secuencia}/PO`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + sessionStorage.getItem('token')
             }
-            console.log('Elemento eliminado exitosamente');
-            enqueueSnackbar('¡Elementos eliminados exitosamente!', { variant: 'success' });
           })
-          .catch(error => {
-            console.error(error);
-            enqueueSnackbar(error, { variant: 'error' });
-          });
-      });
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Error en la llamada a la API');
+              }
+              console.log('Elemento eliminado exitosamente');
+              enqueueSnackbar('¡Elementos eliminados exitosamente!', { variant: 'success' });
+            })
+            .catch(error => {
+              console.error(error);
+              enqueueSnackbar(error, { variant: 'error' });
+            });
+        });
+      }
     }
   };
 
   const handleDeleteRowsPack = async (rowsDeleted) => {
-    const userResponse = window.confirm('¿Está seguro de eliminar estos registros?')
-    if (userResponse) {
-      await rowsDeleted.data.forEach((deletedRow) => {
-        const deletedRowIndex = deletedRow.dataIndex;
-        const deletedRowValue = packingList[deletedRowIndex];
-        console.log(deletedRowValue.secuencia);
+    if ((parseInt(formData.cod_item, 10) < 6) && authorizedSystems.includes('IMP')) {
+      const userResponse = window.confirm('¿Está seguro de eliminar estos registros?')
+      if (userResponse) {
+        await rowsDeleted.data.forEach((deletedRow) => {
+          const deletedRowIndex = deletedRow.dataIndex;
+          const deletedRowValue = packingList[deletedRowIndex];
+          console.log(deletedRowValue.secuencia);
 
-        fetch(`${API}/orden_compra_packinglist?cod_po=${codPo}&empresa=${sessionStorage.getItem('currentEnterprise')}&secuencia=${deletedRowValue.secuencia}`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-          }
-        })
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Error en la llamada a la API');
+          fetch(`${API}/orden_compra_packinglist?cod_po=${codPo}&empresa=${sessionStorage.getItem('currentEnterprise')}&secuencia=${deletedRowValue.secuencia}`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + sessionStorage.getItem('token')
             }
-            console.log('Elemento eliminado exitosamente');
-            enqueueSnackbar('¡Elementos eliminados exitosamente!', { variant: 'success' });
           })
-          .catch(error => {
-            console.error(error);
-            enqueueSnackbar(error, { variant: 'error' });
-          });
-      });
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Error en la llamada a la API');
+              }
+              console.log('Elemento eliminado exitosamente');
+              enqueueSnackbar('¡Elementos eliminados exitosamente!', { variant: 'success' });
+            })
+            .catch(error => {
+              console.error(error);
+              enqueueSnackbar(error, { variant: 'error' });
+            });
+        });
+      }
     }
   };
 
 
   const handleRowClick = (rowData, rowMeta) => {
-    const row = details.filter(item => item.secuencia === rowData[0])[0];
-    console.log(row)
-    navigate('/postSaleDetails', { state: row, orden: formData });
+    if ((parseInt(formData.cod_item, 10) < 6) && authorizedSystems.includes('IMP')){
+      const row = details.filter(item => item.secuencia === rowData[0])[0];
+      console.log(row)
+      navigate('/postSaleDetails', { state: row, orden: formData });
+    }
   }
 
   const handleRowClickPack = (rowData, rowMeta) => {
-    const row = packingList.filter(item => item.secuencia === rowData[0])[0];
-    console.log(row)
-    navigate('/packingList', { state: row, orden: formData });
+    if ((parseInt(formData.cod_item, 10) < 6) && authorizedSystems.includes('IMP')){
+      const row = packingList.filter(item => item.secuencia === rowData[0])[0];
+      console.log(row)
+      navigate('/packingList', { state: row, orden: formData });
+    }
   }
 
   const handleProviderChange = (event, value) => {
@@ -317,7 +325,6 @@ function EditPostSales(props) {
     getProvidersList();
     checkAuthorization();
     getPackingList();
-
   }, [])
 
   const columns = [
@@ -591,43 +598,6 @@ function EditPostSales(props) {
 
   }
 
-  const handleChange4 = async (e) => {
-    e.preventDefault();
-    const res = await fetch(`${API}/orden_compra_cab/${codPo}/${sessionStorage.getItem('currentEnterprise')}/PO`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-      },
-      body: JSON.stringify({
-        empresa: sessionStorage.getItem('currentEnterprise'),
-        tipo_comprobante: tipoCombrobante,
-        bodega: sessionStorage.getItem('currentBranch'),
-        cod_proveedor: codProveedor,
-        nombre: nombre,
-        proforma: proforma,
-        invoice: invoice,
-        bl_no: blNo,
-        cod_po_padre: codPoPadre,
-        usuario_modifica: sessionStorage.getItem('currentUser'),
-        fecha_modifica: moment().format('DD/MM/YYYY'),
-        cod_modelo: codModelo,
-        cod_item: 2,
-        fecha_crea: fechaCrea
-      })
-    })
-    const data = await res.json();
-    console.log(data)
-    if (!data.error) {
-      enqueueSnackbar('¡Aprobado exitosamente!', { variant: 'success' });
-      setEstado('COTIZADO');
-    } else {
-      enqueueSnackbar(data.error, { variant: 'error' });
-    }
-
-
-  }
-
   const handleChangeSend = async (e) => {
     e.preventDefault();
     const res = await fetch(`${API}/orden_compra_cab/${codPo}/${sessionStorage.getItem('currentEnterprise')}/PO`, {
@@ -891,7 +861,7 @@ function EditPostSales(props) {
               onClick={handleChange2}>
               <SaveIcon /> Guardar
             </button>
-            {authorizedSystems.includes('REP') && (
+            {authorizedSystems.includes('REP') && parseInt(formData.cod_item, 10) == 0 && (
               <button
                 className="btn btn-primary"
                 type="button"
@@ -900,22 +870,13 @@ function EditPostSales(props) {
                 <SendIcon /> Solicitar
               </button>
             )}
-            {authorizedSystems.includes('REP') && (
+            {authorizedSystems.includes('REP') && parseInt(formData.cod_item, 10) == 2 && (
               <button
                 className="btn btn-primary"
                 type="button"
                 style={{ width: '150px', marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
                 onClick={handleChangeAprob}>
                 <CheckIcon /> Aprobar
-              </button>
-            )}
-            {authorizedSystems.includes('IMP') && (
-              <button
-                className="btn btn-primary"
-                type="button"
-                style={{ width: '150px', marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px' }}
-                onClick={handleChange4}>
-                <CheckIcon /> Cotizar
               </button>
             )}
           </div>
@@ -959,9 +920,9 @@ function EditPostSales(props) {
                 />
               )}
               defaultValue={nombre}
+              disabled={parseInt(formData.cod_item, 10) > 3}
             />
             <TextField
-              required
               id="codProveedor"
               label="Codigo Proveedor"
               type="text"
@@ -977,6 +938,7 @@ function EditPostSales(props) {
                   style: { textAlign: 'right' },
                 },
               }}
+              disabled
             />
           </div>
           <TextField
@@ -987,6 +949,7 @@ function EditPostSales(props) {
             onChange={e => setProforma(e.target.value)}
             value={proforma}
             className="form-control"
+            disabled={parseInt(formData.cod_item, 10) > 3}
           />
           {authorizedSystems.includes('IMP') && (
             <Autocomplete
@@ -1008,6 +971,7 @@ function EditPostSales(props) {
                   }}
                 />
               )}
+              disabled={parseInt(formData.cod_item, 10) > 6}
             />
           )}
           <div className={classes.datePickersContainer}>
@@ -1019,7 +983,7 @@ function EditPostSales(props) {
                     value={dayjs(formData.fecha_estimada_produccion, "DD/MM/YYYY")}
                     onChange={(newValue) => setFechaEstimadaProduccion(format(new Date(newValue), 'dd/MM/yyyy'))}
                     format={'DD/MM/YYYY'}
-                    disabled={!authorizedSystems.includes('IMP')}
+                    disabled={!authorizedSystems.includes('IMP') || (parseInt(formData.cod_item, 10) > 6)}
                   />
                 </DemoContainer>
               </LocalizationProvider>
@@ -1032,7 +996,7 @@ function EditPostSales(props) {
                     value={dayjs(formData.fecha_estimada_puerto, "DD/MM/YYYY")}
                     onChange={(newValue) => setFechaEstimadaPuerto(format(new Date(newValue), 'dd/MM/yyyy'))}
                     format={'DD/MM/YYYY'}
-                    disabled={!authorizedSystems.includes('IMP')}
+                    disabled={!authorizedSystems.includes('IMP') || (parseInt(formData.cod_item, 10) > 6)}
                   />
                 </DemoContainer>
               </LocalizationProvider>
@@ -1045,7 +1009,7 @@ function EditPostSales(props) {
                     value={dayjs(formData.fecha_estimada_llegada, "DD/MM/YYYY")}
                     onChange={(newValue) => setFechaEstimadaLlegada(format(new Date(newValue), 'dd/MM/yyyy'))}
                     format={'DD/MM/YYYY'}
-                    disabled={!authorizedSystems.includes('IMP')}
+                    disabled={!authorizedSystems.includes('IMP') || (parseInt(formData.cod_item, 10) > 6)}
                   />
                 </DemoContainer>
               </LocalizationProvider>
@@ -1058,13 +1022,15 @@ function EditPostSales(props) {
             </Tabs>
             <TabPanel value={tabValue} index={0}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-                <button
-                  className="btn btn-primary btn-block"
-                  type="button"
-                  style={{ marginBottom: '10px', marginTop: '10px', marginRight: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
-                  onClick={handleChange3}>
-                  <AddIcon /> Nuevo
-                </button>
+                {authorizedSystems.includes('IMP') && parseInt(formData.cod_item, 10) < 6 && (
+                  <button
+                    className="btn btn-primary btn-block"
+                    type="button"
+                    style={{ marginBottom: '10px', marginTop: '10px', marginRight: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
+                    onClick={handleChange3}>
+                    <AddIcon /> Nuevo
+                  </button>
+                )}
                 <input
                   accept=".xlsx, .xls"
                   id="file-upload"
@@ -1074,9 +1040,11 @@ function EditPostSales(props) {
                   onChange={handleFileUpload}
                 />
                 <label htmlFor="file-upload">
-                  <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
-                    Cargar en Lote
-                  </Button>
+                  {authorizedSystems.includes('IMP') && parseInt(formData.cod_item, 10) < 6 && (
+                    <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
+                      Cargar en Lote
+                    </Button>
+                  )}
                 </label>
               </div>
               <ThemeProvider theme={getMuiTheme()}>
@@ -1094,7 +1062,7 @@ function EditPostSales(props) {
                   onChange={handleFileUpload2}
                 />
                 <label htmlFor="file-upload">
-                  {authorizedSystems.includes('IMP') && (
+                  {authorizedSystems.includes('IMP') && parseInt(formData.cod_item, 10) < 7 && parseInt(formData.cod_item, 10) > 4 &&(
                     <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
                       Cargar en Lote
                     </Button>

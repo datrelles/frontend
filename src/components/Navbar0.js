@@ -2,12 +2,13 @@ import React from "react";
 import axios from "axios";
 import { NavDropdown, Navbar, Container, Nav } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import logo from '../img/logo_massline.png';
+import logo from '../img/logo_massline1.png';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import Settings from '@mui/icons-material/Settings';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import MeetingRoomTwoToneIcon from '@mui/icons-material/MeetingRoomTwoTone';
 import HolidayVillageTwoToneIcon from '@mui/icons-material/HolidayVillageTwoTone';
+import '../styles/Navbar0.css'
 
 const API = process.env.REACT_APP_API;
 
@@ -53,7 +54,7 @@ function Navbar0(props) {
 
   return (
     <div style={{position: "fixed", top: 0, left:0, width: "100%", zIndex: 1000}}>
-      <Navbar bg="light" expand="lg" >
+      <Navbar bg="light" expand="lg" className="navbar0 navbar0-bg">
         <Container>
           <Navbar.Brand onClick={handleClick}>
             <img

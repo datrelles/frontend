@@ -46,6 +46,7 @@ function PostSaleDetails(props) {
   const [usuarioCrea, setUsuarioCrea] = useState(formData.usuario_crea)
   const [usuarioModifica, setUsuarioModifica] = useState(formData.usuario_modifica)
   const [productModelList, setProductModelList] = useState([])
+  const [productModelNombre, setProductModelNombre] = useState([])
   
 
   const { enqueueSnackbar } = useSnackbar();
@@ -104,18 +105,17 @@ function PostSaleDetails(props) {
     })
     const data = await res.json();
     console.log(data)
-    const list = data.map((item) => ({
-      codigo: item.cod_producto,
-      nombre: item.nombre,
-    }));
-    setProductModelList(list)
+    if (codProductoModelo){
+    setProductModelNombre(data.find((objeto) => objeto.cod_producto === codProductoModelo).nombre)
+    }
+    setProductModelList(data)
   }
 
   const handleProductModelChange = (event, value) => {
     if (value) {
       const productoSeleccionado = productModelList.find((producto) => producto.nombre === value);
       if (productoSeleccionado) {
-        setCodProductoModelo(productoSeleccionado.codigo);
+        setCodProductoModelo(productoSeleccionado.cod_producto);
       }
     } else {
       setCodProductoModelo('');
@@ -248,26 +248,35 @@ function PostSaleDetails(props) {
               },
             }}
           />
+          <div className="d-flex">
           <Autocomplete
             id="ProductoModelo"
             options={productModelList.map((producto) => producto.nombre)}
+            value={productModelNombre}
             onChange={handleProductModelChange}
-            style={{ width: `290px` }}
             renderInput={(params) => (
               <TextField
                 {...params}
                 required
                 label="Producto Modelo"
                 type="text"
-                value={nombre}
                 className="form-control"
-                style={{ width: `100%` }}
                 InputProps={{
                   ...params.InputProps,
                 }}
               />
             )}
           />
+          <TextField
+            disabled
+            id="codProductoModelo"
+            label="Codigo Modelo"
+            type="text"
+            onChange={e => setCodProductoModelo(e.target.value)}
+            value={codProductoModelo}
+            className="form-control mr-2"
+          />
+          </div>
           <TextField
             disabled
             id="cod-producto"

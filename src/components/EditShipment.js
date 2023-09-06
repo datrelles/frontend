@@ -881,6 +881,7 @@ function EditShipment(props) {
                     }}
                   />
                 )}
+                disabled = {parseInt(formData.cod_item, 10) > 2}
               />
               <TextField
                 required
@@ -977,6 +978,7 @@ function EditShipment(props) {
                     }}
                   />
                 )}
+                disabled = {parseInt(formData.cod_item, 10) != 2}
               />
             </Grid>
           </Grid>

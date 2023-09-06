@@ -128,9 +128,9 @@ function Login(props) {
                                             />
                                             <h4 className="mt-1 mb-5 pb-1"> </h4>
                                         </div>
-                                        <h4 className="mb-4">Bienvenido al Sistema Empresarial Massline</h4>
+                                        <h4 className="mb-4 text-center align-middle" style={{ color: "black"}}>Bienvenido al Sistema Empresarial Massline</h4>
                                         <p className="small mb-0">
-                                            MultiEmpresa. MultiAgencia.
+                                
                                         </p>
                                     </div>
                                 </div>
