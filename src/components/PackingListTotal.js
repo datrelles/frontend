@@ -81,7 +81,7 @@ function PackingListTotal(props) {
                 {
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + props.token
+                        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
                     }
                 });
 
@@ -104,7 +104,7 @@ function PackingListTotal(props) {
                 {
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + props.token
+                        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
                     }
                 });
 
@@ -446,7 +446,7 @@ function PackingListTotal(props) {
                         msj += 'EMBARQUES NO EXISTENTES: \n' + data.bl_no_existe + ' ';
                     }
                     if (data.prod_no_existe) {
-                        enqueueSnackbar('Existen detalles incorrectos', { variant: 'warning' });
+                        enqueueSnackbar('Existen registros con novedad', { variant: 'warning' });
                         msj += 'PRODUCTOS INEXISTENTES EN DESPIECE: \n' + data.prod_no_existe + '\n';
                     }
                     if (data.unidad_medida_no_existe) {
@@ -485,7 +485,7 @@ function PackingListTotal(props) {
                     msj += 'EMBARQUES NO EXISTENTES: \n' + data.bl_no_existe + ' ';
                 }
                 if (data.prod_no_existe) {
-                    enqueueSnackbar('Existen detalles incorrectos', { variant: 'warning' });
+                    enqueueSnackbar('Existen registros con novedad', { variant: 'warning' });
                     msj += 'PRODUCTOS INEXISTENTES EN TABLA PRODUCTO: \n' + data.prod_no_existe + '\n';
                 }
                 if (data.unidad_medida_no_existe) {
@@ -623,6 +623,7 @@ function PackingListTotal(props) {
                         </label>
                     </div>
                 )}
+                {authorizedSystems.includes('IMP') && container && (
                 <button
                     className="btn btn-primary"
                     type="button"
@@ -630,6 +631,7 @@ function PackingListTotal(props) {
                     onClick={handleChange}>
                     <SaveIcon /> Guardar
                 </button>
+                )}
                 <ThemeProvider theme={getMuiTheme()}>
                     <MUIDataTable
                         title={"Packinglist general"}

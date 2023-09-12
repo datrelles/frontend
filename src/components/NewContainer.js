@@ -151,7 +151,7 @@ function NewContainer(props) {
         const data = await res.json();
         console.log(data)
         setTipoList(data)
-        setNombreTipo(data.find((objeto) => objeto.cod_tipo_contenedor === codTipoContenedor).nombre)
+        setNombreTipo(data.find((objeto) => objeto.cod_tipo_contenedor === codTipoContenedor)?.nombre || '');
 
     }
 
@@ -320,42 +320,43 @@ function NewContainer(props) {
         } else {
             enqueueSnackbar(data.error, { variant: 'error' });
         }
-
-        const res1 = await fetch(`${API}/packinglist_contenedor`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-            },
-            body: JSON.stringify({
-                packings: excelData,
-                nro_contenedor: nroContenedor,
-                empresa: sessionStorage.getItem('currentEnterprise'),
-                usuario_crea: sessionStorage.getItem('currentUser'),
-                tipo_comprobante: "PO"
+        if (excelData && excelData.length > 1) {
+            const res1 = await fetch(`${API}/packinglist_contenedor`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                },
+                body: JSON.stringify({
+                    packings: excelData,
+                    nro_contenedor: nroContenedor,
+                    empresa: sessionStorage.getItem('currentEnterprise'),
+                    usuario_crea: sessionStorage.getItem('currentUser'),
+                    tipo_comprobante: "PO"
+                })
             })
-        })
-        const data1 = await res1.json();
-        console.log(data1)
-        var msj = ''
-        if (!data1.error) {
-            if (data1.bl_no_existe) {
-                msj += 'EMBARQUES NO EXISTENTES: \n' + data1.bl_no_existe + ' ';
+            const data1 = await res1.json();
+            console.log(data1)
+            var msj = ''
+            if (!data1.error) {
+                if (data1.bl_no_existe) {
+                    msj += 'EMBARQUES NO EXISTENTES: \n' + data1.bl_no_existe + ' ';
+                }
+                if (data1.prod_no_existe) {
+                    enqueueSnackbar('Existen detalles incorrectos', { variant: 'warning' });
+                    msj += 'PRODUCTOS INEXISTENTES EN DESPIECE: \n' + data1.prod_no_existe + '\n';
+                }
+                if (data1.unidad_medida_no_existe) {
+                    msj += 'PRODUCTOS CON UNIDAD INCORRECTA: \n' + data1.unidad_medida_no_existe + '\n';
+                }
+                if (data1.cod_producto_no_existe) {
+                    msj += 'PRODUCTOS NO CORRESPONDEN A DETALLES DE ORDEN: \n' + data1.cod_producto_no_existe + '\n';
+                }
+                enqueueSnackbar(data1.mensaje, { variant: 'success' });
+                FileGenerator.generateAndDownloadTxtFile(msj, 'packinglist_con_error.txt');
+            } else {
+                enqueueSnackbar(data.error, { variant: 'error' });
             }
-            if (data1.prod_no_existe) {
-                enqueueSnackbar('Existen detalles incorrectos', { variant: 'warning' });
-                msj += 'PRODUCTOS INEXISTENTES EN DESPIECE: \n' + data1.prod_no_existe + '\n';
-            }
-            if (data1.unidad_medida_no_existe) {
-                msj += 'PRODUCTOS CON UNIDAD INCORRECTA: \n' + data1.unidad_medida_no_existe + '\n';
-            }
-            if (data1.cod_producto_no_existe) {
-                msj += 'PRODUCTOS NO CORRESPONDEN A DETALLES DE ORDEN: \n' + data1.cod_producto_no_existe + '\n';
-            }
-            enqueueSnackbar(data1.mensaje, { variant: 'success' });
-            FileGenerator.generateAndDownloadTxtFile(msj, 'packinglist_con_error.txt');
-        } else {
-            enqueueSnackbar(data.error, { variant: 'error' });
         }
     }
 
@@ -611,7 +612,7 @@ function NewContainer(props) {
                                 value={peso}
                                 className="form-control"
                                 style={{ width: `160px` }}
-                                disabled={parseInt(esCargaSuelta, 10)==1}
+                                disabled={parseInt(esCargaSuelta, 10) == 1}
                             />
 
                             <TextField
@@ -622,7 +623,7 @@ function NewContainer(props) {
                                 onChange={e => setVolumen(e.target.value)}
                                 value={volumen}
                                 className="form-control"
-                                disabled={parseInt(esCargaSuelta, 10)==1}
+                                disabled={parseInt(esCargaSuelta, 10) == 1}
                             />
                             <TextField
                                 required
@@ -632,7 +633,7 @@ function NewContainer(props) {
                                 onChange={e => setLineSeal(e.target.value)}
                                 value={lineSeal}
                                 className="form-control"
-                                disabled={parseInt(esCargaSuelta, 10)==1}
+                                disabled={parseInt(esCargaSuelta, 10) == 1}
                             />
                         </Grid>
                         <Grid item xs={4}>
@@ -644,7 +645,7 @@ function NewContainer(props) {
                                 onChange={e => setShipperSeal(e.target.value)}
                                 value={shipperSeal}
                                 className="form-control"
-                                disabled={parseInt(esCargaSuelta, 10)==1}
+                                disabled={parseInt(esCargaSuelta, 10) == 1}
                             />
                             <TextField
                                 required

@@ -596,28 +596,6 @@ function EditContainer(props) {
               <Tab label="Packinglist" />
             </Tabs>
             <TabPanel value={tabValue} index={0}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-                <button
-                  className="btn btn-primary btn-block"
-                  type="button"
-                  style={{ marginBottom: '10px', marginTop: '10px', marginRight: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
-                  onClick={handleChange3}>
-                  <AddIcon /> Nuevo
-                </button>
-                <input
-                  accept=".xlsx, .xls"
-                  id="file-upload"
-                  multiple
-                  type="file"
-                  style={{ display: 'none' }}
-                  onChange={handleFileUpload}
-                />
-                <label htmlFor="file-upload">
-                  <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
-                    Cargar en Lote
-                  </Button>
-                </label>
-              </div>
               <ThemeProvider theme={getMuiTheme()}>
                 <MUIDataTable title={"Packinglist por Contenedor"} data={packingList} columns={columns} options={options} />
               </ThemeProvider>
