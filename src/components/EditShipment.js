@@ -85,7 +85,7 @@ function EditShipment(props) {
   const [statusList, setStatusList] = useState([])
   const [fleteList, setFleteList] = useState([{ cod: "C", nombre: "AL COBRO" }, { cod: "P", nombre: "PREPAGADO" }])
   const foundFlete = fleteList.find((flete) => flete.cod === formData.tipo_flete);
-  const [fleteNombre, setFleteNombre] = useState(foundFlete ? foundFlete.nombre : "")
+  const [fleteNombre, setFleteNombre] = useState(foundFlete ? foundFlete.nombre : "0")
   const [packingList, setPackingList] = useState([])
   const [regimenList, setRegimenList] = useState([])
   const [regimenNombre, setRegimenNombre] = useState("")
@@ -433,6 +433,10 @@ function EditShipment(props) {
     {
       name: "secuencia",
       label: "Secuencia"
+    },
+    {
+      name: "nro_contenedor",
+      label: "Contenedor"
     },
     {
       name: "cod_producto",

@@ -15,6 +15,9 @@ import PostSaleDetails from "./components/PostSaleDetails";
 import NewPostSaleDetail from "./components/NewPostSaleDetail";
 import Imports from "./components/Imports";
 import Shipment from "./components/Shipment";
+import Container from "./components/Container";
+import EditContainer from "./components/EditContainer";
+import NewContainer from "./components/NewContainer";
 import EditShipment from "./components/EditShipment";
 import NewShipment from "./components/NewShipment";
 import PackingList from "./components/PackingList";
@@ -72,6 +75,9 @@ function App() {
                   <Route exact path="/newPostSaleDetail" element={<NewPostSaleDetail token={token} setToken={setToken} />}></Route>
                   <Route exact path="/imports" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><Imports token={token} setToken={setToken} /></Protected>}/>
                   <Route exact path="/shipment" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><Shipment token={token} setToken={setToken} /></Protected>}/>
+                  <Route exact path="/container" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><Container token={token} setToken={setToken} /></Protected>}/>
+                  <Route exact path="/editContainer" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><EditContainer token={token} setToken={setToken} /></Protected>}/>
+                  <Route exact path="/newContainer" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><NewContainer token={token} setToken={setToken} /></Protected>}/>
                   <Route exact path="/editShipment" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><EditShipment token={token} setToken={setToken} /></Protected>}/>
                   <Route exact path="/newShipment" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><NewShipment token={token} setToken={setToken} /></Protected>}/>
                   <Route exact path="/packingList" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><PackingList token={token} setToken={setToken} /></Protected>}/>

@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@material-ui/icons/Search';
 import LinearProgress from '@mui/material/LinearProgress';
 import AddIcon from '@material-ui/icons/Add';
-
+import SaveIcon from '@material-ui/icons/Save';
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -17,10 +17,13 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { TextField } from '@mui/material';
 import { format } from 'date-fns'
 import moment from "moment";
-
+import FileGenerator from './FileGenerator';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
+import * as XLSX from 'xlsx'
+import Autocomplete from '@mui/material/Autocomplete';
+
 
 
 
@@ -35,6 +38,10 @@ const useStyles = makeStyles({
 
 function PackingListTotal(props) {
     const [packingList, setPackingList] = useState([])
+    const [container, setContainer] = useState('')
+    const [excelData, setExcelData] = useState(['']);
+    const [authorizedSystems, setAuthorizedSystems] = useState([]);
+    const [containerList, setContainerList] = useState([])
     const [fromDate, setFromDate] = useState(moment().subtract(3, "months"));
     const [toDate, setToDate] = useState(moment);
     const [statusList, setStatusList] = useState([])
@@ -43,6 +50,29 @@ function PackingListTotal(props) {
     const { enqueueSnackbar } = useSnackbar();
 
     const classes = useStyles();
+
+    const checkAuthorization = async () => {
+        const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            }
+        });
+        const data = await res.json();
+        setAuthorizedSystems(data.map(row => row.COD_SISTEMA));
+    };
+
+    const getContainerList = async () => {
+        const res = await fetch(`${API}/containers`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            }
+        })
+        const data = await res.json();
+        setContainerList(data)
+    }
 
 
     const getPackingList = async () => {
@@ -94,9 +124,12 @@ function PackingListTotal(props) {
     useEffect(() => {
         getPackingList();
         getStatusList();
+        getContainerList();
+        checkAuthorization();
         getMenus();
         setToDate(null);
         setFromDate(null);
+        console.log(container)
     }, [])
 
     const handleChange2 = async (e) => {
@@ -201,7 +234,7 @@ function PackingListTotal(props) {
                         onMouseOut={(e) => {
                             e.target.style.color = 'black';
                             e.target.style.textDecoration = 'none'
-                        }} 
+                        }}
                         onClick={() => handleRowClick(value)}
                     >
                         {value}
@@ -267,7 +300,7 @@ function PackingListTotal(props) {
                         onMouseOut={(e) => {
                             e.target.style.color = 'black';
                             e.target.style.textDecoration = 'none'
-                        }} 
+                        }}
                         onClick={() => handleRowClick2(value)}
                     >
                         {value}
@@ -319,6 +352,168 @@ function PackingListTotal(props) {
         }
 
     }
+
+    const handleFileUpload = (event) => {
+        if (container != null) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                const properties = jsonData[0];
+
+                const newExcelData = [];
+
+                for (let i = 1; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+
+                    // Verificar si todas las propiedades de la fila están vacías
+                    const isRowEmpty = row.every((cell) => cell === "");
+
+                    if (!isRowEmpty) {
+
+                        const obj = {};
+                        for (let j = 0; j < properties.length; j++) {
+                            const property = properties[j];
+                            obj[property] = row[j];
+                        }
+
+                        newExcelData.push(obj);
+                    }
+                }
+                setExcelData(newExcelData)
+                console.log(newExcelData)
+            };
+            reader.readAsArrayBuffer(file);
+        } else {
+            enqueueSnackbar('¡Seleccione Contenedor Primero!', { variant: 'warning' });
+        }
+    };
+
+    const handleChange = async (e) => {
+        e.preventDefault();
+
+        const res0 = await fetch(`${API}/packings_by_container?empresa=${sessionStorage.getItem('currentEnterprise')}&nro_contenedor=${container}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            }
+        })
+        const data0 = await res0.json();
+        console.log(data0.packings)
+        const qty = parseInt(data0.packings, 10); 
+
+        if (qty > 0) {
+            const userResponse = window.confirm(`Este Contenedor tiene ${qty} registros de packinglist, desea borrar y reemplazar?`)
+            if (userResponse) {
+                enqueueSnackbar('Creando PackingList en Contenedor...', { variant: 'success' });
+                const resDelete = await fetch(`${API}/orden_compra_packinglist_by_container?empresa=${sessionStorage.getItem('currentEnterprise')}&nro_contenedor=${container}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                    },
+                    body: JSON.stringify({
+                        nro_contenedor: container,
+                        empresa: sessionStorage.getItem('currentEnterprise'),
+                    })
+                })
+                const dataDel = await resDelete.json();
+                console.log(dataDel)
+                const res = await fetch(`${API}/packinglist_contenedor`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                    },
+                    body: JSON.stringify({
+                        packings: excelData,
+                        nro_contenedor: container,
+                        empresa: sessionStorage.getItem('currentEnterprise'),
+                        usuario_crea: sessionStorage.getItem('currentUser'),
+                        tipo_comprobante: "PO"
+                    })
+                })
+                const data = await res.json();
+                console.log(data)
+                var msj = ''
+                if (!data.error) {
+                    if (data.bl_no_existe) {
+                        msj += 'EMBARQUES NO EXISTENTES: \n' + data.bl_no_existe + ' ';
+                    }
+                    if (data.prod_no_existe) {
+                        enqueueSnackbar('Existen detalles incorrectos', { variant: 'warning' });
+                        msj += 'PRODUCTOS INEXISTENTES EN DESPIECE: \n' + data.prod_no_existe + '\n';
+                    }
+                    if (data.unidad_medida_no_existe) {
+                        msj += 'PRODUCTOS CON UNIDAD INCORRECTA: \n' + data.unidad_medida_no_existe + '\n';
+                    }
+                    if (data.cod_producto_no_existe) {
+                        msj += 'PRODUCTOS NO CORRESPONDEN A DETALLES DE ORDEN: \n' + data.cod_producto_no_existe + '\n';
+                    }
+                    enqueueSnackbar(data.mensaje, { variant: 'success' });
+                    FileGenerator.generateAndDownloadTxtFile(msj, 'packinglist_con_error.txt');
+                } else {
+                    enqueueSnackbar(data.error, { variant: 'error' });
+                }
+            }
+        }else{
+            enqueueSnackbar('Creando PackingList en Contenedor...', { variant: 'success' });
+            const res = await fetch(`${API}/packinglist_contenedor`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                },
+                body: JSON.stringify({
+                    packings: excelData,
+                    nro_contenedor: container,
+                    empresa: sessionStorage.getItem('currentEnterprise'),
+                    usuario_crea: sessionStorage.getItem('currentUser'),
+                    tipo_comprobante: "PO"
+                })
+            })
+            const data = await res.json();
+            console.log(data)
+            var msj = ''
+            if (!data.error) {
+                if (data.bl_no_existe) {
+                    msj += 'EMBARQUES NO EXISTENTES: \n' + data.bl_no_existe + ' ';
+                }
+                if (data.prod_no_existe) {
+                    enqueueSnackbar('Existen detalles incorrectos', { variant: 'warning' });
+                    msj += 'PRODUCTOS INEXISTENTES EN TABLA PRODUCTO: \n' + data.prod_no_existe + '\n';
+                }
+                if (data.unidad_medida_no_existe) {
+                    msj += 'PRODUCTOS CON UNIDAD INCORRECTA: \n' + data.unidad_medida_no_existe + '\n';
+                }
+                if (data.cod_producto_no_existe) {
+                    msj += 'PRODUCTOS NO CORRESPONDEN A DETALLES DE ORDEN: \n' + data.cod_producto_no_existe + '\n';
+                }
+                enqueueSnackbar(data.mensaje, { variant: 'success' });
+                FileGenerator.generateAndDownloadTxtFile(msj, 'packinglist_con_error.txt');
+            } else {
+                enqueueSnackbar(data.error, { variant: 'error' });
+            }
+        }
+        setExcelData([''])
+    }
+
+    const handleContainerChange = (event, value) => {
+        if (value) {
+            const containerSeleccionado = containerList.find((container) => container.nro_contenedor === value);
+            if (containerSeleccionado) {
+                setContainer(containerSeleccionado.nro_contenedor);
+            }
+        } else {
+            setContainer('');
+        }
+    };
+
 
     const getMuiTheme = () =>
         createTheme({
@@ -373,8 +568,7 @@ function PackingListTotal(props) {
 
 
     return (
-        <SnackbarProvider>
-            <div style={{ marginTop: '150px'}}>
+            <div style={{ marginTop: '150px' }}>
                 <Navbar0 menus={menus} />
                 <Box
                     sx={{
@@ -390,46 +584,52 @@ function PackingListTotal(props) {
                         <Button onClick={() => { navigate('/dashboard') }}>Módulos</Button>
                     </ButtonGroup>
                 </Box>
-                {/* <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
-                    <div className={classes.datePickersContainer}>
-                        <div>
-                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                <DemoContainer components={['DatePicker']}>
-                                    <DatePicker
-                                        label="Fecha Desde"
-                                        value={fromDate}
-                                        onChange={(newValue) => setFromDate(newValue)}
-                                        renderInput={(params) => <TextField {...params} />}
-                                        format="DD/MM/YYYY"
-                                    />
-                                </DemoContainer>
-                            </LocalizationProvider>
-                        </div>
-                        <div>
-                            <LocalizationProvider dateAdapter={AdapterDayjs} >
-                                <DemoContainer components={['DatePicker']} >
-                                    <DatePicker
-                                        label="Fecha Hasta"
-                                        value={toDate}
-                                        onChange={(newValue) => setToDate(newValue)}
-                                        renderInput={(params) => <TextField {...params} />}
-                                        format="DD/MM/YYYY"
-
-                                    />
-                                </DemoContainer>
-                            </LocalizationProvider>
-                        </div>
-                        <div>
-                            <button
-                                className="btn btn-primary btn-block"
-                                type="button"
-                                style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
-                                onClick={handleChangeDate} >
-                                <SearchIcon /> Buscar
-                            </button>
-                        </div>
+                <Autocomplete
+                    id="estado"
+                    options={containerList.map((container) => container.nro_contenedor)}
+                    value={container}
+                    onChange={handleContainerChange}
+                    style={{ width: `200px` }}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            required
+                            label="Contenedor"
+                            type="text"
+                            className="form-control"
+                            style={{ width: `100%` }}
+                            InputProps={{
+                                ...params.InputProps,
+                            }}
+                        />
+                    )}
+                />
+                {authorizedSystems.includes('IMP') && container && (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
+                        <input
+                            accept=".xlsx, .xls"
+                            id="file-upload"
+                            multiple
+                            type="file"
+                            style={{ display: 'none' }}
+                            onChange={handleFileUpload}
+                        />
+                        <label htmlFor="file-upload">
+                            {authorizedSystems.includes('IMP') && (
+                                <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
+                                    Cargar en Lote
+                                </Button>
+                            )}
+                        </label>
                     </div>
-                </div> */}
+                )}
+                <button
+                    className="btn btn-primary"
+                    type="button"
+                    style={{ width: '150px', marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
+                    onClick={handleChange}>
+                    <SaveIcon /> Guardar
+                </button>
                 <ThemeProvider theme={getMuiTheme()}>
                     <MUIDataTable
                         title={"Packinglist general"}
@@ -439,8 +639,13 @@ function PackingListTotal(props) {
                     />
                 </ThemeProvider>
             </div>
-        </SnackbarProvider>
     )
 }
 
-export default PackingListTotal
+export default function IntegrationNotistack() {
+    return (
+      <SnackbarProvider maxSnack={3}>
+        <PackingListTotal />
+      </SnackbarProvider>
+    );
+  }

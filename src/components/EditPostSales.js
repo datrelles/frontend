@@ -20,8 +20,6 @@ import * as XLSX from 'xlsx'
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import TrackingStepOrder from "./TrackingStepOrder";
-import TableRow from "@material-ui/core/TableRow";
-import TableCell from "@material-ui/core/TableCell";
 
 import dayjs from 'dayjs';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
@@ -340,6 +338,10 @@ function EditPostSales(props) {
       label: "Codigo Producto"
     },
     {
+      name: "cod_producto_modelo",
+      label: "Modelo"
+    },
+    {
       name: "nombre",
       label: "Producto"
     },
@@ -353,11 +355,31 @@ function EditPostSales(props) {
     },
     {
       name: "cantidad_pedido",
-      label: "Cantidad"
+      label: "Cantidad",
+      options: {
+        customBodyRender: (value) => {
+          // Verificar si la cadena es vacía o nula
+          if (value === null || value === "") {
+            return "0";
+          } else {
+            return value;
+          }
+        },
+      },
     },
     {
       name: "saldo_producto",
-      label: "Saldo"
+      label: "Saldo",
+      options: {
+        customBodyRender: (value) => {
+          // Verificar si la cadena es vacía o nula
+          if (value === null || value === "") {
+            return "0";
+          } else {
+            return value;
+          }
+        },
+      },
     },
     {
       name: "costo_sistema",
@@ -432,6 +454,10 @@ function EditPostSales(props) {
     {
       name: "fob",
       label: "Fob"
+    },
+    {
+      name: "nro_contenedor",
+      label: "Contenedor"
     },
     {
       name: "codigo_bl_house",
