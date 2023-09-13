@@ -90,7 +90,7 @@ function EditShipment(props) {
   const [regimenList, setRegimenList] = useState([])
   const [regimenNombre, setRegimenNombre] = useState("")
 
-  
+
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -662,8 +662,8 @@ function EditShipment(props) {
     });
 
   return (
-    <div style={{ marginTop: '150px', top: 0, left:0, width: "100%", zIndex: 1000}}>
-      <Navbar0 menus={menus}/>
+    <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
+      <Navbar0 menus={menus} />
       <Box
         sx={{
           display: 'flex',
@@ -703,8 +703,9 @@ function EditShipment(props) {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginBottom: '20px' }}>
             {TrackingStep(Number(codItem), statusList.map(item => item.nombre))}
           </div>
-          <Grid container spacing={50}>
-            <Grid item xs={5}>
+          <Grid container spacing={3}>
+            {/* Primera Columna */}
+            <Grid item xs={3}>
               <TextField
                 disabled
                 id="id"
@@ -739,7 +740,6 @@ function EditShipment(props) {
                     label="Estado"
                     type="text"
                     className="form-control"
-                    style={{ width: `100%` }}
                     InputProps={{
                       ...params.InputProps,
                     }}
@@ -759,13 +759,18 @@ function EditShipment(props) {
 
               <TextField
                 disabled
+                multiline
+                rows={2}
                 id="nombre-proveedor"
                 label="Nombre Proveedor"
                 type="text"
                 value={nombreProveedor}
                 className="form-control"
-                style={{ width: `500px` }}
               />
+            </Grid>
+
+            {/* Segunda Columna */}
+            <Grid item xs={3}>
               <TextField
                 required
                 id="agente"
@@ -780,15 +785,16 @@ function EditShipment(props) {
                 options={navieraList.map((naviera) => naviera.nombre)}
                 value={navieraNombre}
                 onChange={handleNavieraChange}
-                style={{ width: `500px` }}
+                style={{ width: `300px` }}
                 renderInput={(params) => (
                   <TextField
                     {...params}
                     required
+                    multiline
+                    rows={2}
                     label="Naviera"
                     type="text"
                     className="form-control"
-                    style={{ width: `100%` }}
                     InputProps={{
                       ...params.InputProps,
                     }}
@@ -836,37 +842,6 @@ function EditShipment(props) {
                 )}
               />
               <Autocomplete
-                id="regimen"
-                options={regimenList.map((regimen) => regimen.descripcion)}
-                value={regimenNombre}
-                onChange={handleRegimenChange}
-                style={{ width: `500px` }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    required
-                    label="Regimen"
-                    type="text"
-                    className="form-control"
-                    style={{ width: `100%` }}
-                    InputProps={{
-                      ...params.InputProps,
-                    }}
-                  />
-                )}
-              />
-              <TextField
-                required
-                id="nro-mrn"
-                label="Nro Mrn"
-                type="text"
-                onChange={e => setNroMrn(e.target.value)}
-                value={nroMrn}
-                className="form-control"
-              />
-            </Grid>
-            <Grid item xs={4}>
-              <Autocomplete
                 id="flete"
                 options={fleteList.map((flete) => flete.nombre)}
                 value={fleteNombre}
@@ -885,7 +860,7 @@ function EditShipment(props) {
                     }}
                   />
                 )}
-                disabled = {parseInt(formData.cod_item, 10) > 2}
+                disabled={parseInt(formData.cod_item, 10) > 2}
               />
               <TextField
                 required
@@ -896,18 +871,13 @@ function EditShipment(props) {
                 value={numeroTracking}
                 className="form-control"
               />
-              <TextField
-                required
-                id="descripcion"
-                label="Descripcion"
-                type="text"
-                onChange={e => setDescripcion(e.target.value)}
-                value={descripcion}
-                className="form-control"
-              />
+            </Grid>
+
+            {/* Tercera Columna */}
+            <Grid item xs={3}>
               <div className={classes.datePickersContainer}>
                 <div>
-                  <LocalizationProvider dateAdapter={AdapterDayjs} >
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DemoContainer components={['DatePicker', 'DatePicker']}>
                       <DatePicker
                         label="Fecha Embarque"
@@ -919,7 +889,7 @@ function EditShipment(props) {
                   </LocalizationProvider>
                 </div>
                 <div>
-                  <LocalizationProvider dateAdapter={AdapterDayjs} >
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DemoContainer components={['DatePicker', 'DatePicker']}>
                       <DatePicker
                         label="Fecha Llegada"
@@ -931,7 +901,7 @@ function EditShipment(props) {
                   </LocalizationProvider>
                 </div>
                 <div>
-                  <LocalizationProvider dateAdapter={AdapterDayjs} >
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DemoContainer components={['DatePicker', 'DatePicker']}>
                       <DatePicker
                         label="Fecha Bodega"
@@ -951,7 +921,7 @@ function EditShipment(props) {
                 onChange={e => setBuque(e.target.value)}
                 value={buque}
                 className="form-control"
-                style={{ width: `140px` }}
+                style={{ width: `200px` }}
               />
               <TextField
                 required
@@ -961,7 +931,50 @@ function EditShipment(props) {
                 onChange={e => setCostoContenedor(e.target.value)}
                 value={costoContenedor}
                 className="form-control"
-                style={{ width: `140px` }}
+                style={{ width: `200px` }}
+              />
+            </Grid>
+            <Grid item xs={3}>
+              <TextField
+                required
+                multiline
+                rows={4}
+                id="descripcion"
+                label="Descripcion"
+                type="text"
+                onChange={e => setDescripcion(e.target.value)}
+                value={descripcion}
+                className="form-control"
+              />
+              <Autocomplete
+                id="regimen"
+                options={regimenList.map((regimen) => regimen.descripcion)}
+                value={regimenNombre}
+                onChange={handleRegimenChange}
+                style={{ width: `300px` }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    required
+                    multiline
+                    rows={2}
+                    label="Regimen"
+                    type="text"
+                    className="form-control"
+                    InputProps={{
+                      ...params.InputProps,
+                    }}
+                  />
+                )}
+              />
+              <TextField
+                required
+                id="nro-mrn"
+                label="Nro Mrn"
+                type="text"
+                onChange={e => setNroMrn(e.target.value)}
+                value={nroMrn}
+                className="form-control"
               />
               <Autocomplete
                 id="aforo"
@@ -982,10 +995,11 @@ function EditShipment(props) {
                     }}
                   />
                 )}
-                disabled = {parseInt(formData.cod_item, 10) != 2}
+                disabled={parseInt(formData.cod_item, 10) != 2}
               />
             </Grid>
           </Grid>
+
           <div>
             <Tabs value={tabValue} onChange={(event, newValue) => setTabValue(newValue)}>
               <Tab label="Packinglist" />

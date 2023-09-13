@@ -179,10 +179,6 @@ function PackingListTotal(props) {
 
     }
 
-    const handleChangeDate = async (e) => {
-        e.preventDefault();
-        getPackingList()
-    }
 
     function getBackgroundColor(progress) {
         if (progress <= 20) {

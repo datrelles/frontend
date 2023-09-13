@@ -589,7 +589,7 @@ function NewShipment(props) {
     }
 
     return (
-        <div style={{ marginTop: '70px', top: 0, left:0, width: "100%", zIndex: 1000}}>
+        <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
             <Navbar0 menus={menus} />
             <Box
                 sx={{
@@ -626,24 +626,23 @@ function NewShipment(props) {
                             <SaveIcon /> Guardar
                         </button>
                     </div>
-                    <Grid container spacing={50}>
-                        <Grid item xs={5}>
+                    <Grid container spacing={3}>
+                        <Grid item xs={3}>
                             <TextField
                                 id="id"
                                 label="BL House"
                                 type="text"
-                                onChange={e => setCodigoBlHouse(e.target.value)}
+                                onChange={(e) => setCodigoBlHouse(e.target.value)}
                                 value={codigoBlHouse}
                                 className="form-control"
                                 style={{ width: `130px` }}
                             />
-
                             <TextField
                                 required
                                 id="codigo-bl-master"
                                 label="BL Master"
                                 type="text"
-                                onChange={e => setCodigoBlMaster(e.target.value)}
+                                onChange={(e) => setCodigoBlMaster(e.target.value)}
                                 value={codigoBlMaster}
                                 className="form-control"
                                 style={{ width: `140px` }}
@@ -673,37 +672,40 @@ function NewShipment(props) {
                                 id="codProveedor"
                                 label="Codigo Proveedor"
                                 type="text"
-                                onChange={e => setCodProveedor(e.target.value)}
+                                onChange={(e) => setCodProveedor(e.target.value)}
                                 value={codProveedor}
                                 className="form-control"
-                                style={{ width: `160px` }}
                             />
                             <Autocomplete
                                 id="nombre-proveedor"
                                 options={providerList.map((proveedor) => proveedor.nombre)}
                                 onChange={handleProviderChange}
-                                style={{ width: `500px` }}
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
                                         required
+                                        multiline
+                                        rows={2}
                                         label="Proveedor"
                                         type="text"
                                         value={nombreProveedor}
                                         className="form-control"
-                                        style={{ width: `100%` }}
                                         InputProps={{
                                             ...params.InputProps,
                                         }}
                                     />
                                 )}
                             />
+                        </Grid>
+
+                        {/* Segunda Columna */}
+                        <Grid item xs={3}>
                             <TextField
                                 required
                                 id="agente"
                                 label="Agente"
                                 type="text"
-                                onChange={e => setAgente(e.target.value)}
+                                onChange={(e) => setAgente(e.target.value)}
                                 value={agente}
                                 className="form-control"
                             />
@@ -712,15 +714,15 @@ function NewShipment(props) {
                                 options={navieraList.map((naviera) => naviera.nombre)}
                                 value={navieraNombre}
                                 onChange={handleNavieraChange}
-                                style={{ width: `500px` }}
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
                                         required
+                                        multiline
+                                        rows={2}
                                         label="Naviera"
                                         type="text"
                                         className="form-control"
-                                        style={{ width: `100%` }}
                                         InputProps={{
                                             ...params.InputProps,
                                         }}
@@ -767,20 +769,24 @@ function NewShipment(props) {
                                     />
                                 )}
                             />
+                        </Grid>
+
+                        {/* Tercera Columna */}
+                        <Grid item xs={3}>
                             <Autocomplete
                                 id="regimen"
                                 options={regimenList.map((regimen) => regimen.descripcion)}
                                 value={regimenNombre}
                                 onChange={handleRegimenChange}
-                                style={{ width: `500px` }}
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
                                         required
+                                        multiline
+                                        rows={2}
                                         label="Regimen"
                                         type="text"
                                         className="form-control"
-                                        style={{ width: `100%` }}
                                         InputProps={{
                                             ...params.InputProps,
                                         }}
@@ -792,12 +798,10 @@ function NewShipment(props) {
                                 id="nro-mrn"
                                 label="Nro Mrn"
                                 type="text"
-                                onChange={e => setNroMrn(e.target.value)}
+                                onChange={(e) => setNroMrn(e.target.value)}
                                 value={nroMrn}
                                 className="form-control"
                             />
-                        </Grid>
-                        <Grid item xs={4}>
                             <Autocomplete
                                 id="flete"
                                 options={fleteList.map((flete) => flete.nombre)}
@@ -823,52 +827,65 @@ function NewShipment(props) {
                                 id="numero-tracking"
                                 label="Numero Tracking"
                                 type="text"
-                                onChange={e => setNumeroTracking(e.target.value)}
+                                onChange={(e) => setNumeroTracking(e.target.value)}
                                 value={numeroTracking}
                                 className="form-control"
                             />
                             <TextField
                                 required
+                                multiline
+                                rows={4}
                                 id="descripcion"
                                 label="Descripcion"
                                 type="text"
-                                onChange={e => setDescripcion(e.target.value)}
+                                onChange={(e) => setDescripcion(e.target.value)}
                                 value={descripcion}
                                 className="form-control"
                             />
+                        </Grid>
+
+                        {/* Cuarta Columna */}
+                        <Grid item xs={3}>
+
                             <div className={classes.datePickersContainer}>
                                 <div>
-                                    <LocalizationProvider dateAdapter={AdapterDayjs} >
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
                                         <DemoContainer components={['DatePicker', 'DatePicker']}>
                                             <DatePicker
                                                 label="Fecha Embarque"
                                                 value={dayjs(fechaEmbarque, "DD/MM/YYYY")}
-                                                onChange={(newValue) => setFechaEmbarque(format(new Date(newValue), 'dd/MM/yyyy'))}
-                                                format={'DD/MM/YYYY'}
+                                                onChange={(newValue) =>
+                                                    setFechaEmbarque(format(new Date(newValue), "dd/MM/yyyy"))
+                                                }
+                                                format={"DD/MM/YYYY"}
                                             />
                                         </DemoContainer>
                                     </LocalizationProvider>
                                 </div>
                                 <div>
-                                    <LocalizationProvider dateAdapter={AdapterDayjs} >
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
                                         <DemoContainer components={['DatePicker', 'DatePicker']}>
                                             <DatePicker
                                                 label="Fecha Llegada"
                                                 value={dayjs(fechaLlegada, "DD/MM/YYYY")}
-                                                onChange={(newValue) => setFechaLlegada(format(new Date(newValue), 'dd/MM/yyyy'))}
-                                                format={'DD/MM/YYYY'}
+                                                onChange={(newValue) =>
+                                                    setFechaLlegada(format(new Date(newValue), "dd/MM/yyyy"))
+                                                }
+                                                format={"DD/MM/YYYY"}
                                             />
                                         </DemoContainer>
                                     </LocalizationProvider>
                                 </div>
                                 <div>
-                                    <LocalizationProvider dateAdapter={AdapterDayjs} >
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
                                         <DemoContainer components={['DatePicker', 'DatePicker']}>
                                             <DatePicker
                                                 label="Fecha Bodega"
                                                 value={dayjs(fechaBodega, "DD/MM/YYYY")}
-                                                onChange={(newValue) => setFechaBodega(format(new Date(newValue), 'dd/MM/yyyy'))}
-                                                format={'DD/MM/YYYY'}
+                                                onChange={(newValue) =>
+                                                    setFechaBodega(format(new Date(newValue), "dd/MM/yyyy"))
+                                                }
+                                                format={"DD/MM/YYYY"}
                                             />
                                         </DemoContainer>
                                     </LocalizationProvider>
@@ -879,7 +896,7 @@ function NewShipment(props) {
                                 id="buque"
                                 label="Buque"
                                 type="text"
-                                onChange={e => setBuque(e.target.value)}
+                                onChange={(e) => setBuque(e.target.value)}
                                 value={buque}
                                 className="form-control"
                                 style={{ width: `140px` }}
@@ -889,7 +906,7 @@ function NewShipment(props) {
                                 id="Costo"
                                 label="Costo Contenedor"
                                 type="text"
-                                onChange={e => setCostoContenedor(e.target.value)}
+                                onChange={(e) => setCostoContenedor(e.target.value)}
                                 value={costoContenedor}
                                 className="form-control"
                                 style={{ width: `140px` }}
@@ -915,41 +932,9 @@ function NewShipment(props) {
                                 )}
                             />
                         </Grid>
-                    </Grid>
-                    {/* <div>
-                        <Tabs value={tabValue} onChange={(event, newValue) => setTabValue(newValue)}>
-                            <Tab label="Detalles" />
-                            <Tab label="Productos" />
-                        </Tabs>
-                        <TabPanel value={tabValue} index={0}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-                                <button
-                                    className="btn btn-primary btn-block"
-                                    type="button"
-                                    style={{ marginBottom: '10px', marginTop: '10px', marginRight: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
-                                    onClick={handleChange3}>
-                                    <AddIcon /> Nuevo
-                                </button>
-                                <input
-                                    accept=".xlsx, .xls"
-                                    id="file-upload"
-                                    multiple
-                                    type="file"
-                                    style={{ display: 'none' }}
-                                    onChange={handleFileUpload}
-                                />
-                                <label htmlFor="file-upload">
-                                    <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
-                                        Cargar en Lote
-                                    </Button>
-                                </label>
-                            </div>
-                            <MUIDataTable title={"Packinglist de Embarque"} data={packingList} columns={columns} options={options} />
-                        </TabPanel>
-                        <TabPanel value={tabValue} index={1}>
-                            <p>Productos aquí</p>
-                        </TabPanel>
-                    </div> */}
+                    </Grid>;
+
+
                 </div>
 
 

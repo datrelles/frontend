@@ -532,14 +532,14 @@ function NewContainer(props) {
                             <SaveIcon /> Guardar
                         </button>
                     </div>
-                    <Grid container spacing={50}>
-                        <Grid item xs={5}>
+                    <Grid container spacing={3}>
+                        {/* Primera Columna */}
+                        <Grid item xs={4}>
                             <Autocomplete
                                 id="carga"
                                 options={cargaList.map((carga) => carga.nombre)}
                                 value={cargaNombre}
                                 onChange={handleCargaChange}
-                                style={{ width: `150px` }}
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
@@ -547,7 +547,6 @@ function NewContainer(props) {
                                         label="Es carga suelta?"
                                         type="text"
                                         className="form-control"
-                                        style={{ width: `100%` }}
                                         InputProps={{
                                             ...params.InputProps,
                                         }}
@@ -562,14 +561,12 @@ function NewContainer(props) {
                                 onChange={e => setNroContenedor(e.target.value)}
                                 value={nroContenedor}
                                 className="form-control"
-                                style={{ width: `200px` }}
                             />
                             <Autocomplete
                                 id="bl-house"
                                 options={blList.map((bl) => bl.codigo_bl_house)}
                                 value={codigoBlHouse}
                                 onChange={handleBlChange}
-                                style={{ width: `200px` }}
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
@@ -577,27 +574,30 @@ function NewContainer(props) {
                                         label="Bl House"
                                         type="text"
                                         className="form-control"
-                                        style={{ width: `100%` }}
                                         InputProps={{
                                             ...params.InputProps,
                                         }}
                                     />
                                 )}
                             />
+                        </Grid>
+
+                        {/* Segunda Columna */}
+                        <Grid item xs={4}>
                             <Autocomplete
                                 id="tipo-contenedor"
                                 options={tipoList.map((tipo) => tipo.nombre)}
                                 value={nombreTipo}
                                 onChange={handleTipoChange}
-                                style={{ width: `200px` }}
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
                                         required
+                                        multiline
+                                        rows={3}
                                         label="Tipo Contenedor"
                                         type="text"
                                         className="form-control"
-                                        style={{ width: `100%` }}
                                         InputProps={{
                                             ...params.InputProps,
                                         }}
@@ -611,10 +611,8 @@ function NewContainer(props) {
                                 onChange={e => setPeso(e.target.value)}
                                 value={peso}
                                 className="form-control"
-                                style={{ width: `160px` }}
-                                disabled={parseInt(esCargaSuelta, 10) == 1}
+                                disabled={parseInt(esCargaSuelta, 10) === 1}
                             />
-
                             <TextField
                                 required
                                 id="volumen"
@@ -623,8 +621,12 @@ function NewContainer(props) {
                                 onChange={e => setVolumen(e.target.value)}
                                 value={volumen}
                                 className="form-control"
-                                disabled={parseInt(esCargaSuelta, 10) == 1}
+                                disabled={parseInt(esCargaSuelta, 10) === 1}
                             />
+                        </Grid>
+
+                        {/* Tercera Columna */}
+                        <Grid item xs={4}>
                             <TextField
                                 required
                                 id="line-seal"
@@ -633,10 +635,8 @@ function NewContainer(props) {
                                 onChange={e => setLineSeal(e.target.value)}
                                 value={lineSeal}
                                 className="form-control"
-                                disabled={parseInt(esCargaSuelta, 10) == 1}
+                                disabled={parseInt(esCargaSuelta, 10) === 1}
                             />
-                        </Grid>
-                        <Grid item xs={4}>
                             <TextField
                                 required
                                 id="shipper-seal"
@@ -645,20 +645,23 @@ function NewContainer(props) {
                                 onChange={e => setShipperSeal(e.target.value)}
                                 value={shipperSeal}
                                 className="form-control"
-                                disabled={parseInt(esCargaSuelta, 10) == 1}
+                                disabled={parseInt(esCargaSuelta, 10) === 1}
                             />
                             <TextField
                                 required
+                                multiline
+                                rows={4}
                                 id="observaciones"
                                 label="Observaciones"
                                 type="text"
                                 onChange={e => setObservaciones(e.target.value)}
                                 value={observaciones}
+                                style={{ width: `400px` }}
                                 className="form-control"
-                                style={{ width: `300px` }}
                             />
                         </Grid>
                     </Grid>
+
                     <div>
                         <Tabs value={tabValue} onChange={(event, newValue) => setTabValue(newValue)}>
                             <Tab label="Packinglist" />

@@ -46,7 +46,7 @@ function PostSaleDetails(props) {
   const [usuarioCrea, setUsuarioCrea] = useState(formData.usuario_crea)
   const [usuarioModifica, setUsuarioModifica] = useState(formData.usuario_modifica)
   const [productModelList, setProductModelList] = useState([])
-  const [productModelNombre, setProductModelNombre] = useState([])
+  const [productModelNombre, setProductModelNombre] = useState(formData.modelo)
   
 
   const { enqueueSnackbar } = useSnackbar();
@@ -77,7 +77,7 @@ function PostSaleDetails(props) {
 
   useEffect(() => {
     getMenus()
-    setFormData(location.state)
+    console.log(formData)
     getProductModelList()
   }, [])
 

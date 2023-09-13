@@ -20,6 +20,7 @@ import * as XLSX from 'xlsx'
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import TrackingStepOrder from "./TrackingStepOrder";
+import Grid from '@mui/material/Grid';
 
 import dayjs from 'dayjs';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
@@ -163,6 +164,7 @@ function EditPostSales(props) {
       } else {
         const data = await res.json();
         setDetails(data)
+        console.log(data)
       }
     } catch (error) {
       toast.error('Sesión caducada. Por favor, inicia sesión nuevamente.');
@@ -287,7 +289,7 @@ function EditPostSales(props) {
 
 
   const handleRowClick = (rowData, rowMeta) => {
-    if ((parseInt(formData.cod_item, 10) < 6) && authorizedSystems.includes('IMP')){
+    if ((parseInt(formData.cod_item, 10) < 6) && authorizedSystems.includes('IMP')) {
       const row = details.filter(item => item.secuencia === rowData[0])[0];
       console.log(row)
       navigate('/postSaleDetails', { state: row, orden: formData });
@@ -295,7 +297,7 @@ function EditPostSales(props) {
   }
 
   const handleRowClickPack = (rowData, rowMeta) => {
-    if ((parseInt(formData.cod_item, 10) < 6) && authorizedSystems.includes('IMP')){
+    if ((parseInt(formData.cod_item, 10) < 6) && authorizedSystems.includes('IMP')) {
       const row = packingList.filter(item => item.secuencia === rowData[0])[0];
       console.log(row)
       navigate('/packingList', { state: row, orden: formData });
@@ -338,7 +340,7 @@ function EditPostSales(props) {
       label: "Codigo Producto"
     },
     {
-      name: "cod_producto_modelo",
+      name: "modelo",
       label: "Modelo"
     },
     {
@@ -346,11 +348,11 @@ function EditPostSales(props) {
       label: "Producto"
     },
     {
-      name: "nombre_ingles",
+      name: "nombre_i",
       label: "Ingles"
     },
     {
-      name: "nombre_china",
+      name: "nombre_c",
       label: "Chino"
     },
     {
@@ -392,7 +394,7 @@ function EditPostSales(props) {
     {
       name: "fob_total",
       label: "Fob Total"
-    },
+    }
   ]
 
   const options = {
@@ -906,141 +908,152 @@ function EditPostSales(props) {
               </button>
             )}
           </div>
-          <TextField
-            disabled
-            id="id"
-            label="Referencia"
-            type="text"
-            onChange={e => setCodPo(e.target.value)}
-            value={codPo}
-            className="form-control"
-            style={{ width: `130px` }}
-          />
-          <TextField
-            disabled
-            id="codItem"
-            label="Estado"
-            type="text"
-            value={estado}
-            className="form-control"
-            style={{ width: `flex` }}
-          />
-          <div style={{ display: 'flex' }}>
-            <Autocomplete
-              id="Proveedor"
-              options={providersList.map((proveedor) => proveedor.nombre)}
-              onChange={handleProviderChange}
-              style={{ width: `580px` }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  required
-                  label="Proveedor"
-                  type="text"
-                  value={nombre}
-                  className="form-control"
-                  style={{ width: `100%` }}
-                  InputProps={{
-                    ...params.InputProps,
-                  }}
+          <Grid container spacing={3}>
+            {/* Primera Columna */}
+            <Grid item xs={4}>
+              <TextField
+                disabled
+                id="id"
+                label="Referencia"
+                type="text"
+                onChange={e => setCodPo(e.target.value)}
+                value={codPo}
+                className="form-control"
+                style={{ width: `130px` }}
+              />
+              <TextField
+                disabled
+                id="codItem"
+                label="Estado"
+                type="text"
+                value={estado}
+                className="form-control"
+                style={{ width: `flex` }}
+              />
+              <Autocomplete
+                id="Proveedor"
+                options={providersList.map((proveedor) => proveedor.nombre)}
+                onChange={handleProviderChange}
+                style={{ width: `400px` }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    required
+                    multiline
+                    rows={2}
+                    label="Proveedor"
+                    type="text"
+                    value={nombre}
+                    className="form-control"
+                    style={{ width: `100%` }}
+                    InputProps={{
+                      ...params.InputProps,
+                    }}
+                  />
+                )}
+                defaultValue={nombre}
+                disabled={parseInt(formData.cod_item, 10) > 3}
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <TextField
+                required
+                id="proforma"
+                label="Proforma"
+                type="text"
+                onChange={e => setProforma(e.target.value)}
+                value={proforma}
+                className="form-control"
+                disabled={parseInt(formData.cod_item, 10) > 3}
+              />
+              {authorizedSystems.includes('IMP') && (
+                <Autocomplete
+                  id="estado"
+                  options={statusList.map((status) => status.nombre)}
+                  value={estado}
+                  onChange={handleStatusChange}
+                  style={{ width: `200px` }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      required
+                      label="Estado"
+                      type="text"
+                      className="form-control"
+                      style={{ width: `100%` }}
+                      InputProps={{
+                        ...params.InputProps,
+                      }}
+                    />
+                  )}
+                  disabled={parseInt(formData.cod_item, 10) > 6}
                 />
               )}
-              defaultValue={nombre}
-              disabled={parseInt(formData.cod_item, 10) > 3}
-            />
-            <TextField
-              id="codProveedor"
-              label="Codigo Proveedor"
-              type="text"
-              onChange={e => setCodProveedor(e.target.value)}
-              value={codProveedor}
-              className="form-control"
-              style={{ width: `160px`, marginLeft: '25px' }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment></InputAdornment>
-                ),
-                inputProps: {
-                  style: { textAlign: 'right' },
-                },
-              }}
-              disabled
-            />
-          </div>
-          <TextField
-            required
-            id="proforma"
-            label="Proforma"
-            type="text"
-            onChange={e => setProforma(e.target.value)}
-            value={proforma}
-            className="form-control"
-            disabled={parseInt(formData.cod_item, 10) > 3}
-          />
-          {authorizedSystems.includes('IMP') && (
-            <Autocomplete
-              id="estado"
-              options={statusList.map((status) => status.nombre)}
-              value={estado}
-              onChange={handleStatusChange}
-              style={{ width: `200px` }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  required
-                  label="Estado"
-                  type="text"
-                  className="form-control"
-                  style={{ width: `100%` }}
-                  InputProps={{
-                    ...params.InputProps,
-                  }}
-                />
-              )}
-              disabled={parseInt(formData.cod_item, 10) > 6}
-            />
-          )}
-          <div className={classes.datePickersContainer}>
-            <div>
-              <LocalizationProvider dateAdapter={AdapterDayjs} >
-                <DemoContainer components={['DatePicker', 'DatePicker']}>
-                  <DatePicker
-                    label="Fecha Estimada Produccion"
-                    value={dayjs(formData.fecha_estimada_produccion, "DD/MM/YYYY")}
-                    onChange={(newValue) => setFechaEstimadaProduccion(format(new Date(newValue), 'dd/MM/yyyy'))}
-                    format={'DD/MM/YYYY'}
-                    disabled={!authorizedSystems.includes('IMP') || (parseInt(formData.cod_item, 10) > 6)}
-                  />
-                </DemoContainer>
-              </LocalizationProvider>
-            </div>
-            <div>
-              <LocalizationProvider dateAdapter={AdapterDayjs} >
-                <DemoContainer components={['DatePicker', 'DatePicker']}>
-                  <DatePicker
-                    label="Fecha Estimada Puerto"
-                    value={dayjs(formData.fecha_estimada_puerto, "DD/MM/YYYY")}
-                    onChange={(newValue) => setFechaEstimadaPuerto(format(new Date(newValue), 'dd/MM/yyyy'))}
-                    format={'DD/MM/YYYY'}
-                    disabled={!authorizedSystems.includes('IMP') || (parseInt(formData.cod_item, 10) > 6)}
-                  />
-                </DemoContainer>
-              </LocalizationProvider>
-            </div>
-            <div>
-              <LocalizationProvider dateAdapter={AdapterDayjs} >
-                <DemoContainer components={['DatePicker', 'DatePicker']}>
-                  <DatePicker
-                    label="Fecha Estimada Llegada"
-                    value={dayjs(formData.fecha_estimada_llegada, "DD/MM/YYYY")}
-                    onChange={(newValue) => setFechaEstimadaLlegada(format(new Date(newValue), 'dd/MM/yyyy'))}
-                    format={'DD/MM/YYYY'}
-                    disabled={!authorizedSystems.includes('IMP') || (parseInt(formData.cod_item, 10) > 6)}
-                  />
-                </DemoContainer>
-              </LocalizationProvider>
-            </div>
-          </div>
+              <TextField
+                id="codProveedor"
+                label="Codigo Proveedor"
+                type="text"
+                onChange={e => setCodProveedor(e.target.value)}
+                value={codProveedor}
+                className="form-control"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start"></InputAdornment>
+                  ),
+                  inputProps: {
+                    style: { textAlign: 'left' },
+                  },
+                }}
+                disabled
+              />
+            </Grid>
+
+            {/* Tercera Columna */}
+            <Grid item xs={4}>
+              <div className={classes.datePickersContainer}>
+                <div>
+                  <LocalizationProvider dateAdapter={AdapterDayjs} >
+                    <DemoContainer components={['DatePicker', 'DatePicker']}>
+                      <DatePicker
+                        label="Fecha Estimada Produccion"
+                        value={dayjs(formData.fecha_estimada_produccion, "DD/MM/YYYY")}
+                        onChange={(newValue) => setFechaEstimadaProduccion(format(new Date(newValue), 'dd/MM/yyyy'))}
+                        format={'DD/MM/YYYY'}
+                        disabled={!authorizedSystems.includes('IMP') || (parseInt(formData.cod_item, 10) > 6)}
+                      />
+                    </DemoContainer>
+                  </LocalizationProvider>
+                </div>
+                <div>
+                  <LocalizationProvider dateAdapter={AdapterDayjs} >
+                    <DemoContainer components={['DatePicker', 'DatePicker']}>
+                      <DatePicker
+                        label="Fecha Estimada Puerto"
+                        value={dayjs(formData.fecha_estimada_puerto, "DD/MM/YYYY")}
+                        onChange={(newValue) => setFechaEstimadaPuerto(format(new Date(newValue), 'dd/MM/yyyy'))}
+                        format={'DD/MM/YYYY'}
+                        disabled={!authorizedSystems.includes('IMP') || (parseInt(formData.cod_item, 10) > 6)}
+                      />
+                    </DemoContainer>
+                  </LocalizationProvider>
+                </div>
+                <div>
+                  <LocalizationProvider dateAdapter={AdapterDayjs} >
+                    <DemoContainer components={['DatePicker', 'DatePicker']}>
+                      <DatePicker
+                        label="Fecha Estimada Llegada"
+                        value={dayjs(formData.fecha_estimada_llegada, "DD/MM/YYYY")}
+                        onChange={(newValue) => setFechaEstimadaLlegada(format(new Date(newValue), 'dd/MM/yyyy'))}
+                        format={'DD/MM/YYYY'}
+                        disabled={!authorizedSystems.includes('IMP') || (parseInt(formData.cod_item, 10) > 6)}
+                      />
+                    </DemoContainer>
+                  </LocalizationProvider>
+                </div>
+              </div>
+            </Grid>
+          </Grid>
+
           <div>
             <Tabs value={tabValue} onChange={(event, newValue) => setTabValue(newValue)}>
               <Tab label="Detalles" />
@@ -1088,7 +1101,7 @@ function EditPostSales(props) {
                   onChange={handleFileUpload2}
                 />
                 <label htmlFor="file-upload">
-                  {authorizedSystems.includes('IMP') && parseInt(formData.cod_item, 10) < 7 && parseInt(formData.cod_item, 10) > 4 &&(
+                  {authorizedSystems.includes('IMP') && parseInt(formData.cod_item, 10) < 7 && parseInt(formData.cod_item, 10) > 4 && (
                     <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
                       Cargar en Lote
                     </Button>

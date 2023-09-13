@@ -146,7 +146,7 @@ function EditContainer(props) {
     const data = await res.json();
     setNombreTipo(data.find((objeto) => objeto.cod_tipo_contenedor === codTipoContenedor).nombre)
     setTipoList(data)
-    
+
   }
 
 
@@ -217,6 +217,10 @@ function EditContainer(props) {
       label: "Codigo Producto"
     },
     {
+      name: "producto",
+      label: "Producto"
+    },
+    {
       name: "cantidad",
       label: "Cantidad"
     },
@@ -226,7 +230,29 @@ function EditContainer(props) {
     },
     {
       name: "cod_po",
+      options: {
+        customBodyRender: (value, tableMeta) => (
+          <span
+            style={{ cursor: 'pointer' }}
+            onMouseOver={(e) => {
+              e.target.style.color = 'blue';
+              e.target.style.textDecoration = 'underline'
+            }}
+            onMouseOut={(e) => {
+              e.target.style.color = 'black';
+              e.target.style.textDecoration = 'none'
+            }}
+            onClick={() => handleRowClick2(value)}
+          >
+            {value}
+          </span>
+        ),
+      },
       label: "Orden Compra"
+    },
+    {
+      name: "proforma",
+      label: "Proforma"
     },
     {
       name: "cod_liquidacion",
@@ -238,7 +264,6 @@ function EditContainer(props) {
   const options = {
     filterType: 'dropdown',
     onRowsDelete: handleDeleteRows,
-    onRowClick: handleRowClick,
     textLabels: {
       body: {
         noMatch: "Lo siento, no se encontraron registros",
@@ -273,6 +298,27 @@ function EditContainer(props) {
         deleteAria: "Borrar fila seleccionada"
       }
     },
+  }
+
+  const handleRowClick2 = async (rowData) => {
+    const res = await fetch(`${API}/orden_compra_cab_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_po=${rowData}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        }
+      });
+
+    if (!res.ok) {
+      if (res.status === 401) {
+        toast.error('Sesión caducada.');
+      }
+    } else {
+      const data = await res.json();
+      navigate('/editPostSales', { state: data[0] });
+      console.log(data)
+    }
+
   }
 
 
@@ -318,8 +364,8 @@ function EditContainer(props) {
         setCargaNombre(cargaSeleccionado.nombre)
       }
     } else {
-        setEsCargaSuelta('');
-        setCargaNombre('')
+      setEsCargaSuelta('');
+      setCargaNombre('')
     }
   };
 
@@ -439,8 +485,8 @@ function EditContainer(props) {
     });
 
   return (
-    <div style={{ marginTop: '150px', top: 0, left:0, width: "100%", zIndex: 1000}}>
-      <Navbar0 menus={menus}/>
+    <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
+      <Navbar0 menus={menus} />
       <Box
         sx={{
           display: 'flex',
@@ -477,8 +523,8 @@ function EditContainer(props) {
               <SaveIcon /> Guardar
             </button>
           </div>
-          <Grid container spacing={50}>
-            <Grid item xs={5}>
+          <Grid container spacing={3}>
+            <Grid item xs={4}>
               <TextField
                 disabled
                 id="id"
@@ -487,9 +533,7 @@ function EditContainer(props) {
                 onChange={e => setCodigoBlHouse(e.target.value)}
                 value={codigoBlHouse}
                 className="form-control"
-                style={{ width: `130px` }}
               />
-
               <TextField
                 disabled
                 id="nro-contenedor"
@@ -498,28 +542,29 @@ function EditContainer(props) {
                 onChange={e => setNroContenedor(e.target.value)}
                 value={nroContenedor}
                 className="form-control"
-                style={{ width: `140px` }}
               />
               <Autocomplete
                 id="tipo-contenedor"
                 options={tipoList.map((tipo) => tipo.nombre)}
                 value={nombreTipo}
                 onChange={handleTipoChange}
-                style={{ width: `200px` }}
                 renderInput={(params) => (
                   <TextField
                     {...params}
                     required
                     label="Tipo Contenedor"
                     type="text"
+                    multiline
+                    rows={3}
                     className="form-control"
-                    style={{ width: `100%` }}
                     InputProps={{
                       ...params.InputProps,
                     }}
                   />
                 )}
               />
+            </Grid>
+            <Grid item xs={4}>
               <TextField
                 id="peso"
                 label="Peso"
@@ -527,9 +572,7 @@ function EditContainer(props) {
                 onChange={e => setPeso(e.target.value)}
                 value={peso}
                 className="form-control"
-                style={{ width: `160px` }}
               />
-
               <TextField
                 required
                 id="volumen"
@@ -583,11 +626,13 @@ function EditContainer(props) {
                 required
                 id="observaciones"
                 label="Observaciones"
+                multiline
+                rows={4}
                 type="text"
                 onChange={e => setObservaciones(e.target.value)}
                 value={observaciones}
                 className="form-control"
-                style={{ width: `140px` }}
+                style={{ width: `400px` }}
               />
             </Grid>
           </Grid>
