@@ -52,26 +52,35 @@ function PackingListTotal(props) {
     const classes = useStyles();
 
     const checkAuthorization = async () => {
-        const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-            }
-        });
-        const data = await res.json();
-        setAuthorizedSystems(data.map(row => row.COD_SISTEMA));
+        try {
+            const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                }
+            });
+            const data = await res.json();
+            setAuthorizedSystems(data.map(row => row.COD_SISTEMA));
+        } catch (error) {
+            console.error('Error en la solicitud:', error);
+            enqueueSnackbar('Falla de Conexion. Vuelva a iniciar sesion.', { variant: 'error' });
+        }
     };
 
     const getContainerList = async () => {
-        const res = await fetch(`${API}/containers`, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-            }
-        })
-        const data = await res.json();
-        setContainerList(data)
+        try {
+            const res = await fetch(`${API}/containers`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                }
+            })
+            const data = await res.json();
+            setContainerList(data)
+        } catch (error) {
+            console.error('Error en la solicitud:', error);
+        }
     }
 
 
@@ -94,7 +103,7 @@ function PackingListTotal(props) {
                 setPackingList(data)
             }
         } catch (error) {
-            toast.error('Sesión caducada. Por favor, inicia sesión nuevamente.');
+            console.error('Error en la solicitud:', error);
         }
     }
 
@@ -118,6 +127,7 @@ function PackingListTotal(props) {
                 console.log(data)
             }
         } catch (error) {
+            console.error('Error en la solicitud:', error);
         }
     }
 
@@ -129,7 +139,6 @@ function PackingListTotal(props) {
         getMenus();
         setToDate(null);
         setFromDate(null);
-        console.log(container)
     }, [])
 
     const handleChange2 = async (e) => {
@@ -138,43 +147,51 @@ function PackingListTotal(props) {
     }
 
     const handleRowClick = async (rowData) => {
-        const res = await fetch(`${API}/embarque_param?empresa=${sessionStorage.getItem('currentEnterprise')}&codigo_bl_house=${rowData}`,
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-                }
-            });
+        try {
+            const res = await fetch(`${API}/embarque_param?empresa=${sessionStorage.getItem('currentEnterprise')}&codigo_bl_house=${rowData}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                    }
+                });
 
-        if (!res.ok) {
-            if (res.status === 401) {
-                toast.error('Sesión caducada.');
+            if (!res.ok) {
+                if (res.status === 401) {
+                    toast.error('Sesión caducada.');
+                }
+            } else {
+                const data = await res.json();
+                navigate('/editShipment', { state: data[0] });
+                console.log(data)
             }
-        } else {
-            const data = await res.json();
-            navigate('/editShipment', { state: data[0] });
-            console.log(data)
+        } catch (error) {
+            console.error('Error en la solicitud:', error);
         }
 
     }
 
     const handleRowClick2 = async (rowData) => {
-        const res = await fetch(`${API}/orden_compra_cab_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_po=${rowData}`,
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-                }
-            });
+        try {
+            const res = await fetch(`${API}/orden_compra_cab_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_po=${rowData}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                    }
+                });
 
-        if (!res.ok) {
-            if (res.status === 401) {
-                toast.error('Sesión caducada.');
+            if (!res.ok) {
+                if (res.status === 401) {
+                    toast.error('Sesión caducada.');
+                }
+            } else {
+                const data = await res.json();
+                navigate('/editPostSales', { state: data[0] });
+                console.log(data)
             }
-        } else {
-            const data = await res.json();
-            navigate('/editPostSales', { state: data[0] });
-            console.log(data)
+        } catch (error) {
+            console.error('Error en la solicitud:', error);
         }
 
     }
@@ -196,17 +213,21 @@ function PackingListTotal(props) {
     }
 
     const getStatusList = async () => {
-        const res = await fetch(`${API}/estados_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_modelo=BL`, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-            }
-        })
-        const data = await res.json();
-        setStatusList(data.map((item) => ({
-            nombre: item.nombre,
-            cod: item.cod_item,
-        })));
+        try {
+            const res = await fetch(`${API}/estados_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_modelo=BL`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                }
+            })
+            const data = await res.json();
+            setStatusList(data.map((item) => ({
+                nombre: item.nombre,
+                cod: item.cod_item,
+            })));
+        } catch (error) {
+            console.error('Error en la solicitud:', error);
+        }
     }
 
     const columns = [
@@ -390,36 +411,75 @@ function PackingListTotal(props) {
     };
 
     const handleChange = async (e) => {
-        e.preventDefault();
+        try{
+            e.preventDefault();
+            const res0 = await fetch(`${API}/packings_by_container?empresa=${sessionStorage.getItem('currentEnterprise')}&nro_contenedor=${container}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                }
+            })
+            const data0 = await res0.json();
+            console.log(data0.packings)
+            const qty = parseInt(data0.packings, 10);
 
-        const res0 = await fetch(`${API}/packings_by_container?empresa=${sessionStorage.getItem('currentEnterprise')}&nro_contenedor=${container}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-            }
-        })
-        const data0 = await res0.json();
-        console.log(data0.packings)
-        const qty = parseInt(data0.packings, 10); 
-
-        if (qty > 0) {
-            const userResponse = window.confirm(`Este Contenedor tiene ${qty} registros de packinglist, desea borrar y reemplazar?`)
-            if (userResponse) {
-                enqueueSnackbar('Creando PackingList en Contenedor...', { variant: 'success' });
-                const resDelete = await fetch(`${API}/orden_compra_packinglist_by_container?empresa=${sessionStorage.getItem('currentEnterprise')}&nro_contenedor=${container}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-                    },
-                    body: JSON.stringify({
-                        nro_contenedor: container,
-                        empresa: sessionStorage.getItem('currentEnterprise'),
+            if (qty > 0) {
+                const userResponse = window.confirm(`Este Contenedor tiene ${qty} registros de packinglist, desea borrar y reemplazar?`)
+                if (userResponse) {
+                    enqueueSnackbar('Creando PackingList en Contenedor...', { variant: 'success' });
+                    const resDelete = await fetch(`${API}/orden_compra_packinglist_by_container?empresa=${sessionStorage.getItem('currentEnterprise')}&nro_contenedor=${container}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                        },
+                        body: JSON.stringify({
+                            nro_contenedor: container,
+                            empresa: sessionStorage.getItem('currentEnterprise'),
+                        })
                     })
-                })
-                const dataDel = await resDelete.json();
-                console.log(dataDel)
+                    const dataDel = await resDelete.json();
+                    console.log(dataDel)
+                    const res = await fetch(`${API}/packinglist_contenedor`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                        },
+                        body: JSON.stringify({
+                            packings: excelData,
+                            nro_contenedor: container,
+                            empresa: sessionStorage.getItem('currentEnterprise'),
+                            usuario_crea: sessionStorage.getItem('currentUser'),
+                            tipo_comprobante: "PO"
+                        })
+                    })
+                    const data = await res.json();
+                    console.log(data)
+                    var msj = ''
+                    if (!data.error) {
+                        if (data.bl_no_existe) {
+                            msj += 'EMBARQUES NO EXISTENTES: \n' + data.bl_no_existe + ' ';
+                        }
+                        if (data.prod_no_existe) {
+                            enqueueSnackbar('Existen registros con novedad', { variant: 'warning' });
+                            msj += 'PRODUCTOS INEXISTENTES EN DESPIECE: \n' + data.prod_no_existe + '\n';
+                        }
+                        if (data.unidad_medida_no_existe) {
+                            msj += 'PRODUCTOS CON UNIDAD INCORRECTA: \n' + data.unidad_medida_no_existe + '\n';
+                        }
+                        if (data.cod_producto_no_existe) {
+                            msj += 'PRODUCTOS NO CORRESPONDEN A DETALLES DE ORDEN: \n' + data.cod_producto_no_existe + '\n';
+                        }
+                        enqueueSnackbar(data.mensaje, { variant: 'success' });
+                        FileGenerator.generateAndDownloadTxtFile(msj, 'packinglist_con_error.txt');
+                    } else {
+                        enqueueSnackbar(data.error, { variant: 'error' });
+                    }
+                }
+            } else {
+                enqueueSnackbar('Creando PackingList en Contenedor...', { variant: 'success' });
                 const res = await fetch(`${API}/packinglist_contenedor`, {
                     method: 'POST',
                     headers: {
@@ -443,7 +503,7 @@ function PackingListTotal(props) {
                     }
                     if (data.prod_no_existe) {
                         enqueueSnackbar('Existen registros con novedad', { variant: 'warning' });
-                        msj += 'PRODUCTOS INEXISTENTES EN DESPIECE: \n' + data.prod_no_existe + '\n';
+                        msj += 'PRODUCTOS INEXISTENTES EN TABLA PRODUCTO: \n' + data.prod_no_existe + '\n';
                     }
                     if (data.unidad_medida_no_existe) {
                         msj += 'PRODUCTOS CON UNIDAD INCORRECTA: \n' + data.unidad_medida_no_existe + '\n';
@@ -457,46 +517,10 @@ function PackingListTotal(props) {
                     enqueueSnackbar(data.error, { variant: 'error' });
                 }
             }
-        }else{
-            enqueueSnackbar('Creando PackingList en Contenedor...', { variant: 'success' });
-            const res = await fetch(`${API}/packinglist_contenedor`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-                },
-                body: JSON.stringify({
-                    packings: excelData,
-                    nro_contenedor: container,
-                    empresa: sessionStorage.getItem('currentEnterprise'),
-                    usuario_crea: sessionStorage.getItem('currentUser'),
-                    tipo_comprobante: "PO"
-                })
-            })
-            const data = await res.json();
-            console.log(data)
-            var msj = ''
-            if (!data.error) {
-                if (data.bl_no_existe) {
-                    msj += 'EMBARQUES NO EXISTENTES: \n' + data.bl_no_existe + ' ';
-                }
-                if (data.prod_no_existe) {
-                    enqueueSnackbar('Existen registros con novedad', { variant: 'warning' });
-                    msj += 'PRODUCTOS INEXISTENTES EN TABLA PRODUCTO: \n' + data.prod_no_existe + '\n';
-                }
-                if (data.unidad_medida_no_existe) {
-                    msj += 'PRODUCTOS CON UNIDAD INCORRECTA: \n' + data.unidad_medida_no_existe + '\n';
-                }
-                if (data.cod_producto_no_existe) {
-                    msj += 'PRODUCTOS NO CORRESPONDEN A DETALLES DE ORDEN: \n' + data.cod_producto_no_existe + '\n';
-                }
-                enqueueSnackbar(data.mensaje, { variant: 'success' });
-                FileGenerator.generateAndDownloadTxtFile(msj, 'packinglist_con_error.txt');
-            } else {
-                enqueueSnackbar(data.error, { variant: 'error' });
-            }
+            setExcelData([''])
+        }catch (error) {
+            console.error('Error en la solicitud:', error);
         }
-        setExcelData([''])
     }
 
     const handleContainerChange = (event, value) => {
@@ -564,62 +588,62 @@ function PackingListTotal(props) {
 
 
     return (
-            <div style={{ marginTop: '150px' }}>
-                <Navbar0 menus={menus} />
-                <Box
-                    sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'right',
-                        '& > *': {
-                            m: 1,
-                        },
-                    }}
-                >
-                    <ButtonGroup variant="text" aria-label="text button group" >
-                        <Button onClick={() => { navigate('/dashboard') }}>Módulos</Button>
-                    </ButtonGroup>
-                </Box>
-                <Autocomplete
-                    id="estado"
-                    options={containerList.map((container) => container.nro_contenedor)}
-                    value={container}
-                    onChange={handleContainerChange}
-                    style={{ width: `200px` }}
-                    renderInput={(params) => (
-                        <TextField
-                            {...params}
-                            required
-                            label="Contenedor"
-                            type="text"
-                            className="form-control"
-                            style={{ width: `100%` }}
-                            InputProps={{
-                                ...params.InputProps,
-                            }}
-                        />
-                    )}
-                />
-                {authorizedSystems.includes('IMP') && container && (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-                        <input
-                            accept=".xlsx, .xls"
-                            id="file-upload"
-                            multiple
-                            type="file"
-                            style={{ display: 'none' }}
-                            onChange={handleFileUpload}
-                        />
-                        <label htmlFor="file-upload">
-                            {authorizedSystems.includes('IMP') && (
-                                <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
-                                    Cargar en Lote
-                                </Button>
-                            )}
-                        </label>
-                    </div>
+        <div style={{ marginTop: '150px' }}>
+            <Navbar0 menus={menus} />
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'right',
+                    '& > *': {
+                        m: 1,
+                    },
+                }}
+            >
+                <ButtonGroup variant="text" aria-label="text button group" >
+                    <Button onClick={() => { navigate('/dashboard') }}>Módulos</Button>
+                </ButtonGroup>
+            </Box>
+            <Autocomplete
+                id="estado"
+                options={containerList.map((container) => container.nro_contenedor)}
+                value={container}
+                onChange={handleContainerChange}
+                style={{ width: `200px` }}
+                renderInput={(params) => (
+                    <TextField
+                        {...params}
+                        required
+                        label="Contenedor"
+                        type="text"
+                        className="form-control"
+                        style={{ width: `100%` }}
+                        InputProps={{
+                            ...params.InputProps,
+                        }}
+                    />
                 )}
-                {authorizedSystems.includes('IMP') && container && (
+            />
+            {authorizedSystems.includes('IMP') && container && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
+                    <input
+                        accept=".xlsx, .xls"
+                        id="file-upload"
+                        multiple
+                        type="file"
+                        style={{ display: 'none' }}
+                        onChange={handleFileUpload}
+                    />
+                    <label htmlFor="file-upload">
+                        {authorizedSystems.includes('IMP') && (
+                            <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
+                                Cargar en Lote
+                            </Button>
+                        )}
+                    </label>
+                </div>
+            )}
+            {authorizedSystems.includes('IMP') && container && (
                 <button
                     className="btn btn-primary"
                     type="button"
@@ -627,23 +651,23 @@ function PackingListTotal(props) {
                     onClick={handleChange}>
                     <SaveIcon /> Guardar
                 </button>
-                )}
-                <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable
-                        title={"Packinglist general"}
-                        data={packingList}
-                        columns={columns}
-                        options={options}
-                    />
-                </ThemeProvider>
-            </div>
+            )}
+            <ThemeProvider theme={getMuiTheme()}>
+                <MUIDataTable
+                    title={"Packinglist general"}
+                    data={packingList}
+                    columns={columns}
+                    options={options}
+                />
+            </ThemeProvider>
+        </div>
     )
 }
 
 export default function IntegrationNotistack() {
     return (
-      <SnackbarProvider maxSnack={3}>
-        <PackingListTotal />
-      </SnackbarProvider>
+        <SnackbarProvider maxSnack={3}>
+            <PackingListTotal />
+        </SnackbarProvider>
     );
-  }
+}
