@@ -318,6 +318,7 @@ function EditPostSales(props) {
   };
 
   useEffect(() => {
+    document.title = 'Orden ' + codPo;
     getMenus();
     getPurchaseOrder();
     getPurchaseOrdersDetails();
@@ -332,7 +333,7 @@ function EditPostSales(props) {
       name: "secuencia",
       label: "Secuencia",
       options: {
-        display: false, // Oculta la columna
+        display: false,
       },
     },
     {
@@ -360,7 +361,6 @@ function EditPostSales(props) {
       label: "Cantidad",
       options: {
         customBodyRender: (value) => {
-          // Verificar si la cadena es vacía o nula
           if (value === null || value === "") {
             return "0";
           } else {
@@ -374,7 +374,6 @@ function EditPostSales(props) {
       label: "Saldo",
       options: {
         customBodyRender: (value) => {
-          // Verificar si la cadena es vacía o nula
           if (value === null || value === "") {
             return "0";
           } else {
@@ -442,7 +441,7 @@ function EditPostSales(props) {
       name: "secuencia",
       label: "Secuencia",
       options: {
-        display: false, // Oculta la columna
+        display: false,
       },
     },
     {
@@ -734,7 +733,6 @@ function EditPostSales(props) {
       for (let i = 1; i < jsonData.length; i++) {
         const row = jsonData[i];
 
-        // Verificar si todas las propiedades de la fila están vacías
         const isRowEmpty = row.every((cell) => cell === "");
 
         if (!isRowEmpty) {
@@ -804,9 +802,9 @@ function EditPostSales(props) {
         MuiTableCell: {
           styleOverrides: {
             root: {
-              paddingLeft: '3px', // Relleno a la izquierda
+              paddingLeft: '3px', 
               paddingRight: '3px',
-              paddingTop: '0px', // Ajusta el valor en el encabezado si es necesario
+              paddingTop: '0px',
               paddingBottom: '0px',
               backgroundColor: '#00000',
               whiteSpace: 'nowrap',
@@ -909,8 +907,7 @@ function EditPostSales(props) {
             )}
           </div>
           <Grid container spacing={3}>
-            {/* Primera Columna */}
-            <Grid item xs={4}>
+            <Grid item xs={12} md={3}>
               <TextField
                 disabled
                 id="id"
@@ -919,7 +916,7 @@ function EditPostSales(props) {
                 onChange={e => setCodPo(e.target.value)}
                 value={codPo}
                 className="form-control"
-                style={{ width: `130px` }}
+                fullWidth
               />
               <TextField
                 disabled
@@ -928,13 +925,14 @@ function EditPostSales(props) {
                 type="text"
                 value={estado}
                 className="form-control"
-                style={{ width: `flex` }}
+                fullWidth
               />
-              <Autocomplete
+            </Grid>
+            <Grid item xs={12} md={3}>
+            <Autocomplete
                 id="Proveedor"
                 options={providersList.map((proveedor) => proveedor.nombre)}
                 onChange={handleProviderChange}
-                style={{ width: `400px` }}
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -945,7 +943,6 @@ function EditPostSales(props) {
                     type="text"
                     value={nombre}
                     className="form-control"
-                    style={{ width: `100%` }}
                     InputProps={{
                       ...params.InputProps,
                     }}
@@ -954,8 +951,6 @@ function EditPostSales(props) {
                 defaultValue={nombre}
                 disabled={parseInt(formData.cod_item, 10) > 3}
               />
-            </Grid>
-            <Grid item xs={4}>
               <TextField
                 required
                 id="proforma"
@@ -966,13 +961,15 @@ function EditPostSales(props) {
                 className="form-control"
                 disabled={parseInt(formData.cod_item, 10) > 3}
               />
-              {authorizedSystems.includes('IMP') && (
+            </Grid>
+            <Grid item xs={12} md={3}>
+            {authorizedSystems.includes('IMP') && (
                 <Autocomplete
                   id="estado"
                   options={statusList.map((status) => status.nombre)}
                   value={estado}
                   onChange={handleStatusChange}
-                  style={{ width: `200px` }}
+                  fullWidth
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -980,7 +977,6 @@ function EditPostSales(props) {
                       label="Estado"
                       type="text"
                       className="form-control"
-                      style={{ width: `100%` }}
                       InputProps={{
                         ...params.InputProps,
                       }}
@@ -1006,10 +1002,8 @@ function EditPostSales(props) {
                 }}
                 disabled
               />
-            </Grid>
-
-            {/* Tercera Columna */}
-            <Grid item xs={4}>
+              </Grid>
+              <Grid item xs={12} md={3}>
               <div className={classes.datePickersContainer}>
                 <div>
                   <LocalizationProvider dateAdapter={AdapterDayjs} >

@@ -22,7 +22,7 @@ import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import TableRow from "@material-ui/core/TableRow";
 import TableCell from "@material-ui/core/TableCell";
-
+import { Container } from '@mui/material';
 import dayjs from 'dayjs';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -704,8 +704,7 @@ function EditShipment(props) {
             {TrackingStep(Number(codItem), statusList.map(item => item.nombre))}
           </div>
           <Grid container spacing={3}>
-            {/* Primera Columna */}
-            <Grid item xs={3}>
+            <Grid item xs={12} md={3}>
               <TextField
                 disabled
                 id="id"
@@ -714,9 +713,8 @@ function EditShipment(props) {
                 onChange={e => setCodigoBlHouse(e.target.value)}
                 value={codigoBlHouse}
                 className="form-control"
-                style={{ width: `130px` }}
+                fullWidth
               />
-
               <TextField
                 required
                 id="codigo-bl-master"
@@ -725,14 +723,14 @@ function EditShipment(props) {
                 onChange={e => setCodigoBlMaster(e.target.value)}
                 value={codigoBlMaster}
                 className="form-control"
-                style={{ width: `140px` }}
+                fullWidth
               />
               <Autocomplete
                 id="estado"
                 options={statusList.map((status) => status.nombre)}
                 value={estado}
                 onChange={handleStatusChange}
-                style={{ width: `200px` }}
+                fullWidth
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -754,7 +752,7 @@ function EditShipment(props) {
                 onChange={e => setCodProveedor(e.target.value)}
                 value={codProveedor}
                 className="form-control"
-                style={{ width: `160px` }}
+                fullWidth
               />
 
               <TextField
@@ -768,9 +766,7 @@ function EditShipment(props) {
                 className="form-control"
               />
             </Grid>
-
-            {/* Segunda Columna */}
-            <Grid item xs={3}>
+            <Grid item xs={12} md={3}>
               <TextField
                 required
                 id="agente"
@@ -785,7 +781,7 @@ function EditShipment(props) {
                 options={navieraList.map((naviera) => naviera.nombre)}
                 value={navieraNombre}
                 onChange={handleNavieraChange}
-                style={{ width: `300px` }}
+                fullWidth
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -806,7 +802,7 @@ function EditShipment(props) {
                 options={puertoList.map((puerto) => puerto.descripcion)}
                 value={puertoNombre}
                 onChange={handlePuertoChange}
-                style={{ width: `200px` }}
+                fullWidth
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -814,7 +810,6 @@ function EditShipment(props) {
                     label="Puerto Embarque"
                     type="text"
                     className="form-control"
-                    style={{ width: `100%` }}
                     InputProps={{
                       ...params.InputProps,
                     }}
@@ -826,7 +821,7 @@ function EditShipment(props) {
                 options={puertoList.map((puerto) => puerto.descripcion)}
                 value={puertoDesNombre}
                 onChange={handlePuertoDesChange}
-                style={{ width: `200px` }}
+                fullWidth
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -834,7 +829,6 @@ function EditShipment(props) {
                     label="Puerto Desembarque"
                     type="text"
                     className="form-control"
-                    style={{ width: `100%` }}
                     InputProps={{
                       ...params.InputProps,
                     }}
@@ -846,7 +840,6 @@ function EditShipment(props) {
                 options={fleteList.map((flete) => flete.nombre)}
                 value={fleteNombre}
                 onChange={handleFleteChange}
-                style={{ width: `200px` }}
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -854,7 +847,6 @@ function EditShipment(props) {
                     label="Tipo Flete"
                     type="text"
                     className="form-control"
-                    style={{ width: `100%` }}
                     InputProps={{
                       ...params.InputProps,
                     }}
@@ -872,9 +864,7 @@ function EditShipment(props) {
                 className="form-control"
               />
             </Grid>
-
-            {/* Tercera Columna */}
-            <Grid item xs={3}>
+            <Grid item xs={12} md={3}>
               <div className={classes.datePickersContainer}>
                 <div>
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -921,7 +911,7 @@ function EditShipment(props) {
                 onChange={e => setBuque(e.target.value)}
                 value={buque}
                 className="form-control"
-                style={{ width: `200px` }}
+                fullWidth
               />
               <TextField
                 required
@@ -931,10 +921,10 @@ function EditShipment(props) {
                 onChange={e => setCostoContenedor(e.target.value)}
                 value={costoContenedor}
                 className="form-control"
-                style={{ width: `200px` }}
+                fullWidth
               />
             </Grid>
-            <Grid item xs={3}>
+            <Grid item xs={12} md={3}>
               <TextField
                 required
                 multiline
@@ -951,7 +941,7 @@ function EditShipment(props) {
                 options={regimenList.map((regimen) => regimen.descripcion)}
                 value={regimenNombre}
                 onChange={handleRegimenChange}
-                style={{ width: `300px` }}
+                fullWidth
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -981,7 +971,7 @@ function EditShipment(props) {
                 options={aforoList.map((aforo) => aforo.nombre)}
                 value={nombreAforo}
                 onChange={handleAforoChange}
-                style={{ width: `200px` }}
+                fullWidth
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -989,7 +979,6 @@ function EditShipment(props) {
                     label="Aforo"
                     type="text"
                     className="form-control"
-                    style={{ width: `100%` }}
                     InputProps={{
                       ...params.InputProps,
                     }}

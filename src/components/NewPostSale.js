@@ -15,6 +15,8 @@ import ButtonGroup from '@mui/material/ButtonGroup';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import FileGenerator from './FileGenerator';
+import Grid from '@mui/material/Grid';
+
 
 
 const API = process.env.REACT_APP_API;
@@ -216,7 +218,7 @@ function NewPostSales(props) {
         'Authorization': 'Bearer ' + sessionStorage.getItem('token')
       },
       body: JSON.stringify({
-        cabecera: {   
+        cabecera: {
           empresa: sessionStorage.getItem('currentEnterprise'),
           tipo_comprobante: tipoCombrobante,
           cod_agencia: sessionStorage.getItem('currentBranch'),
@@ -247,14 +249,14 @@ function NewPostSales(props) {
 
       if (data.cod_producto_no_existe) {
         enqueueSnackbar('Existen detalles incorrectos', { variant: 'warning' });
-        msj += 'PRODUCTOS INEXISTENTES: \n'+ data.cod_producto_no_existe + ' ';
+        msj += 'PRODUCTOS INEXISTENTES: \n' + data.cod_producto_no_existe + ' ';
       }
       if (data.unidad_medida_no_existe) {
-        msj += 'PRODUCTOS CON UNIDAD INCORRECTA: \n'+ data.unidad_medida_no_existe + ' ';
+        msj += 'PRODUCTOS CON UNIDAD INCORRECTA: \n' + data.unidad_medida_no_existe + ' ';
       }
       if (data.cod_producto_modelo_no_existe) {
         msj += 'MODELOS INEXISTENTES: \n' + data.cod_producto_modelo_no_existe + ' ';
-      }  
+      }
       enqueueSnackbar('Orden de compra creada exitosamente', { variant: 'success' });
       FileGenerator.generateAndDownloadTxtFile(msj, 'detalles_con_error.txt');
     } else {
@@ -263,7 +265,7 @@ function NewPostSales(props) {
 
   }
 
-  
+
 
   const TabPanel = ({ value, index, children }) => (
     <div hidden={value !== index}>
@@ -369,23 +371,23 @@ function NewPostSales(props) {
 
 
   return (
-    <div style={{ marginTop: '150px'}}>
-      <Navbar0 menus={menus}/>
+    <div style={{ marginTop: '150px' }}>
+      <Navbar0 menus={menus} />
       <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'right',
-            '& > *': {
-              m: 1,
-            },
-          }}
-        >
-          <ButtonGroup variant="text" aria-label="text button group" > 
-            <Button style={{ width: `100px`, marginTop: '10px', marginRight: '10px', color:'#1976d2'}} onClick={() => {navigate('/dashboard')}}>Módulos</Button>
-            <Button style={{ marginTop: '10px', marginRight: '10px', color:'#1976d2'}} onClick={() => {navigate('/postSales')}}>Ordenes de Compra</Button>
-          </ButtonGroup>
-        </Box>
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'right',
+          '& > *': {
+            m: 1,
+          },
+        }}
+      >
+        <ButtonGroup variant="text" aria-label="text button group" >
+          <Button style={{ width: `100px`, marginTop: '10px', marginRight: '10px', color: '#1976d2' }} onClick={() => { navigate('/dashboard') }}>Módulos</Button>
+          <Button style={{ marginTop: '10px', marginRight: '10px', color: '#1976d2' }} onClick={() => { navigate('/postSales') }}>Ordenes de Compra</Button>
+        </ButtonGroup>
+      </Box>
       <Box
         component="form"
         sx={{
@@ -406,42 +408,45 @@ function NewPostSales(props) {
               <SaveIcon /> Crear
             </button>
           </div>
-          <div>
-            <TextField
-              disabled
-              id="id"
-              label="Referencia"
-              type="text"
-              onChange={e => setCodPo(e.target.value)}
-              value={codPo}
-              className="form-control"
-              style={{ width: `130px` }}
-            />
-            <TextField
-              disabled
-              id="tipo-comprobante"
-              label="Tipo Comprobante"
-              type="text"
-              onChange={e => setTipoComprobante(e.target.value)}
-              value={tipoCombrobante}
-              className="form-control"
-              style={{ width: `140px` }}
-            />
-            <TextField
-              disabled
-              id="codItem"
-              label="Estado"
-              type="text"
-              value={estado}
-              className="form-control"
-              style={{ width: `130px` }}
-            />
-            <div style={{ display: 'flex' }}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={3}>
+              <TextField
+                disabled
+                id="id"
+                label="Referencia"
+                type="text"
+                onChange={e => setCodPo(e.target.value)}
+                value={codPo}
+                className="form-control"
+                fullWidth
+              />
+              <TextField
+                disabled
+                id="tipo-comprobante"
+                label="Tipo Comprobante"
+                type="text"
+                onChange={e => setTipoComprobante(e.target.value)}
+                value={tipoCombrobante}
+                className="form-control"
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <TextField
+                disabled
+                id="codItem"
+                label="Estado"
+                type="text"
+                value={estado}
+                className="form-control"
+                fullWidth
+              />
+
               <Autocomplete
                 id="Proveedor"
                 options={providersList.map((proveedor) => proveedor.nombre)}
                 onChange={handleProviderChange}
-                style={{ width: `580px` }}
+                fullWidth
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -450,33 +455,35 @@ function NewPostSales(props) {
                     type="text"
                     value={nombre}
                     className="form-control"
-                    style={{ width: `100%` }}
                     InputProps={{
                       ...params.InputProps,
                     }}
                   />
                 )}
               />
+            </Grid>
+            <Grid item xs={12} md={3}>
               <TextField
                 disabled
+                fullWidth
                 id="codProveedor"
                 label="Codigo Proveedor"
                 type="text"
                 value={codProveedor}
                 className="form-control"
-                style={{ width: `160px`, marginLeft: '25px' }}
               />
-            </div>
-            <TextField
-              required
-              id="proforma"
-              label="Proforma"
-              type="text"
-              onChange={e => setProforma(e.target.value)}
-              value={proforma}
-              className="form-control"
-            />
-          </div>
+              <TextField
+                required
+                fullWidth
+                id="proforma"
+                label="Proforma"
+                type="text"
+                onChange={e => setProforma(e.target.value)}
+                value={proforma}
+                className="form-control"
+              />
+            </Grid>
+          </Grid>
           <div>
             <Tabs value={tabValue} onChange={(event, newValue) => setTabValue(newValue)}>
               <Tab label="Detalles" />
@@ -499,7 +506,7 @@ function NewPostSales(props) {
                 </label>
               </div>
               <ThemeProvider theme={getMuiTheme()}>
-              <MUIDataTable title={"Detalle Orden de Compra"} data={excelData} columns={columns} options={options} />
+                <MUIDataTable title={"Detalle Orden de Compra"} data={excelData} columns={columns} options={options} />
               </ThemeProvider>
             </TabPanel>
             <TabPanel value={tabValue} index={1}>

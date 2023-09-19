@@ -533,10 +533,10 @@ function NewContainer(props) {
                         </button>
                     </div>
                     <Grid container spacing={3}>
-                        {/* Primera Columna */}
-                        <Grid item xs={4}>
+                        <Grid item xs={12} md={3}>
                             <Autocomplete
                                 id="carga"
+                                fullWidth
                                 options={cargaList.map((carga) => carga.nombre)}
                                 value={cargaNombre}
                                 onChange={handleCargaChange}
@@ -554,6 +554,7 @@ function NewContainer(props) {
                                 )}
                             />
                             <TextField
+                                fullWidth
                                 required
                                 id="nro-contenedor"
                                 label="Contenedor"
@@ -564,6 +565,7 @@ function NewContainer(props) {
                             />
                             <Autocomplete
                                 id="bl-house"
+                                fullWidth
                                 options={blList.map((bl) => bl.codigo_bl_house)}
                                 value={codigoBlHouse}
                                 onChange={handleBlChange}
@@ -583,9 +585,10 @@ function NewContainer(props) {
                         </Grid>
 
                         {/* Segunda Columna */}
-                        <Grid item xs={4}>
+                        <Grid item xs={12} md={3}>
                             <Autocomplete
                                 id="tipo-contenedor"
+                                fullWidth
                                 options={tipoList.map((tipo) => tipo.nombre)}
                                 value={nombreTipo}
                                 onChange={handleTipoChange}
@@ -606,6 +609,7 @@ function NewContainer(props) {
                             />
                             <TextField
                                 id="peso"
+                                fullWidth
                                 label="Peso"
                                 type="text"
                                 onChange={e => setPeso(e.target.value)}
@@ -615,6 +619,7 @@ function NewContainer(props) {
                             />
                             <TextField
                                 required
+                                fullWidth
                                 id="volumen"
                                 label="Volumen"
                                 type="text"
@@ -624,11 +629,10 @@ function NewContainer(props) {
                                 disabled={parseInt(esCargaSuelta, 10) === 1}
                             />
                         </Grid>
-
-                        {/* Tercera Columna */}
-                        <Grid item xs={4}>
+                        <Grid item xs={12} md={3}>
                             <TextField
                                 required
+                                fullWidth
                                 id="line-seal"
                                 label="Line Seal"
                                 type="text"
@@ -639,6 +643,7 @@ function NewContainer(props) {
                             />
                             <TextField
                                 required
+                                fullWidth
                                 id="shipper-seal"
                                 label="Shipper Seal"
                                 type="text"
@@ -649,6 +654,7 @@ function NewContainer(props) {
                             />
                             <TextField
                                 required
+                                fullWidth
                                 multiline
                                 rows={4}
                                 id="observaciones"
@@ -656,7 +662,6 @@ function NewContainer(props) {
                                 type="text"
                                 onChange={e => setObservaciones(e.target.value)}
                                 value={observaciones}
-                                style={{ width: `400px` }}
                                 className="form-control"
                             />
                         </Grid>

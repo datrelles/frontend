@@ -627,7 +627,7 @@ function NewShipment(props) {
                         </button>
                     </div>
                     <Grid container spacing={3}>
-                        <Grid item xs={3}>
+                        <Grid item xs={12} md={3}>
                             <TextField
                                 id="id"
                                 label="BL House"
@@ -635,7 +635,7 @@ function NewShipment(props) {
                                 onChange={(e) => setCodigoBlHouse(e.target.value)}
                                 value={codigoBlHouse}
                                 className="form-control"
-                                style={{ width: `130px` }}
+                                fullWidth
                             />
                             <TextField
                                 required
@@ -645,14 +645,14 @@ function NewShipment(props) {
                                 onChange={(e) => setCodigoBlMaster(e.target.value)}
                                 value={codigoBlMaster}
                                 className="form-control"
-                                style={{ width: `140px` }}
+                                fullWidth
                             />
                             <Autocomplete
                                 id="estado"
                                 options={statusList.map((status) => status.nombre)}
                                 value={estado}
                                 onChange={handleStatusChange}
-                                style={{ width: `200px` }}
+                                fullWidth
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
@@ -660,7 +660,6 @@ function NewShipment(props) {
                                         label="Estado"
                                         type="text"
                                         className="form-control"
-                                        style={{ width: `100%` }}
                                         InputProps={{
                                             ...params.InputProps,
                                         }}
@@ -669,6 +668,7 @@ function NewShipment(props) {
                             />
                             <TextField
                                 disabled
+                                fullWidth
                                 id="codProveedor"
                                 label="Codigo Proveedor"
                                 type="text"
@@ -702,6 +702,7 @@ function NewShipment(props) {
                         <Grid item xs={3}>
                             <TextField
                                 required
+                                fullWidth
                                 id="agente"
                                 label="Agente"
                                 type="text"
@@ -734,7 +735,7 @@ function NewShipment(props) {
                                 options={puertoList.map((puerto) => puerto.descripcion)}
                                 value={puertoNombre}
                                 onChange={handlePuertoChange}
-                                style={{ width: `200px` }}
+                                fullWidth
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
@@ -754,7 +755,7 @@ function NewShipment(props) {
                                 options={puertoList.map((puerto) => puerto.descripcion)}
                                 value={puertoDesNombre}
                                 onChange={handlePuertoDesChange}
-                                style={{ width: `200px` }}
+                                fullWidth
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
@@ -762,7 +763,6 @@ function NewShipment(props) {
                                         label="Puerto Desembarque"
                                         type="text"
                                         className="form-control"
-                                        style={{ width: `100%` }}
                                         InputProps={{
                                             ...params.InputProps,
                                         }}
@@ -772,9 +772,10 @@ function NewShipment(props) {
                         </Grid>
 
                         {/* Tercera Columna */}
-                        <Grid item xs={3}>
+                        <Grid item xs={12} md={3}>
                             <Autocomplete
                                 id="regimen"
+                                fullWidth
                                 options={regimenList.map((regimen) => regimen.descripcion)}
                                 value={regimenNombre}
                                 onChange={handleRegimenChange}
@@ -795,6 +796,7 @@ function NewShipment(props) {
                             />
                             <TextField
                                 required
+                                fullWidth
                                 id="nro-mrn"
                                 label="Nro Mrn"
                                 type="text"
@@ -807,7 +809,7 @@ function NewShipment(props) {
                                 options={fleteList.map((flete) => flete.nombre)}
                                 value={fleteNombre}
                                 onChange={handleFleteChange}
-                                style={{ width: `200px` }}
+                                fullWidth
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
@@ -815,7 +817,6 @@ function NewShipment(props) {
                                         label="Tipo Flete"
                                         type="text"
                                         className="form-control"
-                                        style={{ width: `100%` }}
                                         InputProps={{
                                             ...params.InputProps,
                                         }}
@@ -824,6 +825,7 @@ function NewShipment(props) {
                             />
                             <TextField
                                 required
+                                fullWidth
                                 id="numero-tracking"
                                 label="Numero Tracking"
                                 type="text"
@@ -833,6 +835,7 @@ function NewShipment(props) {
                             />
                             <TextField
                                 required
+                                fullWidth
                                 multiline
                                 rows={4}
                                 id="descripcion"
@@ -843,8 +846,6 @@ function NewShipment(props) {
                                 className="form-control"
                             />
                         </Grid>
-
-                        {/* Cuarta Columna */}
                         <Grid item xs={3}>
 
                             <div className={classes.datePickersContainer}>
@@ -893,30 +894,30 @@ function NewShipment(props) {
                             </div>
                             <TextField
                                 required
+                                fullWidth
                                 id="buque"
                                 label="Buque"
                                 type="text"
                                 onChange={(e) => setBuque(e.target.value)}
                                 value={buque}
                                 className="form-control"
-                                style={{ width: `140px` }}
                             />
                             <TextField
                                 required
+                                fullWidth
                                 id="Costo"
                                 label="Costo Contenedor"
                                 type="text"
                                 onChange={(e) => setCostoContenedor(e.target.value)}
                                 value={costoContenedor}
                                 className="form-control"
-                                style={{ width: `140px` }}
                             />
                             <Autocomplete
                                 id="aforo"
                                 options={aforoList.map((aforo) => aforo.nombre)}
                                 value={nombreAforo}
                                 onChange={handleAforoChange}
-                                style={{ width: `200px` }}
+                                fullWidth
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
@@ -924,7 +925,6 @@ function NewShipment(props) {
                                         label="Aforo"
                                         type="text"
                                         className="form-control"
-                                        style={{ width: `100%` }}
                                         InputProps={{
                                             ...params.InputProps,
                                         }}
@@ -932,9 +932,7 @@ function NewShipment(props) {
                                 )}
                             />
                         </Grid>
-                    </Grid>;
-
-
+                    </Grid>
                 </div>
 
 

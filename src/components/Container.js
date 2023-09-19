@@ -310,7 +310,7 @@ function Container(props) {
         </div>
         <ThemeProvider theme={getMuiTheme()}>
         <MUIDataTable
-          title={"Embarques"}
+          title={"Contenedores"}
           data={containers}
           columns={columns}
           options={options}

@@ -524,7 +524,7 @@ function EditContainer(props) {
             </button>
           </div>
           <Grid container spacing={3}>
-            <Grid item xs={4}>
+            <Grid item xs={12} md={3}>
               <TextField
                 disabled
                 id="id"
@@ -564,7 +564,7 @@ function EditContainer(props) {
                 )}
               />
             </Grid>
-            <Grid item xs={4}>
+            <Grid item xs={12} md={3}>
               <TextField
                 id="peso"
                 label="Peso"
@@ -591,8 +591,6 @@ function EditContainer(props) {
                 value={lineSeal}
                 className="form-control"
               />
-            </Grid>
-            <Grid item xs={4}>
               <TextField
                 required
                 id="shipper-seal"
@@ -602,12 +600,14 @@ function EditContainer(props) {
                 value={shipperSeal}
                 className="form-control"
               />
+            </Grid>
+            <Grid item xs={12} md={3}>
               <Autocomplete
                 id="carga"
                 options={cargaList.map((carga) => carga.nombre)}
                 value={cargaNombre}
                 onChange={handleCargaChange}
-                style={{ width: `200px` }}
+                fullWidth
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -615,7 +615,6 @@ function EditContainer(props) {
                     label="Es carga suelta"
                     type="text"
                     className="form-control"
-                    style={{ width: `100%` }}
                     InputProps={{
                       ...params.InputProps,
                     }}
@@ -632,7 +631,7 @@ function EditContainer(props) {
                 onChange={e => setObservaciones(e.target.value)}
                 value={observaciones}
                 className="form-control"
-                style={{ width: `400px` }}
+                fullWidth
               />
             </Grid>
           </Grid>
