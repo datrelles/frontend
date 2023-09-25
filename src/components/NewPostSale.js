@@ -123,6 +123,7 @@ function NewPostSales(props) {
   }
 
   useEffect(() => {
+    document.title = 'Nueva Orden de Compra';
     getMenus();
     getPurchaseOrdersDetails();
     getProvidersList();

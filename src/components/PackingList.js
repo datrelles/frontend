@@ -70,6 +70,7 @@ function PackingList(props) {
 
 
   useEffect(() => {
+    document.title = 'PackingList';
     getMenus()
     setFormData(location.state)
   }, [])

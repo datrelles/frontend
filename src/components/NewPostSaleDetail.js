@@ -61,6 +61,7 @@ function NewPostSaleDetail(props) {
   ]
 
   useEffect(() => {
+    document.title = 'Nuevo Detalle de Orden';
     getProductsList()
     getProductModelList()
 

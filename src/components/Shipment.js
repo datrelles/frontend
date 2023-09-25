@@ -93,6 +93,7 @@ function Shipment(props) {
   }
 
   useEffect(() => {
+    document.title = 'Embarques';
     getShipments();
     getStatusList();
     getMenus();

@@ -54,6 +54,7 @@ function Dashboard(props) {
   }
 
   useEffect(() => {
+    document.title = 'Modulos';
     getModules();
     sessionStorage.removeItem('currentSystem')
   }, [])

@@ -203,6 +203,7 @@ function EditContainer(props) {
 
 
   useEffect(() => {
+    document.title = 'Contenedor ' + nroContenedor;
     getContainer();
     getPackingList();
     checkAuthorization();

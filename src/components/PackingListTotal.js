@@ -132,7 +132,7 @@ function PackingListTotal(props) {
     }
 
     useEffect(() => {
-        document.title = 'Orden de Compra';
+        document.title = 'PackingList Total';
         getPackingList();
         getStatusList();
         getContainerList();

@@ -76,6 +76,7 @@ function PostSaleDetails(props) {
 
 
   useEffect(() => {
+    document.title = 'Detalle de Orden de Compra';
     getMenus()
     console.log(formData)
     getProductModelList()

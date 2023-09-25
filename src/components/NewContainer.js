@@ -220,6 +220,7 @@ function NewContainer(props) {
 
 
     useEffect(() => {
+        document.title = 'Nuevo Contenedor';
         getContainer();
         getPackingList();
         checkAuthorization();

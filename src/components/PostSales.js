@@ -93,6 +93,7 @@ function PostSales(props) {
   }
 
   useEffect(() => {
+    document.title = 'Ordenes de Compra';
     getPurchaseOrders();
     getMenus();
     getStatusList();

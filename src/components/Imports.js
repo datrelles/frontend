@@ -93,6 +93,7 @@ function PostSales(props) {
   }
 
   useEffect(() => {
+    document.title = 'Importaciones';
     getPurchaseOrders();
     getStatusList();
     getMenus();

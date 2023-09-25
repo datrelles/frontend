@@ -416,6 +416,7 @@ function EditShipment(props) {
 
 
   useEffect(() => {
+    document.title = 'Embarque ' + codigoBlHouse;
     getShipment();
     getAforoNombre();
     getAforoList();

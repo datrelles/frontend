@@ -36,6 +36,7 @@ function Menus(props) {
   }
 
   useEffect(() => {
+    document.title = 'Menus';
     getMenus();
   }, [])
 

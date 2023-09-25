@@ -93,6 +93,7 @@ function Container(props) {
   }
 
   useEffect(() => {
+    document.title = 'Contenedores';
     getContainers();
     getStatusList();
     getMenus();

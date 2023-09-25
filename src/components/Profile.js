@@ -97,6 +97,7 @@ function Profile(props) {
   }
 
   useEffect(() => {
+    document.title = 'Seleccion Empresa';
     getEnterprises();
     sessionStorage.removeItem('currentSystem')
   }, [])

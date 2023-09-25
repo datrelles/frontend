@@ -399,6 +399,7 @@ function NewShipment(props) {
 
 
     useEffect(() => {
+        document.title = 'Nuevo Embarque';
         getAforoNombre();
         getShipment();
         getAforoList();
