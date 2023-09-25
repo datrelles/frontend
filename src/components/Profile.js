@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react'
 import BootstrapSelect from 'react-bootstrap-select-dropdown';
 import Header from "./Header";
+import TextField from '@mui/material/TextField';
+import Autocomplete from '@mui/material/Autocomplete';
+import Grid from '@mui/material/Grid';
+
 import useToken from "./useToken";
 import '../styles/Profile.css'
 import { useNavigate } from 'react-router-dom';
-import { ContactSupportOutlined } from '@material-ui/icons';
 
 
 const API = process.env.REACT_APP_API;
@@ -15,8 +18,10 @@ function Profile(props) {
   const navigate = useNavigate();
 
   const [enterprises, setEnterprises] = useState([])
+  const [enterprise, setEnterprise] = useState("")
   const [branches, setBranches] = useState([])
-  const [defaultEnterprise, setDefaultEnterprise] = useState("")
+  const [branch, setBranch] = useState("")
+
 
 
   const getEnterprises = async () => {
@@ -35,11 +40,10 @@ function Profile(props) {
       value: item.NOMBRE
     }));
     setEnterprises(newData)
-  }
+    console.log(newData)
 
-  const getDefaultEnterprise = async () => {
-    if (sessionStorage.getItem('currentUser')){
-      const res = await fetch(`${API}/enterprise_default/${sessionStorage.getItem('currentUser')}`, {
+    if (sessionStorage.getItem('currentUser')) {
+      const res1 = await fetch(`${API}/enterprise_default/${sessionStorage.getItem('currentUser')}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -47,14 +51,34 @@ function Profile(props) {
         }
       })
 
-    const data = await res.json();
-    sessionStorage.setItem('currentEnterprise', data[0].EMPRESA_ACTUAL);
-    setDefaultEnterprise(data[0].EMPRESA_ACTUAL)
+      const data1 = await res1.json();
+      sessionStorage.setItem('currentEnterprise', data1[0].EMPRESA_ACTUAL);
+      sessionStorage.setItem('currentBranch', data1[0].AGENCIA_ACTUAL);
+      setEnterprise(newData.find((objeto) => objeto.key === data1[0].EMPRESA_ACTUAL).value)
 
-  }}
+      const res2 = await fetch(`${API}/branch/${sessionStorage.getItem('currentUser')}/${data1[0].EMPRESA_ACTUAL}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + props.token
+        }
+      })
+  
+      const data2 = await res2.json();
+      const newData2 = data2.map(item => ({
+        key: item.COD_AGENCIA,
+        value: item.NOMBRE
+      }));
+      setBranch(newData2.find((objeto) => objeto.key === data1[0].AGENCIA_ACTUAL).value)
+      setBranches(newData2)
+    }
+    
+    
+  }
+
 
   const getBranches = async (selectedKey) => {
-    if (selectedKey){
+    if (selectedKey) {
       const res = await fetch(`${API}/branch/${sessionStorage.getItem('currentUser')}/${selectedKey}`, {
         method: 'GET',
         headers: {
@@ -74,29 +98,28 @@ function Profile(props) {
 
   useEffect(() => {
     getEnterprises();
-    getDefaultEnterprise();
     sessionStorage.removeItem('currentSystem')
   }, [])
 
 
-  const handleChange = async (selectedOptions) => {
-    console.log(selectedOptions.selectedValue);
-    const selectedOption = enterprises.find((enterprise) => enterprise.value == selectedOptions.selectedValue);
-    const selectedKey = selectedOption ? selectedOption.key : defaultEnterprise;
-    console.log(selectedKey);
-    sessionStorage.setItem('currentEnterprise', selectedKey);
-    sessionStorage.setItem('currentBranch', 0);
-    getBranches(selectedKey);
+  const handleChange = (event, value) => {
+    if (value) {
+      const statusSeleccionado = enterprises.find((enterprise) => enterprise.value === value);
+      if (statusSeleccionado) {
+        sessionStorage.setItem('currentEnterprise', statusSeleccionado.key);
+        setEnterprise(statusSeleccionado.value)
+        getBranches(statusSeleccionado.key);
+      }
+    }
+  };
 
-  }
-
-  const handleChange1 = async (selectedOptions) => {
-    console.log(selectedOptions.selectedValue);
-    const selectedOption = branches.find((branch) => branch.value == selectedOptions.selectedValue);
-    if (branches[0]){ 
-      const selectedKey = selectedOption ? selectedOption.key : branches[0].key;
-      console.log(selectedKey);
-      sessionStorage.setItem('currentBranch', selectedKey);
+  const handleChange1 = (event, value) => {
+    if (value) {
+      const statusSeleccionado = branches.find((branch) => branch.value === value);
+      if (statusSeleccionado) {
+        sessionStorage.setItem('currentBranch', statusSeleccionado.key);
+        setBranch(statusSeleccionado.value)
+      }
     }
   }
 
@@ -108,16 +131,49 @@ function Profile(props) {
   return (
     <section className="h-100 gradient-form" >
       <Header token={removeToken} />
-      <div className="row d-flex justify-content-center align-items-center h-100">
-        <div className="card-body p-md-5 mx-md-4">
-          <div className="text-center pt-1 mb-5 pb-1">
+        
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={4}>
             <h5 className="mb-4">Seleccione Empresa</h5>
-            <BootstrapSelect options={enterprises} onChange={handleChange} placeholder="Empresas" />
-          </div>
-          <div className="text-center pt-1 mb-5 pb-1">
+          <Autocomplete
+            id="empresa"
+            options={enterprises.map((enterprise) => enterprise.value)}
+            value={enterprise}
+            onChange={handleChange}
+            fullWidth
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                required
+                label="Empresa"
+                type="text"
+                className="form-control"
+                InputProps={{
+                  ...params.InputProps,
+                }}
+              />
+            )}
+          />
             <h5 className="mb-4">Seleccione Agencia</h5>
-            <BootstrapSelect options={branches} onChange={handleChange1} placeholder="Agencias" />
-            <div className="text-center pt-1 mb-5 pb-1">
+            <Autocomplete
+            id="agencia"
+            options={branches.map((branch) => branch.value)}
+            value={branch}
+            onChange={handleChange1}
+            fullWidth
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                required
+                label="Agencia"
+                type="text"
+                className="form-control"
+                InputProps={{
+                  ...params.InputProps,
+                }}
+              />
+            )}
+          />
               <button
                 className="btn btn-primary btn-block"
                 type="button"
@@ -126,10 +182,9 @@ function Profile(props) {
               >
                 {'Ingresar'}
               </button>
-            </div>
-          </div>
-        </div>
-      </div>
+            </Grid>
+            </Grid>
+            
     </section>
   );
 }
