@@ -997,7 +997,7 @@ function EditShipment(props) {
             </Tabs>
             <TabPanel value={tabValue} index={0}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-                <button
+                {/* <button
                   className="btn btn-primary btn-block"
                   type="button"
                   style={{ marginBottom: '10px', marginTop: '10px', marginRight: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
@@ -1016,7 +1016,7 @@ function EditShipment(props) {
                   <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
                     Cargar en Lote
                   </Button>
-                </label>
+                </label> */}
               </div>
               <ThemeProvider theme={getMuiTheme()}>
                 <MUIDataTable title={"Packinglist de Embarque"} data={packingList} columns={columns} options={options} />

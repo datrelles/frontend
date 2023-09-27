@@ -149,7 +149,7 @@ function PackingListTotal(props) {
 
     const handleRowClick = async (rowData) => {
         try {
-            const res = await fetch(`${API}/embarque_param?empresa=${sessionStorage.getItem('currentEnterprise')}&codigo_bl_house=${rowData}`,
+            const res = await fetch(`${API}/container_by_nro?nro_contenedor=${rowData}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -163,7 +163,7 @@ function PackingListTotal(props) {
                 }
             } else {
                 const data = await res.json();
-                navigate('/editShipment', { state: data[0] });
+                navigate('/editContainer', { state: data[0] });
                 console.log(data)
             }
         } catch (error) {
@@ -240,7 +240,7 @@ function PackingListTotal(props) {
             },
         },
         {
-            name: "codigo_bl_house",
+            name: "nro_contenedor",
             options: {
                 customBodyRender: (value, tableMeta) => (
                     <span
@@ -259,7 +259,7 @@ function PackingListTotal(props) {
                     </span>
                 )
             },
-            label: "Embarque"
+            label: "Contenedor"
         },
         {
             name: "proforma",
@@ -277,7 +277,7 @@ function PackingListTotal(props) {
             name: "fob",
             label: "Fob"
         },
-        {
+        /* {
             name: "estado",
             label: "Estado",
             options: {
@@ -304,7 +304,7 @@ function PackingListTotal(props) {
                     );
                 }
             },
-        },
+        }, */
         {
             name: "cod_po",
             options: {

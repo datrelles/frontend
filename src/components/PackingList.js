@@ -31,7 +31,7 @@ function PackingList(props) {
   const [codPo, setCodPo] = useState(formData.cod_po)
   const [codProducto, setCodProducto] = useState(formData.cod_producto)
   const [codTipoLiquidacion, setCodTipoLiquidacion] = useState(formData.cod_tipo_liquidacion)
-  const [codigoBlHouse, setCodigoBlHouse] = useState(formData.codigo_bl_house)
+  const [nroContenedor, setNroContenedor] = useState(formData.nro_contenedor)
   const [fechaCrea, setFechaCrea] = useState(formData.fecha_crea)
   const [fechaModifica, setFechaModifica] = useState(formData.fecha_modifica)
   const [fob, setFob] = useState(formData.fob)
@@ -41,7 +41,7 @@ function PackingList(props) {
   const [nombre, setNombre] = useState(formData.nombre)
   const [usuarioCrea, setUsuarioCrea] = useState(formData.usuario_crea)
   const [usuarioModifica, setUsuarioModifica] = useState(formData.usuario_modifica)
-  
+
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -100,8 +100,8 @@ function PackingList(props) {
       },
       body: JSON.stringify({
         usuario_modifica: sessionStorage.getItem('currentUser'),
-        orders:[{   
-          codigo_bl_house: codigoBlHouse,
+        orders: [{
+          nro_contenedor: nroContenedor,
           cod_producto: codProducto,
           tipo_comprobante: tipoComprobante,
           fob: parseFloat(fob),
@@ -143,24 +143,24 @@ function PackingList(props) {
   }
 
   return (
-    <div style={{ marginTop: '150px'}}>
-       <Navbar0  menus={menus}/>
+    <div style={{ marginTop: '150px' }}>
+      <Navbar0 menus={menus} />
       <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'right',
-            '& > *': {
-              m: 1,
-            },
-          }}
-        >
-          <ButtonGroup variant="text" aria-label="text button group" > 
-            <Button onClick={() => {navigate('/dashboard')}}>Módulos</Button>
-            <Button onClick={() => {navigate('/shipment')}}>Embarques</Button>
-            <Button onClick={() => {navigate(-1)}}>Editar Embarque</Button>
-          </ButtonGroup>
-        </Box>
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'right',
+          '& > *': {
+            m: 1,
+          },
+        }}
+      >
+        <ButtonGroup variant="text" aria-label="text button group" >
+          <Button onClick={() => { navigate('/dashboard') }}>Módulos</Button>
+          <Button onClick={() => { navigate('/shipment') }}>Embarques</Button>
+          <Button onClick={() => { navigate(-1) }}>Editar Embarque</Button>
+        </ButtonGroup>
+      </Box>
       <Box
         component="form"
         sx={{
@@ -184,10 +184,10 @@ function PackingList(props) {
           <TextField
             disabled
             id="id2"
-            label="Embarque"
+            label="Contenedor"
             type="text"
-            onChange={e => setCodigoBlHouse(e.target.value)}
-            value={codigoBlHouse}
+            onChange={e => setNroContenedor(e.target.value)}
+            value={nroContenedor}
             className="form-control"
           />
           <TextField
@@ -208,14 +208,13 @@ function PackingList(props) {
             onChange={e => setSecuencia(e.target.value)}
             value={secuencia}
             className="form-control"
-            style={{ width: `120px` }}
             InputProps={{
               inputProps: {
                 style: { textAlign: 'right' },
               },
             }}
           />
-           <TextField
+          <TextField
             disabled
             id="cantidad"
             label="Cantidad"
@@ -241,7 +240,6 @@ function PackingList(props) {
             onChange={e => setNombre(e.target.value)}
             value={nombre}
             className="form-control"
-            style={{ width: `600px` }}
           />
           <TextField
             required
@@ -251,7 +249,6 @@ function PackingList(props) {
             onChange={e => setFob(e.target.value)}
             value={fob}
             className="form-control"
-            style={{ width: `130px` }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">$</InputAdornment>
@@ -261,12 +258,10 @@ function PackingList(props) {
               },
             }}
           />
-          <div>
-            <Autocomplete
+          <Autocomplete
             id="unidad-medida"
             options={unidadesMedida.map((unidadesMedida) => unidadesMedida.label)}
             onChange={handleMeasureChange}
-            style={{ width: `160px` }}
             value={unidadMedida}
             renderInput={(params) => (
               <TextField
@@ -276,7 +271,6 @@ function PackingList(props) {
                 type="text"
                 value={unidadMedida}
                 className="form-control"
-                style={{ width: `100%` }}
                 InputProps={{
                   ...params.InputProps,
                 }}
@@ -284,14 +278,12 @@ function PackingList(props) {
             )}
           />
           <TextField
-            disabled
             id="cod-liquidacion"
             label="Codigo Liquidacion"
             type="text"
             onChange={e => setCodLiquidacion(e.target.value)}
             value={codLiquidacion}
             className="form-control"
-            style={{ width: `120px` }}
             InputProps={{
               inputProps: {
                 style: { textAlign: 'right' },
@@ -299,21 +291,18 @@ function PackingList(props) {
             }}
           />
           <TextField
-            disabled
             id="cod-tipo-liquidacion"
             label="Tipo Liquidacion"
             type="text"
             onChange={e => setCodTipoLiquidacion(e.target.value)}
             value={codTipoLiquidacion}
             className="form-control"
-            style={{ width: `120px` }}
             InputProps={{
               inputProps: {
                 style: { textAlign: 'right' },
               },
             }}
           />
-          </div>
         </div>
 
 

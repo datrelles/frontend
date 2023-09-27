@@ -21,7 +21,7 @@ import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import TrackingStepOrder from "./TrackingStepOrder";
 import Grid from '@mui/material/Grid';
-
+import DescriptionIcon from '@mui/icons-material/Description';
 import dayjs from 'dayjs';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -433,8 +433,22 @@ function EditPostSales(props) {
         delete: "Borrar",
         deleteAria: "Borrar fila seleccionada"
       }
-    }
+    },
+    customToolbar: () => {
+      return (
+        <button type="button" onClick={exportToExcel}> <DescriptionIcon/>
+        </button>
+      );
+    },
   }
+
+  const exportToExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(details);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Hoja1");
+    XLSX.writeFile(wb, `${codPo}_detalles.xlsx`);
+
+  };
 
   const columnsPacking = [
     {
@@ -455,14 +469,6 @@ function EditPostSales(props) {
     {
       name: "fob",
       label: "Fob"
-    },
-    {
-      name: "nro_contenedor",
-      label: "Contenedor"
-    },
-    {
-      name: "codigo_bl_house",
-      label: "Embarque"
     },
     {
       name: "cod_liquidacion",
@@ -862,7 +868,7 @@ function EditPostSales(props) {
       >
         <ButtonGroup variant="text" aria-label="text button group" >
           <Button style={{ width: `100px`, marginTop: '10px', marginRight: '10px', color: '#1976d2' }} onClick={() => { navigate('/dashboard') }}>Módulos</Button>
-          <Button style={{ marginTop: '10px', marginRight: '10px', color: '#1976d2' }} onClick={() => { navigate(-1) }}>Ordenes de Compra</Button>
+          <Button style={{ marginTop: '10px', marginRight: '10px', color: '#1976d2' }} onClick={() => { navigate(-1) }}>Regresar</Button>
         </ButtonGroup>
       </Box>
       <Box

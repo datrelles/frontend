@@ -214,6 +214,20 @@ function EditContainer(props) {
 
   const columns = [
     {
+      name: "secuencia",
+      label: "Secuencia",
+      options: {
+        display: false,
+      },
+    },
+    {
+      name: "nro_contenedor",
+      label: "Contenedor",
+      options: {
+        display: false,
+      },
+    },
+    {
       name: "cod_producto",
       label: "Codigo Producto"
     },
@@ -264,6 +278,7 @@ function EditContainer(props) {
 
   const options = {
     filterType: 'dropdown',
+    onRowClick: handleRowClick,
     onRowsDelete: handleDeleteRows,
     textLabels: {
       body: {
