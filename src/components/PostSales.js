@@ -222,6 +222,7 @@ function PostSales(props) {
   ]
 
   const options = {
+    responsive: 'standard',
     onRowClick: handleRowClick,
     onRowsDelete: handleDeleteRows,
     textLabels: {

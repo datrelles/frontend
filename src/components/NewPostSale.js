@@ -171,6 +171,7 @@ function NewPostSales(props) {
   ]
 
   const options = {
+    responsive: 'standard',
     filterType: 'dropdown',
     onRowsDelete: handleDeleteRows,
     textLabels: {

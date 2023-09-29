@@ -464,6 +464,7 @@ function EditShipment(props) {
 
   const options = {
     filterType: 'dropdown',
+    responsive: 'standard',
     onRowsDelete: handleDeleteRows,
     onRowClick: handleRowClick,
     textLabels: {

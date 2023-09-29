@@ -334,6 +334,7 @@ function PackingListTotal(props) {
     ]
 
     const options = {
+        responsive: 'standard',
         textLabels: {
             body: {
                 noMatch: "Lo siento, no se encontraron registros",

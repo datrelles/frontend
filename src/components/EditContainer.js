@@ -277,6 +277,7 @@ function EditContainer(props) {
   ]
 
   const options = {
+    responsive: 'standard',
     filterType: 'dropdown',
     onRowClick: handleRowClick,
     onRowsDelete: handleDeleteRows,

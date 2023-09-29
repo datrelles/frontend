@@ -55,9 +55,9 @@ function App() {
 
 
   return (
-    <div>
+    <div style={{ width: '99%', minHeight: '100vh', marginLeft:'10px'}}>
       <Router>
-        <div className="container-sm">
+        
           {!token && token !== "" && token == undefined ?
             <Login setToken={setToken} />
             : (
@@ -86,7 +86,7 @@ function App() {
                 </Routes>
               </>
             )}
-        </div>
+        
       </Router>
       <ToastContainer />
     </div>

@@ -1,3 +1,26 @@
 .right-align {
     float: right;
   }
+
+  .profile-container {
+
+    justify-content: center;
+    align-items: center;
+    
+  }
+  
+  .profile-content {
+   
+    width: 100%;
+    padding: 50px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    
+   
+  }
+  
+  
+  
+  
+  
+  

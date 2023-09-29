@@ -63,7 +63,7 @@ function Profile(props) {
           'Authorization': 'Bearer ' + props.token
         }
       })
-  
+
       const data2 = await res2.json();
       const newData2 = data2.map(item => ({
         key: item.COD_AGENCIA,
@@ -72,8 +72,8 @@ function Profile(props) {
       setBranch(newData2.find((objeto) => objeto.key === data1[0].AGENCIA_ACTUAL).value)
       setBranches(newData2)
     }
-    
-    
+
+
   }
 
 
@@ -130,64 +130,68 @@ function Profile(props) {
 
 
   return (
-    <section className="h-100 gradient-form" >
-      <Header token={removeToken} />
-        
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={4}>
+    <div className="profile-container">
+      <div className="profile-content">
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
             <h5 className="mb-4">Seleccione Empresa</h5>
-          <Autocomplete
-            id="empresa"
-            options={enterprises.map((enterprise) => enterprise.value)}
-            value={enterprise}
-            onChange={handleChange}
-            fullWidth
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                required
-                label="Empresa"
-                type="text"
-                className="form-control"
-                InputProps={{
-                  ...params.InputProps,
-                }}
-              />
-            )}
-          />
+            <Autocomplete
+              id="empresa"
+              options={enterprises.map((enterprise) => enterprise.value)}
+              value={enterprise}
+              style={{ marginBottom: '20px'}}
+              onChange={handleChange}
+              fullWidth
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  required
+                  label="Empresa"
+                  type="text"
+                  className="form-control"
+                  InputProps={{
+                    ...params.InputProps,
+                  }}
+                />
+              )}
+            />
             <h5 className="mb-4">Seleccione Agencia</h5>
             <Autocomplete
-            id="agencia"
-            options={branches.map((branch) => branch.value)}
-            value={branch}
-            onChange={handleChange1}
-            fullWidth
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                required
-                label="Agencia"
-                type="text"
-                className="form-control"
-                InputProps={{
-                  ...params.InputProps,
-                }}
-              />
-            )}
-          />
-              <button
-                className="btn btn-primary btn-block"
-                type="button"
-                style={{ backgroundColor: 'firebrick' }}
-                onClick={handleChange2}
-              >
-                {'Ingresar'}
-              </button>
-            </Grid>
-            </Grid>
-            
-    </section>
-  );
+              id="agencia"
+              options={branches.map((branch) => branch.value)}
+              value={branch}
+              style={{ marginBottom: '20px'}}
+              onChange={handleChange1}
+              fullWidth
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  required
+                  label="Agencia"
+                  type="text"
+                  className="form-control"
+                  InputProps={{
+                    ...params.InputProps,
+                  }}
+                />
+              )}
+            />
+            <button
+              className="btn btn-primary btn-block rounded"
+              type="button"
+              style={{ backgroundColor: 'firebrick' }}
+              onClick={handleChange2}
+            >
+              {'Ingresar'}
+            </button>
+            <Header token={removeToken} />
+          </Grid>
+        </Grid>
+        </div>
+      </div>
+
+
+      );
 }
 
-export default Profile;
+      export default Profile;

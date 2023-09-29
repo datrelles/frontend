@@ -233,6 +233,7 @@ function Shipment(props) {
   const options = {
     onRowClick: handleRowClick,
     onRowsDelete: handleDeleteRows,
+    responsive: 'standard',
     textLabels: {
       body: {
         noMatch: "Lo siento, no se encontraron registros",
@@ -324,7 +325,7 @@ function Shipment(props) {
 
   return (
     <SnackbarProvider>
-      <div style={{ marginTop: '150px', top: 0, left:0, width: "100%", zIndex: 1000}}>
+      <div style={{ marginTop: '150px', top: 0, width: "100%", zIndex: 1000}}>
         <Navbar0 menus={menus}/>
         <Box
           sx={{

@@ -193,6 +193,7 @@ function Container(props) {
   const options = {
     onRowClick: handleRowClick,
     onRowsDelete: handleDeleteRows,
+    responsive: 'standard',
     textLabels: {
       body: {
         noMatch: "Lo siento, no se encontraron registros",

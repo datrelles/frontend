@@ -31,8 +31,6 @@ import { format } from 'date-fns'
 import FileGenerator from './FileGenerator';
 
 
-
-
 const API = process.env.REACT_APP_API;
 const useStyles = makeStyles({
   datePickersContainer: {
@@ -398,6 +396,7 @@ function EditPostSales(props) {
 
   const options = {
     filterType: 'dropdown',
+    responsive: 'standard',
     onRowsDelete: handleDeleteRows,
     onRowClick: handleRowClick,
     textLabels: {
@@ -436,7 +435,7 @@ function EditPostSales(props) {
     },
     customToolbar: () => {
       return (
-        <button type="button" onClick={exportToExcel}> <DescriptionIcon/>
+        <button type="button" onClick={exportToExcel}> <DescriptionIcon />
         </button>
       );
     },
@@ -478,6 +477,7 @@ function EditPostSales(props) {
   ]
 
   const optionsPacking = {
+    responsive: 'standard',
     filterType: 'dropdown',
     onRowsDelete: handleDeleteRowsPack,
     onRowClick: handleRowClickPack,
@@ -808,7 +808,7 @@ function EditPostSales(props) {
         MuiTableCell: {
           styleOverrides: {
             root: {
-              paddingLeft: '3px', 
+              paddingLeft: '3px',
               paddingRight: '3px',
               paddingTop: '0px',
               paddingBottom: '0px',
@@ -882,14 +882,14 @@ function EditPostSales(props) {
       >
         <div>
           <h5>Editar Orden de Compra</h5>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginBottom: '20px', marginTop: '20px' }}>
-            {TrackingStepOrder(Number(formData.cod_item), statusList.map(item => item.nombre))}
-          </div>
+
+          {TrackingStepOrder(Number(formData.cod_item), statusList.map(item => item.nombre))}
+
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: '20px' }}>
             <button
               className="btn btn-primary"
               type="button"
-              style={{ width: '150px', marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
+              style={{ marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
               onClick={handleChange2}>
               <SaveIcon /> Guardar
             </button>
@@ -935,7 +935,7 @@ function EditPostSales(props) {
               />
             </Grid>
             <Grid item xs={12} md={3}>
-            <Autocomplete
+              <Autocomplete
                 id="Proveedor"
                 options={providersList.map((proveedor) => proveedor.nombre)}
                 onChange={handleProviderChange}
@@ -969,7 +969,7 @@ function EditPostSales(props) {
               />
             </Grid>
             <Grid item xs={12} md={3}>
-            {authorizedSystems.includes('IMP') && (
+              {authorizedSystems.includes('IMP') && (
                 <Autocomplete
                   id="estado"
                   options={statusList.map((status) => status.nombre)}
@@ -1008,8 +1008,8 @@ function EditPostSales(props) {
                 }}
                 disabled
               />
-              </Grid>
-              <Grid item xs={12} md={3}>
+            </Grid>
+            <Grid item xs={12} md={3}>
               <div className={classes.datePickersContainer}>
                 <div>
                   <LocalizationProvider dateAdapter={AdapterDayjs} >
@@ -1054,65 +1054,65 @@ function EditPostSales(props) {
             </Grid>
           </Grid>
 
-          <div>
-            <Tabs value={tabValue} onChange={(event, newValue) => setTabValue(newValue)}>
-              <Tab label="Detalles" />
-              <Tab label="Packinglist" />
-            </Tabs>
-            <TabPanel value={tabValue} index={0}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
+
+          <Tabs value={tabValue} onChange={(event, newValue) => setTabValue(newValue)}>
+            <Tab label="Detalles" />
+            <Tab label="Packinglist" />
+          </Tabs>
+          <TabPanel value={tabValue} index={0}>
+            <div >
+              {authorizedSystems.includes('IMP') && parseInt(formData.cod_item, 10) < 6 && (
+                <button
+                  className="btn btn-primary btn-block"
+                  type="button"
+                  style={{ marginBottom: '10px', marginTop: '10px', marginRight: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
+                  onClick={handleChange3}>
+                  <AddIcon /> Nuevo
+                </button>
+              )}
+              <input
+                accept=".xlsx, .xls"
+                id="file-upload"
+                multiple
+                type="file"
+                style={{ display: 'none' }}
+                onChange={handleFileUpload}
+              />
+              <label htmlFor="file-upload">
                 {authorizedSystems.includes('IMP') && parseInt(formData.cod_item, 10) < 6 && (
-                  <button
-                    className="btn btn-primary btn-block"
-                    type="button"
-                    style={{ marginBottom: '10px', marginTop: '10px', marginRight: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
-                    onClick={handleChange3}>
-                    <AddIcon /> Nuevo
-                  </button>
+                  <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
+                    Cargar en Lote
+                  </Button>
                 )}
-                <input
-                  accept=".xlsx, .xls"
-                  id="file-upload"
-                  multiple
-                  type="file"
-                  style={{ display: 'none' }}
-                  onChange={handleFileUpload}
-                />
-                <label htmlFor="file-upload">
-                  {authorizedSystems.includes('IMP') && parseInt(formData.cod_item, 10) < 6 && (
-                    <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
-                      Cargar en Lote
-                    </Button>
-                  )}
-                </label>
-              </div>
-              <ThemeProvider theme={getMuiTheme()}>
-                <MUIDataTable title={"Detalle Orden de Compra"} data={details} columns={columns} options={options} />
-              </ThemeProvider>
-            </TabPanel>
-            <TabPanel value={tabValue} index={1}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-                <input
-                  accept=".xlsx, .xls"
-                  id="file-upload"
-                  multiple
-                  type="file"
-                  style={{ display: 'none' }}
-                  onChange={handleFileUpload2}
-                />
-                <label htmlFor="file-upload">
-                  {authorizedSystems.includes('IMP') && parseInt(formData.cod_item, 10) < 7 && parseInt(formData.cod_item, 10) > 4 && (
-                    <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
-                      Cargar en Lote
-                    </Button>
-                  )}
-                </label>
-              </div>
-              <ThemeProvider theme={getMuiTheme()}>
-                <MUIDataTable title={"Packinglist Orden de Compra"} data={packingList} columns={columnsPacking} options={optionsPacking} />
-              </ThemeProvider>
-            </TabPanel>
-          </div>
+              </label>
+            </div>
+            <ThemeProvider theme={getMuiTheme()}>
+              <MUIDataTable title={"Detalle Orden de Compra"} data={details} columns={columns} options={options} />
+            </ThemeProvider>
+          </TabPanel>
+          <TabPanel value={tabValue} index={1}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
+              <input
+                accept=".xlsx, .xls"
+                id="file-upload"
+                multiple
+                type="file"
+                style={{ display: 'none' }}
+                onChange={handleFileUpload2}
+              />
+              <label htmlFor="file-upload">
+                {authorizedSystems.includes('IMP') && parseInt(formData.cod_item, 10) < 7 && parseInt(formData.cod_item, 10) > 4 && (
+                  <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
+                    Cargar en Lote
+                  </Button>
+                )}
+              </label>
+            </div>
+            <ThemeProvider theme={getMuiTheme()}>
+              <MUIDataTable title={"Packinglist Orden de Compra"} data={packingList} columns={columnsPacking} options={optionsPacking} />
+            </ThemeProvider>
+          </TabPanel>
+
         </div>
 
 
