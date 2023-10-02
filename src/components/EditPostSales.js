@@ -881,37 +881,39 @@ function EditPostSales(props) {
         autoComplete="off"
       >
         <div>
-          <h5>Editar Orden de Compra</h5>
-
-          {TrackingStepOrder(Number(formData.cod_item), statusList.map(item => item.nombre))}
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
+            <h5 style={{ marginTop: '20px' }}>Editar Orden de Compra</h5>
+          </div>
+          <button
+            className="btn btn-primary"
+            type="button"
+            style={{ marginTop: '10px', marginBottom: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
+            onClick={handleChange2}>
+            <SaveIcon /> Guardar
+          </button>
+          {authorizedSystems.includes('REP') && parseInt(formData.cod_item, 10) == 0 && (
             <button
               className="btn btn-primary"
               type="button"
-              style={{ marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
-              onClick={handleChange2}>
-              <SaveIcon /> Guardar
+              style={{ marginTop: '10px', marginBottom: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
+              onClick={handleChangeSend}>
+              <SendIcon /> Solicitar
             </button>
-            {authorizedSystems.includes('REP') && parseInt(formData.cod_item, 10) == 0 && (
-              <button
-                className="btn btn-primary"
-                type="button"
-                style={{ width: '150px', marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
-                onClick={handleChangeSend}>
-                <SendIcon /> Solicitar
-              </button>
-            )}
-            {authorizedSystems.includes('REP') && parseInt(formData.cod_item, 10) == 2 && (
-              <button
-                className="btn btn-primary"
-                type="button"
-                style={{ width: '150px', marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
-                onClick={handleChangeAprob}>
-                <CheckIcon /> Aprobar
-              </button>
-            )}
+          )}
+          {authorizedSystems.includes('REP') && parseInt(formData.cod_item, 10) == 2 && (
+            <button
+              className="btn btn-primary"
+              type="button"
+              style={{ marginTop: '10px', marginBottom: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
+              onClick={handleChangeAprob}>
+              <CheckIcon /> Aprobar
+            </button>
+          )}
+          
+            <div >
+            {TrackingStepOrder(Number(formData.cod_item), statusList.map(item => item.nombre))}
           </div>
+
           <Grid container spacing={3}>
             <Grid item xs={12} md={3}>
               <TextField

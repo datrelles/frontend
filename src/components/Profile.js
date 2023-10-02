@@ -133,7 +133,7 @@ function Profile(props) {
     <div className="profile-container">
       <div className="profile-content">
         <Grid container spacing={3}>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={12}>
             <h5 className="mb-4">Seleccione Empresa</h5>
             <Autocomplete
               id="empresa"

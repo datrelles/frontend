@@ -691,17 +691,18 @@ function EditShipment(props) {
         autoComplete="off"
       >
         <div>
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginBottom: '20px' }}>
-            <h5 style={{ marginTop: '20px', marginRight: '700px' }}>Editar Embarque</h5>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start'}}>
+            <h5 style={{ marginTop: '20px'}}>Editar Embarque</h5>
+          </div>
+          
             <button
               className="btn btn-primary btn-block"
               type="button"
-              style={{ marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
+              style={{ marginTop: '10px', marginBottom: '10px', backgroundColor: 'firebrick', borderRadius: '5px'}}
               onClick={handleChange2}>
               <SaveIcon /> Guardar
             </button>
-          </div>
+            
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginBottom: '20px' }}>
             {TrackingStep(Number(codItem), statusList.map(item => item.nombre))}
           </div>

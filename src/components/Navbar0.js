@@ -53,46 +53,49 @@ function Navbar0(props) {
   const options = props.menus;
 
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000 }}>
+    <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000}}>
       <Navbar bg="light" expand="lg" className="navbar0 navbar0-bg">
         <Container fluid>
           <Navbar.Brand onClick={handleClick}>
             <img src={logo} alt="Logo Empresarial" style={{ height: '70px' }} />
           </Navbar.Brand>
-          <Nav>
-            {options.map((option, index) => (
-              <NavDropdown key={index} title={option.title} id="basic-nav-dropdown">
-                {option.items.map((item, itemIndex) => (
-                  <NavDropdown.Item key={itemIndex} href={item.RUTA}>
-                    {item.NOMBRE}
-                  </NavDropdown.Item>
-                ))}
+          <Navbar.Toggle aria-controls="responsive-navbar-nav" />
+          <Navbar.Collapse id="responsive-navbar-nav">
+            <Nav className="mr-auto">
+              {options.map((option, index) => (
+                <NavDropdown key={index} title={option.title} id="basic-nav-dropdown">
+                  {option.items.map((item, itemIndex) => (
+                    <NavDropdown.Item key={itemIndex} href={item.RUTA}>
+                      {item.NOMBRE}
+                    </NavDropdown.Item>
+                  ))}
+                </NavDropdown>
+              ))}
+            </Nav>
+            <Nav>
+              <NavDropdown title={sessionStorage.getItem('currentUser')} id="basic-nav-dropdown">
+                <NavDropdown.Item onClick={handleClick3} style={{ display: 'flex', alignItems: 'left' }}>
+                  <ListItemIcon>
+                    <Settings fontSize="small" />
+                  </ListItemIcon>
+                  Ajustes
+                </NavDropdown.Item>
+                <NavDropdown.Item href="http://192.168.30.7" target="_blank">
+                  <ListItemIcon>
+                    <SupportAgentIcon fontSize="small" />
+                  </ListItemIcon>
+                  Soporte
+                </NavDropdown.Item>
+                <NavDropdown.Divider />
+                <NavDropdown.Item onClick={handleClick2}>
+                  <HolidayVillageTwoToneIcon /> Cambiar Empresa
+                </NavDropdown.Item>
+                <NavDropdown.Item onClick={logMeOut}>
+                  <MeetingRoomTwoToneIcon /> Cerrar Sesión
+                </NavDropdown.Item>
               </NavDropdown>
-            ))}
-          </Nav>
-          <Nav className="ml-auto-custom">
-            <NavDropdown title={sessionStorage.getItem('currentUser')} id="basic-nav-dropdown">
-              <NavDropdown.Item onClick={handleClick3} style={{ display: 'flex', alignItems: 'left' }}>
-                <ListItemIcon>
-                  <Settings fontSize="small" />
-                </ListItemIcon>
-                Ajustes
-              </NavDropdown.Item>
-              <NavDropdown.Item href="http://192.168.30.7" target="_blank">
-                <ListItemIcon>
-                  <SupportAgentIcon fontSize="small" />
-                </ListItemIcon>
-                Soporte
-              </NavDropdown.Item>
-              <NavDropdown.Divider />
-              <NavDropdown.Item onClick={handleClick2}>
-                <HolidayVillageTwoToneIcon /> Cambiar Empresa
-              </NavDropdown.Item>
-              <NavDropdown.Item onClick={logMeOut}>
-                <MeetingRoomTwoToneIcon /> Cerrar Sesión
-              </NavDropdown.Item>
-            </NavDropdown>
-          </Nav>
+            </Nav>
+          </Navbar.Collapse>
         </Container>
       </Navbar>
     </div>
