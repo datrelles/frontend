@@ -24,6 +24,7 @@ import PackingList from "./components/PackingList";
 import PackingListTotal from "./components/PackingListTotal";
 import Settings from "./components/Settings";
 import Menus from "./components/Menus";
+import Details from "./components/Details";
 
 const API = process.env.REACT_APP_API;
 
@@ -82,6 +83,7 @@ function App() {
                   <Route exact path="/newShipment" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><NewShipment token={token} setToken={setToken} /></Protected>}/>
                   <Route exact path="/packingList" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><PackingList token={token} setToken={setToken} /></Protected>}/>
                   <Route exact path="/packinglistTotal" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><PackingListTotal token={token} setToken={setToken} /></Protected>}/>
+                  <Route exact path="/details" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><Details token={token} setToken={setToken} /></Protected>}/>
                   <Route exact path="/settings" element={<Settings token={token} setToken={setToken} />}></Route>
                 </Routes>
               </>
