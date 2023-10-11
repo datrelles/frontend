@@ -5,17 +5,9 @@ import React, { useState, useEffect } from "react";
 import MUIDataTable from "mui-datatables";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-import SearchIcon from '@material-ui/icons/Search';
-import LinearProgress from '@mui/material/LinearProgress';
-import AddIcon from '@material-ui/icons/Add';
 import SaveIcon from '@material-ui/icons/Save';
 import { SnackbarProvider, useSnackbar } from 'notistack';
-import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { TextField } from '@mui/material';
-import { format } from 'date-fns'
 import moment from "moment";
 import FileGenerator from './FileGenerator';
 import Button from '@mui/material/Button';
@@ -23,9 +15,7 @@ import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
 import * as XLSX from 'xlsx'
 import Autocomplete from '@mui/material/Autocomplete';
-
-
-
+import Functions from "../helpers/Functions"; 
 
 const API = process.env.REACT_APP_API;
 
@@ -271,40 +261,28 @@ function PackingListTotal(props) {
         },
         {
             name: "cantidad",
-            label: "Cant."
+            label: "Cant.",
+            options: {
+                customBodyRender: (value) => {
+                  if (value === null || value === "") {
+                    return <div style={{ textAlign: "right" }}>
+                    {"0"}
+                  </div>
+                  } else {
+                    return <div style={{ textAlign: "right" }}>
+                      {value}
+                    </div>
+                  }
+                },
+              },
         },
         {
             name: "fob",
-            label: "Fob"
-        },
-        /* {
-            name: "estado",
-            label: "Estado",
+            label: "Fob",
             options: {
-                customBodyRender: (value) => {
-                    const progress = parseInt(value * 100 / (statusList.length - 1), 10);
-                    let name = '';
-                    if (statusList.find((objeto) => objeto.cod === value)) {
-                        name = statusList.find((objeto) => objeto.cod === value).nombre
-                    }
-                    const backgroundColor = getBackgroundColor(progress);
-                    return (
-                        <div>
-                            <LinearProgress
-                                sx={{
-                                    backgroundColor: 'silver',
-                                    '& .MuiLinearProgress-bar': {
-                                        backgroundColor: backgroundColor
-                                    }
-                                }}
-
-                                variant="determinate" value={progress} />
-                            <span>{name}</span>
-                        </div>
-                    );
-                }
+                customBodyRender: Functions.NumericRender
             },
-        }, */
+        },
         {
             name: "cod_po",
             options: {
@@ -329,7 +307,7 @@ function PackingListTotal(props) {
         },
         {
             name: "cod_liquidacion",
-            label: "Codigo Liquidacion"
+            label: "Valoracion"
         },
     ]
 

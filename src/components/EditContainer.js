@@ -8,26 +8,14 @@ import { toast } from 'react-toastify';
 import MUIDataTable from "mui-datatables";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
-import moment from 'moment';
-import TrackingStep from "./TrackingStep";
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import { Tabs, Tab } from '@material-ui/core';
 import SaveIcon from '@material-ui/icons/Save';
-import SendIcon from '@material-ui/icons/Send';
-import AddIcon from '@material-ui/icons/Add';
-import CheckIcon from '@material-ui/icons/Check';
 import Autocomplete from '@mui/material/Autocomplete';
 import * as XLSX from 'xlsx'
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
-
-
-import dayjs from 'dayjs';
-import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { format } from 'date-fns'
+import Functions from "../helpers/Functions";
 
 const API = process.env.REACT_APP_API;
 const useStyles = makeStyles({
@@ -237,11 +225,27 @@ function EditContainer(props) {
     },
     {
       name: "cantidad",
-      label: "Cantidad"
+      label: "Cantidad",
+      options: {
+        customBodyRender: (value) => {
+          if (value === null || value === "") {
+            return <div style={{ textAlign: "right" }}>
+            {"0"}
+          </div>
+          } else {
+            return <div style={{ textAlign: "right" }}>
+              {value}
+            </div>
+          }
+        },
+      },
     },
     {
       name: "fob",
-      label: "Fob"
+      label: "Fob",
+      options: {
+        customBodyRender: Functions.NumericRender
+    },
     },
     {
       name: "cod_po",
@@ -271,7 +275,7 @@ function EditContainer(props) {
     },
     {
       name: "cod_liquidacion",
-      label: "Codigo Liquidacion"
+      label: "Valoracion"
     },
 
   ]

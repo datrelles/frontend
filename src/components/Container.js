@@ -5,20 +5,10 @@ import React, { useState, useEffect} from "react";
 import MUIDataTable from "mui-datatables";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-import SearchIcon from '@material-ui/icons/Search';
-import LinearProgress from '@mui/material/LinearProgress';
 import AddIcon from '@material-ui/icons/Add';
-
-
+import Functions from "../helpers/Functions";
 import { SnackbarProvider, useSnackbar } from 'notistack';
-import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { TextField } from '@mui/material';
-import { format } from 'date-fns'
 import moment from "moment";
-
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
@@ -168,11 +158,17 @@ function Container(props) {
       },
     {
         name: "peso",
-        label: "Peso"
+        label: "Peso",
+        options: {
+          customBodyRender: Functions.NumericRender
+      },
       },
     {
       name: "volumen",
-      label: "Volumen"
+      label: "Volumen",
+      options: {
+        customBodyRender: Functions.NumericRender
+    },
     },
     {
         name: "es_carga_suelta",

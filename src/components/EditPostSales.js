@@ -29,6 +29,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { format } from 'date-fns'
 import FileGenerator from './FileGenerator';
+import Functions from "../helpers/Functions";
 
 
 const API = process.env.REACT_APP_API;
@@ -362,7 +363,9 @@ function EditPostSales(props) {
           if (value === null || value === "") {
             return "0";
           } else {
-            return value;
+            return <div style={{ textAlign: "right" }}>
+              {value}
+            </div>
           }
         },
       },
@@ -375,22 +378,33 @@ function EditPostSales(props) {
           if (value === null || value === "") {
             return "0";
           } else {
-            return value;
+            return <div style={{ textAlign: "right" }}>
+              {value}
+            </div>
           }
         },
       },
     },
     {
       name: "costo_sistema",
-      label: "Costo"
+      label: "Costo",
+      options: {
+        customBodyRender: Functions.NumericRender
+      },
     },
     {
       name: "fob",
-      label: "Fob"
+      label: "Fob",
+      options: {
+        customBodyRender: Functions.NumericRender
+      },
     },
     {
       name: "fob_total",
-      label: "Fob Total"
+      label: "Fob Total",
+      options: {
+        customBodyRender: Functions.NumericRender
+      },
     }
   ]
 
@@ -463,15 +477,27 @@ function EditPostSales(props) {
     },
     {
       name: "cantidad",
-      label: "Cantidad"
+      label: "Cantidad",
+      options: {
+        customBodyRender: (value) => {
+          return (
+            <div style={{ textAlign: "right" }}>
+              {value}
+            </div>
+          );
+        },
+      },
     },
     {
       name: "fob",
-      label: "Fob"
+      label: "Fob",
+      options: {
+        customBodyRender: Functions.NumericRender
+      },
     },
     {
       name: "cod_liquidacion",
-      label: "Codigo Liquidacion"
+      label: "Valoracion"
     },
 
   ]
@@ -909,8 +935,8 @@ function EditPostSales(props) {
               <CheckIcon /> Aprobar
             </button>
           )}
-          
-            <div >
+
+          <div >
             {TrackingStepOrder(Number(formData.cod_item), statusList.map(item => item.nombre))}
           </div>
 

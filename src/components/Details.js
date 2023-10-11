@@ -11,6 +11,8 @@ import moment from "moment";
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
+import Functions from "../helpers/Functions"; 
+
 
 const API = process.env.REACT_APP_API;
 
@@ -188,22 +190,6 @@ function Details(props) {
 
     }
 
-
-    function getBackgroundColor(progress) {
-        if (progress <= 20) {
-            return "#FF3F33";
-        } else if (progress <= 40) {
-            return "#FF9333";
-        } else if (progress <= 60) {
-            return "#F0FF33";
-        } else if (progress <= 80) {
-            return "#ACFF33";
-        } else if (progress <= 100) {
-            return "#33FF39";
-        } else
-            return "silver"
-    }
-
     const getStatusList = async () => {
         try {
             const res = await fetch(`${API}/estados_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_modelo=BL`, {
@@ -224,17 +210,17 @@ function Details(props) {
 
     const getStatusListPo = async () => {
         const res = await fetch(`${API}/estados_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_modelo=IMPR`, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-          }
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            }
         })
         const data = await res.json();
         setStatusListPo(data.map((item) => ({
-          nombre: item.nombre,
-          cod: item.cod_item,
+            nombre: item.nombre,
+            cod: item.cod_item,
         })));
-      }
+    }
 
     const columns = [
         {
@@ -247,11 +233,23 @@ function Details(props) {
         },
         {
             name: "cantidad_pedido",
-            label: "Cant. Orden"
+            label: "Cant. Orden",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "right" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
         },
         {
             name: "costo_sistema",
-            label: "Costo Sistema"
+            label: "Costo Sistema",
+            options: {
+                customBodyRender: Functions.NumericRender
+            },
         },
         {
             name: "cod_po",
@@ -283,28 +281,7 @@ function Details(props) {
             name: "estado_orden",
             label: "Estado Orden",
             options: {
-                customBodyRender: (value) => {
-                    const progress = parseInt(value * 100 / (statusListPo.length - 1), 10);
-                    let name = '';
-                    if (statusListPo.find((objeto) => objeto.cod === value)) {
-                        name = statusListPo.find((objeto) => objeto.cod === value).nombre
-                    }
-                    const backgroundColor = getBackgroundColor(progress);
-                    return (
-                        <div>
-                            <LinearProgress
-                                sx={{
-                                    backgroundColor: 'silver',
-                                    '& .MuiLinearProgress-bar': {
-                                        backgroundColor: backgroundColor
-                                    }
-                                }}
-
-                                variant="determinate" value={progress} />
-                            <span>{name}</span>
-                        </div>
-                    );
-                }
+                customBodyRender:  (value) => Functions.StatusRender(value, statusListPo),
             },
         },
         {
@@ -375,49 +352,52 @@ function Details(props) {
             name: "estado_embarque",
             label: "Estado Embarque",
             options: {
-                customBodyRender: (value) => {
-                    const progress = parseInt(value * 100 / (statusList.length - 1), 10);
-                    let name = '';
-                    if (statusList.find((objeto) => objeto.cod === value)) {
-                        name = statusList.find((objeto) => objeto.cod === value).nombre
-                    }
-                    const backgroundColor = getBackgroundColor(progress);
-                    return (
-                        <div>
-                            <LinearProgress
-                                sx={{
-                                    backgroundColor: 'silver',
-                                    '& .MuiLinearProgress-bar': {
-                                        backgroundColor: backgroundColor
-                                    }
-                                }}
-
-                                variant="determinate" value={progress} />
-                            <span>{name}</span>
-                        </div>
-                    );
-                }
+                customBodyRender: (value) => Functions.StatusRender(value, statusList),
             },
         },
         {
             name: "cantidad",
-            label: "Cant. Pack."
+            label: "Cant. Pack.",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "right" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
         },
         {
             name: "saldo_producto",
-            label: "Saldo Producto"
+            label: "Saldo Producto",
+            options: {
+                customBodyRender: (value) => {
+                  if (value === null || value === "") {
+                    return <div style={{ textAlign: "right" }}>
+                    {"0"}
+                  </div>
+                  } else {
+                    return <div style={{ textAlign: "right" }}>
+                      {value}
+                    </div>
+                  }
+                },
+              },
         },
         {
             name: "fob",
-            label: "Fob Pack"
-        },
-        {
-            name: "fob_detalle",
-            label: "Fob Det"
+            label: "Fob",
+            options: {
+                customBodyRender: Functions.NumericRender
+            },
         },
         {
             name: "fob_total",
-            label: "Fob Total"
+            label: "Fob Total",
+            options: {
+                customBodyRender: Functions.NumericRender
+            },
         },
         {
             name: "fecha_embarque",
@@ -430,7 +410,7 @@ function Details(props) {
         {
             name: "fecha_bodega",
             label: "Fecha Bodega"
-        },        
+        },
     ]
 
     const options = {
@@ -474,57 +454,57 @@ function Details(props) {
     }
 
     const getMuiTheme = () =>
-  createTheme({
-    components: {
-      MuiTableCell: {
-        styleOverrides: {
-          root: {
-            paddingLeft: '3px',
-            paddingRight: '3px',
-            paddingTop: '0px',
-            paddingBottom: '0px',
-            backgroundColor: '#00000',
-            whiteSpace: 'normal', // Cambiamos 'nowrap' a 'normal'
-            overflowWrap: 'break-word', // Agregamos esta propiedad para dividir el texto
-            flex: 1,
-            borderBottom: '1px solid #ddd',
-            borderRight: '1px solid #ddd',
-            fontSize: '12px',
-            minWidth: '150px', // Aumenta el valor del ancho mínimo
-          },
-          head: {
-            backgroundColor: 'firebrick',
-            color: '#ffffff',
-            fontWeight: 'bold',
-            paddingLeft: '0px',
-            paddingRight: '0px',
-            fontSize: '12px',
-          },
-        },
-      },
-      MuiTable: {
-        styleOverrides: {
-          root: {
-            borderCollapse: 'collapse',
-          },
-        },
-      },
-      MuiTableHead: {
-        styleOverrides: {
-          root: {
-            borderBottom: '5px solid #ddd',
-          },
-        },
-      },
-      MuiToolbar: {
-        styleOverrides: {
-          regular: {
-            minHeight: '10px',
-          },
-        },
-      },
-    },
-  });
+        createTheme({
+            components: {
+                MuiTableCell: {
+                    styleOverrides: {
+                        root: {
+                            paddingLeft: '3px',
+                            paddingRight: '3px',
+                            paddingTop: '0px',
+                            paddingBottom: '0px',
+                            backgroundColor: '#00000',
+                            whiteSpace: 'normal', // Cambiamos 'nowrap' a 'normal'
+                            overflowWrap: 'break-word', // Agregamos esta propiedad para dividir el texto
+                            flex: 1,
+                            borderBottom: '1px solid #ddd',
+                            borderRight: '1px solid #ddd',
+                            fontSize: '12px',
+                            minWidth: '150px', // Aumenta el valor del ancho mínimo
+                        },
+                        head: {
+                            backgroundColor: 'firebrick',
+                            color: '#ffffff',
+                            fontWeight: 'bold',
+                            paddingLeft: '0px',
+                            paddingRight: '0px',
+                            fontSize: '12px',
+                        },
+                    },
+                },
+                MuiTable: {
+                    styleOverrides: {
+                        root: {
+                            borderCollapse: 'collapse',
+                        },
+                    },
+                },
+                MuiTableHead: {
+                    styleOverrides: {
+                        root: {
+                            borderBottom: '5px solid #ddd',
+                        },
+                    },
+                },
+                MuiToolbar: {
+                    styleOverrides: {
+                        regular: {
+                            minHeight: '10px',
+                        },
+                    },
+                },
+            },
+        });
 
     return (
         <div style={{ marginTop: '150px' }}>

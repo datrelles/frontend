@@ -5,7 +5,6 @@ import Navbar0 from "./Navbar0";
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
-import moment from 'moment';
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import SaveIcon from '@material-ui/icons/Save';
 import Button from '@mui/material/Button';
@@ -157,8 +156,8 @@ function PackingList(props) {
       >
         <ButtonGroup variant="text" aria-label="text button group" >
           <Button onClick={() => { navigate('/dashboard') }}>Módulos</Button>
-          <Button onClick={() => { navigate('/shipment') }}>Embarques</Button>
-          <Button onClick={() => { navigate(-1) }}>Editar Embarque</Button>
+          <Button onClick={() => { navigate('/container') }}>Contenedores</Button>
+          <Button onClick={() => { navigate(-1) }}>Regresar</Button>
         </ButtonGroup>
       </Box>
       <Box
@@ -242,7 +241,7 @@ function PackingList(props) {
             className="form-control"
           />
           <TextField
-            required
+            disabled
             id="fob"
             label="Fob"
             type="number"
@@ -259,6 +258,7 @@ function PackingList(props) {
             }}
           />
           <Autocomplete
+            disabled
             id="unidad-medida"
             options={unidadesMedida.map((unidadesMedida) => unidadesMedida.label)}
             onChange={handleMeasureChange}
@@ -278,24 +278,12 @@ function PackingList(props) {
             )}
           />
           <TextField
+            disabled
             id="cod-liquidacion"
-            label="Codigo Liquidacion"
+            label="Valoracion"
             type="text"
             onChange={e => setCodLiquidacion(e.target.value)}
             value={codLiquidacion}
-            className="form-control"
-            InputProps={{
-              inputProps: {
-                style: { textAlign: 'right' },
-              },
-            }}
-          />
-          <TextField
-            id="cod-tipo-liquidacion"
-            label="Tipo Liquidacion"
-            type="text"
-            onChange={e => setCodTipoLiquidacion(e.target.value)}
-            value={codTipoLiquidacion}
             className="form-control"
             InputProps={{
               inputProps: {

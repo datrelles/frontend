@@ -200,7 +200,7 @@ function PostSaleDetails(props) {
         >
           <ButtonGroup variant="text" aria-label="text button group" > 
             <Button onClick={() => {navigate('/dashboard')}}>Módulos</Button>
-            <Button onClick={() => {navigate('/postSales')}}>Ordenes de Compra</Button>
+            <Button onClick={() => {navigate('/imports')}}>Ordenes de Compra</Button>
             <Button onClick={() => {navigate(-1)}}>Editar Orden de Compra</Button>
           </ButtonGroup>
         </Box>
@@ -251,6 +251,7 @@ function PostSaleDetails(props) {
           />
           <div className="d-flex">
           <Autocomplete
+            disabled
             id="ProductoModelo"
             options={productModelList.map((producto) => producto.nombre)}
             value={productModelNombre}
@@ -321,7 +322,7 @@ function PostSaleDetails(props) {
             }}
           />
           <TextField
-            required
+            disabled
             id="costo-cotizado"
             label="Costo Cotizado"
             type="number"
@@ -339,7 +340,7 @@ function PostSaleDetails(props) {
             }}
           />
           <TextField
-            required
+            disabled
             id="fob"
             label="Fob"
             type="number"
@@ -377,7 +378,7 @@ function PostSaleDetails(props) {
           <div>
 
             <TextField
-              required
+              disabled
               id="cantidad-pedido"
               label="Cantidad Pedido"
               type="number"
@@ -392,6 +393,7 @@ function PostSaleDetails(props) {
               }}
             />
             <Autocomplete
+            disabled
             id="unidad-medida"
             options={unidadesMedida.map((unidadesMedida) => unidadesMedida.label)}
             onChange={handleMeasureChange}
@@ -413,7 +415,7 @@ function PostSaleDetails(props) {
             )}
           />
             <TextField
-              required
+              disabled
               id="saldo-producto"
               label="Saldo Producto"
               type="text"

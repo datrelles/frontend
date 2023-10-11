@@ -22,6 +22,9 @@ import EditShipment from "./components/EditShipment";
 import NewShipment from "./components/NewShipment";
 import PackingList from "./components/PackingList";
 import PackingListTotal from "./components/PackingListTotal";
+import Reports from "./components/Reports";
+import Reports2 from "./components/Reports2";
+import Reports3 from "./components/Reports3";
 import Settings from "./components/Settings";
 import Menus from "./components/Menus";
 import Details from "./components/Details";
@@ -32,7 +35,7 @@ const API = process.env.REACT_APP_API;
 
 function App() {
   const { token, removeToken, setToken } = useToken();
-  const [authorizedSystems, setAuthorizedSystems] = useState(['IMP', 'REP', 'GAR']);
+  const [authorizedSystems, setAuthorizedSystems] = useState(['IMP', 'REP', 'GAR','PBI']);
 
   const checkAuthorization = async () => {
     const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
@@ -84,6 +87,9 @@ function App() {
                   <Route exact path="/packingList" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><PackingList token={token} setToken={setToken} /></Protected>}/>
                   <Route exact path="/packinglistTotal" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><PackingListTotal token={token} setToken={setToken} /></Protected>}/>
                   <Route exact path="/details" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><Details token={token} setToken={setToken} /></Protected>}/>
+                  <Route exact path="/reports" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports token={token} setToken={setToken} /></Protected>}/>
+                  <Route exact path="/reports2" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports2 token={token} setToken={setToken} /></Protected>}/>
+                  <Route exact path="/reports3" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports3 token={token} setToken={setToken} /></Protected>}/>
                   <Route exact path="/settings" element={<Settings token={token} setToken={setToken} />}></Route>
                 </Routes>
               </>
