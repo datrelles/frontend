@@ -132,11 +132,6 @@ function PackingListTotal(props) {
         setFromDate(null);
     }, [])
 
-    const handleChange2 = async (e) => {
-        e.preventDefault();
-        navigate('/newShipment');
-    }
-
     const handleRowClick = async (rowData) => {
         try {
             const res = await fetch(`${API}/container_by_nro?nro_contenedor=${rowData}`,
@@ -187,22 +182,6 @@ function PackingListTotal(props) {
 
     }
 
-
-    function getBackgroundColor(progress) {
-        if (progress <= 20) {
-            return "#FF3F33";
-        } else if (progress <= 40) {
-            return "#FF9333";
-        } else if (progress <= 60) {
-            return "#F0FF33";
-        } else if (progress <= 80) {
-            return "#ACFF33";
-        } else if (progress <= 100) {
-            return "#33FF39";
-        } else
-            return "silver"
-    }
-
     const getStatusList = async () => {
         try {
             const res = await fetch(`${API}/estados_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_modelo=BL`, {
@@ -226,7 +205,7 @@ function PackingListTotal(props) {
             name: "secuencia",
             label: "Secuencia",
             options: {
-                display: false, // Oculta la columna
+                display: false,
             },
         },
         {

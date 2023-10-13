@@ -57,8 +57,8 @@ function NewShipment(props) {
     const [naviera, setNaviera] = useState("")
     const [numeroTracking, setNumeroTracking] = useState("")
     const [tipoFlete, setTipoFlete] = useState("")
-    const [codRegimen, setCodRegimen] = useState("") //Falta enviar desde el get de embarque este campo
-    const [nroMrn, setNroMrn] = useState("") //Falta enviar desde el get de embarque este campo
+    const [codRegimen, setCodRegimen] = useState("")
+    const [nroMrn, setNroMrn] = useState("")
 
     const [estado, setEstado] = useState("");
     const [authorizedSystems, setAuthorizedSystems] = useState([]);
