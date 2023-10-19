@@ -30,6 +30,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { format } from 'date-fns'
 import FileGenerator from './FileGenerator';
 import Functions from "../helpers/Functions";
+import { da } from 'date-fns/locale';
 
 
 const API = process.env.REACT_APP_API;
@@ -70,6 +71,7 @@ function EditPostSales(props) {
   const [usuarioModifica, setUsuarioModifica] = useState(formData.usuario_modifica)
   const [estado, setEstado] = useState("");
   const [providersList, setProvidersList] = useState([])
+  const [trackingList, setTrackingList] = useState([])
   const [authorizedSystems, setAuthorizedSystems] = useState([]);
   const [statusList, setStatusList] = useState([])
   const [fechaEstimadaLlegada, setFechaEstimadaLlegada] = useState(formData.fecha_estimada_llegada)
@@ -184,6 +186,17 @@ function EditPostSales(props) {
     }));
     setEstado(list.find((objeto) => objeto.cod === codItem).nombre)
     setStatusList(list)
+  }
+
+  const getTracking = async () => {
+    const res = await fetch(`${API}/orden_compra_track_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_po=${formData.cod_po}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+      }
+    })
+    const data = await res.json();
+    setTrackingList(data)
   }
 
   const getPackingList = async () => {
@@ -325,6 +338,7 @@ function EditPostSales(props) {
     getProvidersList();
     checkAuthorization();
     getPackingList();
+    getTracking();
   }, [])
 
   const columns = [
@@ -936,8 +950,8 @@ function EditPostSales(props) {
             </button>
           )}
 
-          <div >
-            {TrackingStepOrder(Number(formData.cod_item), statusList.map(item => item.nombre))}
+          <div style={{fontWeight: 1000, color: 'black', whiteSpace: 'nowrap'}}>
+            {TrackingStepOrder(Number(formData.cod_item), statusList.map(item => item.nombre), trackingList.map(item => item.fecha))}
           </div>
 
           <Grid container spacing={3}>

@@ -66,15 +66,15 @@ function ColorlibStepIcon(props) {
   const { active, completed, className } = props;
 
   const icons = {
-    1: <EditNoteIcon/>,
-    2: <ForwardToInboxIcon/>,
-    3: <RequestQuoteIcon/>,
-    4: <PriceCheckIcon/>,
-    5: <ReceiptIcon/>,
-    6: <EngineeringIcon/>,
-    7: <DirectionsBoatIcon/>,
-    8: <CheckCircleOutlineIcon/>,
-    9: <HighlightOffIcon/>
+    1: <EditNoteIcon />,
+    2: <ForwardToInboxIcon />,
+    3: <RequestQuoteIcon />,
+    4: <PriceCheckIcon />,
+    5: <ReceiptIcon />,
+    6: <EngineeringIcon />,
+    7: <DirectionsBoatIcon />,
+    8: <CheckCircleOutlineIcon />,
+    9: <HighlightOffIcon />
   };
 
   return (
@@ -92,16 +92,22 @@ ColorlibStepIcon.propTypes = {
   icon: PropTypes.node,
 };
 
-export default function TrackingStepOrder(value, steps) {
+export default function TrackingStepOrder(value, steps, dates) {
   return (
-    <Stack sx={{ width: '100%' }} spacing={4}>
+    <Stack sx={{ width: '100%' }} spacing={4} marginBottom={'15px'}>
       <Stepper alternativeLabel activeStep={value} connector={<ColorlibConnector />}>
-        {steps.map((label) => (
+        {steps.map((label, index) => (
           <Step key={label}>
-            <StepLabel StepIconComponent={ColorlibStepIcon}>{label}</StepLabel>
+            <StepLabel StepIconComponent={ColorlibStepIcon}>
+              {label}
+            </StepLabel>
+            <div style={{ textAlign: 'center'}}>
+              {dates[index]}
+            </div>
           </Step>
         ))}
       </Stepper>
     </Stack>
   );
 }
+

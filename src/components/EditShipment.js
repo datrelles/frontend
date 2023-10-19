@@ -24,6 +24,7 @@ import TableRow from "@material-ui/core/TableRow";
 import TableCell from "@material-ui/core/TableCell";
 import { Container } from '@mui/material';
 import dayjs from 'dayjs';
+import Functions from "../helpers/Functions";
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -89,6 +90,8 @@ function EditShipment(props) {
   const [packingList, setPackingList] = useState([])
   const [regimenList, setRegimenList] = useState([])
   const [regimenNombre, setRegimenNombre] = useState("")
+  const [trackingList, setTrackingList] = useState([])
+  const [containerList, setContainerList] = useState([])
 
 
 
@@ -192,6 +195,17 @@ function EditShipment(props) {
     setStatusList(list)
   }
 
+  const getTracking = async () => {
+    const res = await fetch(`${API}/tracking_bl_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_bl_house=${formData.codigo_bl_house}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+      }
+    })
+    const data = await res.json();
+    setTrackingList(data)
+  }
+
   const getProviderList = async () => {
     const res = await fetch(`${API}/proveedores_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_proveedor=${formData.cod_proveedor}`, {
       headers: {
@@ -285,6 +299,21 @@ function EditShipment(props) {
       setNombreAforo(list.find((objeto) => objeto.cod === formData.cod_aforo).nombre)
     }
   }
+
+  const getContainerList = async () => {
+    try {
+        const res = await fetch(`${API}/container_by_nro?cod_bl_house=${formData.codigo_bl_house}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            }
+        })
+        const data = await res.json();
+        setContainerList(data)
+    } catch (error) {
+        console.error('Error en la solicitud:', error);
+    }
+}
 
 
   const handleDeleteRows = async (rowsDeleted) => {
@@ -414,6 +443,32 @@ function EditShipment(props) {
     }
   };
 
+  const handleRowClickCont = async (rowData) => {
+    try {
+        const res = await fetch(`${API}/container_by_nro?nro_contenedor=${rowData}`,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                }
+            });
+
+        if (!res.ok) {
+            if (res.status === 401) {
+                toast.error('Sesión caducada.');
+            }
+        } else {
+            const data = await res.json();
+            navigate('/editContainer', { state: data[0] });
+            console.log(data)
+        }
+    } catch (error) {
+        console.error('Error en la solicitud:', error);
+    }
+
+}
+
+
 
   useEffect(() => {
     document.title = 'Embarque ' + codigoBlHouse;
@@ -428,6 +483,8 @@ function EditShipment(props) {
     getPuertoList();
     getNavieralist();
     getRegimenList();
+    getTracking();
+    getContainerList();
   }, [])
 
   const columns = [
@@ -467,6 +524,118 @@ function EditShipment(props) {
     responsive: 'standard',
     onRowsDelete: handleDeleteRows,
     onRowClick: handleRowClick,
+    textLabels: {
+      body: {
+        noMatch: "Lo siento, no se encontraron registros",
+        toolTip: "Ordenar",
+        columnHeaderTooltip: column => `Ordenar por ${column.label}`
+      },
+      pagination: {
+        next: "Siguiente",
+        previous: "Anterior",
+        rowsPerPage: "Filas por página:",
+        displayRows: "de"
+      },
+      toolbar: {
+        search: "Buscar",
+        downloadCsv: "Descargar CSV",
+        print: "Imprimir",
+        viewColumns: "Ver columnas",
+        filterTable: "Filtrar tabla"
+      },
+      filter: {
+        all: "Todos",
+        title: "FILTROS",
+        reset: "REINICIAR"
+      },
+      viewColumns: {
+        title: "Mostrar columnas",
+        titleAria: "Mostrar/Ocultar columnas de tabla"
+      },
+      selectedRows: {
+        text: "fila(s) seleccionada(s)",
+        delete: "Borrar",
+        deleteAria: "Borrar fila seleccionada"
+      }
+    },
+  }
+
+  const columns2 = [
+    {
+      name: "nro_contenedor",
+      options: {
+          customBodyRender: (value, tableMeta) => (
+              <span
+                  style={{ cursor: 'pointer' }}
+                  onMouseOver={(e) => {
+                      e.target.style.color = 'blue';
+                      e.target.style.textDecoration = 'underline'
+                  }}
+                  onMouseOut={(e) => {
+                      e.target.style.color = 'black';
+                      e.target.style.textDecoration = 'none'
+                  }}
+                  onClick={() => handleRowClickCont(value)}
+              >
+                  {value}
+              </span>
+          )
+      },
+      label: "Contenedor"
+  },
+    {
+      name: "cod_tipo_contenedor",
+      label: "Tipo"
+    },
+    {
+      name: "codigo_bl_house",
+      label: "Embarque",
+      options: {
+        display: false,
+    },
+    },
+    {
+      name: "line_seal",
+      label: "Line Seal"
+    },
+    {
+      name: "shipper_seal",
+      label: "Shipper Seal"
+    },
+    {
+      name: "peso",
+      label: "Peso",
+      options: {
+        customBodyRender: Functions.NumericRender
+    },
+    },
+  {
+    name: "volumen",
+    label: "Volumen",
+    options: {
+      customBodyRender: Functions.NumericRender
+  },
+  },
+  {
+      name: "es_carga_suelta",
+      label: "Carga Suelta",
+      options: {
+          customBodyRender: (value) => {
+            // Verificar si la cadena es vacía o nula
+            if (value === null || value === "") {
+              return "NO";
+            } else {
+              return "SI";
+            }
+          },
+        },
+    }
+
+  ]
+
+  const options2 = {
+    filterType: 'dropdown',
+    responsive: 'standard',
     textLabels: {
       body: {
         noMatch: "Lo siento, no se encontraron registros",
@@ -703,8 +872,8 @@ function EditShipment(props) {
               <SaveIcon /> Guardar
             </button>
             
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginBottom: '20px' }}>
-            {TrackingStep(Number(codItem), statusList.map(item => item.nombre))}
+          <div style={{fontWeight: 1000, color: 'black', whiteSpace: 'nowrap'}}>
+            {TrackingStep(Number(codItem), statusList.map(item => item.nombre), trackingList.map(item => item.fecha))}
           </div>
           <Grid container spacing={3}>
             <Grid item xs={12} md={3}>
@@ -991,46 +1160,23 @@ function EditShipment(props) {
               />
             </Grid>
           </Grid>
-
           <div>
             <Tabs value={tabValue} onChange={(event, newValue) => setTabValue(newValue)}>
               <Tab label="Packinglist" />
-              <Tab label="Productos" />
+              <Tab label="Contenedores" />
             </Tabs>
             <TabPanel value={tabValue} index={0}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-                {/* <button
-                  className="btn btn-primary btn-block"
-                  type="button"
-                  style={{ marginBottom: '10px', marginTop: '10px', marginRight: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
-                  onClick={handleChange3}>
-                  <AddIcon /> Nuevo
-                </button>
-                <input
-                  accept=".xlsx, .xls"
-                  id="file-upload"
-                  multiple
-                  type="file"
-                  style={{ display: 'none' }}
-                  onChange={handleFileUpload}
-                />
-                <label htmlFor="file-upload">
-                  <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
-                    Cargar en Lote
-                  </Button>
-                </label> */}
-              </div>
               <ThemeProvider theme={getMuiTheme()}>
                 <MUIDataTable title={"Packinglist de Embarque"} data={packingList} columns={columns} options={options} />
               </ThemeProvider>
             </TabPanel>
             <TabPanel value={tabValue} index={1}>
-              <p>Productos aquí</p>
+            <ThemeProvider theme={getMuiTheme()}>
+                <MUIDataTable title={"Contenedores de Embarque"} data={containerList} columns={columns2} options={options2} />
+              </ThemeProvider>
             </TabPanel>
           </div>
         </div>
-
-
       </Box >
     </div >
   );

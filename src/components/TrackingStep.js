@@ -84,16 +84,21 @@ ColorlibStepIcon.propTypes = {
   icon: PropTypes.node,
 };
 
-export default function TrackingStep(value, steps) {
+export default function TrackingStep(value, steps, dates) {
   return (
-    <Stack sx={{ width: '100%' }} spacing={4}>
-      <Stepper alternativeLabel activeStep={value} connector={<ColorlibConnector />}>
-        {steps.map((label) => (
-          <Step key={label}>
-            <StepLabel StepIconComponent={ColorlibStepIcon}>{label}</StepLabel>
-          </Step>
-        ))}
-      </Stepper>
-    </Stack>
+    <Stack sx={{ width: '100%' }} spacing={4} marginBottom={'15px'}>
+    <Stepper alternativeLabel activeStep={value} connector={<ColorlibConnector />}>
+      {steps.map((label, index) => (
+        <Step key={label}>
+          <StepLabel StepIconComponent={ColorlibStepIcon}>
+            {label}
+          </StepLabel>
+          <div style={{ textAlign: 'center'}}>
+            {dates[index]}
+          </div>
+        </Step>
+      ))}
+    </Stepper>
+  </Stack>
   );
 }
