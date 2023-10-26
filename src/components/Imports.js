@@ -205,6 +205,18 @@ function PostSales(props) {
       label: "Fecha Pedido"
     },
     {
+      name: "fecha_estimada_produccion",
+      label: "Fecha Produccion*"
+    },
+    {
+      name: "fecha_estimada_puerto",
+      label: "Fecha Puerto*"
+    },
+    {
+      name: "fecha_estimada_llegada",
+      label: "Fecha Llegada*"
+    },
+    {
       name: "proforma",
       label: "Proforma"
     },
