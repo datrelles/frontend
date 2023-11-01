@@ -37,7 +37,7 @@ function Header(props) {
             <button className="btn btn-primary btn-block rounded"
                             type="button"
                             style={{ backgroundColor: 'firebrick' }} onClick={logMeOut}> 
-                Cerrar Sesión
+                Salir
             </button>
         </div>
     )

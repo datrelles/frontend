@@ -25,6 +25,7 @@ import PackingListTotal from "./components/PackingListTotal";
 import Reports from "./components/Reports";
 import Reports2 from "./components/Reports2";
 import Reports3 from "./components/Reports3";
+import Reports4 from "./components/Reports4";
 import Settings from "./components/Settings";
 import Menus from "./components/Menus";
 import Details from "./components/Details";
@@ -90,6 +91,7 @@ function App() {
                   <Route exact path="/reports" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports token={token} setToken={setToken} /></Protected>}/>
                   <Route exact path="/reports2" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports2 token={token} setToken={setToken} /></Protected>}/>
                   <Route exact path="/reports3" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports3 token={token} setToken={setToken} /></Protected>}/>
+                  <Route exact path="/reports4" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports4 token={token} setToken={setToken} /></Protected>}/>
                   <Route exact path="/settings" element={<Settings token={token} setToken={setToken} />}></Route>
                 </Routes>
               </>
