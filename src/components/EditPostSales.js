@@ -32,20 +32,10 @@ import FileGenerator from './FileGenerator';
 import Functions from "../helpers/Functions";
 import { da } from 'date-fns/locale';
 
-
 const API = process.env.REACT_APP_API;
-const useStyles = makeStyles({
-  datePickersContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    width: '310px'
-  },
-});
-
 
 function EditPostSales(props) {
 
-  const classes = useStyles();
   const navigate = useNavigate();
   const location = useLocation();
   const [formData, setFormData] = useState(location.state)
@@ -1052,7 +1042,7 @@ function EditPostSales(props) {
               />
             </Grid>
             <Grid item xs={12} md={3}>
-              <div className={classes.datePickersContainer}>
+              <div style={{display:'flex', flexDirection:'column', width:'310px'}}>
                 <div>
                   <LocalizationProvider dateAdapter={AdapterDayjs} >
                     <DemoContainer components={['DatePicker', 'DatePicker']}>
