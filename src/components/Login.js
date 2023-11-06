@@ -6,17 +6,20 @@ import logo1 from '../img/Logo-Shineray-Blanco.png';
 import SportsMotorsportsTwoToneIcon from '@mui/icons-material/SportsMotorsportsTwoTone';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import TwoWheelerRoundedIcon from '@mui/icons-material/TwoWheelerRounded';
+import { useAuthContext } from "../context/authContext";
 
 
 const API = process.env.REACT_APP_API;
 
-function Login(props) {
+function Login() {
 
     const navigate = useNavigate();
-
+    const {setAuthToken, login, jwt, userShineray}=useAuthContext()
     const [name, setName] = useState('')
     const [password, setPassword] = useState('')
     const [alert, setAlert] = useState('')
+    
+   
 
     const handleSubmit = async (e) => {
 
@@ -32,17 +35,16 @@ function Login(props) {
                 password
             })
         })
-        const data = await res.json();
-        props.setToken(data.access_token)
+        const data = await res.json(); 
+        console.log(data)   
 
         if (data.access_token) {
-            sessionStorage.setItem('currentUser', name);
+            setAuthToken(data.access_token)
+            login(name,'empresa','rama')
             navigate('/profile')
         } else {
             setAlert('Usuario o contraseña incorrectos')
             navigate('/')
-            sessionStorage.removeItem('token');
-
         }
 
         setName('');

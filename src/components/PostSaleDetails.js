@@ -12,15 +12,14 @@ import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import { useNavigate } from 'react-router-dom';
 import Autocomplete from '@mui/material/Autocomplete';
-
-
+import { useAuthContext } from '../context/authContext';
 
 
 const API = process.env.REACT_APP_API;
 
 
-function PostSaleDetails(props) {
-
+function PostSaleDetails() {
+  const {jwt, userShineray, enterpriceShineray, systemShineray}=useAuthContext();
   const [menus, setMenus] = useState([]);
   const location = useLocation();
   const [formData, setFormData] = useState(location.state)
@@ -53,11 +52,11 @@ function PostSaleDetails(props) {
 
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}/${sessionStorage.getItem('currentSystem')}`,
+      const res = await fetch(`${API}/menus/${userShineray}/${ enterpriceShineray}/${systemShineray}`,
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            'Authorization': 'Bearer ' + jwt
           }
         });
 
@@ -101,7 +100,7 @@ function PostSaleDetails(props) {
     const res = await fetch(`${API}/producto_modelo`, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     })
     const data = await res.json();
@@ -125,16 +124,16 @@ function PostSaleDetails(props) {
 
   const handleChange2 = async (e) => {
     e.preventDefault();
-    const res = await fetch(`${API}/orden_compra_det/${codPo}/${sessionStorage.getItem('currentEnterprise')}/PO`, {
+    const res = await fetch(`${API}/orden_compra_det/${codPo}/${ enterpriceShineray}/PO`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       },
       body: JSON.stringify({
-        usuario_modifica: sessionStorage.getItem('currentUser'),
+        usuario_modifica: userShineray,
         cod_po: codPo,
-        empresa: sessionStorage.getItem('currentEnterprise'),
+        empresa:  enterpriceShineray,
         orders:[{   
           secuencia: secuencia,
           cod_producto: codProducto,

@@ -3,12 +3,11 @@ import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
 import { SnackbarProvider} from 'notistack';
 import { useAuthContext } from "../context/authContext";
-
 const API = process.env.REACT_APP_API;
 
-function Reports2(props) {
+function Reports4(props) {
     const [menus, setMenus] = useState([])
-    const {jwt, userShineray, enterpriceShineray, systemShineray}=useAuthContext();
+    const {jwt, userShineray, enterpriceShineray}=useAuthContext();
 
     const iframeStyle = {
         width: '100%',
@@ -18,7 +17,7 @@ function Reports2(props) {
 
     const getMenus = async () => {
         try {
-            const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${systemShineray}`,
+            const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${userShineray}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -39,7 +38,7 @@ function Reports2(props) {
     }
 
     useEffect(() => {
-        document.title = 'MANIFIESTOS - MATRICULACION';
+        document.title = 'Buffer';
         getMenus();
     }, [])
 
@@ -47,15 +46,15 @@ function Reports2(props) {
         <SnackbarProvider>
             <div style={{ marginTop: '150px', top: 0, width: "100%", zIndex: 1000 }}>
                 <Navbar0 menus={menus} />
-                <iframe
-                    title="MANIFIESTOS - MATRICULACION"
-                    src="https://app.powerbi.com/reportEmbed?reportId=1b9ebcbd-8cab-48bd-8967-fbcdccc517de&autoAuth=true&ctid=592efd1e-0d60-483c-975c-7279b5872b49"
-                    style={iframeStyle}
-                    allowFullScreen={true}
-                ></iframe>
+                <iframe title="Analisis de Cartera" 
+                src="https://app.powerbi.com/reportEmbed?reportId=edf4be7f-a7ef-4791-8eaf-bbe0cec840fe&autoAuth=true&ctid=592efd1e-0d60-483c-975c-7279b5872b49" 
+                frameborder="0" 
+                style={iframeStyle}
+                allowFullScreen={true}>
+                </iframe>
             </div>
         </SnackbarProvider>
     )
 }
 
-export default Reports2
+export default Reports4

@@ -22,6 +22,7 @@ import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
 
+import { useAuthContext } from "../context/authContext";
 
 
 const API = process.env.REACT_APP_API;
@@ -33,7 +34,8 @@ const useStyles = makeStyles({
   },
 });
 
-function PostSales(props) {
+function PostSales() {
+  const {jwt, userShineray, enterpriceShineray, systemShineray}=useAuthContext();
   const [purchaseOrders, setPurchaseOrders] = useState([])
   const [statusList, setStatusList] = useState([])
   const [fromDate, setFromDate] = useState(moment().subtract(3,"months"));
@@ -47,11 +49,11 @@ function PostSales(props) {
 
   const getPurchaseOrders = async () => {
     try {
-      const res = await fetch(`${API}/orden_compra_cab_param?empresa=${sessionStorage.getItem('currentEnterprise')}&fecha_inicio=${format(new Date(fromDate), 'dd/MM/yyyy')}&fecha_fin=${format(new Date(toDate), 'dd/MM/yyyy')}`,
+      const res = await fetch(`${API}/orden_compra_cab_param?empresa=${enterpriceShineray}&fecha_inicio=${format(new Date(fromDate), 'dd/MM/yyyy')}&fecha_fin=${format(new Date(toDate), 'dd/MM/yyyy')}`,
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + props.token
+            'Authorization': 'Bearer ' + jwt
           }
         });
 
@@ -71,11 +73,11 @@ function PostSales(props) {
 
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}/${sessionStorage.getItem('currentSystem')}`,
+      const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${systemShineray}`,
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + props.token
+            'Authorization': 'Bearer ' + jwt
           }
         });
 
@@ -113,11 +115,11 @@ function PostSales(props) {
       await rowsDeleted.data.forEach((deletedRow) => {
         const deletedRowIndex = deletedRow.dataIndex;
         const deletedRowValue = purchaseOrders[deletedRowIndex];
-        fetch(`${API}/eliminar_orden_compra_total/${deletedRowValue.cod_po}/${sessionStorage.getItem('currentEnterprise')}/PO`, {
+        fetch(`${API}/eliminar_orden_compra_total/${deletedRowValue.cod_po}/${enterpriceShineray}/PO`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            'Authorization': 'Bearer ' + jwt
           },
         })
           .then(response => {
@@ -145,10 +147,10 @@ function PostSales(props) {
   }
 
   const getStatusList = async () => {
-    const res = await fetch(`${API}/estados_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_modelo=IMPR`, {
+    const res = await fetch(`${API}/estados_param?empresa=${enterpriceShineray}&cod_modelo=IMPR`, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     })
     const data = await res.json();

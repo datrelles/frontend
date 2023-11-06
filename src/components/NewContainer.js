@@ -18,8 +18,7 @@ import Autocomplete from '@mui/material/Autocomplete';
 import * as XLSX from 'xlsx'
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
-
-
+import { useAuthContext } from '../context/authContext';
 const API = process.env.REACT_APP_API;
 const useStyles = makeStyles({
     datePickersContainer: {
@@ -30,8 +29,8 @@ const useStyles = makeStyles({
 });
 
 
-function NewContainer(props) {
-
+function NewContainer() {
+    const {jwt, enterpriceShineray, userShineray, systemShineray}=useAuthContext();
     const classes = useStyles();
     const navigate = useNavigate();
     const location = useLocation();
@@ -62,11 +61,11 @@ function NewContainer(props) {
 
 
     const checkAuthorization = async () => {
-        const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
+        const res = await fetch(`${API}/modules/${userShineray}/${enterpriceShineray}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                'Authorization': 'Bearer ' + jwt
             }
         });
         const data = await res.json();
@@ -81,7 +80,7 @@ function NewContainer(props) {
                     {
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                            'Authorization': 'Bearer ' + jwt
                         }
                     });
 
@@ -101,10 +100,10 @@ function NewContainer(props) {
     const getPackingList = async () => {
         if (nroContenedor)
             try {
-                const res = await fetch(`${API}/packinglist_param_by_container?empresa=${sessionStorage.getItem('currentEnterprise')}&nro_contenedor=${nroContenedor}`, {
+                const res = await fetch(`${API}/packinglist_param_by_container?empresa=${enterpriceShineray}&nro_contenedor=${nroContenedor}`, {
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                        'Authorization': 'Bearer ' + jwt
                     }
                 })
                 if (!res.ok) {
@@ -125,7 +124,7 @@ function NewContainer(props) {
             const res = await fetch(`${API}/embarque`, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                    'Authorization': 'Bearer ' + jwt
                 }
             })
             if (!res.ok) {
@@ -145,7 +144,7 @@ function NewContainer(props) {
         const res = await fetch(`${API}/tipo_contenedor`, {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                'Authorization': 'Bearer ' + jwt
             }
         })
         const data = await res.json();
@@ -165,11 +164,11 @@ function NewContainer(props) {
                 const deletedRowValue = packingList[deletedRowIndex];
                 console.log(deletedRowValue.secuencia);
 
-                fetch(`${API}/orden_compra_packinglist?codigo_bl_house=${codigoBlHouse}&empresa=${sessionStorage.getItem('currentEnterprise')}&secuencia=${deletedRowValue.secuencia}`, {
+                fetch(`${API}/orden_compra_packinglist?codigo_bl_house=${codigoBlHouse}&empresa=${enterpriceShineray}&secuencia=${deletedRowValue.secuencia}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                        'Authorization': 'Bearer ' + jwt
                     }
                 })
                     .then(response => {
@@ -296,11 +295,11 @@ function NewContainer(props) {
 
     const handleChange2 = async (e) => {
         e.preventDefault();
-        const res = await fetch(`${API}/contenedor/${nroContenedor}/${sessionStorage.getItem('currentEnterprise')}`, {
+        const res = await fetch(`${API}/contenedor/${nroContenedor}/${enterpriceShineray}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                'Authorization': 'Bearer ' + jwt
             },
             body: JSON.stringify({
                 codigo_bl_house: codigoBlHouse,
@@ -311,7 +310,7 @@ function NewContainer(props) {
                 shipper_seal: shipperSeal,
                 es_carga_suelta: parseInt(esCargaSuelta, 10),
                 observaciones: observaciones,
-                usuario_crea: sessionStorage.getItem('currentUser')
+                usuario_crea: userShineray
             })
         })
         const data = await res.json();
@@ -326,13 +325,13 @@ function NewContainer(props) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                    'Authorization': 'Bearer ' + jwt
                 },
                 body: JSON.stringify({
                     packings: excelData,
                     nro_contenedor: nroContenedor,
-                    empresa: sessionStorage.getItem('currentEnterprise'),
-                    usuario_crea: sessionStorage.getItem('currentUser'),
+                    empresa: enterpriceShineray,
+                    usuario_crea: userShineray,
                     tipo_comprobante: "PO"
                 })
             })
@@ -423,11 +422,11 @@ function NewContainer(props) {
 
     const getMenus = async () => {
         try {
-            const res = await fetch(`${API}/menus/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}/${sessionStorage.getItem('currentSystem')}`,
+            const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${systemShineray}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                        'Authorization': 'Bearer ' + jwt
                     }
                 });
 

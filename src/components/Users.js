@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-
+import { useAuthContext } from "../context/authContext";
 const API = process.env.REACT_APP_API;
 
-function Users(props) {
-
+function Users() {
+    const {jwt}=useAuthContext();
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
@@ -23,7 +23,7 @@ function Users(props) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + props.token
+                    'Authorization': 'Bearer ' + jwt
                 },
                 body: JSON.stringify({
                     username: name,
@@ -38,7 +38,7 @@ function Users(props) {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + props.token
+                    'Authorization': 'Bearer ' + jwt
                 },
                 body: JSON.stringify({
                     username: name,
@@ -64,7 +64,7 @@ function Users(props) {
         const res = await fetch(`${API}/users`, {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + props.token
+                'Authorization': 'Bearer ' + jwt
             }
         })
 
@@ -82,7 +82,7 @@ function Users(props) {
             {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + props.token
+                    'Authorization': 'Bearer ' + jwt
                 }
             })
         const data = await res.json();
@@ -103,7 +103,7 @@ function Users(props) {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + props.token
+                    'Authorization': 'Bearer ' + jwt
                 }
             });
             const data = await res.json();

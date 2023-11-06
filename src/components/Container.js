@@ -12,7 +12,7 @@ import moment from "moment";
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
-
+import { useAuthContext } from "../context/authContext";
 
 
 const API = process.env.REACT_APP_API;
@@ -24,7 +24,8 @@ const useStyles = makeStyles({
   },
 });
 
-function Container(props) {
+function Container() {
+  const {jwt, userShineray,enterpriceShineray, systemShineray}=useAuthContext();
   const [containers, setContainers] = useState([])
   const [fromDate, setFromDate] = useState(moment().subtract(3,"months"));
   const [toDate, setToDate] = useState(moment);
@@ -42,7 +43,7 @@ function Container(props) {
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + props.token
+            'Authorization': 'Bearer ' + jwt
           }
         });
 
@@ -61,11 +62,11 @@ function Container(props) {
 
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}/${sessionStorage.getItem('currentSystem')}`,
+      const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${systemShineray}`,
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + props.token
+            'Authorization': 'Bearer ' + jwt
           }
         });
 
@@ -106,11 +107,11 @@ function Container(props) {
       await rowsDeleted.data.forEach((deletedRow) => {
         const deletedRowIndex = deletedRow.dataIndex;
         const deletedRowValue = containers[deletedRowIndex];
-        fetch(`${API}/eliminar_orden_compra_total/${deletedRowValue.cod_po}/${sessionStorage.getItem('currentEnterprise')}/PO`, {
+        fetch(`${API}/eliminar_orden_compra_total/${deletedRowValue.cod_po}/${enterpriceShineray}/PO`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            'Authorization': 'Bearer ' + jwt
           },
         })
           .then(response => {
@@ -129,10 +130,10 @@ function Container(props) {
 
 
   const getStatusList = async () => {
-    const res = await fetch(`${API}/estados_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_modelo=BL`, {
+    const res = await fetch(`${API}/estados_param?empresa=${enterpriceShineray}&cod_modelo=BL`, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     })
     const data = await res.json();

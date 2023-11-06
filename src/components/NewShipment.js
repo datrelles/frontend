@@ -18,7 +18,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { format } from 'date-fns'
-
+import { useAuthContext } from '../context/authContext';
 const API = process.env.REACT_APP_API;
 const useStyles = makeStyles({
     datePickersContainer: {
@@ -29,8 +29,8 @@ const useStyles = makeStyles({
 });
 
 
-function NewShipment(props) {
-
+function NewShipment() {
+    const {jwt, enterpriceShineray, userShineray, systemShineray}=useAuthContext();
     const classes = useStyles();
     const navigate = useNavigate();
     const location = useLocation();
@@ -82,11 +82,11 @@ function NewShipment(props) {
 
 
     const checkAuthorization = async () => {
-        const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
+        const res = await fetch(`${API}/modules/${userShineray}/${enterpriceShineray}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                'Authorization': 'Bearer ' + jwt
             }
         });
         const data = await res.json();
@@ -97,11 +97,11 @@ function NewShipment(props) {
     const getShipment = async () => {
         if (codigoBlHouse) {
             try {
-                const res = await fetch(`${API}/embarque_param?empresa=${sessionStorage.getItem('currentEnterprise')}&codigo_bl_house=${codigoBlHouse}`,
+                const res = await fetch(`${API}/embarque_param?empresa=${enterpriceShineray}&codigo_bl_house=${codigoBlHouse}`,
                     {
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                            'Authorization': 'Bearer ' + jwt
                         }
                     });
 
@@ -124,10 +124,10 @@ function NewShipment(props) {
     const getPackingList = async () => {
         if (codigoBlHouse) {
             try {
-                const res = await fetch(`${API}/packinglist_param?empresa=${sessionStorage.getItem('currentEnterprise')}&codigo_bl_house=${codigoBlHouse}`, {
+                const res = await fetch(`${API}/packinglist_param?empresa=${enterpriceShineray}&codigo_bl_house=${codigoBlHouse}`, {
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                        'Authorization': 'Bearer ' + jwt
                     }
                 })
                 if (!res.ok) {
@@ -145,10 +145,10 @@ function NewShipment(props) {
     }
 
     const getStatusList = async () => {
-        const res = await fetch(`${API}/estados_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_modelo=BL`, {
+        const res = await fetch(`${API}/estados_param?empresa=${enterpriceShineray}&cod_modelo=BL`, {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                'Authorization': 'Bearer ' + jwt
             }
         })
         const data = await res.json();
@@ -163,10 +163,10 @@ function NewShipment(props) {
     }
 
     const getProviderList = async () => {
-        const res = await fetch(`${API}/proveedores_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_proveedor=${codProveedor}`, {
+        const res = await fetch(`${API}/proveedores_param?empresa=${enterpriceShineray}&cod_proveedor=${codProveedor}`, {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                'Authorization': 'Bearer ' + jwt
             }
         })
         const data = await res.json();
@@ -174,10 +174,10 @@ function NewShipment(props) {
     }
 
     const getAforoList = async () => {
-        const res = await fetch(`${API}/tipo_aforo_param?empresa=${sessionStorage.getItem('currentEnterprise')}`, {
+        const res = await fetch(`${API}/tipo_aforo_param?empresa=${enterpriceShineray}`, {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                'Authorization': 'Bearer ' + jwt
             }
         })
         const data = await res.json();
@@ -193,7 +193,7 @@ function NewShipment(props) {
         const res = await fetch(`${API}/puertos_embarque`, {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                'Authorization': 'Bearer ' + jwt
             }
         })
         const data = await res.json();
@@ -212,7 +212,7 @@ function NewShipment(props) {
         const res = await fetch(`${API}/naviera`, {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                'Authorization': 'Bearer ' + jwt
             }
         })
         const data = await res.json();
@@ -227,7 +227,7 @@ function NewShipment(props) {
         const res = await fetch(`${API}/regimen_aduana`, {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                'Authorization': 'Bearer ' + jwt
             }
         })
         const data = await res.json();
@@ -240,10 +240,10 @@ function NewShipment(props) {
 
     const getAforoNombre = async () => {
 
-        const res = await fetch(`${API}/tipo_aforo_param?empresa=${sessionStorage.getItem('currentEnterprise')}`, {
+        const res = await fetch(`${API}/tipo_aforo_param?empresa=${enterpriceShineray}`, {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                'Authorization': 'Bearer ' + jwt
             }
         })
         const data = await res.json();
@@ -262,11 +262,11 @@ function NewShipment(props) {
                 const deletedRowValue = packingList[deletedRowIndex];
                 console.log(deletedRowValue.secuencia);
 
-                fetch(`${API}/orden_compra_packinglist?codigo_bl_house=${codigoBlHouse}&empresa=${sessionStorage.getItem('currentEnterprise')}&secuencia=${deletedRowValue.secuencia}`, {
+                fetch(`${API}/orden_compra_packinglist?codigo_bl_house=${codigoBlHouse}&empresa=${enterpriceShineray}&secuencia=${deletedRowValue.secuencia}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                        'Authorization': 'Bearer ' + jwt
                     }
                 })
                     .then(response => {
@@ -478,13 +478,13 @@ function NewShipment(props) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                'Authorization': 'Bearer ' + jwt
             },
             body: JSON.stringify({
                 fecha_embarque: fechaEmbarque,
                 fecha_llegada: fechaLlegada,
                 fecha_bodega: fechaBodega,
-                empresa: sessionStorage.getItem('currentEnterprise'),
+                empresa: enterpriceShineray,
                 codigo_bl_master: codigoBlMaster,
                 codigo_bl_house: codigoBlHouse,
                 cod_proveedor: codProveedor,
@@ -498,7 +498,7 @@ function NewShipment(props) {
                 costo_contenedor: parseFloat(costoContenedor),
                 descripcion,
                 tipo_flete: tipoFlete,
-                adicionado_por: sessionStorage.getItem('currentUser'),
+                adicionado_por: userShineray,
                 cod_modelo: codModelo,
                 cod_item: codItem,
                 cod_aforo: codAforo,
@@ -560,11 +560,11 @@ function NewShipment(props) {
 
     const getMenus = async () => {
         try {
-            const res = await fetch(`${API}/menus/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}/${sessionStorage.getItem('currentSystem')}`,
+            const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${systemShineray}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                        'Authorization': 'Bearer ' + jwt
                     }
                 });
 

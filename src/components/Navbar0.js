@@ -9,10 +9,12 @@ import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import MeetingRoomTwoToneIcon from '@mui/icons-material/MeetingRoomTwoTone';
 import HolidayVillageTwoToneIcon from '@mui/icons-material/HolidayVillageTwoTone';
 import '../styles/Navbar0.css';
+import { useAuthContext } from "../context/authContext";
 
 const API = process.env.REACT_APP_API;
 
 function Navbar0(props) {
+  const {userShineray, logout }=useAuthContext()
   const navigate = useNavigate();
 
   const handleClick = () => {
@@ -33,7 +35,7 @@ function Navbar0(props) {
       url: `${API}/logout`,
     })
       .then((response) => {
-        props.token();
+        
       })
       .catch((error) => {
         if (error.response) {
@@ -42,11 +44,7 @@ function Navbar0(props) {
           console.log(error.response.headers);
         }
       });
-    sessionStorage.removeItem('currentUser');
-    sessionStorage.removeItem('currentEnterprise');
-    sessionStorage.removeItem('currentBranch');
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem('currentSystem');
+      logout()
     navigate('/');
   }
 
@@ -73,7 +71,7 @@ function Navbar0(props) {
               ))}
             </Nav>
             <Nav>
-              <NavDropdown title={sessionStorage.getItem('currentUser')} id="basic-nav-dropdown">
+              <NavDropdown title={userShineray} id="basic-nav-dropdown">
                 <NavDropdown.Item onClick={handleClick3} style={{ display: 'flex', alignItems: 'left' }}>
                   <ListItemIcon>
                     <Settings fontSize="small" />

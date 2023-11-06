@@ -1,13 +1,13 @@
 import Navbar0 from "./Navbar0";
 import { makeStyles } from '@mui/styles';
 import { toast } from 'react-toastify';
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import MUIDataTable from "mui-datatables";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@material-ui/icons/Search';
 import LinearProgress from '@mui/material/LinearProgress';
-
+import { useAuthContext } from "../context/authContext";
 
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
@@ -33,25 +33,26 @@ const useStyles = makeStyles({
   },
 });
 
-function PostSales(props) {
+function PostSales() {
   const [purchaseOrders, setPurchaseOrders] = useState([])
-  const [fromDate, setFromDate] = useState(moment().subtract(3,"months"));
+  const [fromDate, setFromDate] = useState(moment().subtract(3, "months"));
   const [toDate, setToDate] = useState(moment);
   const [statusList, setStatusList] = useState([])
   const [menus, setMenus] = useState([])
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
+  const { jwt, userShineray, enterpriceShineray, branchShineray, systemShineray } = useAuthContext()
 
   const classes = useStyles();
 
 
   const getPurchaseOrders = async () => {
     try {
-      const res = await fetch(`${API}/orden_compra_cab_param?empresa=${sessionStorage.getItem('currentEnterprise')}&fecha_inicio=${format(new Date(fromDate), 'dd/MM/yyyy')}&fecha_fin=${format(new Date(toDate), 'dd/MM/yyyy')}&cod_items[]=1&cod_items[]=3&cod_items[]=4&cod_items[]=5&cod_items[]=6&cod_items[]=7&cod_items[]=8`,
+      const res = await fetch(`${API}/orden_compra_cab_param?empresa=${enterpriceShineray}&fecha_inicio=${format(new Date(fromDate), 'dd/MM/yyyy')}&fecha_fin=${format(new Date(toDate), 'dd/MM/yyyy')}&cod_items[]=1&cod_items[]=3&cod_items[]=4&cod_items[]=5&cod_items[]=6&cod_items[]=7&cod_items[]=8`,
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + props.token
+            'Authorization': 'Bearer ' + jwt
           }
         });
 
@@ -71,11 +72,11 @@ function PostSales(props) {
 
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}/${sessionStorage.getItem('currentSystem')}`,
+      const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${systemShineray}`,
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + props.token
+            'Authorization': 'Bearer ' + jwt
           }
         });
 
@@ -113,11 +114,11 @@ function PostSales(props) {
       await rowsDeleted.data.forEach((deletedRow) => {
         const deletedRowIndex = deletedRow.dataIndex;
         const deletedRowValue = purchaseOrders[deletedRowIndex];
-        fetch(`${API}/eliminar_orden_compra_total/${deletedRowValue.cod_po}/${sessionStorage.getItem('currentEnterprise')}/PO`, {
+        fetch(`${API}/eliminar_orden_compra_total/${deletedRowValue.cod_po}/${enterpriceShineray}/PO`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            'Authorization': 'Bearer ' + jwt
           },
         })
           .then(response => {
@@ -140,23 +141,23 @@ function PostSales(props) {
   }
 
   const renderProgress = (value) => {
-    const progress = parseInt(value*100/(statusList.length-2), 10);
+    const progress = parseInt(value * 100 / (statusList.length - 2), 10);
     let name = '';
-    if (statusList.find((objeto) => objeto.cod === value)){
+    if (statusList.find((objeto) => objeto.cod === value)) {
       name = statusList.find((objeto) => objeto.cod === value).nombre
     }
     const backgroundColor = getBackgroundColor(progress);
     return (
       <div>
-        <LinearProgress 
-        sx={{
-          backgroundColor: 'silver',
-          '& .MuiLinearProgress-bar': {
-            backgroundColor: backgroundColor
-          }
-        }}
+        <LinearProgress
+          sx={{
+            backgroundColor: 'silver',
+            '& .MuiLinearProgress-bar': {
+              backgroundColor: backgroundColor
+            }
+          }}
 
-        variant="determinate" value={progress} />
+          variant="determinate" value={progress} />
         <span>{name}</span>
       </div>
     );
@@ -171,17 +172,17 @@ function PostSales(props) {
       return "#F0FF33";
     } else if (progress <= 80) {
       return "#ACFF33";
-    } else if (progress <= 100){
+    } else if (progress <= 100) {
       return "#33FF39";
-    }else
-    return "silver"
+    } else
+      return "silver"
   }
 
   const getStatusList = async () => {
-    const res = await fetch(`${API}/estados_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_modelo=IMPR`, {
+    const res = await fetch(`${API}/estados_param?empresa=${enterpriceShineray}&cod_modelo=IMPR`, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     })
     const data = await res.json();
@@ -323,8 +324,8 @@ function PostSales(props) {
 
   return (
     <SnackbarProvider>
-      <div style={{ marginTop: '150px', top: 0, left:0, width: "100%", zIndex: 1000}}>
-        <Navbar0 menus={menus}/>
+      <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
+        <Navbar0 menus={menus} />
         <Box
           sx={{
             display: 'flex',
@@ -335,8 +336,8 @@ function PostSales(props) {
             },
           }}
         >
-          <ButtonGroup variant="text" aria-label="text button group" > 
-            <Button onClick={() => {navigate('/dashboard')}}>Módulos</Button>
+          <ButtonGroup variant="text" aria-label="text button group" >
+            <Button onClick={() => { navigate('/dashboard') }}>Módulos</Button>
           </ButtonGroup>
         </Box>
         <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
@@ -380,12 +381,12 @@ function PostSales(props) {
           </div>
         </div>
         <ThemeProvider theme={getMuiTheme()}>
-        <MUIDataTable
-          title={"Ordenes de Compra"}
-          data={purchaseOrders}
-          columns={columns}
-          options={options}
-        />
+          <MUIDataTable
+            title={"Ordenes de Compra"}
+            data={purchaseOrders}
+            columns={columns}
+            options={options}
+          />
         </ThemeProvider>
       </div>
     </SnackbarProvider>

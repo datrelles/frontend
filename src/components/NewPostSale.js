@@ -16,14 +16,14 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import FileGenerator from './FileGenerator';
 import Grid from '@mui/material/Grid';
-
+import { useAuthContext } from "../context/authContext";
 
 
 const API = process.env.REACT_APP_API;
 
 
-function NewPostSales(props) {
-
+function NewPostSales() {
+  const {jwt, enterpriceShineray, userShineray, systemShineray, branchShineray}=useAuthContext();
   const [tabValue, setTabValue] = useState(0);
   const navigate = useNavigate();
 
@@ -47,10 +47,10 @@ function NewPostSales(props) {
 
 
   const getProvidersList = async () => {
-    const res = await fetch(`${API}/proveedores_ext?empresa=${sessionStorage.getItem('currentEnterprise')}`, {
+    const res = await fetch(`${API}/proveedores_ext?empresa=${enterpriceShineray}`, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     })
     const data = await res.json();
@@ -62,10 +62,10 @@ function NewPostSales(props) {
   }
 
   const getStatusList = async () => {
-    const res = await fetch(`${API}/estados_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_modelo=IMPR`, {
+    const res = await fetch(`${API}/estados_param?empresa=${enterpriceShineray}&cod_modelo=IMPR`, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     })
     const data = await res.json();
@@ -77,10 +77,10 @@ function NewPostSales(props) {
   }
 
   const getPurchaseOrdersDetails = async () => {
-    const res = await fetch(`${API}/orden_compra_det_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_po=${codPo}`, {
+    const res = await fetch(`${API}/orden_compra_det_param?empresa=${enterpriceShineray}&cod_po=${codPo}`, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     })
     const data = await res.json();
@@ -101,11 +101,11 @@ function NewPostSales(props) {
   };
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}/${sessionStorage.getItem('currentSystem')}`,
+      const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${systemShineray}`,
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            'Authorization': 'Bearer ' + jwt
           }
         });
 
@@ -217,14 +217,14 @@ function NewPostSales(props) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       },
       body: JSON.stringify({
         cabecera: {
-          empresa: sessionStorage.getItem('currentEnterprise'),
+          empresa: enterpriceShineray,
           tipo_comprobante: tipoCombrobante,
-          cod_agencia: sessionStorage.getItem('currentBranch'),
-          bodega: sessionStorage.getItem('currentBranch'),
+          cod_agencia: branchShineray,
+          bodega: branchShineray,
           cod_proveedor: codProveedor,
           nombre: nombre,
           proforma: proforma,
@@ -234,9 +234,9 @@ function NewPostSales(props) {
           cod_modelo: codModelo,
           cod_item: codItem,
           fecha_crea: moment().format('DD/MM/YYYY'),
-          usuario_crea: sessionStorage.getItem('currentUser'),
+          usuario_crea: userShineray,
           fecha_modifica: moment().format('DD/MM/YYYY'),
-          usuario_modifica: sessionStorage.getItem('currentUser')
+          usuario_modifica: userShineray
         },
         detalles: excelData
 
