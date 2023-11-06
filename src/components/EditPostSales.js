@@ -1054,7 +1054,7 @@ function EditPostSales() {
               />
             </Grid>
             <Grid item xs={12} md={3}>
-              <div className={classes.datePickersContainer}>
+              <div style={{ display:'flex',flexDirection:'column', width:'310px'}}>
                 <div>
                   <LocalizationProvider dateAdapter={AdapterDayjs} >
                     <DemoContainer components={['DatePicker', 'DatePicker']}>
