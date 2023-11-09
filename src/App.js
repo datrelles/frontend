@@ -76,7 +76,7 @@ function App() {
                   <Route exact path="/profile" element={<Profile/>}></Route>
                   <Route exact path="/dashboard" element={<Dashboard />}></Route>
                   <Route exact path="/postSales" element={<Protected isLoggedIn={authorizedSystems.includes('REP')}><PostSales  /></Protected>}></Route>
-                  <Route exact path="/editPostSales" element={<EditPostSales token={token} setToken={setToken} />}></Route>
+                  <Route exact path="/editPostSales" element={<EditPostSales/>}></Route>
                   <Route exact path="/menus" element={<Menus/>}></Route>
                   <Route exact path="/newPostSales" element={<NewPostSales />}></Route>
                   <Route exact path="/postSaleDetails" element={<PostSaleDetails/>}></Route>
