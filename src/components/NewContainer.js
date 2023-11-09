@@ -30,7 +30,7 @@ const useStyles = makeStyles({
 
 
 function NewContainer() {
-    const {jwt, enterpriceShineray, userShineray, systemShineray}=useAuthContext();
+    const {jwt, enterpriseShineray, userShineray, systemShineray}=useAuthContext();
     const classes = useStyles();
     const navigate = useNavigate();
     const location = useLocation();
@@ -61,7 +61,7 @@ function NewContainer() {
 
 
     const checkAuthorization = async () => {
-        const res = await fetch(`${API}/modules/${userShineray}/${enterpriceShineray}`, {
+        const res = await fetch(`${API}/modules/${userShineray}/${enterpriseShineray}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -100,7 +100,7 @@ function NewContainer() {
     const getPackingList = async () => {
         if (nroContenedor)
             try {
-                const res = await fetch(`${API}/packinglist_param_by_container?empresa=${enterpriceShineray}&nro_contenedor=${nroContenedor}`, {
+                const res = await fetch(`${API}/packinglist_param_by_container?empresa=${enterpriseShineray}&nro_contenedor=${nroContenedor}`, {
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + jwt
@@ -164,7 +164,7 @@ function NewContainer() {
                 const deletedRowValue = packingList[deletedRowIndex];
                 console.log(deletedRowValue.secuencia);
 
-                fetch(`${API}/orden_compra_packinglist?codigo_bl_house=${codigoBlHouse}&empresa=${enterpriceShineray}&secuencia=${deletedRowValue.secuencia}`, {
+                fetch(`${API}/orden_compra_packinglist?codigo_bl_house=${codigoBlHouse}&empresa=${enterpriseShineray}&secuencia=${deletedRowValue.secuencia}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
@@ -295,7 +295,7 @@ function NewContainer() {
 
     const handleChange2 = async (e) => {
         e.preventDefault();
-        const res = await fetch(`${API}/contenedor/${nroContenedor}/${enterpriceShineray}`, {
+        const res = await fetch(`${API}/contenedor/${nroContenedor}/${enterpriseShineray}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -330,7 +330,7 @@ function NewContainer() {
                 body: JSON.stringify({
                     packings: excelData,
                     nro_contenedor: nroContenedor,
-                    empresa: enterpriceShineray,
+                    empresa: enterpriseShineray,
                     usuario_crea: userShineray,
                     tipo_comprobante: "PO"
                 })
@@ -422,7 +422,7 @@ function NewContainer() {
 
     const getMenus = async () => {
         try {
-            const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${systemShineray}`,
+            const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',

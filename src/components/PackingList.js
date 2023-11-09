@@ -18,7 +18,7 @@ const API = process.env.REACT_APP_API;
 
 
 function PackingList() {
-  const {jwt, enterpriceShineray, userShineray, systemShineray}=useAuthContext();
+  const {jwt, enterpriseShineray, userShineray, systemShineray}=useAuthContext();
   const [menus, setMenus] = useState([]);
   const location = useLocation();
   const [formData, setFormData] = useState(location.state)
@@ -45,7 +45,7 @@ function PackingList() {
 
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${systemShineray}`,
+      const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -90,7 +90,7 @@ function PackingList() {
 
   const handleChange2 = async (e) => {
     e.preventDefault();
-    const res = await fetch(`${API}/orden_compra_packinglist/${codPo}/${enterpriceShineray}`, {
+    const res = await fetch(`${API}/orden_compra_packinglist/${codPo}/${enterpriseShineray}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

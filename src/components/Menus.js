@@ -8,7 +8,7 @@ const API = process.env.REACT_APP_API;
 
 function Menus() {
   const [menus, setMenus] = useState([])
-  const {jwt, userShineray, enterpriceShineray, }=useAuthContext();
+  const {jwt, userShineray, enterpriseShineray, }=useAuthContext();
    
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -16,7 +16,7 @@ function Menus() {
 
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${sistemaValue}`,
+      const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${sistemaValue}`,
         {
           headers: {
             'Content-Type': 'application/json',

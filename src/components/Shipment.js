@@ -34,7 +34,7 @@ const useStyles = makeStyles({
 });
 
 function Shipment() {
-  const {jwt, enterpriceShineray, userShineray, systemShineray}=useAuthContext();
+  const {jwt, enterpriseShineray, userShineray, systemShineray}=useAuthContext();
 
   const [shipments, setShipments] = useState([])
   const [fromDate, setFromDate] = useState(moment().subtract(3,"months"));
@@ -49,7 +49,7 @@ function Shipment() {
 
   const getShipments = async () => {
     try {
-      const res = await fetch(`${API}/embarque_param?empresa=${enterpriceShineray}&fecha_inicio=${format(new Date(fromDate), 'dd/MM/yyyy')}&fecha_fin=${format(new Date(toDate), 'dd/MM/yyyy')}`,
+      const res = await fetch(`${API}/embarque_param?empresa=${enterpriseShineray}&fecha_inicio=${format(new Date(fromDate), 'dd/MM/yyyy')}&fecha_fin=${format(new Date(toDate), 'dd/MM/yyyy')}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -72,7 +72,7 @@ function Shipment() {
 
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${systemShineray}`,
+      const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -119,7 +119,7 @@ function Shipment() {
       await rowsDeleted.data.forEach((deletedRow) => {
         const deletedRowIndex = deletedRow.dataIndex;
         const deletedRowValue = shipments[deletedRowIndex];
-        fetch(`${API}/eliminar_orden_compra_total/${deletedRowValue.cod_po}/${enterpriceShineray}/PO`, {
+        fetch(`${API}/eliminar_orden_compra_total/${deletedRowValue.cod_po}/${enterpriseShineray}/PO`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -184,7 +184,7 @@ function Shipment() {
   }
 
   const getStatusList = async () => {
-    const res = await fetch(`${API}/estados_param?empresa=${enterpriceShineray}&cod_modelo=BL`, {
+    const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=BL`, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + jwt

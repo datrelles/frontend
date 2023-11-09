@@ -33,18 +33,10 @@ import { format } from 'date-fns'
 import { useAuthContext } from '../context/authContext';
 
 const API = process.env.REACT_APP_API;
-const useStyles = makeStyles({
-  datePickersContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    width: '310px'
-  },
-});
-
 
 function EditShipment() {
-  const {jwt, userShineray, enterpriceShineray, systemShineray}=useAuthContext();
-  const classes = useStyles();
+  const {jwt, userShineray, enterpriseShineray, systemShineray}=useAuthContext();
+  
   const navigate = useNavigate();
   const location = useLocation();
   const [formData, setFormData] = useState(location.state)
@@ -100,7 +92,7 @@ function EditShipment() {
 
 
   const checkAuthorization = async () => {
-    const res = await fetch(`${API}/modules/${userShineray}/${enterpriceShineray}`, {
+    const res = await fetch(`${API}/modules/${userShineray}/${enterpriseShineray}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -114,7 +106,7 @@ function EditShipment() {
 
   const getShipment = async () => {
     try {
-      const res = await fetch(`${API}/embarque_param?empresa=${enterpriceShineray}&codigo_bl_house=${formData.codigo_bl_house}`,
+      const res = await fetch(`${API}/embarque_param?empresa=${enterpriseShineray}&codigo_bl_house=${formData.codigo_bl_house}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -159,7 +151,7 @@ function EditShipment() {
 
   const getPackingList = async () => {
     try {
-      const res = await fetch(`${API}/packinglist_param?empresa=${enterpriceShineray}&codigo_bl_house=${codigoBlHouse}`, {
+      const res = await fetch(`${API}/packinglist_param?empresa=${enterpriseShineray}&codigo_bl_house=${codigoBlHouse}`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + jwt
@@ -179,7 +171,7 @@ function EditShipment() {
   }
 
   const getStatusList = async () => {
-    const res = await fetch(`${API}/estados_param?empresa=${enterpriceShineray}&cod_modelo=BL`, {
+    const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=BL`, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + jwt
@@ -197,7 +189,7 @@ function EditShipment() {
   }
 
   const getTracking = async () => {
-    const res = await fetch(`${API}/tracking_bl_param?empresa=${enterpriceShineray}&cod_bl_house=${formData.codigo_bl_house}`, {
+    const res = await fetch(`${API}/tracking_bl_param?empresa=${enterpriseShineray}&cod_bl_house=${formData.codigo_bl_house}`, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + jwt
@@ -208,7 +200,7 @@ function EditShipment() {
   }
 
   const getProviderList = async () => {
-    const res = await fetch(`${API}/proveedores_param?empresa=${enterpriceShineray}&cod_proveedor=${formData.cod_proveedor}`, {
+    const res = await fetch(`${API}/proveedores_param?empresa=${enterpriseShineray}&cod_proveedor=${formData.cod_proveedor}`, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + jwt
@@ -219,7 +211,7 @@ function EditShipment() {
   }
 
   const getAforoList = async () => {
-    const res = await fetch(`${API}/tipo_aforo_param?empresa=${enterpriceShineray}`, {
+    const res = await fetch(`${API}/tipo_aforo_param?empresa=${enterpriseShineray}`, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + jwt
@@ -285,7 +277,7 @@ function EditShipment() {
 
   const getAforoNombre = async () => {
 
-    const res = await fetch(`${API}/tipo_aforo_param?empresa=${enterpriceShineray}`, {
+    const res = await fetch(`${API}/tipo_aforo_param?empresa=${enterpriseShineray}`, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + jwt
@@ -325,7 +317,7 @@ function EditShipment() {
         const deletedRowValue = packingList[deletedRowIndex];
         console.log(deletedRowValue.secuencia);
 
-        fetch(`${API}/orden_compra_packinglist?codigo_bl_house=${codigoBlHouse}&empresa=${enterpriceShineray}&secuencia=${deletedRowValue.secuencia}`, {
+        fetch(`${API}/orden_compra_packinglist?codigo_bl_house=${codigoBlHouse}&empresa=${enterpriseShineray}&secuencia=${deletedRowValue.secuencia}`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -676,7 +668,7 @@ function EditShipment() {
 
   const handleChange2 = async (e) => {
     e.preventDefault();
-    const res = await fetch(`${API}/embarque/${codigoBlHouse}/${enterpriceShineray}`, {
+    const res = await fetch(`${API}/embarque/${codigoBlHouse}/${enterpriseShineray}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -762,7 +754,7 @@ function EditShipment() {
 
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${systemShineray}`,
+      const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -1038,7 +1030,7 @@ function EditShipment() {
               />
             </Grid>
             <Grid item xs={12} md={3}>
-              <div className={classes.datePickersContainer}>
+              <div style={{ display:'flex',flexDirection:'column', width:'310px'}}>
                 <div>
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DemoContainer components={['DatePicker', 'DatePicker']}>

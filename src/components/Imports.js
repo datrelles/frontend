@@ -41,14 +41,14 @@ function PostSales() {
   const [menus, setMenus] = useState([])
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
-  const { jwt, userShineray, enterpriceShineray, branchShineray, systemShineray } = useAuthContext()
+  const { jwt, userShineray, enterpriseShineray, branchShineray, systemShineray } = useAuthContext()
 
   const classes = useStyles();
 
 
   const getPurchaseOrders = async () => {
     try {
-      const res = await fetch(`${API}/orden_compra_cab_param?empresa=${enterpriceShineray}&fecha_inicio=${format(new Date(fromDate), 'dd/MM/yyyy')}&fecha_fin=${format(new Date(toDate), 'dd/MM/yyyy')}&cod_items[]=1&cod_items[]=3&cod_items[]=4&cod_items[]=5&cod_items[]=6&cod_items[]=7&cod_items[]=8`,
+      const res = await fetch(`${API}/orden_compra_cab_param?empresa=${enterpriseShineray}&fecha_inicio=${format(new Date(fromDate), 'dd/MM/yyyy')}&fecha_fin=${format(new Date(toDate), 'dd/MM/yyyy')}&cod_items[]=1&cod_items[]=3&cod_items[]=4&cod_items[]=5&cod_items[]=6&cod_items[]=7&cod_items[]=8`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -72,7 +72,7 @@ function PostSales() {
 
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${systemShineray}`,
+      const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -114,7 +114,7 @@ function PostSales() {
       await rowsDeleted.data.forEach((deletedRow) => {
         const deletedRowIndex = deletedRow.dataIndex;
         const deletedRowValue = purchaseOrders[deletedRowIndex];
-        fetch(`${API}/eliminar_orden_compra_total/${deletedRowValue.cod_po}/${enterpriceShineray}/PO`, {
+        fetch(`${API}/eliminar_orden_compra_total/${deletedRowValue.cod_po}/${enterpriseShineray}/PO`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -179,7 +179,7 @@ function PostSales() {
   }
 
   const getStatusList = async () => {
-    const res = await fetch(`${API}/estados_param?empresa=${enterpriceShineray}&cod_modelo=IMPR`, {
+    const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=IMPR`, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + jwt

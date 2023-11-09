@@ -29,7 +29,7 @@ const useStyles = makeStyles({
 
 
 function EditContainer() {
-  const {jwt, userShineray, enterpriceShineray, systemShineray}=useAuthContext();
+  const {jwt, userShineray, enterpriseShineray, systemShineray}=useAuthContext();
 
   const classes = useStyles();
   const navigate = useNavigate();
@@ -61,7 +61,7 @@ function EditContainer() {
 
 
   const checkAuthorization = async () => {
-    const res = await fetch(`${API}/modules/${userShineray}/${enterpriceShineray}`, {
+    const res = await fetch(`${API}/modules/${userShineray}/${enterpriseShineray}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -107,7 +107,7 @@ function EditContainer() {
 
   const getPackingList = async () => {
     try {
-      const res = await fetch(`${API}/packinglist_param_by_container?empresa=${enterpriceShineray}&nro_contenedor=${nroContenedor}`, {
+      const res = await fetch(`${API}/packinglist_param_by_container?empresa=${enterpriseShineray}&nro_contenedor=${nroContenedor}`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + jwt
@@ -149,7 +149,7 @@ function EditContainer() {
         const deletedRowValue = packingList[deletedRowIndex];
         console.log(deletedRowValue.secuencia);
 
-        fetch(`${API}/orden_compra_packinglist?codigo_bl_house=${codigoBlHouse}&empresa=${enterpriceShineray}&secuencia=${deletedRowValue.secuencia}`, {
+        fetch(`${API}/orden_compra_packinglist?codigo_bl_house=${codigoBlHouse}&empresa=${enterpriseShineray}&secuencia=${deletedRowValue.secuencia}`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -324,7 +324,7 @@ function EditContainer() {
   }
 
   const handleRowClick2 = async (rowData) => {
-    const res = await fetch(`${API}/orden_compra_cab_param?empresa=${enterpriceShineray}&cod_po=${rowData}`,
+    const res = await fetch(`${API}/orden_compra_cab_param?empresa=${enterpriseShineray}&cod_po=${rowData}`,
       {
         headers: {
           'Content-Type': 'application/json',
@@ -347,7 +347,7 @@ function EditContainer() {
 
   const handleChange2 = async (e) => {
     e.preventDefault();
-    const res = await fetch(`${API}/contenedor/${nroContenedor}/${enterpriceShineray}`, {
+    const res = await fetch(`${API}/contenedor/${nroContenedor}/${enterpriseShineray}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -436,7 +436,7 @@ function EditContainer() {
 
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${systemShineray}`,
+      const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
         {
           headers: {
             'Content-Type': 'application/json',

@@ -39,11 +39,11 @@ const API = process.env.REACT_APP_API;
 function App() {
   const {  removeToken, setToken } = useToken();
   const [authorizedSystems, setAuthorizedSystems] = useState(['IMP', 'REP', 'GAR', 'PBI']);
-  const {jwt}=useAuthContext();
+  const {jwt, userShineray,enterpriseShineray}=useAuthContext();
   const token=jwt
 
   const checkAuthorization = async () => {
-    const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
+    const res = await fetch(`${API}/modules/${userShineray}/${enterpriseShineray}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -56,7 +56,7 @@ function App() {
 
 
   useEffect(() => {
-    if (sessionStorage.getItem('currentEnterprise')) {
+    if (enterpriseShineray) {
       checkAuthorization();
     }
   }, [token]);
@@ -94,8 +94,8 @@ function App() {
                   <Route exact path="/reports" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports /></Protected>} />
                   <Route exact path="/reports2" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports2 /></Protected>} />
                   <Route exact path="/reports3" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports3/></Protected>} />
-                  <Route exact path="/reports4" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports4 token={token} setToken={setToken} /></Protected>}/>
-                  <Route exact path="/settings" element={<Settings token={token} setToken={setToken} />}></Route>
+                  <Route exact path="/reports4" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports4 /></Protected>}/>
+                  <Route exact path="/settings" element={<Settings />}></Route>
                 </Routes>
               </>
             )}

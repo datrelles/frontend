@@ -14,7 +14,7 @@ const API = process.env.REACT_APP_API;
 
 
 function Profile() {
-  const {jwt, userShineray, setHandleEnterprice, setHandleBranch, setHandleSystemShineray}=useAuthContext();
+  const {jwt, userShineray, setHandleenterprise, setHandleBranch, setHandleSystemShineray}=useAuthContext();
   const { removeToken } = useToken();
   const navigate = useNavigate();
 
@@ -54,7 +54,7 @@ function Profile() {
       })
 
       const data1 = await res1.json();
-       setHandleEnterprice(data1[0].EMPRESA_ACTUAL);
+       setHandleenterprise(data1[0].EMPRESA_ACTUAL);
        setHandleBranch(data1[0].AGENCIA_ACTUAL);
       setEnterprise(newData.find((objeto) => objeto.key === data1[0].EMPRESA_ACTUAL).value)
 
@@ -109,7 +109,7 @@ function Profile() {
     if (value) {
       const statusSeleccionado = enterprises.find((enterprise) => enterprise.value === value);
       if (statusSeleccionado) {
-        setHandleEnterprice(statusSeleccionado.key);
+        setHandleenterprise(statusSeleccionado.key);
         setEnterprise(statusSeleccionado.value)
         getBranches(statusSeleccionado.key);
       }

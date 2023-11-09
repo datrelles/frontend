@@ -16,7 +16,7 @@ import { useAuthContext } from '../context/authContext';
 const API = process.env.REACT_APP_API;
 
 function NewPostSaleDetail(props) {
-  const {jwt, enterpriceShineray, userShineray}=useAuthContext();
+  const {jwt, enterpriseShineray, userShineray}=useAuthContext();
 
   const location = useLocation();
   const [formData, setFormData] = useState(location.state)
@@ -77,7 +77,7 @@ function NewPostSaleDetail(props) {
       },
       body: JSON.stringify({
         cod_po: codPo,
-        empresa: enterpriceShineray,
+        empresa: enterpriseShineray,
         usuario_crea: userShineray,
         orders: [{
           secuencia: secuencia,

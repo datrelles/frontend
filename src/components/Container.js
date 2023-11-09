@@ -25,7 +25,7 @@ const useStyles = makeStyles({
 });
 
 function Container() {
-  const {jwt, userShineray,enterpriceShineray, systemShineray}=useAuthContext();
+  const {jwt, userShineray,enterpriseShineray, systemShineray}=useAuthContext();
   const [containers, setContainers] = useState([])
   const [fromDate, setFromDate] = useState(moment().subtract(3,"months"));
   const [toDate, setToDate] = useState(moment);
@@ -62,7 +62,7 @@ function Container() {
 
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${systemShineray}`,
+      const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -107,7 +107,7 @@ function Container() {
       await rowsDeleted.data.forEach((deletedRow) => {
         const deletedRowIndex = deletedRow.dataIndex;
         const deletedRowValue = containers[deletedRowIndex];
-        fetch(`${API}/eliminar_orden_compra_total/${deletedRowValue.cod_po}/${enterpriceShineray}/PO`, {
+        fetch(`${API}/eliminar_orden_compra_total/${deletedRowValue.cod_po}/${enterpriseShineray}/PO`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -130,7 +130,7 @@ function Container() {
 
 
   const getStatusList = async () => {
-    const res = await fetch(`${API}/estados_param?empresa=${enterpriceShineray}&cod_modelo=BL`, {
+    const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=BL`, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + jwt

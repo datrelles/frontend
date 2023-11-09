@@ -5,9 +5,9 @@ import { SnackbarProvider} from 'notistack';
 import { useAuthContext } from "../context/authContext";
 const API = process.env.REACT_APP_API;
 
-function Reports4(props) {
+function Reports4() {
     const [menus, setMenus] = useState([])
-    const {jwt, userShineray, enterpriceShineray}=useAuthContext();
+    const {jwt, userShineray, enterpriseShineray}=useAuthContext();
 
     const iframeStyle = {
         width: '100%',
@@ -17,7 +17,7 @@ function Reports4(props) {
 
     const getMenus = async () => {
         try {
-            const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${userShineray}`,
+            const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${userShineray}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',

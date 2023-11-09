@@ -27,7 +27,7 @@ const useStyles = makeStyles({
 });
 
 function PackingListTotal() {
-    const {jwt, enterpriceShineray, userShineray, systemShineray}=useAuthContext();
+    const {jwt, enterpriseShineray, userShineray, systemShineray}=useAuthContext();
     const [packingList, setPackingList] = useState([])
     const [container, setContainer] = useState('')
     const [excelData, setExcelData] = useState(['']);
@@ -44,7 +44,7 @@ function PackingListTotal() {
 
     const checkAuthorization = async () => {
         try {
-            const res = await fetch(`${API}/modules/${userShineray}/${enterpriceShineray}`, {
+            const res = await fetch(`${API}/modules/${userShineray}/${enterpriseShineray}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -77,7 +77,7 @@ function PackingListTotal() {
 
     const getPackingList = async () => {
         try {
-            const res = await fetch(`${API}/packinglist_total?empresa=${enterpriceShineray}`,
+            const res = await fetch(`${API}/packinglist_total?empresa=${enterpriseShineray}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -100,7 +100,7 @@ function PackingListTotal() {
 
     const getMenus = async () => {
         try {
-            const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${systemShineray}`,
+            const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -160,7 +160,7 @@ function PackingListTotal() {
 
     const handleRowClick2 = async (rowData) => {
         try {
-            const res = await fetch(`${API}/orden_compra_cab_param?empresa=${enterpriceShineray}&cod_po=${rowData}`,
+            const res = await fetch(`${API}/orden_compra_cab_param?empresa=${enterpriseShineray}&cod_po=${rowData}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -185,7 +185,7 @@ function PackingListTotal() {
 
     const getStatusList = async () => {
         try {
-            const res = await fetch(`${API}/estados_param?empresa=${enterpriceShineray}&cod_modelo=BL`, {
+            const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=BL`, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + jwt
@@ -373,7 +373,7 @@ function PackingListTotal() {
     const handleChange = async (e) => {
         try{
             e.preventDefault();
-            const res0 = await fetch(`${API}/packings_by_container?empresa=${enterpriceShineray}&nro_contenedor=${container}`, {
+            const res0 = await fetch(`${API}/packings_by_container?empresa=${enterpriseShineray}&nro_contenedor=${container}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -388,7 +388,7 @@ function PackingListTotal() {
                 const userResponse = window.confirm(`Este Contenedor tiene ${qty} registros de packinglist, desea borrar y reemplazar?`)
                 if (userResponse) {
                     enqueueSnackbar('Creando PackingList en Contenedor...', { variant: 'success' });
-                    const resDelete = await fetch(`${API}/orden_compra_packinglist_by_container?empresa=${enterpriceShineray}&nro_contenedor=${container}`, {
+                    const resDelete = await fetch(`${API}/orden_compra_packinglist_by_container?empresa=${enterpriseShineray}&nro_contenedor=${container}`, {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json',
@@ -396,7 +396,7 @@ function PackingListTotal() {
                         },
                         body: JSON.stringify({
                             nro_contenedor: container,
-                            empresa: enterpriceShineray,
+                            empresa: enterpriseShineray,
                         })
                     })
                     const dataDel = await resDelete.json();
@@ -410,7 +410,7 @@ function PackingListTotal() {
                         body: JSON.stringify({
                             packings: excelData,
                             nro_contenedor: container,
-                            empresa: enterpriceShineray,
+                            empresa: enterpriseShineray,
                             usuario_crea: userShineray,
                             tipo_comprobante: "PO"
                         })
@@ -449,7 +449,7 @@ function PackingListTotal() {
                     body: JSON.stringify({
                         packings: excelData,
                         nro_contenedor: container,
-                        empresa: enterpriceShineray,
+                        empresa: enterpriseShineray,
                         usuario_crea: userShineray,
                         tipo_comprobante: "PO"
                     })

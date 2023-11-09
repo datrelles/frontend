@@ -6,7 +6,7 @@ import { useAuthContext } from "../context/authContext";
 const API = process.env.REACT_APP_API;
 
 function Reports(props) {
-    const {jwt, userShineray, enterpriceShineray, systemShineray}=useAuthContext();
+    const {jwt, userShineray, enterpriseShineray, systemShineray}=useAuthContext();
     const [menus, setMenus] = useState([])
 
     const iframeStyle = {
@@ -17,7 +17,7 @@ function Reports(props) {
 
     const getMenus = async () => {
         try {
-            const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${systemShineray}`,
+            const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',

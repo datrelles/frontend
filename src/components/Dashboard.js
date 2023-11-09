@@ -5,12 +5,12 @@ import { useAuthContext } from "../context/authContext";
 const API = process.env.REACT_APP_API;
 
 function Dashboard() {
-  const {jwt, userShineray, enterpriceShineray, setHandleSystemShineray}=useAuthContext();
+  const {jwt, userShineray, enterpriseShineray, setHandleSystemShineray}=useAuthContext();
   const [moduleList, setModuleList] = useState([])
   const [menus, setMenus] = useState([])
   const getModules = async () => {
 
-    const res = await fetch(`${API}/modules/${userShineray}/${enterpriceShineray}`, {
+    const res = await fetch(`${API}/modules/${userShineray}/${enterpriseShineray}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -74,7 +74,7 @@ function Dashboard() {
       <div className="text-center mt-2">
         <h6 className="font-weight-bold pt-2 mb-0" style={{ display: "inline-block", padding: "0" }}>{module.SISTEMA}</h6>
         <p className="text-muted mb-0">
-          <small>Empresa: {enterpriceShineray}</small>
+          <small>Empresa: {enterpriseShineray}</small>
         </p>
       </div>
     </div>

@@ -24,7 +24,7 @@ const useStyles = makeStyles({
 });
 
 function Details() {
-    const {jwt, userShineray, enterpriceShineray, systemShineray}=useAuthContext();
+    const {jwt, userShineray, enterpriseShineray, systemShineray}=useAuthContext();
     const [details, setDetails] = useState([])
     const [container, setContainer] = useState('')
     const [excelData, setExcelData] = useState(['']);
@@ -42,7 +42,7 @@ function Details() {
 
     const checkAuthorization = async () => {
         try {
-            const res = await fetch(`${API}/modules/${userShineray}/${enterpriceShineray}`, {
+            const res = await fetch(`${API}/modules/${userShineray}/${enterpriseShineray}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -84,7 +84,7 @@ function Details() {
 
     const getMenus = async () => {
         try {
-            const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${systemShineray}`,
+            const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -144,7 +144,7 @@ function Details() {
 
     const handleRowClick2 = async (rowData) => {
         try {
-            const res = await fetch(`${API}/orden_compra_cab_param?empresa=${enterpriceShineray}&cod_po=${rowData}`,
+            const res = await fetch(`${API}/orden_compra_cab_param?empresa=${enterpriseShineray}&cod_po=${rowData}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -168,7 +168,7 @@ function Details() {
     }
     const handleRowClick3 = async (rowData) => {
         try {
-            const res = await fetch(`${API}/embarque_param?empresa=${enterpriceShineray}&codigo_bl_house=${rowData}`,
+            const res = await fetch(`${API}/embarque_param?empresa=${enterpriseShineray}&codigo_bl_house=${rowData}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -193,7 +193,7 @@ function Details() {
 
     const getStatusList = async () => {
         try {
-            const res = await fetch(`${API}/estados_param?empresa=${enterpriceShineray}&cod_modelo=BL`, {
+            const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=BL`, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + jwt
@@ -210,7 +210,7 @@ function Details() {
     }
 
     const getStatusListPo = async () => {
-        const res = await fetch(`${API}/estados_param?empresa=${enterpriceShineray}&cod_modelo=IMPR`, {
+        const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=IMPR`, {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + jwt

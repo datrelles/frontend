@@ -19,7 +19,7 @@ const API = process.env.REACT_APP_API;
 
 
 function PostSaleDetails() {
-  const {jwt, userShineray, enterpriceShineray, systemShineray}=useAuthContext();
+  const {jwt, userShineray, enterpriseShineray, systemShineray}=useAuthContext();
   const [menus, setMenus] = useState([]);
   const location = useLocation();
   const [formData, setFormData] = useState(location.state)
@@ -52,7 +52,7 @@ function PostSaleDetails() {
 
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${userShineray}/${ enterpriceShineray}/${systemShineray}`,
+      const res = await fetch(`${API}/menus/${userShineray}/${ enterpriseShineray}/${systemShineray}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -124,7 +124,7 @@ function PostSaleDetails() {
 
   const handleChange2 = async (e) => {
     e.preventDefault();
-    const res = await fetch(`${API}/orden_compra_det/${codPo}/${ enterpriceShineray}/PO`, {
+    const res = await fetch(`${API}/orden_compra_det/${codPo}/${ enterpriseShineray}/PO`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -133,7 +133,7 @@ function PostSaleDetails() {
       body: JSON.stringify({
         usuario_modifica: userShineray,
         cod_po: codPo,
-        empresa:  enterpriceShineray,
+        empresa:  enterpriseShineray,
         orders:[{   
           secuencia: secuencia,
           cod_producto: codProducto,

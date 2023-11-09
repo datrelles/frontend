@@ -23,7 +23,7 @@ const API = process.env.REACT_APP_API;
 
 
 function NewPostSales() {
-  const {jwt, enterpriceShineray, userShineray, systemShineray, branchShineray}=useAuthContext();
+  const {jwt, enterpriseShineray, userShineray, systemShineray, branchShineray}=useAuthContext();
   const [tabValue, setTabValue] = useState(0);
   const navigate = useNavigate();
 
@@ -47,7 +47,7 @@ function NewPostSales() {
 
 
   const getProvidersList = async () => {
-    const res = await fetch(`${API}/proveedores_ext?empresa=${enterpriceShineray}`, {
+    const res = await fetch(`${API}/proveedores_ext?empresa=${enterpriseShineray}`, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + jwt
@@ -62,7 +62,7 @@ function NewPostSales() {
   }
 
   const getStatusList = async () => {
-    const res = await fetch(`${API}/estados_param?empresa=${enterpriceShineray}&cod_modelo=IMPR`, {
+    const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=IMPR`, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + jwt
@@ -77,7 +77,7 @@ function NewPostSales() {
   }
 
   const getPurchaseOrdersDetails = async () => {
-    const res = await fetch(`${API}/orden_compra_det_param?empresa=${enterpriceShineray}&cod_po=${codPo}`, {
+    const res = await fetch(`${API}/orden_compra_det_param?empresa=${enterpriseShineray}&cod_po=${codPo}`, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + jwt
@@ -101,7 +101,7 @@ function NewPostSales() {
   };
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${systemShineray}`,
+      const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -221,7 +221,7 @@ function NewPostSales() {
       },
       body: JSON.stringify({
         cabecera: {
-          empresa: enterpriceShineray,
+          empresa: enterpriseShineray,
           tipo_comprobante: tipoCombrobante,
           cod_agencia: branchShineray,
           bodega: branchShineray,

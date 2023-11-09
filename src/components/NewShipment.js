@@ -30,7 +30,7 @@ const useStyles = makeStyles({
 
 
 function NewShipment() {
-    const {jwt, enterpriceShineray, userShineray, systemShineray}=useAuthContext();
+    const {jwt, enterpriseShineray, userShineray, systemShineray}=useAuthContext();
     const classes = useStyles();
     const navigate = useNavigate();
     const location = useLocation();
@@ -82,7 +82,7 @@ function NewShipment() {
 
 
     const checkAuthorization = async () => {
-        const res = await fetch(`${API}/modules/${userShineray}/${enterpriceShineray}`, {
+        const res = await fetch(`${API}/modules/${userShineray}/${enterpriseShineray}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -97,7 +97,7 @@ function NewShipment() {
     const getShipment = async () => {
         if (codigoBlHouse) {
             try {
-                const res = await fetch(`${API}/embarque_param?empresa=${enterpriceShineray}&codigo_bl_house=${codigoBlHouse}`,
+                const res = await fetch(`${API}/embarque_param?empresa=${enterpriseShineray}&codigo_bl_house=${codigoBlHouse}`,
                     {
                         headers: {
                             'Content-Type': 'application/json',
@@ -124,7 +124,7 @@ function NewShipment() {
     const getPackingList = async () => {
         if (codigoBlHouse) {
             try {
-                const res = await fetch(`${API}/packinglist_param?empresa=${enterpriceShineray}&codigo_bl_house=${codigoBlHouse}`, {
+                const res = await fetch(`${API}/packinglist_param?empresa=${enterpriseShineray}&codigo_bl_house=${codigoBlHouse}`, {
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + jwt
@@ -145,7 +145,7 @@ function NewShipment() {
     }
 
     const getStatusList = async () => {
-        const res = await fetch(`${API}/estados_param?empresa=${enterpriceShineray}&cod_modelo=BL`, {
+        const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=BL`, {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + jwt
@@ -163,7 +163,7 @@ function NewShipment() {
     }
 
     const getProviderList = async () => {
-        const res = await fetch(`${API}/proveedores_param?empresa=${enterpriceShineray}&cod_proveedor=${codProveedor}`, {
+        const res = await fetch(`${API}/proveedores_param?empresa=${enterpriseShineray}&cod_proveedor=${codProveedor}`, {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + jwt
@@ -174,7 +174,7 @@ function NewShipment() {
     }
 
     const getAforoList = async () => {
-        const res = await fetch(`${API}/tipo_aforo_param?empresa=${enterpriceShineray}`, {
+        const res = await fetch(`${API}/tipo_aforo_param?empresa=${enterpriseShineray}`, {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + jwt
@@ -240,7 +240,7 @@ function NewShipment() {
 
     const getAforoNombre = async () => {
 
-        const res = await fetch(`${API}/tipo_aforo_param?empresa=${enterpriceShineray}`, {
+        const res = await fetch(`${API}/tipo_aforo_param?empresa=${enterpriseShineray}`, {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + jwt
@@ -262,7 +262,7 @@ function NewShipment() {
                 const deletedRowValue = packingList[deletedRowIndex];
                 console.log(deletedRowValue.secuencia);
 
-                fetch(`${API}/orden_compra_packinglist?codigo_bl_house=${codigoBlHouse}&empresa=${enterpriceShineray}&secuencia=${deletedRowValue.secuencia}`, {
+                fetch(`${API}/orden_compra_packinglist?codigo_bl_house=${codigoBlHouse}&empresa=${enterpriseShineray}&secuencia=${deletedRowValue.secuencia}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
@@ -484,7 +484,7 @@ function NewShipment() {
                 fecha_embarque: fechaEmbarque,
                 fecha_llegada: fechaLlegada,
                 fecha_bodega: fechaBodega,
-                empresa: enterpriceShineray,
+                empresa: enterpriseShineray,
                 codigo_bl_master: codigoBlMaster,
                 codigo_bl_house: codigoBlHouse,
                 cod_proveedor: codProveedor,
@@ -560,7 +560,7 @@ function NewShipment() {
 
     const getMenus = async () => {
         try {
-            const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${systemShineray}`,
+            const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',

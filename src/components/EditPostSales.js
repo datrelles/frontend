@@ -45,7 +45,7 @@ const useStyles = makeStyles({
 
 
 function EditPostSales() {
-  const {jwt, userShineray, enterpriceShineray, systemShineray, branchShineray}=useAuthContext();
+  const {jwt, userShineray, enterpriseShineray, systemShineray, branchShineray}=useAuthContext();
 
   const classes = useStyles();
   const navigate = useNavigate();
@@ -87,7 +87,7 @@ function EditPostSales() {
 
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${userShineray}/${enterpriceShineray}/${systemShineray}`,
+      const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -109,7 +109,7 @@ function EditPostSales() {
   }
 
   const checkAuthorization = async () => {
-    const res = await fetch(`${API}/modules/${userShineray}/${enterpriceShineray}`, {
+    const res = await fetch(`${API}/modules/${userShineray}/${enterpriseShineray}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -123,7 +123,7 @@ function EditPostSales() {
 
   const getPurchaseOrder = async () => {
     try {
-      const res = await fetch(`${API}/orden_compra_cab_param?empresa=${enterpriceShineray}&cod_po=${formData.cod_po}`,
+      const res = await fetch(`${API}/orden_compra_cab_param?empresa=${enterpriseShineray}&cod_po=${formData.cod_po}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -154,7 +154,7 @@ function EditPostSales() {
 
   const getPurchaseOrdersDetails = async () => {
     try {
-      const res = await fetch(`${API}/orden_compra_det_param?empresa=${enterpriceShineray}&cod_po=${codPo}&tipo_comprobante=PO`, {
+      const res = await fetch(`${API}/orden_compra_det_param?empresa=${enterpriseShineray}&cod_po=${codPo}&tipo_comprobante=PO`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + jwt
@@ -175,7 +175,7 @@ function EditPostSales() {
   }
 
   const getStatusList = async () => {
-    const res = await fetch(`${API}/estados_param?empresa=${enterpriceShineray}&cod_modelo=IMPR`, {
+    const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=IMPR`, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + jwt
@@ -191,7 +191,7 @@ function EditPostSales() {
   }
 
   const getTracking = async () => {
-    const res = await fetch(`${API}/orden_compra_track_param?empresa=${enterpriceShineray}&cod_po=${formData.cod_po}`, {
+    const res = await fetch(`${API}/orden_compra_track_param?empresa=${enterpriseShineray}&cod_po=${formData.cod_po}`, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + jwt
@@ -203,7 +203,7 @@ function EditPostSales() {
 
   const getPackingList = async () => {
     try {
-      const res = await fetch(`${API}/packinglist_param?empresa=${enterpriceShineray}&cod_po=${codPo}`, {
+      const res = await fetch(`${API}/packinglist_param?empresa=${enterpriseShineray}&cod_po=${codPo}`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + jwt
@@ -223,7 +223,7 @@ function EditPostSales() {
   }
 
   const getProvidersList = async () => {
-    const res = await fetch(`${API}/proveedores_ext?empresa=${enterpriceShineray}`, {
+    const res = await fetch(`${API}/proveedores_ext?empresa=${enterpriseShineray}`, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + jwt
@@ -246,7 +246,7 @@ function EditPostSales() {
           const deletedRowValue = details[deletedRowIndex];
           console.log(deletedRowValue.secuencia);
 
-          fetch(`${API}/orden_compra_det/${codPo}/${enterpriceShineray}/${deletedRowValue.secuencia}/PO`, {
+          fetch(`${API}/orden_compra_det/${codPo}/${enterpriseShineray}/${deletedRowValue.secuencia}/PO`, {
             method: 'DELETE',
             headers: {
               'Content-Type': 'application/json',
@@ -278,7 +278,7 @@ function EditPostSales() {
           const deletedRowValue = packingList[deletedRowIndex];
           console.log(deletedRowValue.secuencia);
 
-          fetch(`${API}/orden_compra_packinglist?cod_po=${codPo}&empresa=${enterpriceShineray}&secuencia=${deletedRowValue.secuencia}`, {
+          fetch(`${API}/orden_compra_packinglist?cod_po=${codPo}&empresa=${enterpriseShineray}&secuencia=${deletedRowValue.secuencia}`, {
             method: 'DELETE',
             headers: {
               'Content-Type': 'application/json',
@@ -561,14 +561,14 @@ function EditPostSales() {
 
   const handleChange2 = async (e) => {
     e.preventDefault();
-    const res = await fetch(`${API}/orden_compra_cab/${codPo}/${enterpriceShineray}/PO`, {
+    const res = await fetch(`${API}/orden_compra_cab/${codPo}/${enterpriseShineray}/PO`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + jwt
       },
       body: JSON.stringify({
-        empresa: enterpriceShineray,
+        empresa: enterpriseShineray,
         tipo_comprobante: tipoCombrobante,
         bodega: branchShineray,
         cod_proveedor: codProveedor,
@@ -606,7 +606,7 @@ function EditPostSales() {
         body: JSON.stringify({
           orders: excelData,
           cod_po: codPo,
-          empresa: enterpriceShineray,
+          empresa: enterpriseShineray,
           usuario_crea: userShineray,
           cod_agencia: branchShineray
         })
@@ -642,7 +642,7 @@ function EditPostSales() {
         body: JSON.stringify({
           packings: excelDataPack,
           cod_po: codPo,
-          empresa: enterpriceShineray,
+          empresa: enterpriseShineray,
           usuario_crea: userShineray,
           tipo_comprobante: "PO"
         })
@@ -675,14 +675,14 @@ function EditPostSales() {
 
   const handleChangeSend = async (e) => {
     e.preventDefault();
-    const res = await fetch(`${API}/orden_compra_cab/${codPo}/${enterpriceShineray}/PO`, {
+    const res = await fetch(`${API}/orden_compra_cab/${codPo}/${enterpriseShineray}/PO`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + jwt
       },
       body: JSON.stringify({
-        empresa: enterpriceShineray,
+        empresa: enterpriseShineray,
         tipo_comprobante: tipoCombrobante,
         bodega: branchShineray,
         cod_proveedor: codProveedor,
@@ -712,14 +712,14 @@ function EditPostSales() {
 
   const handleChangeAprob = async (e) => {
     e.preventDefault();
-    const res = await fetch(`${API}/orden_compra_cab/${codPo}/${enterpriceShineray}/PO`, {
+    const res = await fetch(`${API}/orden_compra_cab/${codPo}/${enterpriseShineray}/PO`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + jwt
       },
       body: JSON.stringify({
-        empresa: enterpriceShineray,
+        empresa: enterpriseShineray,
         tipo_comprobante: tipoCombrobante,
         bodega: branchShineray,
         cod_proveedor: codProveedor,
