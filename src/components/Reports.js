@@ -2,10 +2,11 @@ import Navbar0 from "./Navbar0";
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
 import { SnackbarProvider} from 'notistack';
-
+import { useAuthContext } from "../context/authContext";
 const API = process.env.REACT_APP_API;
 
 function Reports(props) {
+    const {jwt, userShineray, enterpriseShineray, systemShineray}=useAuthContext();
     const [menus, setMenus] = useState([])
 
     const iframeStyle = {
@@ -16,11 +17,11 @@ function Reports(props) {
 
     const getMenus = async () => {
         try {
-            const res = await fetch(`${API}/menus/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}/${sessionStorage.getItem('currentSystem')}`,
+            const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + props.token
+                        'Authorization': 'Bearer ' + jwt
                     }
                 });
             if (!res.ok) {

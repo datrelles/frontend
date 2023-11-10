@@ -30,20 +30,13 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { format } from 'date-fns'
+import { useAuthContext } from '../context/authContext';
 
 const API = process.env.REACT_APP_API;
-const useStyles = makeStyles({
-  datePickersContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    width: '310px'
-  },
-});
 
-
-function EditShipment(props) {
-
-  const classes = useStyles();
+function EditShipment() {
+  const {jwt, userShineray, enterpriseShineray, systemShineray}=useAuthContext();
+  
   const navigate = useNavigate();
   const location = useLocation();
   const [formData, setFormData] = useState(location.state)
@@ -99,11 +92,11 @@ function EditShipment(props) {
 
 
   const checkAuthorization = async () => {
-    const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
+    const res = await fetch(`${API}/modules/${userShineray}/${enterpriseShineray}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     });
     const data = await res.json();
@@ -113,11 +106,11 @@ function EditShipment(props) {
 
   const getShipment = async () => {
     try {
-      const res = await fetch(`${API}/embarque_param?empresa=${sessionStorage.getItem('currentEnterprise')}&codigo_bl_house=${formData.codigo_bl_house}`,
+      const res = await fetch(`${API}/embarque_param?empresa=${enterpriseShineray}&codigo_bl_house=${formData.codigo_bl_house}`,
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            'Authorization': 'Bearer ' + jwt
           }
         });
 
@@ -158,10 +151,10 @@ function EditShipment(props) {
 
   const getPackingList = async () => {
     try {
-      const res = await fetch(`${API}/packinglist_param?empresa=${sessionStorage.getItem('currentEnterprise')}&codigo_bl_house=${codigoBlHouse}`, {
+      const res = await fetch(`${API}/packinglist_param?empresa=${enterpriseShineray}&codigo_bl_house=${codigoBlHouse}`, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+          'Authorization': 'Bearer ' + jwt
         }
       })
       if (!res.ok) {
@@ -178,10 +171,10 @@ function EditShipment(props) {
   }
 
   const getStatusList = async () => {
-    const res = await fetch(`${API}/estados_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_modelo=BL`, {
+    const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=BL`, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     })
     const data = await res.json();
@@ -196,10 +189,10 @@ function EditShipment(props) {
   }
 
   const getTracking = async () => {
-    const res = await fetch(`${API}/tracking_bl_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_bl_house=${formData.codigo_bl_house}`, {
+    const res = await fetch(`${API}/tracking_bl_param?empresa=${enterpriseShineray}&cod_bl_house=${formData.codigo_bl_house}`, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     })
     const data = await res.json();
@@ -207,10 +200,10 @@ function EditShipment(props) {
   }
 
   const getProviderList = async () => {
-    const res = await fetch(`${API}/proveedores_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_proveedor=${formData.cod_proveedor}`, {
+    const res = await fetch(`${API}/proveedores_param?empresa=${enterpriseShineray}&cod_proveedor=${formData.cod_proveedor}`, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     })
     const data = await res.json();
@@ -218,10 +211,10 @@ function EditShipment(props) {
   }
 
   const getAforoList = async () => {
-    const res = await fetch(`${API}/tipo_aforo_param?empresa=${sessionStorage.getItem('currentEnterprise')}`, {
+    const res = await fetch(`${API}/tipo_aforo_param?empresa=${enterpriseShineray}`, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     })
     const data = await res.json();
@@ -237,7 +230,7 @@ function EditShipment(props) {
     const res = await fetch(`${API}/puertos_embarque`, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     })
     const data = await res.json();
@@ -256,7 +249,7 @@ function EditShipment(props) {
     const res = await fetch(`${API}/naviera`, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     })
     const data = await res.json();
@@ -271,7 +264,7 @@ function EditShipment(props) {
     const res = await fetch(`${API}/regimen_aduana`, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     })
     const data = await res.json();
@@ -284,10 +277,10 @@ function EditShipment(props) {
 
   const getAforoNombre = async () => {
 
-    const res = await fetch(`${API}/tipo_aforo_param?empresa=${sessionStorage.getItem('currentEnterprise')}`, {
+    const res = await fetch(`${API}/tipo_aforo_param?empresa=${enterpriseShineray}`, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     })
     const data = await res.json();
@@ -305,7 +298,7 @@ function EditShipment(props) {
         const res = await fetch(`${API}/container_by_nro?cod_bl_house=${formData.codigo_bl_house}`, {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                'Authorization': 'Bearer ' + jwt
             }
         })
         const data = await res.json();
@@ -324,11 +317,11 @@ function EditShipment(props) {
         const deletedRowValue = packingList[deletedRowIndex];
         console.log(deletedRowValue.secuencia);
 
-        fetch(`${API}/orden_compra_packinglist?codigo_bl_house=${codigoBlHouse}&empresa=${sessionStorage.getItem('currentEnterprise')}&secuencia=${deletedRowValue.secuencia}`, {
+        fetch(`${API}/orden_compra_packinglist?codigo_bl_house=${codigoBlHouse}&empresa=${enterpriseShineray}&secuencia=${deletedRowValue.secuencia}`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            'Authorization': 'Bearer ' + jwt
           }
         })
           .then(response => {
@@ -449,7 +442,7 @@ function EditShipment(props) {
             {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                    'Authorization': 'Bearer ' + jwt
                 }
             });
 
@@ -675,11 +668,11 @@ function EditShipment(props) {
 
   const handleChange2 = async (e) => {
     e.preventDefault();
-    const res = await fetch(`${API}/embarque/${codigoBlHouse}/${sessionStorage.getItem('currentEnterprise')}`, {
+    const res = await fetch(`${API}/embarque/${codigoBlHouse}/${enterpriseShineray}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       },
       body: JSON.stringify({
         fecha_embarque: fechaEmbarque,
@@ -695,7 +688,7 @@ function EditShipment(props) {
         costo_contenedor: costoContenedor,
         descripcion,
         tipo_flete: tipoFlete,
-        modificado_por: sessionStorage.getItem('currentUser'),
+        modificado_por: userShineray,
         cod_modelo: codModelo,
         cod_item: codItem,
         cod_aforo: codAforo,
@@ -761,11 +754,11 @@ function EditShipment(props) {
 
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}/${sessionStorage.getItem('currentSystem')}`,
+      const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            'Authorization': 'Bearer ' + jwt
           }
         });
 
@@ -1037,7 +1030,7 @@ function EditShipment(props) {
               />
             </Grid>
             <Grid item xs={12} md={3}>
-              <div className={classes.datePickersContainer}>
+              <div style={{ display:'flex',flexDirection:'column', width:'310px'}}>
                 <div>
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DemoContainer components={['DatePicker', 'DatePicker']}>

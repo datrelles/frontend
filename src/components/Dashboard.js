@@ -1,26 +1,26 @@
 import Navbar0 from "./Navbar0";
 import React, { useState, useEffect } from "react";
 import { Link } from 'react-router-dom';
-
+import { useAuthContext } from "../context/authContext";
 const API = process.env.REACT_APP_API;
 
-function Dashboard(props) {
-
+function Dashboard() {
+  const {jwt, userShineray, enterpriseShineray, setHandleSystemShineray}=useAuthContext();
   const [moduleList, setModuleList] = useState([])
   const [menus, setMenus] = useState([])
   const getModules = async () => {
 
-    const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
+    const res = await fetch(`${API}/modules/${userShineray}/${enterpriseShineray}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     })
 
     const data = await res.json();
-    console.log(data)
     setModuleList(data)
+    console.log(data)
   }
 
   function HoverImage(props) {
@@ -56,11 +56,11 @@ function Dashboard(props) {
   useEffect(() => {
     document.title = 'Modulos';
     getModules();
-    sessionStorage.removeItem('currentSystem')
+    setHandleSystemShineray('')
   }, [])
 
   const setCurrentSystem = (prop) => {
-    sessionStorage.setItem('currentSystem', prop);
+    setHandleSystemShineray(prop);
   };
 
   const listaElementos = moduleList.map((module) => (
@@ -74,7 +74,7 @@ function Dashboard(props) {
       <div className="text-center mt-2">
         <h6 className="font-weight-bold pt-2 mb-0" style={{ display: "inline-block", padding: "0" }}>{module.SISTEMA}</h6>
         <p className="text-muted mb-0">
-          <small>Empresa: {sessionStorage.getItem('currentEnterprise')}</small>
+          <small>Empresa: {enterpriseShineray}</small>
         </p>
       </div>
     </div>

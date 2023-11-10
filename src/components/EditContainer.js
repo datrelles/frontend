@@ -16,6 +16,7 @@ import * as XLSX from 'xlsx'
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Functions from "../helpers/Functions";
+import { useAuthContext } from '../context/authContext';
 
 const API = process.env.REACT_APP_API;
 const useStyles = makeStyles({
@@ -27,7 +28,8 @@ const useStyles = makeStyles({
 });
 
 
-function EditContainer(props) {
+function EditContainer() {
+  const {jwt, userShineray, enterpriseShineray, systemShineray}=useAuthContext();
 
   const classes = useStyles();
   const navigate = useNavigate();
@@ -59,11 +61,11 @@ function EditContainer(props) {
 
 
   const checkAuthorization = async () => {
-    const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
+    const res = await fetch(`${API}/modules/${userShineray}/${enterpriseShineray}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     });
     const data = await res.json();
@@ -77,7 +79,7 @@ function EditContainer(props) {
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            'Authorization': 'Bearer ' + jwt
           }
         });
 
@@ -105,10 +107,10 @@ function EditContainer(props) {
 
   const getPackingList = async () => {
     try {
-      const res = await fetch(`${API}/packinglist_param_by_container?empresa=${sessionStorage.getItem('currentEnterprise')}&nro_contenedor=${nroContenedor}`, {
+      const res = await fetch(`${API}/packinglist_param_by_container?empresa=${enterpriseShineray}&nro_contenedor=${nroContenedor}`, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+          'Authorization': 'Bearer ' + jwt
         }
       })
       if (!res.ok) {
@@ -128,7 +130,7 @@ function EditContainer(props) {
     const res = await fetch(`${API}/tipo_contenedor`, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     })
     const data = await res.json();
@@ -147,11 +149,11 @@ function EditContainer(props) {
         const deletedRowValue = packingList[deletedRowIndex];
         console.log(deletedRowValue.secuencia);
 
-        fetch(`${API}/orden_compra_packinglist?codigo_bl_house=${codigoBlHouse}&empresa=${sessionStorage.getItem('currentEnterprise')}&secuencia=${deletedRowValue.secuencia}`, {
+        fetch(`${API}/orden_compra_packinglist?codigo_bl_house=${codigoBlHouse}&empresa=${enterpriseShineray}&secuencia=${deletedRowValue.secuencia}`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            'Authorization': 'Bearer ' + jwt
           }
         })
           .then(response => {
@@ -322,11 +324,11 @@ function EditContainer(props) {
   }
 
   const handleRowClick2 = async (rowData) => {
-    const res = await fetch(`${API}/orden_compra_cab_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_po=${rowData}`,
+    const res = await fetch(`${API}/orden_compra_cab_param?empresa=${enterpriseShineray}&cod_po=${rowData}`,
       {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+          'Authorization': 'Bearer ' + jwt
         }
       });
 
@@ -345,11 +347,11 @@ function EditContainer(props) {
 
   const handleChange2 = async (e) => {
     e.preventDefault();
-    const res = await fetch(`${API}/contenedor/${nroContenedor}/${sessionStorage.getItem('currentEnterprise')}`, {
+    const res = await fetch(`${API}/contenedor/${nroContenedor}/${enterpriseShineray}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       },
       body: JSON.stringify({
         codigo_bl_house: codigoBlHouse,
@@ -360,7 +362,7 @@ function EditContainer(props) {
         shipper_seal: shipperSeal,
         es_carga_suelta: parseInt(esCargaSuelta, 10),
         observaciones: observaciones,
-        usuario_modifica: sessionStorage.getItem('currentUser')
+        usuario_modifica: userShineray
       })
     })
     const data = await res.json();
@@ -434,11 +436,11 @@ function EditContainer(props) {
 
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}/${sessionStorage.getItem('currentSystem')}`,
+      const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            'Authorization': 'Bearer ' + jwt
           }
         });
 

@@ -31,10 +31,12 @@ import { format } from 'date-fns'
 import FileGenerator from './FileGenerator';
 import Functions from "../helpers/Functions";
 import { da } from 'date-fns/locale';
+import { useAuthContext } from '../context/authContext';
 
 const API = process.env.REACT_APP_API;
 
-function EditPostSales(props) {
+function EditPostSales() {
+  const {jwt, userShineray, enterpriseShineray, systemShineray, branchShineray}=useAuthContext();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -75,11 +77,11 @@ function EditPostSales(props) {
 
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}/${sessionStorage.getItem('currentSystem')}`,
+      const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            'Authorization': 'Bearer ' + jwt
           }
         });
 
@@ -97,11 +99,11 @@ function EditPostSales(props) {
   }
 
   const checkAuthorization = async () => {
-    const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
+    const res = await fetch(`${API}/modules/${userShineray}/${enterpriseShineray}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     });
     const data = await res.json();
@@ -111,11 +113,11 @@ function EditPostSales(props) {
 
   const getPurchaseOrder = async () => {
     try {
-      const res = await fetch(`${API}/orden_compra_cab_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_po=${formData.cod_po}`,
+      const res = await fetch(`${API}/orden_compra_cab_param?empresa=${enterpriseShineray}&cod_po=${formData.cod_po}`,
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            'Authorization': 'Bearer ' + jwt
           }
         });
 
@@ -142,10 +144,10 @@ function EditPostSales(props) {
 
   const getPurchaseOrdersDetails = async () => {
     try {
-      const res = await fetch(`${API}/orden_compra_det_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_po=${codPo}&tipo_comprobante=PO`, {
+      const res = await fetch(`${API}/orden_compra_det_param?empresa=${enterpriseShineray}&cod_po=${codPo}&tipo_comprobante=PO`, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+          'Authorization': 'Bearer ' + jwt
         }
       })
       if (!res.ok) {
@@ -163,10 +165,10 @@ function EditPostSales(props) {
   }
 
   const getStatusList = async () => {
-    const res = await fetch(`${API}/estados_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_modelo=IMPR`, {
+    const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=IMPR`, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     })
     const data = await res.json();
@@ -179,10 +181,10 @@ function EditPostSales(props) {
   }
 
   const getTracking = async () => {
-    const res = await fetch(`${API}/orden_compra_track_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_po=${formData.cod_po}`, {
+    const res = await fetch(`${API}/orden_compra_track_param?empresa=${enterpriseShineray}&cod_po=${formData.cod_po}`, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     })
     const data = await res.json();
@@ -191,10 +193,10 @@ function EditPostSales(props) {
 
   const getPackingList = async () => {
     try {
-      const res = await fetch(`${API}/packinglist_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_po=${codPo}`, {
+      const res = await fetch(`${API}/packinglist_param?empresa=${enterpriseShineray}&cod_po=${codPo}`, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+          'Authorization': 'Bearer ' + jwt
         }
       })
       if (!res.ok) {
@@ -211,10 +213,10 @@ function EditPostSales(props) {
   }
 
   const getProvidersList = async () => {
-    const res = await fetch(`${API}/proveedores_ext?empresa=${sessionStorage.getItem('currentEnterprise')}`, {
+    const res = await fetch(`${API}/proveedores_ext?empresa=${enterpriseShineray}`, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     })
     const data = await res.json();
@@ -234,11 +236,11 @@ function EditPostSales(props) {
           const deletedRowValue = details[deletedRowIndex];
           console.log(deletedRowValue.secuencia);
 
-          fetch(`${API}/orden_compra_det/${codPo}/${sessionStorage.getItem('currentEnterprise')}/${deletedRowValue.secuencia}/PO`, {
+          fetch(`${API}/orden_compra_det/${codPo}/${enterpriseShineray}/${deletedRowValue.secuencia}/PO`, {
             method: 'DELETE',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+              'Authorization': 'Bearer ' + jwt
             }
           })
             .then(response => {
@@ -266,11 +268,11 @@ function EditPostSales(props) {
           const deletedRowValue = packingList[deletedRowIndex];
           console.log(deletedRowValue.secuencia);
 
-          fetch(`${API}/orden_compra_packinglist?cod_po=${codPo}&empresa=${sessionStorage.getItem('currentEnterprise')}&secuencia=${deletedRowValue.secuencia}`, {
+          fetch(`${API}/orden_compra_packinglist?cod_po=${codPo}&empresa=${enterpriseShineray}&secuencia=${deletedRowValue.secuencia}`, {
             method: 'DELETE',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+              'Authorization': 'Bearer ' + jwt
             }
           })
             .then(response => {
@@ -549,23 +551,23 @@ function EditPostSales(props) {
 
   const handleChange2 = async (e) => {
     e.preventDefault();
-    const res = await fetch(`${API}/orden_compra_cab/${codPo}/${sessionStorage.getItem('currentEnterprise')}/PO`, {
+    const res = await fetch(`${API}/orden_compra_cab/${codPo}/${enterpriseShineray}/PO`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       },
       body: JSON.stringify({
-        empresa: sessionStorage.getItem('currentEnterprise'),
+        empresa: enterpriseShineray,
         tipo_comprobante: tipoCombrobante,
-        bodega: sessionStorage.getItem('currentBranch'),
+        bodega: branchShineray,
         cod_proveedor: codProveedor,
         nombre: nombre,
         proforma: proforma,
         invoice: invoice,
         bl_no: blNo,
         cod_po_padre: codPoPadre,
-        usuario_modifica: sessionStorage.getItem('currentUser'),
+        usuario_modifica: userShineray,
         fecha_modifica: moment().format('DD/MM/YYYY'),
         cod_modelo: codModelo,
         cod_item: codItem,
@@ -589,14 +591,14 @@ function EditPostSales(props) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+          'Authorization': 'Bearer ' + jwt
         },
         body: JSON.stringify({
           orders: excelData,
           cod_po: codPo,
-          empresa: sessionStorage.getItem('currentEnterprise'),
-          usuario_crea: sessionStorage.getItem('currentUser'),
-          cod_agencia: sessionStorage.getItem('currentBranch')
+          empresa: enterpriseShineray,
+          usuario_crea: userShineray,
+          cod_agencia: branchShineray
         })
       });
       const data2 = await res2.json();
@@ -625,13 +627,13 @@ function EditPostSales(props) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+          'Authorization': 'Bearer ' + jwt
         },
         body: JSON.stringify({
           packings: excelDataPack,
           cod_po: codPo,
-          empresa: sessionStorage.getItem('currentEnterprise'),
-          usuario_crea: sessionStorage.getItem('currentUser'),
+          empresa: enterpriseShineray,
+          usuario_crea: userShineray,
           tipo_comprobante: "PO"
         })
       });
@@ -663,23 +665,23 @@ function EditPostSales(props) {
 
   const handleChangeSend = async (e) => {
     e.preventDefault();
-    const res = await fetch(`${API}/orden_compra_cab/${codPo}/${sessionStorage.getItem('currentEnterprise')}/PO`, {
+    const res = await fetch(`${API}/orden_compra_cab/${codPo}/${enterpriseShineray}/PO`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       },
       body: JSON.stringify({
-        empresa: sessionStorage.getItem('currentEnterprise'),
+        empresa: enterpriseShineray,
         tipo_comprobante: tipoCombrobante,
-        bodega: sessionStorage.getItem('currentBranch'),
+        bodega: branchShineray,
         cod_proveedor: codProveedor,
         nombre: nombre,
         proforma: proforma,
         invoice: invoice,
         bl_no: blNo,
         cod_po_padre: codPoPadre,
-        usuario_modifica: sessionStorage.getItem('currentUser'),
+        usuario_modifica: userShineray,
         fecha_modifica: moment().format('DD/MM/YYYY'),
         cod_modelo: codModelo,
         cod_item: 1,
@@ -700,23 +702,23 @@ function EditPostSales(props) {
 
   const handleChangeAprob = async (e) => {
     e.preventDefault();
-    const res = await fetch(`${API}/orden_compra_cab/${codPo}/${sessionStorage.getItem('currentEnterprise')}/PO`, {
+    const res = await fetch(`${API}/orden_compra_cab/${codPo}/${enterpriseShineray}/PO`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       },
       body: JSON.stringify({
-        empresa: sessionStorage.getItem('currentEnterprise'),
+        empresa: enterpriseShineray,
         tipo_comprobante: tipoCombrobante,
-        bodega: sessionStorage.getItem('currentBranch'),
+        bodega: branchShineray,
         cod_proveedor: codProveedor,
         nombre: nombre,
         proforma: proforma,
         invoice: invoice,
         bl_no: blNo,
         cod_po_padre: codPoPadre,
-        usuario_modifica: sessionStorage.getItem('currentUser'),
+        usuario_modifica: userShineray,
         fecha_modifica: moment().format('DD/MM/YYYY'),
         cod_modelo: codModelo,
         cod_item: 3,
@@ -1042,7 +1044,7 @@ function EditPostSales(props) {
               />
             </Grid>
             <Grid item xs={12} md={3}>
-              <div style={{display:'flex', flexDirection:'column', width:'310px'}}>
+              <div style={{ display:'flex',flexDirection:'column', width:'310px'}}>
                 <div>
                   <LocalizationProvider dateAdapter={AdapterDayjs} >
                     <DemoContainer components={['DatePicker', 'DatePicker']}>

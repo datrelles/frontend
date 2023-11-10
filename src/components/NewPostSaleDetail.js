@@ -11,12 +11,12 @@ import Autocomplete from '@mui/material/Autocomplete';
 import { useNavigate } from 'react-router-dom';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
-
+import { useAuthContext } from '../context/authContext';
 
 const API = process.env.REACT_APP_API;
 
 function NewPostSaleDetail(props) {
-
+  const {jwt, enterpriseShineray, userShineray}=useAuthContext();
 
   const location = useLocation();
   const [formData, setFormData] = useState(location.state)
@@ -73,12 +73,12 @@ function NewPostSaleDetail(props) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       },
       body: JSON.stringify({
         cod_po: codPo,
-        empresa: sessionStorage.getItem('currentEnterprise'),
-        usuario_crea: sessionStorage.getItem('currentUser'),
+        empresa: enterpriseShineray,
+        usuario_crea: userShineray,
         orders: [{
           secuencia: secuencia,
           cod_producto: codProducto,
@@ -93,7 +93,7 @@ function NewPostSaleDetail(props) {
           saldo_producto: parseInt(saldoProducto, 10),
           unidad_medida: unidadMedida,
           fecha_crea: moment().format('DD/MM/YYYY'),
-          usuario_modifica: sessionStorage.getItem('currentUser'),
+          usuario_modifica: userShineray,
           fecha_modifica: moment().format('DD/MM/YYYY'),
           exportar: false,
           nombre_mod_prov: '',
@@ -128,7 +128,7 @@ function NewPostSaleDetail(props) {
     const res = await fetch(`${API}/productos`, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     })
     const data = await res.json();
@@ -145,7 +145,7 @@ function NewPostSaleDetail(props) {
     const res = await fetch(`${API}/producto_modelo`, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        'Authorization': 'Bearer ' + jwt
       }
     })
     const data = await res.json();

@@ -16,7 +16,7 @@ import Box from '@mui/material/Box';
 import * as XLSX from 'xlsx'
 import Autocomplete from '@mui/material/Autocomplete';
 import Functions from "../helpers/Functions"; 
-
+import { useAuthContext } from "../context/authContext";
 const API = process.env.REACT_APP_API;
 
 const useStyles = makeStyles({
@@ -26,7 +26,8 @@ const useStyles = makeStyles({
     },
 });
 
-function PackingListTotal(props) {
+function PackingListTotal() {
+    const {jwt, enterpriseShineray, userShineray, systemShineray}=useAuthContext();
     const [packingList, setPackingList] = useState([])
     const [container, setContainer] = useState('')
     const [excelData, setExcelData] = useState(['']);
@@ -43,11 +44,11 @@ function PackingListTotal(props) {
 
     const checkAuthorization = async () => {
         try {
-            const res = await fetch(`${API}/modules/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}`, {
+            const res = await fetch(`${API}/modules/${userShineray}/${enterpriseShineray}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                    'Authorization': 'Bearer ' + jwt
                 }
             });
             const data = await res.json();
@@ -63,7 +64,7 @@ function PackingListTotal(props) {
             const res = await fetch(`${API}/containers`, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                    'Authorization': 'Bearer ' + jwt
                 }
             })
             const data = await res.json();
@@ -76,11 +77,11 @@ function PackingListTotal(props) {
 
     const getPackingList = async () => {
         try {
-            const res = await fetch(`${API}/packinglist_total?empresa=${sessionStorage.getItem('currentEnterprise')}`,
+            const res = await fetch(`${API}/packinglist_total?empresa=${enterpriseShineray}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                        'Authorization': 'Bearer ' + jwt
                     }
                 });
 
@@ -99,11 +100,11 @@ function PackingListTotal(props) {
 
     const getMenus = async () => {
         try {
-            const res = await fetch(`${API}/menus/${sessionStorage.getItem('currentUser')}/${sessionStorage.getItem('currentEnterprise')}/${sessionStorage.getItem('currentSystem')}`,
+            const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                        'Authorization': 'Bearer ' + jwt
                     }
                 });
 
@@ -138,7 +139,7 @@ function PackingListTotal(props) {
                 {
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                        'Authorization': 'Bearer ' + jwt
                     }
                 });
 
@@ -159,11 +160,11 @@ function PackingListTotal(props) {
 
     const handleRowClick2 = async (rowData) => {
         try {
-            const res = await fetch(`${API}/orden_compra_cab_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_po=${rowData}`,
+            const res = await fetch(`${API}/orden_compra_cab_param?empresa=${enterpriseShineray}&cod_po=${rowData}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                        'Authorization': 'Bearer ' + jwt
                     }
                 });
 
@@ -184,10 +185,10 @@ function PackingListTotal(props) {
 
     const getStatusList = async () => {
         try {
-            const res = await fetch(`${API}/estados_param?empresa=${sessionStorage.getItem('currentEnterprise')}&cod_modelo=BL`, {
+            const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=BL`, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                    'Authorization': 'Bearer ' + jwt
                 }
             })
             const data = await res.json();
@@ -372,11 +373,11 @@ function PackingListTotal(props) {
     const handleChange = async (e) => {
         try{
             e.preventDefault();
-            const res0 = await fetch(`${API}/packings_by_container?empresa=${sessionStorage.getItem('currentEnterprise')}&nro_contenedor=${container}`, {
+            const res0 = await fetch(`${API}/packings_by_container?empresa=${enterpriseShineray}&nro_contenedor=${container}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                    'Authorization': 'Bearer ' + jwt
                 }
             })
             const data0 = await res0.json();
@@ -387,15 +388,15 @@ function PackingListTotal(props) {
                 const userResponse = window.confirm(`Este Contenedor tiene ${qty} registros de packinglist, desea borrar y reemplazar?`)
                 if (userResponse) {
                     enqueueSnackbar('Creando PackingList en Contenedor...', { variant: 'success' });
-                    const resDelete = await fetch(`${API}/orden_compra_packinglist_by_container?empresa=${sessionStorage.getItem('currentEnterprise')}&nro_contenedor=${container}`, {
+                    const resDelete = await fetch(`${API}/orden_compra_packinglist_by_container?empresa=${enterpriseShineray}&nro_contenedor=${container}`, {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                            'Authorization': 'Bearer ' + jwt
                         },
                         body: JSON.stringify({
                             nro_contenedor: container,
-                            empresa: sessionStorage.getItem('currentEnterprise'),
+                            empresa: enterpriseShineray,
                         })
                     })
                     const dataDel = await resDelete.json();
@@ -404,13 +405,13 @@ function PackingListTotal(props) {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                            'Authorization': 'Bearer ' + jwt
                         },
                         body: JSON.stringify({
                             packings: excelData,
                             nro_contenedor: container,
-                            empresa: sessionStorage.getItem('currentEnterprise'),
-                            usuario_crea: sessionStorage.getItem('currentUser'),
+                            empresa: enterpriseShineray,
+                            usuario_crea: userShineray,
                             tipo_comprobante: "PO"
                         })
                     })
@@ -443,13 +444,13 @@ function PackingListTotal(props) {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                        'Authorization': 'Bearer ' + jwt
                     },
                     body: JSON.stringify({
                         packings: excelData,
                         nro_contenedor: container,
-                        empresa: sessionStorage.getItem('currentEnterprise'),
-                        usuario_crea: sessionStorage.getItem('currentUser'),
+                        empresa: enterpriseShineray,
+                        usuario_crea: userShineray,
                         tipo_comprobante: "PO"
                     })
                 })

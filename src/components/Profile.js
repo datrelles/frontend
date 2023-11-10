@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import BootstrapSelect from 'react-bootstrap-select-dropdown';
+import { useAuthContext } from "../context/authContext";
 import Header from "./Header";
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 import Grid from '@mui/material/Grid';
-
 import useToken from "./useToken";
 import '../styles/Profile.css'
 import { useNavigate } from 'react-router-dom';
@@ -13,7 +13,8 @@ import { useNavigate } from 'react-router-dom';
 const API = process.env.REACT_APP_API;
 
 
-function Profile(props) {
+function Profile() {
+  const {jwt, userShineray, setHandleenterprise, setHandleBranch, setHandleSystemShineray}=useAuthContext();
   const { removeToken } = useToken();
   const navigate = useNavigate();
 
@@ -23,14 +24,14 @@ function Profile(props) {
   const [branch, setBranch] = useState("")
 
 
-
   const getEnterprises = async () => {
+    
 
-    const res = await fetch(`${API}/enterprise/${sessionStorage.getItem('currentUser')}`, {
+    const res = await fetch(`${API}/enterprise/${userShineray}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + props.token
+        'Authorization': 'Bearer ' + jwt
       }
     })
 
@@ -40,27 +41,28 @@ function Profile(props) {
       value: item.NOMBRE
     }));
     setEnterprises(newData)
-    console.log(newData)
 
-    if (sessionStorage.getItem('currentUser')) {
-      const res1 = await fetch(`${API}/enterprise_default/${sessionStorage.getItem('currentUser')}`, {
+
+
+    if (userShineray) {
+      const res1 = await fetch(`${API}/enterprise_default/${userShineray}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + props.token
+          'Authorization': 'Bearer ' + jwt
         }
       })
 
       const data1 = await res1.json();
-      sessionStorage.setItem('currentEnterprise', data1[0].EMPRESA_ACTUAL);
-      sessionStorage.setItem('currentBranch', data1[0].AGENCIA_ACTUAL);
+       setHandleenterprise(data1[0].EMPRESA_ACTUAL);
+       setHandleBranch(data1[0].AGENCIA_ACTUAL);
       setEnterprise(newData.find((objeto) => objeto.key === data1[0].EMPRESA_ACTUAL).value)
 
-      const res2 = await fetch(`${API}/branch/${sessionStorage.getItem('currentUser')}/${data1[0].EMPRESA_ACTUAL}`, {
+      const res2 = await fetch(`${API}/branch/${userShineray}/${data1[0].EMPRESA_ACTUAL}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + props.token
+          'Authorization': 'Bearer ' + jwt
         }
       })
 
@@ -79,11 +81,11 @@ function Profile(props) {
 
   const getBranches = async (selectedKey) => {
     if (selectedKey) {
-      const res = await fetch(`${API}/branch/${sessionStorage.getItem('currentUser')}/${selectedKey}`, {
+      const res = await fetch(`${API}/branch/${userShineray}/${selectedKey}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + props.token
+          'Authorization': 'Bearer ' + jwt
         }
       })
 
@@ -99,7 +101,7 @@ function Profile(props) {
   useEffect(() => {
     document.title = 'Seleccion Empresa';
     getEnterprises();
-    sessionStorage.removeItem('currentSystem')
+    setHandleSystemShineray('');
   }, [])
 
 
@@ -107,7 +109,7 @@ function Profile(props) {
     if (value) {
       const statusSeleccionado = enterprises.find((enterprise) => enterprise.value === value);
       if (statusSeleccionado) {
-        sessionStorage.setItem('currentEnterprise', statusSeleccionado.key);
+        setHandleenterprise(statusSeleccionado.key);
         setEnterprise(statusSeleccionado.value)
         getBranches(statusSeleccionado.key);
       }
@@ -118,7 +120,7 @@ function Profile(props) {
     if (value) {
       const statusSeleccionado = branches.find((branch) => branch.value === value);
       if (statusSeleccionado) {
-        sessionStorage.setItem('currentBranch', statusSeleccionado.key);
+        setHandleBranch(statusSeleccionado.key);
         setBranch(statusSeleccionado.value)
       }
     }
@@ -184,7 +186,7 @@ function Profile(props) {
             >
               {'Ingresar'}
             </button>
-            <Header token={removeToken} />
+            <Header/>
           </Grid>
         </Grid>
         </div>
