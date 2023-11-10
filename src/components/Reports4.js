@@ -8,7 +8,6 @@ const API = process.env.REACT_APP_API;
 function Reports4() {
     const [menus, setMenus] = useState([])
     const {jwt, userShineray, enterpriseShineray}=useAuthContext();
-
     const iframeStyle = {
         width: '100%',
         height: '100vh',

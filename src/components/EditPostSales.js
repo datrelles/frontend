@@ -33,21 +33,11 @@ import Functions from "../helpers/Functions";
 import { da } from 'date-fns/locale';
 import { useAuthContext } from '../context/authContext';
 
-
 const API = process.env.REACT_APP_API;
-const useStyles = makeStyles({
-  datePickersContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    width: '310px'
-  },
-});
-
 
 function EditPostSales() {
   const {jwt, userShineray, enterpriseShineray, systemShineray, branchShineray}=useAuthContext();
 
-  const classes = useStyles();
   const navigate = useNavigate();
   const location = useLocation();
   const [formData, setFormData] = useState(location.state)

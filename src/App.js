@@ -27,6 +27,7 @@ import PackingListTotal from "./components/PackingListTotal";
 import Reports from "./components/Reports";
 import Reports2 from "./components/Reports2";
 import Reports3 from "./components/Reports3";
+import Reports4 from "./components/Reports4";
 import Settings from "./components/Settings";
 import Menus from "./components/Menus";
 import Details from "./components/Details";
