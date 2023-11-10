@@ -31,7 +31,7 @@ import Reports4 from "./components/Reports4";
 import Settings from "./components/Settings";
 import Menus from "./components/Menus";
 import Details from "./components/Details";
-import Reports4 from "./components/Reports4";
+
 
 const API = process.env.REACT_APP_API;
 
