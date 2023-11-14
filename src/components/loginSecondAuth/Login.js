@@ -31,7 +31,7 @@ function LoginAuth() {
 
         try {
             setLoading(true);
-            const res = await fetch(`${API}/auth/init`, {
+            const res = await fetch(`${API}/auth/set_authorization/dtrelles`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
