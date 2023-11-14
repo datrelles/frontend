@@ -6,6 +6,7 @@ const BRANCH_SHINERAY = 'branchShinerayS';
 const KEY_JWT = 'KEY_JWT';
 const enterprise_SHINERAY = 'enterprise_SHINERAY';
 const SYSTEM_SHINERAY = 'SYSTEM_SHINERAY';
+const SECONDAUTH=''
 
 export const AuthContext = createContext();
 
@@ -29,6 +30,10 @@ export default function AuthContextProvider({ children }) {
     const [jwt, setJwt] = useState(() =>
         window.localStorage.getItem(KEY_JWT)
     );
+
+    const [secondAuth, setSecondAuth] = useState(() =>
+    window.localStorage.getItem(SECONDAUTH)
+);
     
     
     const login = useCallback((userShineray, enterpriseShineray, branchShineray) => {
@@ -38,6 +43,8 @@ export default function AuthContextProvider({ children }) {
         setuserShineray(userShineray);
         setenterpriseShineray(enterpriseShineray);
         setbranchShineray(branchShineray);
+        window.localStorage.removeItem(SECONDAUTH);
+        setSecondAuth('')
     }, []);
     
     const setAuthToken = useCallback((token) => {
@@ -58,6 +65,12 @@ export default function AuthContextProvider({ children }) {
     const setHandleSystemShineray = useCallback((systemShineray) => {
         window.localStorage.setItem(SYSTEM_SHINERAY, systemShineray);
         setsystemShineray(systemShineray)
+    }, []);
+
+    
+    const setSecondAuthInit = useCallback((secondAuth) => {
+        window.localStorage.setItem(SECONDAUTH, secondAuth);
+        setSecondAuth(secondAuth)
     }, []);
 
     
@@ -88,9 +101,12 @@ export default function AuthContextProvider({ children }) {
             systemShineray,
             branchShineray,
             enterpriseShineray,
-            userShineray
+            userShineray,
+            secondAuth,
+            setSecondAuthInit
+
         }),
-        [userShineray, login, logout, branchShineray, jwt, setAuthToken, enterpriseShineray, setHandleenterprise,setHandleBranch, setHandleSystemShineray, systemShineray]
+        [userShineray, login, logout, branchShineray, jwt, setAuthToken, enterpriseShineray, setHandleenterprise,setHandleBranch, setHandleSystemShineray, systemShineray, secondAuth, setSecondAuthInit]
     );
     
 

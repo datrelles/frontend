@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route} from "react-router-dom";
 import { useAuthContext } from "./context/authContext";
 
 import { ToastContainer } from 'react-toastify';
@@ -31,7 +31,10 @@ import Reports4 from "./components/Reports4";
 import Settings from "./components/Settings";
 import Menus from "./components/Menus";
 import Details from "./components/Details";
-
+//login 2Auth
+import LoginAuth from "./components/loginSecondAuth/Login";
+import SecondAuth from "./components/loginSecondAuth/secondAuth";
+import SaveDevice from "./components/loginSecondAuth/saveDevice";
 
 const API = process.env.REACT_APP_API;
 
@@ -68,7 +71,16 @@ function App() {
     <div style={{ width: '99%', minHeight: '100vh', marginLeft: '10px' }}>
         <Router>
           {!token && token !== "" && token == undefined ?
-            <Login setToken={setToken} />
+           
+            <Routes>
+              <>
+              <Route path="/" element={<Login/>} />
+              <Route path="/auth" element={<LoginAuth/>} />
+              <Route path="/2auth" element={<SecondAuth/>} />
+              <Route path="/saveDevice" element={<SaveDevice/>} />
+              <Route path="*" element={<Login/>}/>
+              </>
+            </Routes>
             : (
               <>
                 <Routes>
