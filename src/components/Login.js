@@ -36,7 +36,7 @@ function Login() {
             })
         })
         const data = await res.json(); 
-        console.log(data)   
+     
 
         if (data.access_token) {
             setAuthToken(data.access_token)

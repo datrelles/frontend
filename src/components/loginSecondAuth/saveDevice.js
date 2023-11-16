@@ -15,44 +15,47 @@ const API = process.env.REACT_APP_API;
 function SaveDevice() {
 
     const navigate = useNavigate();
-    const {setAuthToken, login, jwt, userShineray}=useAuthContext()
-    const [name, setName] = useState('')
-    const [password, setPassword] = useState('')
+    const {jwt, userShineray, setHandleFlag, flag, setHandleFlagTemporal, temporalFlag}=useAuthContext()
     const [alert, setAlert] = useState('')
     
-   
-
-    const handleSubmit = async (e) => {
-
-        e.preventDefault();
-
-        const res = await fetch(`${API}/token`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                user: name,
-                password
-            })
-        })
-        const data = await res.json(); 
-        console.log(data)   
-
-        if (data.access_token) {
-            setAuthToken(data.access_token)
-            login(name,'empresa','rama')
-            navigate('/profile')
-        } else {
-            setAlert('Usuario o contraseña incorrectos')
-            navigate('/')
+    useEffect(() => {
+        // Verifica si al menos uno de los dos (a o b) no es nulo
+        if (flag !== null || temporalFlag !== null) {
+          // Ejecuta la acción si ambas variables no son nulas
+          navigate('/profile');
         }
+      }, []);
 
-        setName('');
-        setPassword('');
-    }
-
-
+    const handleSubmit = async (save) => {
+        try {
+          if (save ==='save') {
+            const response = await updateSessionStatus(userShineray);
+            const data = await response.json();
+            const localflag='yarenyhs'+jwt+'_'+userShineray;
+            setHandleFlag(localflag)
+            navigate('/profile')
+          } else if(save === 'no'){
+            const localflag='yarenyhs'+jwt+'_'+userShineray;
+            setHandleFlagTemporal(localflag);
+            navigate('/profile')
+          }
+        } catch (error) {
+          console.error('Error during submission:', error);
+        }
+      };
+      
+      const updateSessionStatus = (userId) => {
+        return fetch(`${API}/auth/verify_sesion/${userId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + jwt
+          },
+          body: JSON.stringify({
+            mantiene_sesion: 1,
+          }),
+        });
+      };
     return (
         <section className="h-100 gradient-form" >
             <div className="container py-5 h-100">
@@ -104,7 +107,7 @@ function SaveDevice() {
                                                    className="mx-1 btn btn-primary btn-block"
                                                     type="button"
                                                     style={{ backgroundColor: 'firebrick' }}
-                                                    onClick={handleSubmit}
+                                                    onClick={()=>handleSubmit('save')}
                                                 >
                                                     {'Guardar'} 
                                                 </button>
@@ -113,7 +116,7 @@ function SaveDevice() {
                                                    className="mx-1 btn btn-primary btn-block"
                                                     type="button"
                                                     style={{ backgroundColor: 'silver' }}
-                                                    onClick={handleSubmit}
+                                                    onClick={()=>handleSubmit('no')}
                                                 >
                                                     {'NO GUARDAR'} 
                                                 </button>

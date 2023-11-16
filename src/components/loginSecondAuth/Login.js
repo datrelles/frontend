@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import '../../styles/Login.css'
 import logo from '../../img/logo_massline.png';
@@ -15,7 +15,7 @@ const API = process.env.REACT_APP_API;
 function LoginAuth() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const { secondAuth, setSecondAuthInit, setAuthToken, login } = useAuthContext();
+    const { secondAuth, setSecondAuthInit, setAuthToken, login, setSecondAuthFinish } = useAuthContext();
     const [name, setName] = useState('')
     const [password, setPassword] = useState('')
     const [alert, setAlert] = useState('')
@@ -25,13 +25,16 @@ function LoginAuth() {
 
     ////Validacion de PIN
 
+    useEffect(() => {
+        setSecondAuthFinish()
+      }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         try {
             setLoading(true);
-            const res = await fetch(`${API}/auth/set_authorization/dtrelles`, {
+            const res = await fetch(`${API}/auth/set_authorization/${name}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -51,13 +54,19 @@ function LoginAuth() {
             if (data.auth2) {
                 setLoading(false);
                 setAlert('');
-                setEmail(data.email)
+                const firstChar = data.email.charAt(0);
+                const domainSuffix = data.email.slice(data.email.indexOf('@'));
+                const maskedChars = '*'.repeat(data.email.length - (domainSuffix.length+1));
+                const prelastchart = data.email.split('@')[0];
+                const lastchart = prelastchart[prelastchart.length-1];
+                const maskedEmail = `${firstChar}${maskedChars}${lastchart}${domainSuffix}`;
+                setEmail(maskedEmail)
                 setSecondAuthInit(data.user)
 
             } else {
                 setLoading(false);
                 setAlert('Usuario o contraseña incorrectos');
-                navigate('/');
+                navigate('/auth');
             }
 
             setName('');
@@ -70,33 +79,33 @@ function LoginAuth() {
     };
 
 
-    const pinSubmit = async (e) => {
-        e.preventDefault();
+    const pinSubmit = async () => {
         setAlert('')
         if (/^\d{6}[a-zA-Z]$/.test(pin)) {
             try {
-                setAlert('')
-                const res = await fetch(`${API}/auth/check`, {
-                    method: 'POST',
+                const res = await fetch(`${API}/auth/verify_authorization/${secondAuth}`, {
+                    method: 'PUT',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        user: secondAuth,
-                        pin
+                        token: pin,
                     })
                 })
                 const data = await res.json();
-                console.log(data)
                 if (data.access_token) {
                     setAuthToken(data.access_token)
                     login(secondAuth, 'empresa', 'rama')
-                    navigate('/profile')
+                    navigate('/saveDevice')
                     setName('');
                     setPin('');
                 } else {
-                    setAlert('Pin Incorrecto')
-        
+                    console.log(data.error)
+                    if(data.error='Token expirado')
+                        setAlert('Token expirado')       
+                    else    
+                        setAlert('Pin Incorrecto')
+                    setPin('');
                 }
                
 

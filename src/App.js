@@ -43,7 +43,7 @@ const API = process.env.REACT_APP_API;
 function App() {
   const {  removeToken, setToken } = useToken();
   const [authorizedSystems, setAuthorizedSystems] = useState(['IMP', 'REP', 'GAR', 'PBI']);
-  const {jwt, userShineray,enterpriseShineray}=useAuthContext();
+  const {jwt, userShineray,enterpriseShineray, flag, temporalFlag, logout}=useAuthContext();
   const token=jwt
 
   const checkAuthorization = async () => {
@@ -62,29 +62,49 @@ function App() {
   useEffect(() => {
     if (enterpriseShineray) {
       checkAuthorization();
+
+    }  
+  }, [jwt]);
+
+  
+  useEffect(() => {
+    if (flag === null && temporalFlag === null) {
+      logout();
+      
+    } else {
+      // Determina cuál  no es nulo
+      const valorNoNulo = flag !== null ? flag : temporalFlag;
+      
+      // Compara el valor no nulo con jwt
+      if (valorNoNulo === 'yarenyhs'+jwt+'_'+userShineray) {
+        // Ejecuta la acción si el valor no nulo es igual a c
+       
+      }
     }
-  }, [token]);
+  }, []);
+
 
 
 
   return (
     <div style={{ width: '99%', minHeight: '100vh', marginLeft: '10px' }}>
         <Router>
-          {!token && token !== "" && token == undefined ?
-           
+          {!jwt && jwt !== "" && jwt == undefined ?
+            (        
             <Routes>
               <>
               <Route path="/" element={<Login/>} />
               <Route path="/auth" element={<LoginAuth/>} />
               <Route path="/2auth" element={<SecondAuth/>} />
-              <Route path="/saveDevice" element={<SaveDevice/>} />
               <Route path="*" element={<Login/>}/>
               </>
             </Routes>
+                )
             : (
               <>
                 <Routes>
-                  <Route path="/" element={<Login/>} />
+                  <Route exact path="*" element={<Profile/>}></Route>
+                  <Route path="/saveDevice" element={<SaveDevice/>} />
                   <Route path="/users" element={<Users/>} />
                   <Route exact path="/profile" element={<Profile/>}></Route>
                   <Route exact path="/dashboard" element={<Dashboard />}></Route>
