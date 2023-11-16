@@ -79,6 +79,8 @@ function App() {
       if (valorNoNulo === 'yarenyhs'+jwt+'_'+userShineray) {
         // Ejecuta la acción si el valor no nulo es igual a c
        
+      } else{
+        logout();
       }
     }
   }, []);
