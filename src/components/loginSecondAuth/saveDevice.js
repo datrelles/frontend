@@ -1,57 +1,61 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Route, Routes } from 'react-router-dom';
-import '../styles/Login.css'
-import logo from '../img/logo_massline.png';
-import logo1 from '../img/Logo-Shineray-Blanco.png';
+import '../../styles/Login.css'
+import logo from '../../img/logo_massline.png';
+import logo1 from '../../img/Logo-Shineray-Blanco.png';
 import SportsMotorsportsTwoToneIcon from '@mui/icons-material/SportsMotorsportsTwoTone';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
+import LaptopChromebookIcon from '@mui/icons-material/LaptopChromebook';
 import TwoWheelerRoundedIcon from '@mui/icons-material/TwoWheelerRounded';
-import { useAuthContext } from "../context/authContext";
+import { useAuthContext } from "../../context/authContext";
 
 
 const API = process.env.REACT_APP_API;
 
-function Login() {
+function SaveDevice() {
 
     const navigate = useNavigate();
-    const {setAuthToken, login, jwt, userShineray}=useAuthContext()
-    const [name, setName] = useState('')
-    const [password, setPassword] = useState('')
+    const {jwt, userShineray, setHandleFlag, flag, setHandleFlagTemporal, temporalFlag}=useAuthContext()
     const [alert, setAlert] = useState('')
     
-   
-
-    const handleSubmit = async (e) => {
-
-        e.preventDefault();
-
-        const res = await fetch(`${API}/token`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                user: name,
-                password
-            })
-        })
-        const data = await res.json(); 
-     
-
-        if (data.access_token) {
-            setAuthToken(data.access_token)
-            login(name,'empresa','rama')
-            navigate('/profile')
-        } else {
-            setAlert('Usuario o contraseña incorrectos')
-            navigate('/')
+    useEffect(() => {
+        // Verifica si al menos uno de los dos (a o b) no es nulo
+        if (flag !== null || temporalFlag !== null) {
+          // Ejecuta la acción si ambas variables no son nulas
+          navigate('/profile');
         }
+      }, []);
 
-        setName('');
-        setPassword('');
-    }
-
-
+    const handleSubmit = async (save) => {
+        try {
+          if (save ==='save') {
+            const response = await updateSessionStatus(userShineray);
+            const data = await response.json();
+            const localflag='yarenyhs'+jwt+'_'+userShineray;
+            setHandleFlag(localflag)
+            navigate('/profile')
+          } else if(save === 'no'){
+            const localflag='yarenyhs'+jwt+'_'+userShineray;
+            setHandleFlagTemporal(localflag);
+            navigate('/profile')
+          }
+        } catch (error) {
+          console.error('Error during submission:', error);
+        }
+      };
+      
+      const updateSessionStatus = (userId) => {
+        return fetch(`${API}/auth/verify_sesion/${userId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + jwt
+          },
+          body: JSON.stringify({
+            mantiene_sesion: 1,
+          }),
+        });
+      };
     return (
         <section className="h-100 gradient-form" >
             <div className="container py-5 h-100">
@@ -70,28 +74,20 @@ function Login() {
                                             <h4 className="mt-1 mb-5 pb-1"> </h4>
                                         </div>
                                         <form>
-                                            <p>Por favor, ingrese sus credenciales</p>
+                                        <p style={{ textAlign: 'justify' }}>
+                                            Deseas mantener la sesión activa en este dispositivo:
+                                            </p>
+                                            <p style={{ textAlign: 'center', color: 'blue' }}>{'Navegador Google Chrome-Windows'}</p>
                                             <div className="form-outline mb-4">
-                                                <input type="text"
-                                                    onChange={e => setName(e.target.value)}
-                                                    value={name}
-                                                    className="form-control"
-                                                    placeholder="Usuario"
-                                                    autoFocus />
-                                                <label className="form-label" htmlFor="form2Example11">
-                                                <SportsMotorsportsTwoToneIcon/>  Usuario
-                                                </label>
-                                            </div>
-                                            <div className="form-outline mb-4">
-                                                <input type="password"
-                                                    onChange={e => setPassword(e.target.value)}
-                                                    value={password}
-                                                    className="form-control"
-                                                    placeholder="Contraseña"
-                                                />
-                                                <label className="form-label" htmlFor="form2Example22">
-                                                <VpnKeyIcon/>    Contraseña
-                                                </label>
+         
+                                                <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', width:'100%'}}>
+                                                    <div>
+                                                    <LaptopChromebookIcon style={{marginRight:'10px'}}/>
+                                                    </div>
+                                                    
+                                                </div>
+                                             
+                                               
                                             </div>
                                             <div>
                                                 {(() => {
@@ -106,14 +102,23 @@ function Login() {
                                                 )()
                                                 }
                                             </div>
-                                            <div className="text-center pt-1 mb-5 pb-1">
+                                            <div className=" text-center pt-1 mb-5 pb-1">
                                                 <button
-                                                   className="btn btn-primary btn-block"
+                                                   className="mx-1 btn btn-primary btn-block"
                                                     type="button"
                                                     style={{ backgroundColor: 'firebrick' }}
-                                                    onClick={handleSubmit}
+                                                    onClick={()=>handleSubmit('save')}
                                                 >
-                                                    {'Ingresar '} <TwoWheelerRoundedIcon/>
+                                                    {'Guardar'} 
+                                                </button>
+
+                                                <button
+                                                   className="mx-1 btn btn-primary btn-block"
+                                                    type="button"
+                                                    style={{ backgroundColor: 'silver' }}
+                                                    onClick={()=>handleSubmit('no')}
+                                                >
+                                                    {'NO GUARDAR'} 
                                                 </button>
                                             </div>
                                         </form>
@@ -145,4 +150,4 @@ function Login() {
 
     );
 }
-export default Login;
+export default SaveDevice;

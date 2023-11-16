@@ -1,27 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Route, Routes } from 'react-router-dom';
-import '../styles/Login.css'
-import logo from '../img/logo_massline.png';
-import logo1 from '../img/Logo-Shineray-Blanco.png';
-import SportsMotorsportsTwoToneIcon from '@mui/icons-material/SportsMotorsportsTwoTone';
+import '../../styles/Login.css'
+import logo from '../../img/logo_massline.png';
+import logo1 from '../../img/Logo-Shineray-Blanco.png';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import TwoWheelerRoundedIcon from '@mui/icons-material/TwoWheelerRounded';
-import { useAuthContext } from "../context/authContext";
+import { useAuthContext } from "../../context/authContext";
 
 
 const API = process.env.REACT_APP_API;
 
-function Login() {
+function SecondAuth() {
 
     const navigate = useNavigate();
-    const {setAuthToken, login, jwt, userShineray}=useAuthContext()
+    const {setAuthToken, login}=useAuthContext()
     const [name, setName] = useState('')
-    const [password, setPassword] = useState('')
+    const [pin, setpin] = useState('')
     const [alert, setAlert] = useState('')
     
    
 
-    const handleSubmit = async (e) => {
+    const pinSubmit = async (e) => {
 
         e.preventDefault();
 
@@ -32,11 +31,10 @@ function Login() {
             },
             body: JSON.stringify({
                 user: name,
-                password
+                pin
             })
         })
-        const data = await res.json(); 
-     
+        const data = await res.json();   
 
         if (data.access_token) {
             setAuthToken(data.access_token)
@@ -48,7 +46,7 @@ function Login() {
         }
 
         setName('');
-        setPassword('');
+        setpin('');
     }
 
 
@@ -70,28 +68,26 @@ function Login() {
                                             <h4 className="mt-1 mb-5 pb-1"> </h4>
                                         </div>
                                         <form>
-                                            <p>Por favor, ingrese sus credenciales</p>
-                                            <div className="form-outline mb-4">
-                                                <input type="text"
-                                                    onChange={e => setName(e.target.value)}
-                                                    value={name}
-                                                    className="form-control"
-                                                    placeholder="Usuario"
-                                                    autoFocus />
-                                                <label className="form-label" htmlFor="form2Example11">
-                                                <SportsMotorsportsTwoToneIcon/>  Usuario
-                                                </label>
-                                            </div>
+                                        <p style={{ textAlign: 'justify' }}>
+                                                Se requiere autenticación de dos factores. Se ha enviado un código al correo electrónico correspondiente.
+                                            </p>
+                                            <p style={{ textAlign: 'center', color: 'blue' }}>{'d******3@massline.com.ec'}</p>
                                             <div className="form-outline mb-4">
                                                 <input type="password"
-                                                    onChange={e => setPassword(e.target.value)}
-                                                    value={password}
+                                                    onChange={e => setpin(e.target.value)}
+                                                    value={pin}
                                                     className="form-control"
-                                                    placeholder="Contraseña"
+                                                    placeholder="Introducir PIN "
                                                 />
-                                                <label className="form-label" htmlFor="form2Example22">
-                                                <VpnKeyIcon/>    Contraseña
-                                                </label>
+                                              
+                                                <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', width:'100%'}}>
+                                                    <div>
+                                                    <VpnKeyIcon style={{marginRight:'10px'}}/> PIN
+                                                    </div>
+                                                    
+                                                </div>
+                                             
+                                               
                                             </div>
                                             <div>
                                                 {(() => {
@@ -111,7 +107,7 @@ function Login() {
                                                    className="btn btn-primary btn-block"
                                                     type="button"
                                                     style={{ backgroundColor: 'firebrick' }}
-                                                    onClick={handleSubmit}
+                                                    onClick={pinSubmit}
                                                 >
                                                     {'Ingresar '} <TwoWheelerRoundedIcon/>
                                                 </button>
@@ -145,4 +141,4 @@ function Login() {
 
     );
 }
-export default Login;
+export default SecondAuth;
