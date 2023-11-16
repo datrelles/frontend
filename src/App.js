@@ -95,17 +95,17 @@ function App() {
             (        
             <Routes>
               <>
-              <Route path="/" element={<Login/>} />
+              <Route path="/" element={<LoginAuth/>} />
               <Route path="/auth" element={<LoginAuth/>} />
               <Route path="/2auth" element={<SecondAuth/>} />
-              <Route path="*" element={<Login/>}/>
+              <Route path="*" element={<LoginAuth/>}/>
               </>
             </Routes>
                 )
             : (
               <>
                 <Routes>
-                  <Route exact path="*" element={<Profile/>}></Route>
+                  <Route exact path="*" element={<Dashboard />}></Route>
                   <Route path="/saveDevice" element={<SaveDevice/>} />
                   <Route path="/users" element={<Users/>} />
                   <Route exact path="/profile" element={<Profile/>}></Route>
