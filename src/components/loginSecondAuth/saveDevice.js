@@ -8,6 +8,7 @@ import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import LaptopChromebookIcon from '@mui/icons-material/LaptopChromebook';
 import TwoWheelerRoundedIcon from '@mui/icons-material/TwoWheelerRounded';
 import { useAuthContext } from "../../context/authContext";
+import Bowser from "bowser";
 
 
 const API = process.env.REACT_APP_API;
@@ -16,7 +17,32 @@ function SaveDevice() {
 
     const navigate = useNavigate();
     const {jwt, userShineray, setHandleFlag, flag, setHandleFlagTemporal, temporalFlag}=useAuthContext()
-    const [alert, setAlert] = useState('')
+    const [alert, setAlert] = useState('');
+    const [navInfo, setNavInfo]=useState(
+        {
+            browser: {
+              name: '',
+              version: ''
+            },
+            os: {
+              name: '',
+              version: '',
+              versionName: ''
+            },
+            platform: {
+              type: ''
+            },
+            engine: {
+              name: '',
+              version: ''
+            }
+          }
+    );
+    
+    useEffect(()=>{
+        const data=Bowser.parse(window.navigator.userAgent);
+        setNavInfo(data)
+    },[])
     
     useEffect(() => {
         // Verifica si al menos uno de los dos (a o b) no es nulo
@@ -45,6 +71,7 @@ function SaveDevice() {
       };
       
       const updateSessionStatus = (userId) => {
+        const infoNavegador=navInfo.browser.name+'-'+navInfo.os.name
         return fetch(`${API}/auth/verify_sesion/${userId}`, {
           method: 'PUT',
           headers: {
@@ -53,9 +80,11 @@ function SaveDevice() {
           },
           body: JSON.stringify({
             mantiene_sesion: 1,
+            navegador:infoNavegador,
           }),
         });
       };
+
     return (
         <section className="h-100 gradient-form" >
             <div className="container py-5 h-100">
@@ -77,7 +106,7 @@ function SaveDevice() {
                                         <p style={{ textAlign: 'justify' }}>
                                             Deseas mantener la sesión activa en este dispositivo:
                                             </p>
-                                            <p style={{ textAlign: 'center', color: 'blue' }}>{'Navegador Google Chrome-Windows'}</p>
+                                            <p style={{ textAlign: 'center', color: 'blue' }}>{`Navegador: ${navInfo.browser.name} OS:${navInfo.os.name}`}</p>                                           
                                             <div className="form-outline mb-4">
          
                                                 <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', width:'100%'}}>
