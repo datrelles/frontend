@@ -6,9 +6,9 @@ const BRANCH_SHINERAY = 'branchShinerayS';
 const KEY_JWT = 'KEY_JWT';
 const enterprise_SHINERAY = 'enterprise_SHINERAY';
 const SYSTEM_SHINERAY = 'SYSTEM_SHINERAY';
-const SECONDAUTH = '';
-const FLAG = null;
-const TEMPORAL_FLAG = null;
+const SECONDAUTH = 'SECONDAUTH';
+const FLAG = 'FLAG';
+const TEMPORAL_FLAG = 'TEMPORAL_FLAG';
 
 
 export const AuthContext = createContext();
