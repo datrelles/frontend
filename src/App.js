@@ -35,6 +35,8 @@ import Details from "./components/Details";
 import LoginAuth from "./components/loginSecondAuth/Login";
 import SecondAuth from "./components/loginSecondAuth/secondAuth";
 import SaveDevice from "./components/loginSecondAuth/saveDevice";
+//electronicFilesDocumentsSri
+import { ElectronicFilesSri } from "./components/contabilidad/filesSri";
 
 const API = process.env.REACT_APP_API;
 
@@ -42,7 +44,7 @@ const API = process.env.REACT_APP_API;
 
 function App() {
   const {  removeToken, setToken } = useToken();
-  const [authorizedSystems, setAuthorizedSystems] = useState(['IMP', 'REP', 'GAR', 'PBI']);
+  const [authorizedSystems, setAuthorizedSystems] = useState(['IMP', 'REP', 'GAR', 'PBI','CON']);
   const {jwt, userShineray,enterpriseShineray, flag, temporalFlag, logout}=useAuthContext();
   const token=jwt
 
@@ -130,6 +132,7 @@ function App() {
                   <Route exact path="/reports2" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports2 /></Protected>} />
                   <Route exact path="/reports3" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports3/></Protected>} />
                   <Route exact path="/reports4" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports4 /></Protected>}/>
+                  <Route exact path="/electronicFile" element={<Protected isLoggedIn={authorizedSystems.includes('CON')}><ElectronicFilesSri/></Protected>}/>
                   <Route exact path="/settings" element={<Settings />}></Route>
                 </Routes>
               </>
