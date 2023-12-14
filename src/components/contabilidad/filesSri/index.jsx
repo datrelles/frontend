@@ -306,11 +306,9 @@ export const ElectronicFilesSri = () => {
         setLoading(true)
         const start_date = fromDate.format('DD/MM/YYYY')
         const end_date = toDate.format('DD/MM/YYYY')
-        console.log(start_date)
-        console.log(end_date)
         if (start_date !== null && end_date !== null) {
           const response = await getDocumentsSri(start_date, end_date, jwt);
-          if(response.length>0){
+          if(response.length>=0){
             setDataSri(response)
           }
           setLoading(false)
