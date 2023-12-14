@@ -377,8 +377,6 @@ function NewPostSaleDetail(props) {
               }}
             />
         </div>
-
-
       </Box>
     </div>
   );
