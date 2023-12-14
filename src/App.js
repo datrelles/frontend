@@ -136,6 +136,7 @@ function App() {
                   <Route exact path="/settings" element={<Settings />}></Route>
                 </Routes>
               </>
+              
             )}
         </Router>
       <ToastContainer />
