@@ -340,6 +340,7 @@ function PostSales() {
             <Button onClick={() => { navigate('/dashboard') }}>Módulos</Button>
           </ButtonGroup>
         </Box>
+
         <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
           <div className={classes.datePickersContainer}>
             <div>
@@ -380,6 +381,7 @@ function PostSales() {
             </div>
           </div>
         </div>
+        
         <ThemeProvider theme={getMuiTheme()}>
           <MUIDataTable
             title={"Ordenes de Compra"}
