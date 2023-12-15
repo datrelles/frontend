@@ -31,7 +31,9 @@ import Reports4 from "./components/Reports4";
 import Settings from "./components/Settings";
 import Menus from "./components/Menus";
 import Details from "./components/Details";
-//login 2Auth
+import Formule from "./components/Formule";
+import NewFormule from "./components/NewFormule";
+import EditFormule from "./components/EditFormule";
 import LoginAuth from "./components/loginSecondAuth/Login";
 import SecondAuth from "./components/loginSecondAuth/secondAuth";
 import SaveDevice from "./components/loginSecondAuth/saveDevice";
@@ -44,7 +46,8 @@ const API = process.env.REACT_APP_API;
 
 function App() {
   const {  removeToken, setToken } = useToken();
-  const [authorizedSystems, setAuthorizedSystems] = useState(['IMP', 'REP', 'GAR', 'PBI','CON']);
+  const [authorizedSystems, setAuthorizedSystems] = useState(['IMP', 'REP', 'GAR', 'PBI','CON', 'IN']);
+
   const {jwt, userShineray,enterpriseShineray, flag, temporalFlag, logout}=useAuthContext();
   const token=jwt
 
@@ -107,7 +110,7 @@ function App() {
             : (
               <>
                 <Routes>
-                  <Route exact path="*" element={<Dashboard />}></Route>
+                  <Route exact path="*" element={<Profile />}></Route>
                   <Route path="/saveDevice" element={<SaveDevice/>} />
                   <Route path="/users" element={<Users/>} />
                   <Route exact path="/profile" element={<Profile/>}></Route>
@@ -128,6 +131,9 @@ function App() {
                   <Route exact path="/packingList" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><PackingList  /></Protected>} />
                   <Route exact path="/packinglistTotal" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><PackingListTotal /></Protected>} />
                   <Route exact path="/details" element={<Protected isLoggedIn={authorizedSystems.includes('IMP')}><Details/></Protected>} />
+                  <Route exact path="/formule" element={<Protected isLoggedIn={authorizedSystems.includes('IN')}><Formule/></Protected>} />
+                  <Route exact path="/newFormule" element={<Protected isLoggedIn={authorizedSystems.includes('IN')}><NewFormule/></Protected>} />
+                  <Route exact path="/EditFormule" element={<Protected isLoggedIn={authorizedSystems.includes('IN')}><EditFormule/></Protected>} />
                   <Route exact path="/reports" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports /></Protected>} />
                   <Route exact path="/reports2" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports2 /></Protected>} />
                   <Route exact path="/reports3" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports3/></Protected>} />

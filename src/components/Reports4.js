@@ -7,7 +7,7 @@ const API = process.env.REACT_APP_API;
 
 function Reports4() {
     const [menus, setMenus] = useState([])
-    const {jwt, userShineray, enterpriseShineray}=useAuthContext();
+    const {jwt, userShineray, enterpriseShineray, systemShineray}=useAuthContext();
     const iframeStyle = {
         width: '100%',
         height: '100vh',
@@ -16,7 +16,7 @@ function Reports4() {
 
     const getMenus = async () => {
         try {
-            const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${userShineray}`,
+            const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
