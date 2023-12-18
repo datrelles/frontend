@@ -307,13 +307,14 @@ export const ElectronicFilesSri = () => {
         const start_date = fromDate.format('DD/MM/YYYY')
         const end_date = toDate.format('DD/MM/YYYY')
         if (start_date !== null && end_date !== null) {
+          setToDate(null);
+          setFromDate(null);
           const response = await getDocumentsSri(start_date, end_date, jwt);
           if(response.length>=0){
             setDataSri(response)
           }
           setLoading(false)
-          setToDate(null);
-          setFromDate(null);
+         
         }
 
       } catch (error) {
