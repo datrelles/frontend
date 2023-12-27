@@ -37,7 +37,6 @@ import EditFormule from "./components/EditFormule";
 import LoginAuth from "./components/loginSecondAuth/Login";
 import SecondAuth from "./components/loginSecondAuth/secondAuth";
 import SaveDevice from "./components/loginSecondAuth/saveDevice";
-//electronicFilesDocumentsSri
 import { ElectronicFilesSri } from "./components/contabilidad/filesSri";
 
 const API = process.env.REACT_APP_API;

@@ -6,11 +6,12 @@ import SaveIcon from '@material-ui/icons/Save';
 import CancelIcon from '@material-ui/icons/Cancel';
 import Autocomplete from '@mui/material/Autocomplete';
 import { useAuthContext } from '../context/authContext';
+import { SnackbarProvider, useSnackbar } from 'notistack';
 
 const API = process.env.REACT_APP_API;
 
 const NewFormuleD = ({ onClose, onAgregarDetalle, debitoCredito}) => {
-
+  const { enqueueSnackbar } = useSnackbar();
   const { jwt, enterpriseShineray, userShineray, systemShineray } = useAuthContext();
   const [codProducto, setCodProducto] = useState('');
   const [entradaCodProducto, setEntradaCodProducto] = useState("")
@@ -176,10 +177,7 @@ const NewFormuleD = ({ onClose, onAgregarDetalle, debitoCredito}) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Validar los campos según tus necesidades
-
-    // Agregar el detalle a la lista
+  if (cantidad && cantidad>0) {
     onAgregarDetalle({
       cod_producto_f: codProducto,
       cantidad_f: parseInt(cantidad, 10),
@@ -187,34 +185,42 @@ const NewFormuleD = ({ onClose, onAgregarDetalle, debitoCredito}) => {
     });
 
     onClose();
+  } else {
+    // Manejar el caso donde cantidad es 0 o nulo (puedes mostrar un mensaje de error, por ejemplo)
+    enqueueSnackbar('Ingrese Cantidad', { variant: 'error' });
+    // O puedes retornar temprano para evitar ejecutar el resto del código
+    // return;
+  }
   };
 
   return (
     <form>
       <div style={{ display: 'flex', gap: '10px', backgroundColor: '#f0f0f0', padding: '10px' }}>
-                        <Grid container spacing={3}>
+      <Grid container spacing={3}>
                             <Grid item xs={12} md={3}>
-                                <Autocomplete
-                                    id="estado1"
+                                <TextField
                                     fullWidth
-                                    options={statusList1.map((status) => status.nombre)}
-                                    value={statusList1Nombre}
-                                    onChange={handleStatus1Change}
-                                    renderInput={(params) => (
-                                        <TextField
-                                            {...params}
-                                            required
-                                            multiline
-                                            rows={1}
-                                            label="Estado 1"
-                                            type="text"
-                                            className="form-control"
-                                            InputProps={{
-                                                ...params.InputProps,
-                                            }}
-                                        />
-                                    )}
+                                    required
+                                    id="codigo-producto"
+                                    label="Buscar por codigo"
+                                    type="text"
+                                    onChange={e => setEntradaCodProducto(e.target.value)}
+                                    onKeyDown={handleKeyDown}
+                                    value={entradaCodProducto}
+                                    className="form-control"
                                 />
+                                <TextField
+                                    disabled
+                                    fullWidth
+                                    id="cod-prod"
+                                    label="Codigo Producto"
+                                    type="text"
+                                    onChange={e => setCodProducto(e.target.value)}
+                                    value={codProducto}
+                                    className="form-control"
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={3}>
                                 <Autocomplete
                                     id="estado2"
                                     fullWidth
@@ -236,6 +242,29 @@ const NewFormuleD = ({ onClose, onAgregarDetalle, debitoCredito}) => {
                                         />
                                     )}
                                 />
+                                <Autocomplete
+                                    id="producto"
+                                    fullWidth
+                                    options={productoList.map((producto) => producto.nombre)}
+                                    value={nombreProducto}
+                                    onChange={handleProductoChange}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            required
+                                            multiline
+                                            rows={2}
+                                            label="Producto"
+                                            type="text"
+                                            className="form-control"
+                                            InputProps={{
+                                                ...params.InputProps,
+                                            }}
+                                        />
+                                    )}
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={3}>
                                 <Autocomplete
                                     id="estado3"
                                     fullWidth
@@ -259,40 +288,19 @@ const NewFormuleD = ({ onClose, onAgregarDetalle, debitoCredito}) => {
                                 />
                             </Grid>
                             <Grid item xs={12} md={3}>
-                                <TextField
-                                    fullWidth
-                                    required
-                                    id="codigo-producto"
-                                    label="Buscar por codigo"
-                                    type="text"
-                                    onChange={e => setEntradaCodProducto(e.target.value)}
-                                    onKeyDown={handleKeyDown}
-                                    value={entradaCodProducto}
-                                    className="form-control"
-                                />
-                                <TextField
-                                    disabled
-                                    fullWidth
-                                    id="cod-prod"
-                                    label="Codigo Producto"
-                                    type="text"
-                                    onChange={e => setCodProducto(e.target.value)}
-                                    value={codProducto}
-                                    className="form-control"
-                                />
                                 <Autocomplete
-                                    id="producto"
+                                    id="estado1"
                                     fullWidth
-                                    options={productoList.map((producto) => producto.nombre)}
-                                    value={nombreProducto}
-                                    onChange={handleProductoChange}
+                                    options={statusList1.map((status) => status.nombre)}
+                                    value={statusList1Nombre}
+                                    onChange={handleStatus1Change}
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
                                             required
                                             multiline
-                                            rows={3}
-                                            label="Producto"
+                                            rows={1}
+                                            label="Tipo de Articulo"
                                             type="text"
                                             className="form-control"
                                             InputProps={{

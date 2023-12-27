@@ -33,8 +33,8 @@ function NewFormule() {
     const [nombre, setNombre] = useState(formData.nombre)
     const [codProducto, setCodProducto] = useState(formData.cod_producto)
     const [entradaCodProducto, setEntradaCodProducto] = useState("")
-   
-    const [debitoCreditoList, setDebitoCreditoList] = useState([{ cod: 1, nombre: "Debito" }, { cod: 2, nombre: "Credito" }])
+
+    const [debitoCreditoList, setDebitoCreditoList] = useState([{ cod: 1, nombre: "Agrupar" }, { cod: 2, nombre: "Desagrupar" }])
     const [debitoCredito, setDebitoCredito] = useState()
     const [debitoCreditoNombre, setDebitoCreditoNombre] = useState()
     const [activa, setActiva] = useState(formData.activa)
@@ -110,7 +110,7 @@ function NewFormule() {
         setStatusList3(data)
     }
 
-    const getProductList = async (status3) => {
+    const getProductList = async () => {
         const res = await fetch(`${API}/productos_by_cat`, {
             method: 'POST',
             headers: {
@@ -128,10 +128,8 @@ function NewFormule() {
             })
         })
         const data = await res.json();
-        console.log(data)
+        setNombreProducto(data.find((objeto) => objeto.cod_producto === formData.cod_producto)?.nombre);
         setProductoList(data)
-        setNombreProducto(data.find((objeto) => objeto.cod_producto === codProducto)?.nombre || '');
-
     }
 
     const getFormuleD = async () => {
@@ -274,6 +272,7 @@ function NewFormule() {
         document.title = 'Formula ' + codFormula;
         checkAuthorization();
         getMenus();
+        currentProduct();
         getFormuleD();
         getStatusList1();
         getStatusList2();
@@ -302,9 +301,9 @@ function NewFormule() {
         },
         {
             name: "debito_credito",
-            label: "Debito/Credito",
+            label: "Agrupar / Desagrupar",
             options: {
-                customBodyRender:  (value) => debitoCreditoList.find((status) => status.cod === value).nombre,
+                customBodyRender: (value) => debitoCreditoList.find((status) => status.cod === value).nombre,
             },
         },
         {
@@ -404,6 +403,25 @@ function NewFormule() {
             setNombreProducto(data.find((objeto) => objeto.cod_producto === codProducto)?.nombre || '');
         }
     };
+
+    const currentProduct = async (e) => {
+        const res = await fetch(`${API}/productos_by_cod`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + jwt
+            },
+            body: JSON.stringify({
+                empresa: enterpriseShineray,
+                cod_producto: formData.cod_producto
+            })
+        })
+        const data = await res.json();
+        console.log(data)
+        setProductoList(data)
+        setNombreProducto(data.find((objeto) => objeto.cod_producto === codProducto)?.nombre || '');
+    };
+
 
     const [showForm, setShowForm] = useState(false);
 
@@ -546,27 +564,29 @@ function NewFormule() {
                     <div style={{ display: 'flex', gap: '10px', backgroundColor: '#f0f0f0', padding: '10px' }}>
                         <Grid container spacing={3}>
                             <Grid item xs={12} md={3}>
-                                <Autocomplete
-                                    id="estado1"
+                                <TextField
                                     fullWidth
-                                    options={statusList1.map((status) => status.nombre)}
-                                    value={statusList1Nombre}
-                                    onChange={handleStatus1Change}
-                                    renderInput={(params) => (
-                                        <TextField
-                                            {...params}
-                                            required
-                                            multiline
-                                            rows={1}
-                                            label="Estado 1"
-                                            type="text"
-                                            className="form-control"
-                                            InputProps={{
-                                                ...params.InputProps,
-                                            }}
-                                        />
-                                    )}
+                                    required
+                                    id="codigo-producto"
+                                    label="Buscar por codigo"
+                                    type="text"
+                                    onChange={e => setEntradaCodProducto(e.target.value)}
+                                    onKeyDown={handleKeyDown}
+                                    value={entradaCodProducto}
+                                    className="form-control"
                                 />
+                                <TextField
+                                    disabled
+                                    fullWidth
+                                    id="cod-prod"
+                                    label="Codigo Producto"
+                                    type="text"
+                                    onChange={e => setCodProducto(e.target.value)}
+                                    value={codProducto}
+                                    className="form-control"
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={3}>
                                 <Autocomplete
                                     id="estado2"
                                     fullWidth
@@ -588,6 +608,29 @@ function NewFormule() {
                                         />
                                     )}
                                 />
+                                <Autocomplete
+                                    id="producto"
+                                    fullWidth
+                                    options={productoList.map((producto) => producto.nombre)}
+                                    value={nombreProducto}
+                                    onChange={handleProductoChange}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            required
+                                            multiline
+                                            rows={2}
+                                            label="Producto"
+                                            type="text"
+                                            className="form-control"
+                                            InputProps={{
+                                                ...params.InputProps,
+                                            }}
+                                        />
+                                    )}
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={3}>
                                 <Autocomplete
                                     id="estado3"
                                     fullWidth
@@ -611,40 +654,19 @@ function NewFormule() {
                                 />
                             </Grid>
                             <Grid item xs={12} md={3}>
-                                <TextField
-                                    fullWidth
-                                    required
-                                    id="codigo-producto"
-                                    label="Buscar por codigo"
-                                    type="text"
-                                    onChange={e => setEntradaCodProducto(e.target.value)}
-                                    onKeyDown={handleKeyDown}
-                                    value={entradaCodProducto}
-                                    className="form-control"
-                                />
-                                <TextField
-                                    disabled
-                                    fullWidth
-                                    id="cod-prod"
-                                    label="Codigo Producto"
-                                    type="text"
-                                    onChange={e => setCodProducto(e.target.value)}
-                                    value={codProducto}
-                                    className="form-control"
-                                />
                                 <Autocomplete
-                                    id="producto"
+                                    id="estado1"
                                     fullWidth
-                                    options={productoList.map((producto) => producto.nombre)}
-                                    value={nombreProducto}
-                                    onChange={handleProductoChange}
+                                    options={statusList1.map((status) => status.nombre)}
+                                    value={statusList1Nombre}
+                                    onChange={handleStatus1Change}
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
                                             required
                                             multiline
-                                            rows={3}
-                                            label="Producto"
+                                            rows={1}
+                                            label="Tipo de Articulo"
                                             type="text"
                                             className="form-control"
                                             InputProps={{
@@ -654,6 +676,7 @@ function NewFormule() {
                                     )}
                                 />
                             </Grid>
+
                         </Grid>
                     </div>
                     <Grid container spacing={3}>
@@ -683,7 +706,7 @@ function NewFormule() {
                                         {...params}
                                         required
                                         multiline
-                                        rows={3}
+                                        rows={2}
                                         label="Producto"
                                         type="text"
                                         className="form-control"
@@ -706,25 +729,6 @@ function NewFormule() {
                                         {...params}
                                         required
                                         label="Activo"
-                                        type="text"
-                                        className="form-control"
-                                        InputProps={{
-                                            ...params.InputProps,
-                                        }}
-                                    />
-                                )}
-                            />
-                            <Autocomplete
-                                id="debito-credito"
-                                fullWidth
-                                options={debitoCreditoList.map((carga) => carga.nombre)}
-                                value={debitoCreditoNombre}
-                                onChange={handleDebitoCreditoChange}
-                                renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        required
-                                        label="Debito o Credito"
                                         type="text"
                                         className="form-control"
                                         InputProps={{

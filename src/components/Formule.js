@@ -35,7 +35,7 @@ const useStyles = makeStyles({
 });
 
 function Formules() {
-  const {jwt, userShineray, enterpriseShineray, systemShineray}=useAuthContext();
+  const {jwt, userShineray, enterpriseShineray, systemShineray, branchShineray}=useAuthContext();
   const [formules, setFormules] = useState([])
   const [statusList, setStatusList] = useState([])
   const [menus, setMenus] = useState([])
@@ -100,10 +100,35 @@ function Formules() {
     getStatusList();
   }, [])
 
-  const handleRowClick = (rowData, rowMeta) => {
+  const handleRowClick = async (rowData, rowMeta) => {
     const row = formules.filter(item => item.cod_formula === rowData[0])[0];
-    navigate('/editFormule', { state: row });
-    console.log(row)
+    var cantidadInventario = 0
+    const res = await fetch(`${API}/validar_existencia`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + jwt
+          },
+          body: JSON.stringify({
+            empresa: enterpriseShineray,
+            cod_agencia: 6,
+            cod_producto: row.cod_producto
+          })
+        });
+      if (!res.ok) {
+        if (res.status === 401) {
+          toast.error('Sesión caducada.');
+        }
+      } else {
+        const data = await res.json();
+        cantidadInventario = data.cantidad_inventario
+      }
+    if (parseInt(cantidadInventario, 10)===0){
+      navigate('/editFormule', { state: row });
+    }else{
+      toast.warning('Existen ' + cantidadInventario +' productos creados con la Formula '+ row.nombre);
+    }
   }
 
   const handleChange2 = async (e) => {
@@ -119,7 +144,6 @@ function Formules() {
       }
     })
     const data = await res.json();
-    console.log(data)
     setStatusList(data.map((item) => ({
       nombre: item.nombre,
       cod: item.cod_item,
