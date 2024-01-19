@@ -183,6 +183,10 @@ function Formules() {
         name: "costo_standard",
         label: "Costo Standard",
     },
+    {
+      name: "debito_credito",
+      label: "Agrupar/Desagrupar",
+  },
   ]
 
   const options = {

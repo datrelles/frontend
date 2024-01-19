@@ -43,7 +43,7 @@ function NewFormule() {
     const [costoStandard, setCostoStandard] = useState("")
     const [authorizedSystems, setAuthorizedSystems] = useState([]);
     const [formulaD, setFormulaD] = useState([])
-    const [debitoCredito, setDebitoCredito] = useState(0)
+    const [debitoCredito, setDebitoCredito] = useState(1)
     const [debitoCreditoList, setDebitoCreditoList] = useState([{ cod: 1, nombre: "Agrupar" }, { cod: 2, nombre: "Desagrupar" }])
     const [debitoCreditoNombre, setDebitoCreditoNombre] = useState("Agrupar")
     const [codItemCat, setCodItemCat] = useState("")
@@ -322,7 +322,8 @@ function NewFormule() {
                     cod_producto: codProducto,
                     mano_obra: parseFloat(manoObra, 10),
                     costo_standard: parseFloat(costoStandard, 10),
-                    activa: parseFloat(activa, 10)
+                    activa: parseFloat(activa, 10),
+                    debito_credito: debitoCredito
                 },
                 detalles: formulaD
             })

@@ -34,12 +34,17 @@ function NewFormule() {
     const [codProducto, setCodProducto] = useState(formData.cod_producto)
     const [entradaCodProducto, setEntradaCodProducto] = useState("")
 
+    const [debitoCredito, setDebitoCredito] = useState(formData.debito_credito)
     const [debitoCreditoList, setDebitoCreditoList] = useState([{ cod: 1, nombre: "Agrupar" }, { cod: 2, nombre: "Desagrupar" }])
-    const [debitoCredito, setDebitoCredito] = useState()
-    const [debitoCreditoNombre, setDebitoCreditoNombre] = useState()
+    const foundDebitoCredito = debitoCreditoList.find((debitoCredito) => debitoCredito.cod == formData.debito_credito);
+    const [debitoCreditoNombre, setDebitoCreditoNombre] = useState(foundDebitoCredito.nombre)
+    const [debitoCreditoDNombre, setDebitoCreditoDNombre] = useState('')
+
     const [activa, setActiva] = useState(formData.activa)
     const [activaList, setActivaList] = useState([{ cod: 0, nombre: "No" }, { cod: 1, nombre: "Si" }])
-    const [activaNombre, setActivaNombre] = useState("No")
+    const foundActiva = activaList.find((activa) => activa.cod == formData.activa.toString());
+    const [activaNombre, setActivaNombre] = useState(foundActiva.nombre)
+
     const [authorizedSystems, setAuthorizedSystems] = useState([]);
     const [formulaD, setFormulaD] = useState([])
 
@@ -145,9 +150,8 @@ function NewFormule() {
             })
         })
         const data = await res.json();
-        setDebitoCreditoNombre(debitoCreditoList.find((status) => status.cod === data[0].debito_credito).nombre)
+        setDebitoCreditoDNombre(debitoCreditoList.find((status) => status.cod === data[0].debito_credito).nombre)
         setFormulaD(data)
-        setDebitoCredito(parseInt(data[0].debito_credito, 10) === 2 ? 1 : 2)
     }
 
 
@@ -270,6 +274,7 @@ function NewFormule() {
 
     useEffect(() => {
         document.title = 'Formula ' + codFormula;
+        console.log(formData)
         checkAuthorization();
         getMenus();
         currentProduct();
@@ -370,7 +375,8 @@ function NewFormule() {
                     cod_formula: codFormula,
                     nombre: nombre,
                     cod_producto: codProducto,
-                    activa: parseFloat(activa, 10),
+                    activa: activa,
+                    debito_credito: debitoCredito
                 },
                 detalles: formulaD
             })
@@ -729,6 +735,27 @@ function NewFormule() {
                                         {...params}
                                         required
                                         label="Activo"
+                                        type="text"
+                                        className="form-control"
+                                        InputProps={{
+                                            ...params.InputProps,
+                                        }}
+                                    />
+                                )}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                            <Autocomplete
+                                id="debito-credito"
+                                fullWidth
+                                options={debitoCreditoList.map((carga) => carga.nombre)}
+                                value={debitoCreditoNombre}
+                                onChange={handleDebitoCreditoChange}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        required
+                                        label="Agrupar / Desagrupar"
                                         type="text"
                                         className="form-control"
                                         InputProps={{
