@@ -33,10 +33,20 @@ import Functions from "../helpers/Functions";
 import { da } from 'date-fns/locale';
 import { useAuthContext } from '../context/authContext';
 
+//Necesario para POp ups
+import { getDataFormasDePago, postDataFormasDePago, deleteFormasDePago} from '../services/api';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import { differenceInDays, parse, isValid } from 'date-fns';
+
 const API = process.env.REACT_APP_API;
 
 function EditPostSales() {
-  const {jwt, userShineray, enterpriseShineray, systemShineray, branchShineray}=useAuthContext();
+  const { jwt, userShineray, enterpriseShineray, systemShineray, branchShineray } = useAuthContext();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -70,10 +80,31 @@ function EditPostSales() {
   const [fechaEstimadaPuerto, setFechaEstimadaPuerto] = useState(formData.fecha_estimada_puerto)
   const [fechaEstimadaProduccion, setFechaEstimadaProduccion] = useState(formData.fecha_estimada_produccion)
 
-
   const [details, setDetails] = useState([])
   const [packingList, setPackingList] = useState([])
   const { enqueueSnackbar } = useSnackbar();
+
+
+  const [valorTotalDolares, setValorTotalDolares] = useState(0)
+  const [proformasFormasDePago, setProformasFormasDePago] = useState([])
+  const [open, setOpen] = useState(false);
+  const [totalAnticipos, setTotalAnticipos] = useState(0)
+  const [formDataPago, setFormDataPago] = useState({
+    empresa: enterpriseShineray,
+    cod_proforma: '',
+    tipo_proforma: '',
+    fecha_vencimiento: '',
+    valor: 0,
+    saldo: 0,
+    descripcion: '',
+    cod_forma_pago: '',
+    pct_valor: 0,
+    dias_vencimiento: 0,
+  });
+  const [operacion, setOperacion] = useState('')
+  const [flagReloadDataTableFormasdePago, setFlagReloadDataTableFormasdePago]=useState(false)
+
+
 
   const getMenus = async () => {
     try {
@@ -97,7 +128,6 @@ function EditPostSales() {
     } catch (error) {
     }
   }
-
   const checkAuthorization = async () => {
     const res = await fetch(`${API}/modules/${userShineray}/${enterpriseShineray}`, {
       method: 'GET',
@@ -109,8 +139,6 @@ function EditPostSales() {
     const data = await res.json();
     setAuthorizedSystems(data.map(row => row.COD_SISTEMA));
   };
-
-
   const getPurchaseOrder = async () => {
     try {
       const res = await fetch(`${API}/orden_compra_cab_param?empresa=${enterpriseShineray}&cod_po=${formData.cod_po}`,
@@ -140,8 +168,6 @@ function EditPostSales() {
     }
   }
 
-
-
   const getPurchaseOrdersDetails = async () => {
     try {
       const res = await fetch(`${API}/orden_compra_det_param?empresa=${enterpriseShineray}&cod_po=${codPo}&tipo_comprobante=PO`, {
@@ -158,6 +184,8 @@ function EditPostSales() {
         const data = await res.json();
         setDetails(data)
         console.log(data)
+        handleTotalSum(data)
+
       }
     } catch (error) {
       toast.error('Sesión caducada. Por favor, inicia sesión nuevamente.');
@@ -226,6 +254,7 @@ function EditPostSales() {
     }));
     setProvidersList(list)
   }
+
 
   const handleDeleteRows = async (rowsDeleted) => {
     if ((parseInt(formData.cod_item, 10) < 6) && authorizedSystems.includes('IMP')) {
@@ -321,6 +350,96 @@ function EditPostSales() {
     }
   };
 
+  const handleTotalSum = (data) => {
+    let total = 0;
+
+    data.forEach(item => {
+      // Verificar si costo_sistema es un número válido
+      const costoSistema = parseFloat(item.costo_sistema);
+
+      // Verificar si cantidad_pedido es un número válido
+      const cantidadPedido = parseInt(item.cantidad_pedido);
+
+      // Realizar la multiplicación y suma
+      if (!isNaN(costoSistema) && !isNaN(cantidadPedido)) {
+        total += costoSistema * cantidadPedido;
+      }
+    })
+    const editTotal = parseFloat(total.toFixed(2))
+    setValorTotalDolares(editTotal);
+
+  }
+  //HANDLE POP UP FORMAS DE PAGO
+
+  const handleClickOpenNew = () => {
+    setOpen(true);
+    setOperacion(1)// crear anticipo
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const handleSave = () => {
+    // Aquí puedes manejar la lógica para guardar la información ingresada
+    // Puedes enviar los datos a tu servidor o realizar cualquier otra acción
+    const flagFate=formDataPago.fecha_vencimiento
+    const date1 = parse(fechaEstimadaPuerto, 'dd/MM/yyyy', new Date());
+    const date2 = parse(flagFate,'yyyy-MM-dd', new Date());
+    
+    let difDays=''
+    if (isValid(date1) && isValid(date2)) {
+      // Calcula la diferencia en días si ambas fechas son válidas
+       difDays = differenceInDays(date2, date1);
+    } else {
+      // En caso de fechas no válidas, devuelve un valor predeterminado (en este caso, 0)
+       difDays = 0;
+    }
+   
+    const dataForBAck = {
+      empresa:+formDataPago.empresa,
+      cod_proforma:codPo,
+      tipo_proforma:tipoCombrobante,
+      fecha_vencimiento:formDataPago.fecha_vencimiento,
+      valor:formDataPago.valor,
+      saldo:formDataPago.valor,
+      descripcion:formDataPago.descripcion,
+      cod_forma_pago:formDataPago.cod_forma_pago,
+      pct_valor:parseFloat((formDataPago.valor) / (valorTotalDolares / 100)).toFixed(6),
+      dias_vencimiento:difDays
+
+    }
+    console.log(dataForBAck)
+    console.log(operacion)
+    const postPago = async()=>{
+      const response= await postDataFormasDePago(dataForBAck,jwt)
+      console.log(response)
+    }    
+    postPago()
+    handleClose();
+    setFlagReloadDataTableFormasdePago(!flagReloadDataTableFormasdePago)
+  };
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFormDataPago({
+      ...formDataPago,
+      [name]: value,
+    });
+  };
+
+  const DeleteRowTableFormaPAgos= async(rowsDeleted)=>{
+    const deleteSecuencia=proformasFormasDePago[rowsDeleted.data[0]['dataIndex']].secuencia
+    console.log(deleteSecuencia)
+    const data = {
+      cod_proforma:codPo,
+      secuencia:deleteSecuencia.toString()
+    }
+    const deleteFormasDePagoResponse=await deleteFormasDePago(data,jwt)
+    setFlagReloadDataTableFormasdePago(!flagReloadDataTableFormasdePago)
+    console.log(deleteFormasDePagoResponse)
+  }
+
   useEffect(() => {
     document.title = 'Orden ' + codPo;
     getMenus();
@@ -331,7 +450,191 @@ function EditPostSales() {
     checkAuthorization();
     getPackingList();
     getTracking();
+
   }, [])
+
+  useEffect(() => {
+    const dataProformasFormasPago = async () => {
+      try {
+        const data = await getDataFormasDePago(codPo, jwt)
+        const newData = data.proformas.map(item => {
+          if (item.cod_forma_pago === 'ANT') {
+            return {
+              ...item,
+              cod_forma_pago: 'ANTICIPO'
+            }
+          }
+          else {
+            return {
+              ...item,
+              cod_forma_pago: 'SALDO'
+            }
+          }
+        })
+        const sumaAnticipos = newData.filter(item => item.cod_forma_pago === 'ANTICIPO').reduce((total, item) => total + item.valor, 0)
+        setTotalAnticipos(sumaAnticipos)
+
+        setProformasFormasDePago(newData)
+
+      } catch (error) {
+        console.log(error)
+      }
+    }
+    dataProformasFormasPago()
+
+  }, [flagReloadDataTableFormasdePago])
+
+  const optionsProformas = {
+    responsive: 'standard',
+    filterType: 'dropdown',
+    // selectableRowsHideCheckboxes: true,
+    selectableRows:'single',
+    onRowsDelete: DeleteRowTableFormaPAgos,
+    textLabels: {
+      body: {
+        noMatch: "Lo siento, no se encontraron registros",
+        toolTip: "Ordenar",
+        columnHeaderTooltip: column => `Ordenar por ${column.label}`
+      },
+      pagination: {
+        next: "Siguiente",
+        previous: "Anterior",
+        rowsPerPage: "Filas por página:",
+        displayRows: "de"
+      },
+      toolbar: {
+        search: "Buscar",
+        downloadCsv: "Descargar CSV",
+        print: "Imprimir",
+        viewColumns: "Ver columnas",
+        filterTable: "Filtrar tabla"
+      },
+      filter: {
+        all: "Todos",
+        title: "FILTROS",
+        reset: "REINICIAR"
+      },
+      viewColumns: {
+        title: "Mostrar columnas",
+        titleAria: "Mostrar/Ocultar columnas de tabla"
+      },
+      selectedRows: {
+        text: "fila(s) seleccionada(s)",
+        delete: "Borrar",
+        deleteAria: "Borrar fila seleccionada"
+      }
+    },
+
+    
+
+
+  }
+
+  const columnsFormasDePago = [
+    {
+      name: "secuencia",
+      label: "Sec",
+      options: {
+        customBodyRender: (value) => {
+          return (
+            <div style={{ textAlign: "center" }}>
+              {value}
+            </div>
+          );
+        },
+      },
+    },
+    {
+      name: "cod_forma_pago",
+      label: "Forma Pago",
+      options: {
+        customBodyRender: (value) => {
+          return (
+            <div style={{ textAlign: "center" }}>
+              {value}
+            </div>
+          );
+        },
+      },
+    },
+    {
+      name: "dias_vencimiento",
+      label: "Días",
+      options: {
+        customBodyRender: (value) => {
+          return (
+            <div style={{ textAlign: "center" }}>
+              {value}
+            </div>
+          );
+        },
+      },
+    },
+    {
+      name: "fecha_vencimiento",
+      label: "Fecha Vencimiento",
+      options: {
+        customBodyRender: (value) => {
+          return (
+            <div style={{ textAlign: "center" }}>
+              {value}
+            </div>
+          );
+        },
+      },
+    },
+
+    {
+      name: "pct_valor",
+      label: "% ",
+      options: {
+        customBodyRender: (value) => {
+          return (
+            <div style={{ textAlign: "center" }}>
+              {value}
+            </div>
+          );
+        },
+      },
+    },
+
+    {
+      name: "valor",
+      label: "Valor",
+      options: {
+        customBodyRender: (value) => {
+          return (
+            <div style={{ textAlign: "center" }}>
+              {value}
+            </div>
+          );
+        },
+      },
+    },
+
+    {
+      name: "saldo",
+      label: "Saldo",
+      options: {
+        customBodyRender: (value) => {
+          return (
+            <div style={{ textAlign: "center", padding: "5px" }}>
+              {value}
+            </div>
+          );
+        },
+      },
+    },
+
+    {
+      name: "descripcion",
+      label: "Descripción",
+
+    },
+
+
+
+  ]
 
   const columns = [
     {
@@ -942,7 +1245,7 @@ function EditPostSales() {
             </button>
           )}
 
-          <div style={{fontWeight: 1000, color: 'black', whiteSpace: 'nowrap'}}>
+          <div style={{ fontWeight: 1000, color: 'black', whiteSpace: 'nowrap' }}>
             {TrackingStepOrder(Number(formData.cod_item), statusList.map(item => item.nombre), trackingList.map(item => item.fecha))}
           </div>
 
@@ -1044,7 +1347,7 @@ function EditPostSales() {
               />
             </Grid>
             <Grid item xs={12} md={3}>
-              <div style={{ display:'flex',flexDirection:'column', width:'310px'}}>
+              <div style={{ display: 'flex', flexDirection: 'column', width: '310px' }}>
                 <div>
                   <LocalizationProvider dateAdapter={AdapterDayjs} >
                     <DemoContainer components={['DatePicker', 'DatePicker']}>
@@ -1092,7 +1395,9 @@ function EditPostSales() {
           <Tabs value={tabValue} onChange={(event, newValue) => setTabValue(newValue)}>
             <Tab label="Detalles" />
             <Tab label="Packinglist" />
+            <Tab label="Forma de Pago" />
           </Tabs>
+
           <TabPanel value={tabValue} index={0}>
             <div >
               {authorizedSystems.includes('IMP') && parseInt(formData.cod_item, 10) < 6 && (
@@ -1124,6 +1429,7 @@ function EditPostSales() {
               <MUIDataTable title={"Detalle Orden de Compra"} data={details} columns={columns} options={options} />
             </ThemeProvider>
           </TabPanel>
+
           <TabPanel value={tabValue} index={1}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
               <input
@@ -1147,10 +1453,148 @@ function EditPostSales() {
             </ThemeProvider>
           </TabPanel>
 
+          <TabPanel value={tabValue} index={2}>
+            <Button onClick={handleClickOpenNew} variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
+              Agregar $
+            </Button>
+            <ThemeProvider theme={getMuiTheme()}>
+              <MUIDataTable title={"Forma de pago"} data={proformasFormasDePago} columns={columnsFormasDePago} options={optionsProformas} />
+            </ThemeProvider>
+          </TabPanel>
         </div>
-
-
       </Box>
+
+
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>Ingrese la información</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2}>
+            <Grid item xs={4}>
+              <TextField
+                margin="dense"
+                id="pct_valor"
+                name="pct_valor"
+                label="Valor total"
+                type="number"
+                fullWidth
+                value={parseFloat(valorTotalDolares).toFixed(6)}
+                InputProps={{
+                  readOnly: true,
+                }}
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <TextField
+                margin="dense"
+                id="pct_1valor"
+                name="salto_valor"
+                label="Saldo total"
+                type="number"
+                fullWidth
+                value={parseFloat(valorTotalDolares - totalAnticipos).toFixed(6)}
+                InputProps={{
+                  readOnly: true,
+                }}
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <TextField
+                margin="dense"
+                id="pct_1valor"
+                name="salto_valor"
+                label="Saldo total %"
+                type="number"
+                fullWidth
+                value={parseFloat((valorTotalDolares - totalAnticipos) / (valorTotalDolares / 100)).toFixed(6)}
+                InputProps={{
+                  readOnly: true,
+                }}
+              />
+            </Grid>
+          </Grid>
+
+          <Select
+            margin="dense"
+            id="cod_forma_pago"
+            name="cod_forma_pago"
+            label="Forma de Pago"
+            fullWidth
+            value={formDataPago.cod_forma_pago}
+            onChange={handleChange}
+          >
+            <MenuItem value="ANT">Anticipo</MenuItem>
+            <MenuItem value="SAL">Saldo</MenuItem>
+          </Select>
+
+          <TextField
+            margin="dense"
+            id="valor"
+            name="valor"
+            label="Valor"
+            type="number"
+            fullWidth
+            value={formDataPago.valor}
+            onChange={handleChange}
+          />
+          <TextField
+            margin="dense"
+            id="saldo"
+            name="saldo"
+            label="Saldo"
+            type="number"
+            fullWidth
+            value={formDataPago.valor}
+            onChange={handleChange}
+            InputProps={{
+              readOnly: true,
+            }}
+          />
+          <TextField
+            margin="dense"
+            id="pct_valor"
+            name="pct_valor"
+            label="Porcentaje Total %"
+            type="number"
+            fullWidth
+            value={parseFloat((formDataPago.valor) / (valorTotalDolares / 100)).toFixed(6)}
+            InputProps={{
+              readOnly: true,
+            }}
+          />
+          <label>Fecha de Vencimiento</label>
+
+          <TextField
+            margin="dense"
+            id="fecha_vencimiento"
+            name="fecha_vencimiento"
+            label=""
+            type="date"
+            fullWidth
+            value={formDataPago.fecha_vencimiento}
+            onChange={handleChange}
+          />
+
+          <TextField
+            margin="dense"
+            id="descripcion"
+            name="descripcion"
+            label="Descripción"
+            type="text"
+            fullWidth
+            value={formDataPago.descripcion}
+            onChange={handleChange}
+          />
+
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="primary">
+            Cancelar
+          </Button>
+          <Button onClick={handleSave} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }}>
+            Guardar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
