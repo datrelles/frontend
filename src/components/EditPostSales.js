@@ -34,7 +34,7 @@ import { da } from 'date-fns/locale';
 import { useAuthContext } from '../context/authContext';
 
 //Necesario para POp ups
-import { getDataFormasDePago, postDataFormasDePago, deleteFormasDePago} from '../services/api';
+import { getDataFormasDePago, postDataFormasDePago, deleteFormasDePago } from '../services/api';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -42,6 +42,10 @@ import DialogActions from '@mui/material/DialogActions';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import { differenceInDays, parse, isValid } from 'date-fns';
+import { updatedFormasPago } from '../services/api';
+import { Details } from '@material-ui/icons';
+import { update } from 'react-spring';
+import { useDateField } from '@mui/x-date-pickers/DateField/useDateField';
 
 const API = process.env.REACT_APP_API;
 
@@ -84,26 +88,31 @@ function EditPostSales() {
   const [packingList, setPackingList] = useState([])
   const { enqueueSnackbar } = useSnackbar();
 
-
+  //NECESARIO PARA POP UP FORMAS PAGO--------------------------------------------------
   const [valorTotalDolares, setValorTotalDolares] = useState(0)
   const [proformasFormasDePago, setProformasFormasDePago] = useState([])
   const [open, setOpen] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
   const [totalAnticipos, setTotalAnticipos] = useState(0)
+  const [saldoTable, setSaldoTable]= useState(0)
   const [formDataPago, setFormDataPago] = useState({
     empresa: enterpriseShineray,
     cod_proforma: '',
     tipo_proforma: '',
     fecha_vencimiento: '',
-    valor: 0,
-    saldo: 0,
+    valor: '',
+    saldo: '',
     descripcion: '',
     cod_forma_pago: '',
-    pct_valor: 0,
+    pct_valor: '',
     dias_vencimiento: 0,
   });
-  const [operacion, setOperacion] = useState('')
-  const [flagReloadDataTableFormasdePago, setFlagReloadDataTableFormasdePago]=useState(false)
+  //UPDATE FORMAS DE PAGO
 
+  const [flagReloadDataTableFormasdePago, setFlagReloadDataTableFormasdePago] = useState(false);
+  const [updateValuePorcentFlag, setUpdateValuePorcentFlag] = useState(0)
+  const [secFlagupdate, setSecFlagupdate] = useState('')
+  //-----------------------------------------------------------------------------------------------
 
 
   const getMenus = async () => {
@@ -369,55 +378,214 @@ function EditPostSales() {
     setValorTotalDolares(editTotal);
 
   }
-  //HANDLE POP UP FORMAS DE PAGO
+  //HANDLE POP UP FORMAS DE PAGO-----------------------------------------------------------------------------------------
 
+  //ABRIR CREAR DIALOG
   const handleClickOpenNew = () => {
     setOpen(true);
-    setOperacion(1)// crear anticipo
   };
 
   const handleClose = () => {
     setOpen(false);
   };
+  //---------------ABRIR EDITAR DIALOG----------------------
+  const handleClickOpenEdit = () => {
+    setOpenEdit(true);
+  }
+  const handleCloseEdit = () => {
+    setOpenEdit(false)
+    setFormDataPago(
+      {
+        empresa: enterpriseShineray,
+        cod_proforma: '',
+        tipo_proforma: '',
+        fecha_vencimiento: '',
+        valor: '',
+        saldo: '',
+        descripcion: '',
+        cod_forma_pago: '',
+        pct_valor: '',
+        dias_vencimiento: 0,
+      }
+    )
+  }
 
-  const handleSave = () => {
-    // Aquí puedes manejar la lógica para guardar la información ingresada
-    // Puedes enviar los datos a tu servidor o realizar cualquier otra acción
-    const flagFate=formDataPago.fecha_vencimiento
+  const handleEditFormasPago =  (rowData) => {
+    const filterDataBySecuencia=proformasFormasDePago.filter(item => item.secuencia === rowData[0].props.children)
+    const preFormEdit = filterDataBySecuencia[0]
+    if (preFormEdit.cod_forma_pago === 'SALDO') {
+      toast.error('El saldo no se puede editar')
+      return;
+    }
+    setSecFlagupdate(preFormEdit.secuencia)
+    setUpdateValuePorcentFlag(preFormEdit.pct_valor)
+    setFormDataPago(preFormEdit)
+    handleClickOpenEdit()
+  }
+
+  const saveEditFormasPago = async () => {
+    const flagFate = formDataPago.fecha_vencimiento
     const date1 = parse(fechaEstimadaPuerto, 'dd/MM/yyyy', new Date());
-    const date2 = parse(flagFate,'yyyy-MM-dd', new Date());
-    
-    let difDays=''
+    const date2 = parse(flagFate, 'yyyy-MM-dd', new Date());
+
+    let difDays = ''
     if (isValid(date1) && isValid(date2)) {
       // Calcula la diferencia en días si ambas fechas son válidas
-       difDays = differenceInDays(date2, date1);
+      difDays = differenceInDays(date2, date1);
     } else {
       // En caso de fechas no válidas, devuelve un valor predeterminado (en este caso, 0)
-       difDays = 0;
+      difDays = 0;
     }
-   
-    const dataForBAck = {
-      empresa:+formDataPago.empresa,
-      cod_proforma:codPo,
-      tipo_proforma:tipoCombrobante,
-      fecha_vencimiento:formDataPago.fecha_vencimiento,
-      valor:formDataPago.valor,
-      saldo:formDataPago.valor,
-      descripcion:formDataPago.descripcion,
-      cod_forma_pago:formDataPago.cod_forma_pago,
-      pct_valor:parseFloat((formDataPago.valor) / (valorTotalDolares / 100)).toFixed(6),
-      dias_vencimiento:difDays
 
+    try {
+
+      if (formDataPago.cod_forma_pago === 'ANTICIPO') {
+        console.log('rude')
+        const porcien_valor = parseFloat((formDataPago.valor) / (valorTotalDolares / 100)).toFixed(3)
+        const porcien_valor_saldo = parseFloat((valorTotalDolares - totalAnticipos) / (valorTotalDolares / 100)).toFixed(3)
+
+        if (porcien_valor <= 0 || porcien_valor >= 101) {
+          toast.error('El valor no debe ser menor 0% o superior al 100%')
+          return;
+        }
+
+        if (!formDataPago.valor || !formDataPago.fecha_vencimiento || !formDataPago.descripcion || !formDataPago.cod_forma_pago) {
+          toast.error('Todos los campos son requeridos')
+          return;
+        }
+
+        if (parseFloat(parseFloat(porcien_valor_saldo) + updateValuePorcentFlag) < parseFloat(((formDataPago.valor) / (valorTotalDolares / 100)).toFixed(3))) {
+          toast.error('El porcentaje de anticipo no puede ser mayor al saldo')
+          return;
+        }
+        const newUpdateData1 = {
+          empresa: +formDataPago.empresa,
+          cod_proforma: codPo,
+          tipo_proforma: tipoCombrobante,
+          fecha_vencimiento: formDataPago.fecha_vencimiento,
+          valor: formDataPago.valor,
+          saldo: formDataPago.valor,
+          descripcion: formDataPago.descripcion,
+          cod_forma_pago: 'ANT',
+          pct_valor: parseFloat((formDataPago.valor) / (valorTotalDolares / 100)).toFixed(3),
+          dias_vencimiento: difDays
+
+        }
+        const updateAnticipo = await updatedFormasPago(newUpdateData1, jwt, secFlagupdate, codPo)
+        console.log(updateAnticipo.data.message)
+        if (updateAnticipo.data.message === 'Registro actualizado exitosamente.') {
+          toast.success(updateAnticipo.data.message)
+          HandleupdateTablePagos()
+          handleCloseEdit()
+        } else {
+          toast.error('Error al actualizar')
+        }
+      }
+
+
+    } catch (error) {
+      console.log(error)
+      toast.error('Error')
     }
-    console.log(dataForBAck)
-    console.log(operacion)
-    const postPago = async()=>{
-      const response= await postDataFormasDePago(dataForBAck,jwt)
-      console.log(response)
-    }    
-    postPago()
-    handleClose();
+  }
+
+  const HandleupdateTablePagos = () => {
     setFlagReloadDataTableFormasdePago(!flagReloadDataTableFormasdePago)
+  }
+
+  const handleSave = () => {
+    const porcien_valor = parseFloat((formDataPago.valor) / (valorTotalDolares / 100)).toFixed(3)
+    const porcien_valor_saldo = parseFloat((valorTotalDolares - totalAnticipos) / (valorTotalDolares / 100)).toFixed(3)
+    if (porcien_valor_saldo >= 0 && porcien_valor_saldo < 1) {
+      toast.error('El saldo esta en 0% no se puede añadir mas inserciones')
+      return;
+    }
+
+    if ((proformasFormasDePago.length) >= 2) {
+      const datosFiltrados = proformasFormasDePago.filter(item => item.cod_forma_pago === 'SALDO');
+      if (datosFiltrados.length > 0 && formDataPago.cod_forma_pago === 'SAL') {
+        toast.error('Ya existe el campo SALDO, actualize este campo')
+        return;
+      }
+    }
+
+    if (!formDataPago.valor || !formDataPago.fecha_vencimiento || !formDataPago.descripcion || !formDataPago.cod_forma_pago) {
+      toast.error('Todos los campos son requeridos')
+      return;
+    }
+
+    if (formDataPago.cod_forma_pago === 'SAL') {
+      if (porcien_valor > porcien_valor_saldo) {
+        toast.error('Saldo no puede ser mayor al saldo Total')
+        return;
+      }
+    }
+    //console.log(parseFloat(porcien_valor_saldo))
+    //console.log(parseFloat(((formDataPago.valor) / (valorTotalDolares / 100)).toFixed(3)))
+
+    if (parseFloat(porcien_valor_saldo) < parseFloat(((formDataPago.valor) / (valorTotalDolares / 100)).toFixed(3))) {
+      toast.error('El porcentaje de anticipo no puede ser mayor al saldo')
+      return;
+    }
+    // Aquí puedes manejar la lógica para guardar la información ingresada
+    const flagFate = formDataPago.fecha_vencimiento
+    const date1 = parse(fechaEstimadaPuerto, 'dd/MM/yyyy', new Date());
+    const date2 = parse(flagFate, 'yyyy-MM-dd', new Date());
+
+    let difDays = ''
+    if (isValid(date1) && isValid(date2)) {
+      // Calcula la diferencia en días si ambas fechas son válidas
+      difDays = differenceInDays(date2, date1);
+    } else {
+      // En caso de fechas no válidas, devuelve un valor predeterminado (en este caso, 0)
+      difDays = 0;
+    }
+    const dataForBAck = {
+      empresa: +formDataPago.empresa,
+      cod_proforma: codPo,
+      tipo_proforma: tipoCombrobante,
+      fecha_vencimiento: formDataPago.fecha_vencimiento,
+      valor: formDataPago.valor,
+      saldo: formDataPago.valor,
+      descripcion: formDataPago.descripcion,
+      cod_forma_pago: formDataPago.cod_forma_pago,
+      pct_valor: parseFloat((formDataPago.valor) / (valorTotalDolares / 100)).toFixed(3),
+      dias_vencimiento: difDays
+    }
+
+    const postPago = async () => {
+      try {
+        const response = await postDataFormasDePago(dataForBAck, jwt)
+        toast.success(response.data.data)
+        if (response.data.data === 'Registro añadido correctamente') {
+          if ((proformasFormasDePago.length) >= 2) {
+            const datosFiltrados = proformasFormasDePago.filter(item => item.cod_forma_pago === 'SALDO');
+            if (datosFiltrados.length > 0) {
+              const updateData = datosFiltrados[0]
+              const newUpdateData = {
+                ...updateData,
+                valor: parseFloat((parseFloat(valorTotalDolares).toFixed(3) - parseFloat(totalAnticipos).toFixed(3)) - formDataPago.valor).toFixed(2),
+                saldo: parseFloat((parseFloat(valorTotalDolares).toFixed(3) - parseFloat(totalAnticipos).toFixed(3)) - formDataPago.valor).toFixed(2),
+                pct_valor: porcien_valor_saldo - parseFloat((formDataPago.valor) / (valorTotalDolares / 100)).toFixed(3),
+                cod_forma_pago: 'SAL'
+              }
+              const updateResponse = await updatedFormasPago(newUpdateData, jwt, datosFiltrados[0].secuencia, codPo)
+            }
+
+          }
+
+        }
+        HandleupdateTablePagos()
+
+      } catch (error) {
+        HandleupdateTablePagos()
+        console.log(error)
+      }
+    }
+
+    postPago();
+    //setFlagReloadDataTableFormasdePago(!flagReloadDataTableFormasdePago)
+    handleClose();
   };
 
   const handleChange = (event) => {
@@ -428,18 +596,61 @@ function EditPostSales() {
     });
   };
 
-  const DeleteRowTableFormaPAgos= async(rowsDeleted)=>{
-    const deleteSecuencia=proformasFormasDePago[rowsDeleted.data[0]['dataIndex']].secuencia
-    console.log(deleteSecuencia)
-    const data = {
-      cod_proforma:codPo,
-      secuencia:deleteSecuencia.toString()
-    }
-    const deleteFormasDePagoResponse=await deleteFormasDePago(data,jwt)
-    setFlagReloadDataTableFormasdePago(!flagReloadDataTableFormasdePago)
-    console.log(deleteFormasDePagoResponse)
-  }
+  const handleChangePorcent = (event) => {
+    const { name, value } = event.target
+    console.log(parseFloat((value / 100) * valorTotalDolares).toFixed(3))
+    const env=parseFloat((value / 100) * valorTotalDolares).toFixed(3)
+    setFormDataPago({
+      ...formDataPago,
+      valor: env.slice(0, -1)
+    })
+    //value={parseFloat((formDataPago.valor) / (valorTotalDolares / 100)).toFixed(3)}
 
+  };
+
+  const DeleteRowTableFormaPAgos = async (rowsDeleted) => {
+    try {
+      const deleteSecuencia = proformasFormasDePago[rowsDeleted.data[0]['dataIndex']].secuencia
+      //console.log(proformasFormasDePago[rowsDeleted.data[0]['dataIndex']])
+      const RowToDelete = proformasFormasDePago[rowsDeleted.data[0]['dataIndex']]
+      const data = {
+        cod_proforma: codPo,
+        secuencia: deleteSecuencia.toString()
+      }
+      const deleteFormasDePagoResponse = await deleteFormasDePago(data, jwt)
+      toast.success(deleteFormasDePagoResponse.data)
+      console.log(deleteFormasDePagoResponse.data)
+
+      //----------------UPDATE SALDO------------------------------------'Registro eliminado Correctamente'
+
+      if (deleteFormasDePagoResponse.data === 'Registro eliminado Correctamente') {
+        if ((proformasFormasDePago.length) >= 2) {
+          const datosFiltrados = proformasFormasDePago.filter(item => item.cod_forma_pago === 'SALDO');
+          if (datosFiltrados.length > 0) {
+            const updateData = datosFiltrados[0]
+            const newUpdateData = {
+              ...updateData,
+              valor: parseFloat((parseFloat(valorTotalDolares).toFixed(2) - parseFloat(totalAnticipos).toFixed(2)) + RowToDelete.valor).toFixed(2),
+              pct_valor: (parseFloat(datosFiltrados[0].pct_valor) + parseFloat(RowToDelete.pct_valor)).toFixed(3),
+              cod_forma_pago: 'SAL',
+              saldo: parseFloat((parseFloat(valorTotalDolares).toFixed(2) - parseFloat(totalAnticipos).toFixed(2)) + RowToDelete.valor).toFixed(2),
+            }
+            console.log(newUpdateData)
+            const updateResponse = await updatedFormasPago(newUpdateData, jwt, datosFiltrados[0].secuencia, codPo)
+          }
+
+        }
+
+      }
+
+      HandleupdateTablePagos()
+
+    } catch (error) {
+      console.log(error)
+      HandleupdateTablePagos()
+    }
+  };
+  //------------------------------------------------------------------------
   useEffect(() => {
     document.title = 'Orden ' + codPo;
     getMenus();
@@ -451,7 +662,7 @@ function EditPostSales() {
     getPackingList();
     getTracking();
 
-  }, [])
+  }, []);
 
   useEffect(() => {
     const dataProformasFormasPago = async () => {
@@ -472,24 +683,36 @@ function EditPostSales() {
           }
         })
         const sumaAnticipos = newData.filter(item => item.cod_forma_pago === 'ANTICIPO').reduce((total, item) => total + item.valor, 0)
+        const findSaldoTable = newData.filter(item => item.cod_forma_pago === 'SALDO').reduce((total, item) => total + item.valor, 0)
+        const findSaldoTableLength = newData.filter(item => item.cod_forma_pago === 'SALDO')
+    
         setTotalAnticipos(sumaAnticipos)
-
         setProformasFormasDePago(newData)
 
+        if(findSaldoTableLength.length==0){
+          setSaldoTable(0)
+        }else{
+          setSaldoTable(findSaldoTable)
+        }
+      
+
       } catch (error) {
+        setProformasFormasDePago([])
+        setTotalAnticipos(0)
         console.log(error)
       }
     }
     dataProformasFormasPago()
 
-  }, [flagReloadDataTableFormasdePago])
+  }, [flagReloadDataTableFormasdePago]);
 
   const optionsProformas = {
     responsive: 'standard',
     filterType: 'dropdown',
     // selectableRowsHideCheckboxes: true,
-    selectableRows:'single',
+    selectableRows: 'single',
     onRowsDelete: DeleteRowTableFormaPAgos,
+    onRowClick: handleEditFormasPago,
     textLabels: {
       body: {
         noMatch: "Lo siento, no se encontraron registros",
@@ -525,7 +748,7 @@ function EditPostSales() {
       }
     },
 
-    
+
 
 
   }
@@ -1454,19 +1677,59 @@ function EditPostSales() {
           </TabPanel>
 
           <TabPanel value={tabValue} index={2}>
-            <Button onClick={handleClickOpenNew} variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
-              Agregar $
-            </Button>
+            <div style={{ marginLeft: '10px' }}>
+              <Button onClick={handleClickOpenNew} variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
+                Agregar $
+              </Button>
+              <TextField
+                margin="dense"
+                id="pct_valor"
+                name="pct_valor"
+                label="Valor total"
+                type="number"
+                fullWidth
+                value={parseFloat(valorTotalDolares).toFixed(3)}
+                InputProps={{
+                  readOnly: true,
+                }}
+              />
+
+              <TextField
+                margin="dense"
+                id="pct_1valor"
+                name="salto_valor"
+                label="Saldo total"
+                type="number"
+                fullWidth
+                value={parseFloat(valorTotalDolares - totalAnticipos).toFixed(3)}
+                InputProps={{
+                  readOnly: true,
+                }}
+              />
+
+              <TextField
+                margin="dense"
+                id="pct_valor"
+                name="pct_valor"
+                label="SUMA"
+                type="number"
+                fullWidth
+                value={saldoTable === 0 ?  valorTotalDolares : saldoTable + totalAnticipos}
+                InputProps={{
+                  readOnly: true,
+                }}
+              />
+            </div>
+
             <ThemeProvider theme={getMuiTheme()}>
               <MUIDataTable title={"Forma de pago"} data={proformasFormasDePago} columns={columnsFormasDePago} options={optionsProformas} />
             </ThemeProvider>
           </TabPanel>
         </div>
       </Box>
-
-
+      {/* --DIALOGO AGREGAR-- */}
       <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Ingrese la información</DialogTitle>
+        <DialogTitle>Agregar Forma de Pago</DialogTitle>
         <DialogContent>
           <Grid container spacing={2}>
             <Grid item xs={4}>
@@ -1477,7 +1740,7 @@ function EditPostSales() {
                 label="Valor total"
                 type="number"
                 fullWidth
-                value={parseFloat(valorTotalDolares).toFixed(6)}
+                value={parseFloat(valorTotalDolares).toFixed(3)}
                 InputProps={{
                   readOnly: true,
                 }}
@@ -1491,7 +1754,7 @@ function EditPostSales() {
                 label="Saldo total"
                 type="number"
                 fullWidth
-                value={parseFloat(valorTotalDolares - totalAnticipos).toFixed(6)}
+                value={parseFloat(valorTotalDolares - totalAnticipos).toFixed(3)}
                 InputProps={{
                   readOnly: true,
                 }}
@@ -1505,74 +1768,87 @@ function EditPostSales() {
                 label="Saldo total %"
                 type="number"
                 fullWidth
-                value={parseFloat((valorTotalDolares - totalAnticipos) / (valorTotalDolares / 100)).toFixed(6)}
+                value={parseFloat((valorTotalDolares - totalAnticipos) / (valorTotalDolares / 100)).toFixed(3)}
                 InputProps={{
                   readOnly: true,
                 }}
               />
             </Grid>
           </Grid>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
+            <h3 style={{ fontSize: '12px' }}>Tipo de Pago</h3>
+            <h3 style={{ fontSize: '12px', marginRight: '5px' }}>Fecha de Vencimiento</h3>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
+            <Select
+              margin="dense"
+              id="cod_forma_pago"
+              name="cod_forma_pago"
+              label="Forma de Pago"
+              style={{ width: '48%' }}
+              value={formDataPago.cod_forma_pago}
+              onChange={handleChange}
+            >
+              <MenuItem value="ANT">Anticipo</MenuItem>
+              <MenuItem value="SAL">Saldo</MenuItem>
+            </Select>
 
-          <Select
-            margin="dense"
-            id="cod_forma_pago"
-            name="cod_forma_pago"
-            label="Forma de Pago"
-            fullWidth
-            value={formDataPago.cod_forma_pago}
-            onChange={handleChange}
-          >
-            <MenuItem value="ANT">Anticipo</MenuItem>
-            <MenuItem value="SAL">Saldo</MenuItem>
-          </Select>
+            <TextField
+              margin="dense"
+              id="fecha_vencimiento"
+              name="fecha_vencimiento"
+              label=""
+              type="date"
+              style={{ width: '48%' }}
+              value={formDataPago.fecha_vencimiento}
+              onChange={handleChange}
+            />
 
-          <TextField
-            margin="dense"
-            id="valor"
-            name="valor"
-            label="Valor"
-            type="number"
-            fullWidth
-            value={formDataPago.valor}
-            onChange={handleChange}
-          />
-          <TextField
-            margin="dense"
-            id="saldo"
-            name="saldo"
-            label="Saldo"
-            type="number"
-            fullWidth
-            value={formDataPago.valor}
-            onChange={handleChange}
-            InputProps={{
-              readOnly: true,
-            }}
-          />
-          <TextField
-            margin="dense"
-            id="pct_valor"
-            name="pct_valor"
-            label="Porcentaje Total %"
-            type="number"
-            fullWidth
-            value={parseFloat((formDataPago.valor) / (valorTotalDolares / 100)).toFixed(6)}
-            InputProps={{
-              readOnly: true,
-            }}
-          />
-          <label>Fecha de Vencimiento</label>
+          </div>
 
-          <TextField
-            margin="dense"
-            id="fecha_vencimiento"
-            name="fecha_vencimiento"
-            label=""
-            type="date"
-            fullWidth
-            value={formDataPago.fecha_vencimiento}
-            onChange={handleChange}
-          />
+          <label>Datos a Ingresar</label>
+          <Grid container spacing={2}>
+            <Grid item xs={4}>
+              <TextField
+                margin="dense"
+                id="valor"
+                name="valor"
+                label="Valor"
+                type="number"
+                fullWidth
+                value={formDataPago.valor}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <TextField
+                margin="dense"
+                id="saldo"
+                name="saldo"
+                label="Saldo"
+                type="number"
+                fullWidth
+                value={parseFloat(formDataPago.valor).toFixed(3)}
+                onChange={handleChange}
+                InputProps={{
+                  readOnly: true,
+                }}
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <TextField
+                margin="dense"
+                id="pct_valor"
+                name="pct_valor"
+                label="Porcentaje Total %"
+                type="number"
+                fullWidth
+                value={parseFloat((formDataPago.valor) / (valorTotalDolares / 100)).toFixed(3)}
+                onChange={handleChangePorcent}
+              />
+
+            </Grid>
+          </Grid>
 
           <TextField
             margin="dense"
@@ -1591,6 +1867,153 @@ function EditPostSales() {
             Cancelar
           </Button>
           <Button onClick={handleSave} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }}>
+            Guardar
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* --DIALOGO ACTUALIZAR-- */}
+      <Dialog open={openEdit} onClose={handleCloseEdit}>
+        <DialogTitle>Editar Forma de Pago</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2}>
+            <Grid item xs={4}>
+              <TextField
+                margin="dense"
+                id="pct_valor"
+                name="pct_valor"
+                label="Valor total"
+                type="number"
+                fullWidth
+                value={parseFloat(valorTotalDolares).toFixed(3)}
+                InputProps={{
+                  readOnly: true,
+                }}
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <TextField
+                margin="dense"
+                id="pct_1valor"
+                name="salto_valor"
+                label="Saldo total"
+                type="number"
+                fullWidth
+                value={parseFloat(valorTotalDolares - totalAnticipos).toFixed(3)}
+                InputProps={{
+                  readOnly: true,
+                }}
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <TextField
+                margin="dense"
+                id="pct_1valor"
+                name="salto_valor"
+                label="Saldo total %"
+                type="number"
+                fullWidth
+                value={parseFloat((valorTotalDolares - totalAnticipos) / (valorTotalDolares / 100)).toFixed(3)}
+                InputProps={{
+                  readOnly: true,
+                }}
+              />
+            </Grid>
+          </Grid>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
+            <h3 style={{ fontSize: '12px' }}>Tipo de Pago</h3>
+            <h3 style={{ fontSize: '12px', marginRight: '5px' }}>Fecha de Vencimiento</h3>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
+            <Select
+              margin="dense"
+              id="cod_forma_pago"
+              name="cod_forma_pago"
+              label="Forma de Pago"
+              style={{ width: '48%' }}
+              value={'ANT'}
+              InputProps={{
+                readOnly: true,
+              }}
+            >
+              <MenuItem value="ANT">Anticipo</MenuItem>
+              <MenuItem value="SAL">Saldo</MenuItem>
+            </Select>
+
+            <TextField
+              margin="dense"
+              id="fecha_vencimiento"
+              name="fecha_vencimiento"
+              label=""
+              type="date"
+              style={{ width: '48%' }}
+              value={formDataPago.fecha_vencimiento}
+              onChange={handleChange}
+            />
+
+          </div>
+
+          <label>Datos a Ingresar</label>
+          <Grid container spacing={2}>
+            <Grid item xs={4}>
+              <TextField
+                margin="dense"
+                id="valor"
+                name="valor"
+                label="Valor"
+                type="number"
+                fullWidth
+                value={formDataPago.valor}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <TextField
+                margin="dense"
+                id="saldo"
+                name="saldo"
+                label="Saldo"
+                type="number"
+                fullWidth
+                value={parseFloat(formDataPago.valor).toFixed(3)}
+                onChange={handleChange}
+                InputProps={{
+                  readOnly: true,
+                }}
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <TextField
+                margin="dense"
+                id="pct_valor"
+                name="pct_valor"
+                label="Porcentaje Total %"
+                type="number"
+                fullWidth
+                value={parseFloat((formDataPago.valor) / (valorTotalDolares / 100)).toFixed(3)}
+                onChange={handleChangePorcent}
+              />
+
+            </Grid>
+          </Grid>
+
+
+          <TextField
+            margin="dense"
+            id="descripcion"
+            name="descripcion"
+            label="Descripción"
+            type="text"
+            fullWidth
+            value={formDataPago.descripcion}
+            onChange={handleChange}
+          />
+
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEdit} color="primary">
+            Cancelar
+          </Button>
+          <Button onClick={saveEditFormasPago} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }}>
             Guardar
           </Button>
         </DialogActions>

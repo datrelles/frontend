@@ -84,22 +84,35 @@ export const postDataFormasDePago= async(data, jwt)=>{
 
 export const deleteFormasDePago= async(data, jwt)=>{
   try {
-    console.log(data)
     const response= await axios.delete(`${API}/proformas_delete_anticipo`,{
       headers: {
         Authorization: `Bearer ${jwt}`,
       },
       data:data,
     })
-    console.log(response)
     return response
     
+  } catch (error) {
+    const errorMessage= error
+    throw new Error(errorMessage)
+  }
+}
+
+export const updatedFormasPago= async (data, jwt, sec, code_proforma)=>{
+  try {
+    const response= await axios.put(`${API}/actualizar_anticipo_forma_de_pago_general/${sec}/${code_proforma}`,data, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+    console.log(response)
+    return response
   } catch (error) {
     console.log(error)
     const errorMessage= error
     throw new Error(errorMessage)
-    
   }
+
 }
 
 
