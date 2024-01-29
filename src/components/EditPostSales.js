@@ -1768,7 +1768,7 @@ function EditPostSales() {
                 label="Saldo total %"
                 type="number"
                 fullWidth
-                value={parseFloat((valorTotalDolares - totalAnticipos) / (valorTotalDolares / 100)).toFixed(3)}
+                value={parseFloat((valorTotalDolares - totalAnticipos) / (valorTotalDolares / 100)).toFixed(6)}
                 InputProps={{
                   readOnly: true,
                 }}
@@ -1846,7 +1846,6 @@ function EditPostSales() {
                 value={parseFloat((formDataPago.valor) / (valorTotalDolares / 100)).toFixed(3)}
                 onChange={handleChangePorcent}
               />
-
             </Grid>
           </Grid>
 
