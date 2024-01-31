@@ -115,6 +115,22 @@ export const updatedFormasPago= async (data, jwt, sec, code_proforma)=>{
 
 }
 
+export const postPagoAnticipo= async(data, jwt)=>{
+  try {
+    const response= await axios.post(`${API}/pagar_anticipo_forma_de_pago_general`, data, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+    console.log(response)
+    return response
+    
+  } catch (error) {
+    console.log(error.message)
+    const errorMessage= error.message
+    throw new Error(errorMessage)
+  }
+}
 
 
 

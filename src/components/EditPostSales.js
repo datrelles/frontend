@@ -34,7 +34,7 @@ import { da } from 'date-fns/locale';
 import { useAuthContext } from '../context/authContext';
 
 //Necesario para POp ups
-import { getDataFormasDePago, postDataFormasDePago, deleteFormasDePago } from '../services/api';
+import { getDataFormasDePago, postDataFormasDePago, deleteFormasDePago, postPagoAnticipo } from '../services/api';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -93,8 +93,10 @@ function EditPostSales() {
   const [proformasFormasDePago, setProformasFormasDePago] = useState([])
   const [open, setOpen] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
+  const [openPagar, setOpenPagar] = useState(false)
   const [totalAnticipos, setTotalAnticipos] = useState(0)
-  const [saldoTable, setSaldoTable]= useState(0)
+  const [saldoTable, setSaldoTable] = useState(0)
+  const [payAnticipo, setPayAnticipo] = useState({})
   const [formDataPago, setFormDataPago] = useState({
     empresa: enterpriseShineray,
     cod_proforma: '',
@@ -378,9 +380,9 @@ function EditPostSales() {
     setValorTotalDolares(editTotal);
 
   }
-  //HANDLE POP UP FORMAS DE PAGO-----------------------------------------------------------------------------------------
+  //----------------HANDLE POP UP FORMAS DE PAGO-----------------------------------------------------------------------------------------
 
-  //ABRIR CREAR DIALOG
+  //----------------ABRIR CREAR DIALOG
   const handleClickOpenNew = () => {
     setOpen(true);
   };
@@ -410,8 +412,53 @@ function EditPostSales() {
     )
   }
 
-  const handleEditFormasPago =  (rowData) => {
-    const filterDataBySecuencia=proformasFormasDePago.filter(item => item.secuencia === rowData[0].props.children)
+  //----------------------PAGAR-------------------------------------
+
+  const handleClickOpenPagar = () => {
+    let primer_anticipo = null;
+    for (const item of proformasFormasDePago) {
+      if (item.cod_forma_pago === 'ANTICIPO') {
+        primer_anticipo = item;
+        break; // Terminar el bucle cuando se encuentra el primer anticipo
+      }
+    }
+    setPayAnticipo(primer_anticipo);
+    setOpenPagar(true);
+  }
+  const handleClosePagar = () => {
+    setOpenPagar(false)
+
+  }
+
+  const handleSavePagar = () => {
+    console.log('sdfdf')
+    const pagoAnticipos = async () => {
+      try {
+        const dataForBAck = {
+          p_cod_empresa: enterpriseShineray,
+          p_tipo_proforma: 'PO',
+          p_cod_proforma: codPo,
+          p_usuario: userShineray
+        }
+        const response = await postPagoAnticipo(dataForBAck, jwt)
+        console.log(response.data.data)
+        toast.success(response.data.data)
+      } catch (error) {
+        console.log(error.message)
+        toast.error(error.message)
+      }
+    }
+    pagoAnticipos();
+    handleClosePagar();
+
+  }
+
+
+
+
+
+  const handleEditFormasPago = (rowData) => {
+    const filterDataBySecuencia = proformasFormasDePago.filter(item => item.secuencia === rowData[0].props.children)
     const preFormEdit = filterDataBySecuencia[0]
     if (preFormEdit.cod_forma_pago === 'SALDO') {
       toast.error('El saldo no se puede editar')
@@ -599,7 +646,7 @@ function EditPostSales() {
   const handleChangePorcent = (event) => {
     const { name, value } = event.target
     console.log(parseFloat((value / 100) * valorTotalDolares).toFixed(3))
-    const env=parseFloat((value / 100) * valorTotalDolares).toFixed(3)
+    const env = parseFloat((value / 100) * valorTotalDolares).toFixed(3)
     setFormDataPago({
       ...formDataPago,
       valor: env.slice(0, -1)
@@ -685,16 +732,16 @@ function EditPostSales() {
         const sumaAnticipos = newData.filter(item => item.cod_forma_pago === 'ANTICIPO').reduce((total, item) => total + item.valor, 0)
         const findSaldoTable = newData.filter(item => item.cod_forma_pago === 'SALDO').reduce((total, item) => total + item.valor, 0)
         const findSaldoTableLength = newData.filter(item => item.cod_forma_pago === 'SALDO')
-    
+
         setTotalAnticipos(sumaAnticipos)
         setProformasFormasDePago(newData)
 
-        if(findSaldoTableLength.length==0){
+        if (findSaldoTableLength.length == 0) {
           setSaldoTable(0)
-        }else{
+        } else {
           setSaldoTable(findSaldoTable)
         }
-      
+
 
       } catch (error) {
         setProformasFormasDePago([])
@@ -1681,6 +1728,9 @@ function EditPostSales() {
               <Button onClick={handleClickOpenNew} variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
                 Agregar $
               </Button>
+              <Button onClick={handleClickOpenPagar} variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
+                Pagar $
+              </Button>
               <TextField
                 margin="dense"
                 id="pct_valor"
@@ -1714,7 +1764,7 @@ function EditPostSales() {
                 label="SUMA"
                 type="number"
                 fullWidth
-                value={saldoTable === 0 ?  valorTotalDolares : saldoTable + totalAnticipos}
+                value={saldoTable === 0 ? valorTotalDolares : saldoTable + totalAnticipos}
                 InputProps={{
                   readOnly: true,
                 }}
@@ -1727,6 +1777,7 @@ function EditPostSales() {
           </TabPanel>
         </div>
       </Box>
+
       {/* --DIALOGO AGREGAR-- */}
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Agregar Forma de Pago</DialogTitle>
@@ -1870,6 +1921,7 @@ function EditPostSales() {
           </Button>
         </DialogActions>
       </Dialog>
+
       {/* --DIALOGO ACTUALIZAR-- */}
       <Dialog open={openEdit} onClose={handleCloseEdit}>
         <DialogTitle>Editar Forma de Pago</DialogTitle>
@@ -2014,6 +2066,34 @@ function EditPostSales() {
           </Button>
           <Button onClick={saveEditFormasPago} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }}>
             Guardar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* --DIALOGO PAGAR-- */}
+      <Dialog open={openPagar} onClose={handleClosePagar}>
+        <DialogTitle>PAGAR ANTICIPO</DialogTitle>
+        <DialogContent>
+          <TextField
+            margin="dense"
+            id="descripcion"
+            name="descripcion"
+            label="Valor del anticipo"
+            type="text"
+            fullWidth
+            value={payAnticipo.valor}
+            InputProps={{
+              readOnly: true,
+            }}
+          />
+
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClosePagar} color="primary">
+            CANCELAR
+          </Button>
+          <Button onClick={handleSavePagar} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }}>
+            PAGAR
           </Button>
         </DialogActions>
       </Dialog>
