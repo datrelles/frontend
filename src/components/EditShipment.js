@@ -65,6 +65,7 @@ function EditShipment() {
   const [tipoFlete, setTipoFlete] = useState(formData.tipo_flete)
   const [codRegimen, setCodRegimen] = useState(formData.cod_regimen)
   const [nroMrn, setNroMrn] = useState(formData.nro_mrn)
+  const [blHouseManual, setBlHouseManual] = useState(formData.bl_house_manual)
 
   const [estado, setEstado] = useState("");
   const [authorizedSystems, setAuthorizedSystems] = useState([]);
@@ -141,6 +142,7 @@ function EditShipment() {
         setTipoFlete(data[0].tipo_flete)
         setCodRegimen(data[0].cod_regimen)
         setNroMrn(data[0].nro_mrn)
+        setBlHouseManual(data[0].bl_house_manual)
 
       }
     } catch (error) {
@@ -181,10 +183,12 @@ function EditShipment() {
     const list = data.map((item) => ({
       nombre: item.nombre,
       cod: item.cod_item,
+      tipo: item.tipo
     }));
     if (codItem) {
       setEstado(list.find((objeto) => objeto.cod === codItem).nombre)
     }
+    console.log(list)
     setStatusList(list)
   }
 
@@ -693,7 +697,8 @@ function EditShipment() {
         cod_item: codItem,
         cod_aforo: codAforo,
         cod_regimen: codRegimen,
-        nro_mrn: nroMrn
+        nro_mrn: nroMrn,
+        bl_house_manual: blHouseManual
       })
     })
     const data = await res.json();
@@ -866,17 +871,27 @@ function EditShipment() {
             </button>
             
           <div style={{fontWeight: 1000, color: 'black', whiteSpace: 'nowrap'}}>
-            {TrackingStep(Number(codItem), statusList.map(item => item.nombre), trackingList.map(item => item.fecha))}
+            {TrackingStep(Number(codItem), statusList.filter(item => item.tipo === 'A').map(item => item.nombre), trackingList.map(item => item.fecha))}
           </div>
           <Grid container spacing={3}>
             <Grid item xs={12} md={3}>
               <TextField
                 disabled
                 id="id"
-                label="BL House"
+                label="Secuencia BL"
                 type="text"
                 onChange={e => setCodigoBlHouse(e.target.value)}
                 value={codigoBlHouse}
+                className="form-control"
+                fullWidth
+              />
+               <TextField
+                disabled
+                id="codigo-bl-house"
+                label="Codigo BL House"
+                type="text"
+                onChange={e => setBlHouseManual(e.target.value)}
+                value={blHouseManual}
                 className="form-control"
                 fullWidth
               />
@@ -1020,7 +1035,7 @@ function EditShipment() {
                 disabled={parseInt(formData.cod_item, 10) > 2}
               />
               <TextField
-                required
+                disabled
                 id="numero-tracking"
                 label="Numero Tracking"
                 type="text"

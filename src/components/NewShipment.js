@@ -59,6 +59,7 @@ function NewShipment() {
     const [tipoFlete, setTipoFlete] = useState("")
     const [codRegimen, setCodRegimen] = useState("")
     const [nroMrn, setNroMrn] = useState("")
+    const [blHouseManual, setBlHouseManual] = useState("")
 
     const [estado, setEstado] = useState("");
     const [authorizedSystems, setAuthorizedSystems] = useState([]);
@@ -145,7 +146,7 @@ function NewShipment() {
     }
 
     const getStatusList = async () => {
-        const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=BL`, {
+        const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=BL&tipo=A`, {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + jwt
@@ -489,7 +490,7 @@ function NewShipment() {
                 codigo_bl_house: codigoBlHouse,
                 cod_proveedor: codProveedor,
                 numero_tracking: numeroTracking,
-                estado: 0,
+                estado: 'P',
                 agente,
                 naviera,
                 buque,
@@ -503,13 +504,15 @@ function NewShipment() {
                 cod_item: codItem,
                 cod_aforo: codAforo,
                 cod_regimen: codRegimen,
-                nro_mrn: nroMrn
+                nro_mrn: nroMrn,
+                bl_house_manual: blHouseManual
             })
         })
         const data = await res.json();
         console.log(data)
         if (!data.error) {
             enqueueSnackbar('¡Guardado exitosamente!', { variant: 'success' });
+            setCodigoBlHouse(data.codigo_bl_house)
         } else {
             enqueueSnackbar(data.error, { variant: 'error' });
         }
@@ -621,11 +624,21 @@ function NewShipment() {
                     <Grid container spacing={3}>
                         <Grid item xs={12} md={3}>
                             <TextField
+                                disabled
                                 id="id"
-                                label="BL House"
+                                label="Secuencia BL"
                                 type="text"
                                 onChange={(e) => setCodigoBlHouse(e.target.value)}
                                 value={codigoBlHouse}
+                                className="form-control"
+                                fullWidth
+                            />
+                            <TextField
+                                id="secuencial"
+                                label="BL House"
+                                type="text"
+                                onChange={(e) => setBlHouseManual(e.target.value)}
+                                value={blHouseManual}
                                 className="form-control"
                                 fullWidth
                             />
@@ -816,7 +829,7 @@ function NewShipment() {
                                 )}
                             />
                             <TextField
-                                required
+                                disabled
                                 fullWidth
                                 id="numero-tracking"
                                 label="Numero Tracking"
