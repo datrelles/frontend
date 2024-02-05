@@ -502,6 +502,10 @@ function EditPostSales() {
       },
     },
     {
+      name: "nro_contenedor",
+      label: "Contenedor"
+    },
+    {
       name: "cod_liquidacion",
       label: "Valoracion"
     },
