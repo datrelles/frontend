@@ -236,6 +236,10 @@ function PackingListTotal() {
             label: "Proforma"
         },
         {
+            name: "cod_producto",
+            label: "Cod Producto"
+        },
+        {
             name: "producto",
             label: "Producto"
         },
