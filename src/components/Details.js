@@ -30,8 +30,6 @@ function Details() {
     const [excelData, setExcelData] = useState(['']);
     const [authorizedSystems, setAuthorizedSystems] = useState([]);
     const [containerList, setContainerList] = useState([])
-    const [fromDate, setFromDate] = useState(moment().subtract(3, "months"));
-    const [toDate, setToDate] = useState(moment);
     const [statusList, setStatusList] = useState([])
     const [statusListPo, setStatusListPo] = useState([])
     const [menus, setMenus] = useState([])
@@ -113,8 +111,6 @@ function Details() {
         getStatusListPo();
         checkAuthorization();
         getMenus();
-        setToDate(null);
-        setFromDate(null);
     }, [])
 
     const handleRowClick = async (rowData) => {
