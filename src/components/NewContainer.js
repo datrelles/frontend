@@ -12,6 +12,12 @@ import { SnackbarProvider, useSnackbar } from 'notistack';
 import { Tabs, Tab } from '@material-ui/core';
 import SaveIcon from '@material-ui/icons/Save';
 import FileGenerator from './FileGenerator';
+import Checkbox from '@mui/material/Checkbox';
+import FavoriteBorder from '@mui/icons-material/TwoWheelerOutlined';
+import Favorite from '@mui/icons-material/TwoWheeler';
+import BookmarkBorderIcon from '@mui/icons-material/SettingsOutlined';
+import BookmarkIcon from '@mui/icons-material/Settings';
+import Typography from '@material-ui/core/Typography';
 
 
 import Autocomplete from '@mui/material/Autocomplete';
@@ -30,7 +36,7 @@ const useStyles = makeStyles({
 
 
 function NewContainer() {
-    const {jwt, enterpriseShineray, userShineray, systemShineray}=useAuthContext();
+    const { jwt, enterpriseShineray, userShineray, systemShineray } = useAuthContext();
     const classes = useStyles();
     const navigate = useNavigate();
     const location = useLocation();
@@ -56,6 +62,9 @@ function NewContainer() {
     const [tipoList, setTipoList] = useState([])
     const [cargaList, setCargaList] = useState([{ cod: 0, nombre: "No" }, { cod: 1, nombre: "Si" }])
     const [cargaNombre, setCargaNombre] = useState("No")
+
+    const [esMotos, setEsMotos] = useState(0);
+    const [esRepuestos, setEsRepuestos] = useState(0);
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -310,7 +319,9 @@ function NewContainer() {
                 shipper_seal: shipperSeal,
                 es_carga_suelta: parseInt(esCargaSuelta, 10),
                 observaciones: observaciones,
-                usuario_crea: userShineray
+                usuario_crea: userShineray,
+                es_repuestos: esRepuestos === "" ? 0 : esRepuestos,
+                es_motos: esMotos === "" ? 0 : esMotos
             })
         })
         const data = await res.json();
@@ -493,6 +504,22 @@ function NewContainer() {
             }
         });
 
+    const handleCheck1Change = (event) => {
+        if (event.target.checked) {
+            setEsMotos(1);
+        } else {
+            setEsMotos(0);
+        }
+    };
+
+    const handleCheck2Change = (event) => {
+        if (event.target.checked) {
+            setEsRepuestos(1);
+        } else {
+            setEsRepuestos(0);
+        }
+    };
+
     return (
         <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
             <Navbar0 menus={menus} />
@@ -664,6 +691,21 @@ function NewContainer() {
                                 value={observaciones}
                                 className="form-control"
                             />
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <Typography>Contiene:</Typography>
+                                <Checkbox
+                                    checked={esMotos === 1}
+                                    onChange={handleCheck1Change}
+                                    icon={<FavoriteBorder style={{ fontSize: 30 }} />}
+                                    checkedIcon={<Favorite style={{ color: 'firebrick', fontSize: 35 }} />}
+                                />
+                                <Checkbox
+                                    checked={esRepuestos === 1}
+                                    onChange={handleCheck2Change}
+                                    icon={<BookmarkBorderIcon style={{ fontSize: 30 }} />}
+                                    checkedIcon={<BookmarkIcon style={{ color: 'firebrick', fontSize: 35 }} />}
+                                />
+                            </div>
                         </Grid>
                     </Grid>
 

@@ -253,6 +253,13 @@ function Details() {
             },
         },
         {
+            name: "costo_cotizado",
+            label: "Precio Cotizado",
+            options: {
+                customBodyRender: Functions.NumericRender
+            },
+        },
+        {
             name: "cod_po",
             options: {
                 customBodyRender: (value, tableMeta) => (

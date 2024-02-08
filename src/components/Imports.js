@@ -35,7 +35,7 @@ const useStyles = makeStyles({
 
 function PostSales() {
   const [purchaseOrders, setPurchaseOrders] = useState([])
-  const [fromDate, setFromDate] = useState(moment().subtract(3, "months"));
+  const [fromDate, setFromDate] = useState(moment().subtract(3, "years"));
   const [toDate, setToDate] = useState(moment);
   const [statusList, setStatusList] = useState([])
   const [menus, setMenus] = useState([])

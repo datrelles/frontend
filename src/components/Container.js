@@ -27,7 +27,7 @@ const useStyles = makeStyles({
 function Container() {
   const {jwt, userShineray,enterpriseShineray, systemShineray}=useAuthContext();
   const [containers, setContainers] = useState([])
-  const [fromDate, setFromDate] = useState(moment().subtract(3,"months"));
+  const [fromDate, setFromDate] = useState(moment().subtract(3,"years"));
   const [toDate, setToDate] = useState(moment);
   const [statusList, setStatusList] = useState([])
   const [menus, setMenus] = useState([])
@@ -150,6 +150,10 @@ function Container() {
       label: "Contenedor"
     },
     {
+      name: "observaciones",
+      label:"Observaciones"
+    },
+    {
       name: "cod_tipo_contenedor",
       label: "Tipo Contenedor"
     },
@@ -172,6 +176,34 @@ function Container() {
     },
     },
     {
+        name: "es_repuestos",
+        label: "Es Repuestos",
+        options: {
+            customBodyRender: (value) => {
+              // Verificar si la cadena es vacía o nula
+              if (value === 0 || value === "") {
+                return "NO";
+              } else {
+                return "SI";
+              }
+            },
+          },
+      },
+      {
+        name: "es_motos",
+        label: "Es Motos",
+        options: {
+            customBodyRender: (value) => {
+              // Verificar si la cadena es vacía o nula
+              if (value === 0 || value === "") {
+                return "NO";
+              } else {
+                return "SI";
+              }
+            },
+          },
+      },
+      {
         name: "es_carga_suelta",
         label: "Carga Suelta",
         options: {

@@ -17,6 +17,12 @@ import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Functions from "../helpers/Functions";
 import { useAuthContext } from '../context/authContext';
+import Checkbox from '@mui/material/Checkbox';
+import FavoriteBorder from '@mui/icons-material/TwoWheelerOutlined';
+import Favorite from '@mui/icons-material/TwoWheeler';
+import BookmarkBorderIcon from '@mui/icons-material/SettingsOutlined';
+import BookmarkIcon from '@mui/icons-material/Settings';
+import Typography from '@material-ui/core/Typography';
 
 const API = process.env.REACT_APP_API;
 const useStyles = makeStyles({
@@ -29,7 +35,7 @@ const useStyles = makeStyles({
 
 
 function EditContainer() {
-  const {jwt, userShineray, enterpriseShineray, systemShineray}=useAuthContext();
+  const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
 
   const classes = useStyles();
   const navigate = useNavigate();
@@ -56,6 +62,9 @@ function EditContainer() {
   const [cargaList, setCargaList] = useState([{ cod: 0, nombre: "No" }, { cod: 1, nombre: "Si" }])
   const foundCarga = cargaList.find((carga) => carga.cod === parseInt(formData.es_carga_suelta, 10));
   const [cargaNombre, setCargaNombre] = useState(foundCarga ? foundCarga.nombre : "No")
+
+  const [esMotos, setEsMotos] = useState(formData.es_motos);
+  const [esRepuestos, setEsRepuestos] = useState(formData.es_repuestos);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -232,8 +241,8 @@ function EditContainer() {
         customBodyRender: (value) => {
           if (value === null || value === "") {
             return <div style={{ textAlign: "right" }}>
-            {"0"}
-          </div>
+              {"0"}
+            </div>
           } else {
             return <div style={{ textAlign: "right" }}>
               {value}
@@ -247,7 +256,7 @@ function EditContainer() {
       label: "Fob",
       options: {
         customBodyRender: Functions.NumericRender
-    },
+      },
     },
     {
       name: "cod_po",
@@ -362,7 +371,9 @@ function EditContainer() {
         shipper_seal: shipperSeal,
         es_carga_suelta: parseInt(esCargaSuelta, 10),
         observaciones: observaciones,
-        usuario_modifica: userShineray
+        usuario_modifica: userShineray,
+        es_repuestos: esRepuestos === "" ? 0 : esRepuestos,
+        es_motos: esMotos === "" ? 0 : esMotos
       })
     })
     const data = await res.json();
@@ -506,6 +517,22 @@ function EditContainer() {
         }
       }
     });
+
+  const handleCheck1Change = (event) => {
+    if (event.target.checked) {
+      setEsMotos(1);
+    } else {
+      setEsMotos(0);
+    }
+  };
+
+  const handleCheck2Change = (event) => {
+    if (event.target.checked) {
+      setEsRepuestos(1);
+    } else {
+      setEsRepuestos(0);
+    }
+  };
 
   return (
     <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
@@ -656,6 +683,22 @@ function EditContainer() {
                 className="form-control"
                 fullWidth
               />
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <Typography>Contiene:</Typography>
+                <Checkbox
+                  checked={esMotos === 1}
+                  onChange={handleCheck1Change}
+                  icon={<FavoriteBorder style={{ fontSize: 30 }} />}
+                  checkedIcon={<Favorite style={{ color: 'firebrick', fontSize: 35 }} />}
+                />
+                <Checkbox
+                  checked={esRepuestos === 1}
+                  onChange={handleCheck2Change}
+                  icon={<BookmarkBorderIcon style={{ fontSize: 30 }} />}
+                  checkedIcon={<BookmarkIcon style={{ color: 'firebrick', fontSize: 35 }} />}
+                />
+              </div>
+
             </Grid>
           </Grid>
           <div>

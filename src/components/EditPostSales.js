@@ -36,7 +36,7 @@ import { useAuthContext } from '../context/authContext';
 const API = process.env.REACT_APP_API;
 
 function EditPostSales() {
-  const {jwt, userShineray, enterpriseShineray, systemShineray, branchShineray}=useAuthContext();
+  const { jwt, userShineray, enterpriseShineray, systemShineray, branchShineray } = useAuthContext();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -411,6 +411,13 @@ function EditPostSales() {
       options: {
         customBodyRender: Functions.NumericRender
       },
+    },
+    {
+      name: "costo_cotizado",
+      label: "Precio Cotizado",
+      options: {
+        customBodyRender: Functions.NumericRender
+      },
     }
   ]
 
@@ -590,8 +597,8 @@ function EditPostSales() {
       enqueueSnackbar(data.error, { variant: 'error' });
 
     }
-    if (excelData && excelData.length > 1) {
-      const res2 = await fetch(`${API}/orden_compra_det`, {
+    if (excelData && excelData.length > 0) {
+      const res2 = await fetch(`${API}/orden_compra_det_aprob`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -760,39 +767,80 @@ function EditPostSales() {
   };
 
   const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    const reader = new FileReader();
+    if (details && details.length > 0) {
+      const userResponse = window.confirm(`La orden contiene ${details.length} items, desea borrar y reemplazar con una nueva lista?`)
+      if (userResponse) {
+        setDetails([])
+        const file = event.target.files[0];
+        const reader = new FileReader();
 
-    reader.onload = (e) => {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-      const properties = jsonData[0];
+        reader.onload = (e) => {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+          const properties = jsonData[0];
 
-      const newExcelData = [];
+          const newExcelData = [];
 
-      for (let i = 1; i < jsonData.length; i++) {
-        const row = jsonData[i];
+          for (let i = 1; i < jsonData.length; i++) {
+            const row = jsonData[i];
 
-        const isRowEmpty = row.every((cell) => cell === "");
+            const isRowEmpty = row.every((cell) => cell === "");
 
-        if (!isRowEmpty) {
+            if (!isRowEmpty) {
 
-          const obj = {};
-          for (let j = 0; j < properties.length; j++) {
-            const property = properties[j];
-            obj[property] = row[j];
+              const obj = {};
+              for (let j = 0; j < properties.length; j++) {
+                const property = properties[j];
+                obj[property] = row[j];
+              }
+
+              newExcelData.push(obj);
+            }
           }
+          setExcelData(newExcelData)
+          setDetails((prevDetails) => [...prevDetails, ...newExcelData])
+          console.log(newExcelData)
+        };
+        reader.readAsArrayBuffer(file);
 
-          newExcelData.push(obj);
-        }
       }
-      setExcelData(newExcelData)
-      setDetails((prevDetails) => [...prevDetails, ...newExcelData])
-      console.log(newExcelData)
-    };
-    reader.readAsArrayBuffer(file);
+    } else {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        const properties = jsonData[0];
+
+        const newExcelData = [];
+
+        for (let i = 1; i < jsonData.length; i++) {
+          const row = jsonData[i];
+
+          const isRowEmpty = row.every((cell) => cell === "");
+
+          if (!isRowEmpty) {
+
+            const obj = {};
+            for (let j = 0; j < properties.length; j++) {
+              const property = properties[j];
+              obj[property] = row[j];
+            }
+
+            newExcelData.push(obj);
+          }
+        }
+        setExcelData(newExcelData)
+        setDetails((prevDetails) => [...prevDetails, ...newExcelData])
+        console.log(newExcelData)
+      };
+      reader.readAsArrayBuffer(file);
+    }
 
   };
 
@@ -946,7 +994,7 @@ function EditPostSales() {
             </button>
           )}
 
-          <div style={{fontWeight: 1000, color: 'black', whiteSpace: 'nowrap'}}>
+          <div style={{ fontWeight: 1000, color: 'black', whiteSpace: 'nowrap' }}>
             {TrackingStepOrder(Number(formData.cod_item), statusList.map(item => item.nombre), trackingList.map(item => item.fecha))}
           </div>
 
@@ -1048,7 +1096,7 @@ function EditPostSales() {
               />
             </Grid>
             <Grid item xs={12} md={3}>
-              <div style={{ display:'flex',flexDirection:'column', width:'310px'}}>
+              <div style={{ display: 'flex', flexDirection: 'column', width: '310px' }}>
                 <div>
                   <LocalizationProvider dateAdapter={AdapterDayjs} >
                     <DemoContainer components={['DatePicker', 'DatePicker']}>
@@ -1119,7 +1167,7 @@ function EditPostSales() {
               <label htmlFor="file-upload">
                 {authorizedSystems.includes('IMP') && parseInt(formData.cod_item, 10) < 6 && (
                   <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
-                    Cargar en Lote
+                    Actualizar Lista
                   </Button>
                 )}
               </label>
