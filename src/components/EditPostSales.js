@@ -42,7 +42,7 @@ function EditPostSales() {
   const location = useLocation();
   const [formData, setFormData] = useState(location.state)
   const [tabValue, setTabValue] = useState(0);
-  const [excelData, setExcelData] = useState(['']);
+  const [excelData, setExcelData] = useState([]);
   const [excelDataPack, setExcelDataPack] = useState(['']);
   const [menus, setMenus] = useState([])
 
