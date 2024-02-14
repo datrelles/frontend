@@ -2,6 +2,8 @@ import axios from 'axios';
 
 const API = process.env.REACT_APP_API;
 
+//CONTABILIDAD CARGA_DOC_ELECTRONIC-------------------------------------------------------
+
 export  const getMenus = async (user,enterprise,system,jwt) => {
   try {
     const res = await fetch(`${API}/menus/${user}/${enterprise}/${system}`,
@@ -46,6 +48,87 @@ export const getDocumentsSri = async (start, end, jwt) => {
     console.log(error)
     const errorMessage = error.response.data.error.errorMessage
     throw new Error(errorMessage);
+  }
+}
+//FORMAS DE PAGO------------------------------------------------------
+export const getDataFormasDePago= async(cod_proforma, jwt)=>{
+  try {
+  const response = await axios.get(`${API}/proformas_por_cod_proforma/${cod_proforma}`, {
+    headers:{
+      Authorization: `Bearer ${jwt}`,
+    },
+  })
+
+  return response.data
+} catch (error) {
+  console.log(error)
+}
+}
+
+export const postDataFormasDePago= async(data, jwt)=>{
+  try {
+    const response= await axios.post(`${API}/crear_anticipo_forma_de_pago_general`, data, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+    console.log(response)
+    return response
+    
+  } catch (error) {
+    console.log(error)
+    const errorMessage= error
+    throw new Error(errorMessage)
+  }
+}
+
+export const deleteFormasDePago= async(data, jwt)=>{
+  try {
+    const response= await axios.delete(`${API}/proformas_delete_anticipo`,{
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+      data:data,
+    })
+    return response
+    
+  } catch (error) {
+    const errorMessage= error
+    throw new Error(errorMessage)
+  }
+}
+
+export const updatedFormasPago= async (data, jwt, sec, code_proforma)=>{
+  try {
+    const response= await axios.put(`${API}/actualizar_anticipo_forma_de_pago_general/${sec}/${code_proforma}`,data, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+    console.log(response)
+    return response
+  } catch (error) {
+    console.log(error)
+    const errorMessage= error
+    throw new Error(errorMessage)
+  }
+
+}
+
+export const postPagoAnticipo= async(data, jwt)=>{
+  try {
+    const response= await axios.post(`${API}/pagar_anticipo_forma_de_pago_general`, data, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+    console.log(response)
+    return response
+    
+  } catch (error) {
+    console.log(error.message)
+    const errorMessage= error.message
+    throw new Error(errorMessage)
   }
 }
 
