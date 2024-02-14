@@ -455,8 +455,6 @@ function EditPostSales() {
 
 
 
-
-
   const handleEditFormasPago = (rowData) => {
     const filterDataBySecuencia = proformasFormasDePago.filter(item => item.secuencia === rowData[0].props.children)
     const preFormEdit = filterDataBySecuencia[0]
@@ -1518,7 +1516,6 @@ function EditPostSales() {
           <div style={{ fontWeight: 1000, color: 'black', whiteSpace: 'nowrap' }}>
             {TrackingStepOrder(Number(formData.cod_item), statusList.map(item => item.nombre), trackingList.map(item => item.fecha))}
           </div>
-
           <Grid container spacing={3}>
             <Grid item xs={12} md={3}>
               <TextField
@@ -1722,59 +1719,63 @@ function EditPostSales() {
               <MUIDataTable title={"Packinglist Orden de Compra"} data={packingList} columns={columnsPacking} options={optionsPacking} />
             </ThemeProvider>
           </TabPanel>
+          {Number(formData.cod_item) === 4 ?
+            <TabPanel value={tabValue} index={2}>
+              <div style={{ marginLeft: '10px' }}>
+                <Button onClick={handleClickOpenNew} variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
+                  Agregar $
+                </Button>
+                <Button onClick={handleClickOpenPagar} variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
+                  Pagar $
+                </Button>
+                <TextField
+                  margin="dense"
+                  id="pct_valor"
+                  name="pct_valor"
+                  label="Valor total"
+                  type="number"
+                  fullWidth
+                  value={parseFloat(valorTotalDolares).toFixed(3)}
+                  InputProps={{
+                    readOnly: true,
+                  }}
+                />
 
-          <TabPanel value={tabValue} index={2}>
-            <div style={{ marginLeft: '10px' }}>
-              <Button onClick={handleClickOpenNew} variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
-                Agregar $
-              </Button>
-              <Button onClick={handleClickOpenPagar} variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
-                Pagar $
-              </Button>
-              <TextField
-                margin="dense"
-                id="pct_valor"
-                name="pct_valor"
-                label="Valor total"
-                type="number"
-                fullWidth
-                value={parseFloat(valorTotalDolares).toFixed(3)}
-                InputProps={{
-                  readOnly: true,
-                }}
-              />
+                <TextField
+                  margin="dense"
+                  id="pct_1valor"
+                  name="salto_valor"
+                  label="Saldo total"
+                  type="number"
+                  fullWidth
+                  value={parseFloat(valorTotalDolares - totalAnticipos).toFixed(3)}
+                  InputProps={{
+                    readOnly: true,
+                  }}
+                />
 
-              <TextField
-                margin="dense"
-                id="pct_1valor"
-                name="salto_valor"
-                label="Saldo total"
-                type="number"
-                fullWidth
-                value={parseFloat(valorTotalDolares - totalAnticipos).toFixed(3)}
-                InputProps={{
-                  readOnly: true,
-                }}
-              />
+                <TextField
+                  margin="dense"
+                  id="pct_valor"
+                  name="pct_valor"
+                  label="SUMA"
+                  type="number"
+                  fullWidth
+                  value={saldoTable === 0 ? valorTotalDolares : saldoTable + totalAnticipos}
+                  InputProps={{
+                    readOnly: true,
+                  }}
+                />
+              </div>
 
-              <TextField
-                margin="dense"
-                id="pct_valor"
-                name="pct_valor"
-                label="SUMA"
-                type="number"
-                fullWidth
-                value={saldoTable === 0 ? valorTotalDolares : saldoTable + totalAnticipos}
-                InputProps={{
-                  readOnly: true,
-                }}
-              />
-            </div>
+              <ThemeProvider theme={getMuiTheme()}>
+                <MUIDataTable title={"Forma de pago"} data={proformasFormasDePago} columns={columnsFormasDePago} options={optionsProformas} />
+              </ThemeProvider>
+            </TabPanel>
+            :
+            null
+          }
 
-            <ThemeProvider theme={getMuiTheme()}>
-              <MUIDataTable title={"Forma de pago"} data={proformasFormasDePago} columns={columnsFormasDePago} options={optionsProformas} />
-            </ThemeProvider>
-          </TabPanel>
         </div>
       </Box>
 
