@@ -11,8 +11,15 @@ import moment from "moment";
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
-import Functions from "../helpers/Functions"; 
+import Functions from "../helpers/Functions";
 import { useAuthContext } from "../context/authContext";
+import {
+    Toolbar,
+    Typography,
+    Grid,
+    TableCell,
+    TableRow,
+} from "@material-ui/core";
 
 const API = process.env.REACT_APP_API;
 
@@ -24,7 +31,7 @@ const useStyles = makeStyles({
 });
 
 function Details() {
-    const {jwt, userShineray, enterpriseShineray, systemShineray}=useAuthContext();
+    const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const [details, setDetails] = useState([])
     const [container, setContainer] = useState('')
     const [excelData, setExcelData] = useState(['']);
@@ -103,6 +110,7 @@ function Details() {
             console.error('Error en la solicitud:', error);
         }
     }
+
 
     useEffect(() => {
         document.title = 'Detalles Orden Compra';
@@ -219,42 +227,11 @@ function Details() {
         })));
     }
 
+    const getMoreDetail = details => {
+        console.log("Fetch data", details);
+    };
+
     const columns = [
-        {
-            name: "cod_producto",
-            label: "Codigo"
-        },
-        {
-            name: "nombre",
-            label: "Producto"
-        },
-        {
-            name: "cantidad_pedido",
-            label: "Cant. Orden",
-            options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "right" }}>
-                            {value}
-                        </div>
-                    );
-                },
-            },
-        },
-        {
-            name: "costo_sistema",
-            label: "Costo Sistema",
-            options: {
-                customBodyRender: Functions.NumericRender
-            },
-        },
-        {
-            name: "costo_cotizado",
-            label: "Precio Cotizado",
-            options: {
-                customBodyRender: Functions.NumericRender
-            },
-        },
         {
             name: "cod_po",
             options: {
@@ -282,15 +259,91 @@ function Details() {
             label: "Proforma"
         },
         {
-            name: "estado_orden",
-            label: "Estado Orden",
+            name: "modelo",
+            label: "Modelo"
+        },
+        {
+            name: "cod_producto",
+            label: "Codigo"
+        },
+        {
+            name: "nombre",
+            label: "Producto"
+        },
+        {
+            name: "cantidad_pedido",
+            label: "Cant. Orden",
             options: {
-                customBodyRender:  (value) => Functions.StatusRender(value, statusListPo),
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "right" }}>
+                            {value}
+                        </div>
+                    );
+                },
             },
         },
         {
-            name: "modelo",
-            label: "Modelo"
+            name: "costo_cotizado",
+            label: "Precio Cotizado",
+            options: {
+                customBodyRender: Functions.NumericRender
+            },
+        },
+        {
+            name: "costo_sistema",
+            label: "Costo Sistema",
+            options: {
+                customBodyRender: Functions.NumericRender
+            },
+        },
+        {
+            name: "estado_orden",
+            label: "Estado Orden",
+            options: {
+                customBodyRender: (value) => Functions.StatusRender(value, statusListPo),
+                customFilterListRender: (options) => {
+                    // Verifica si options es un arreglo antes de mapearlo
+                    if (Array.isArray(options)) {
+                        return options.map((option) => {
+                            return Functions.StatusRender(option, statusListPo); // Aplicar la función a cada opción
+                        });
+                    } else {
+                        return []; // Devuelve un arreglo vacío si options no es un arreglo
+                    }
+                }
+            },
+        },
+        {
+            name: "saldo_producto",
+            label: "Saldo Producto",
+            options: {
+                customBodyRender: (value) => {
+                    if (value === null || value === "") {
+                        return <div style={{ textAlign: "right" }}>
+                            {"0"}
+                        </div>
+                    } else {
+                        return <div style={{ textAlign: "right" }}>
+                            {value}
+                        </div>
+                    }
+                },
+            },
+        },
+        {
+            name: "fob_detalle",
+            label: "Fob",
+            options: {
+                customBodyRender: Functions.NumericRender
+            },
+        },
+        {
+            name: "fob_total",
+            label: "Fob Total",
+            options: {
+                customBodyRender: Functions.NumericRender
+            },
         },
         {
             name: "proveedor",
@@ -308,118 +361,86 @@ function Details() {
             name: "fecha_estimada_llegada",
             label: "Fecha Estimada Llegada"
         },
-        {
-            name: "nro_contenedor",
-            options: {
-                customBodyRender: (value, tableMeta) => (
-                    <span
-                        style={{ cursor: 'pointer' }}
-                        onMouseOver={(e) => {
-                            e.target.style.color = 'blue';
-                            e.target.style.textDecoration = 'underline'
-                        }}
-                        onMouseOut={(e) => {
-                            e.target.style.color = 'black';
-                            e.target.style.textDecoration = 'none'
-                        }}
-                        onClick={() => handleRowClick(value)}
-                    >
-                        {value}
-                    </span>
-                )
-            },
-            label: "Contenedor"
-        },
-        {
-            name: "codigo_bl_house",
-            options: {
-                customBodyRender: (value, tableMeta) => (
-                    <span
-                        style={{ cursor: 'pointer' }}
-                        onMouseOver={(e) => {
-                            e.target.style.color = 'blue';
-                            e.target.style.textDecoration = 'underline'
-                        }}
-                        onMouseOut={(e) => {
-                            e.target.style.color = 'black';
-                            e.target.style.textDecoration = 'none'
-                        }}
-                        onClick={() => handleRowClick3(value)}
-                    >
-                        {value}
-                    </span>
-                )
-            },
-            label: "Embarque"
-        },
-        {
-            name: "estado_embarque",
-            label: "Estado Embarque",
-            options: {
-                customBodyRender: (value) => Functions.StatusRender(value, statusList),
-            },
-        },
-        {
-            name: "cantidad",
-            label: "Cant. Pack.",
-            options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "right" }}>
-                            {value}
-                        </div>
-                    );
-                },
-            },
-        },
-        {
-            name: "saldo_producto",
-            label: "Saldo Producto",
-            options: {
-                customBodyRender: (value) => {
-                  if (value === null || value === "") {
-                    return <div style={{ textAlign: "right" }}>
-                    {"0"}
-                  </div>
-                  } else {
-                    return <div style={{ textAlign: "right" }}>
-                      {value}
-                    </div>
-                  }
-                },
-              },
-        },
-        {
-            name: "fob",
-            label: "Fob",
-            options: {
-                customBodyRender: Functions.NumericRender
-            },
-        },
-        {
-            name: "fob_total",
-            label: "Fob Total",
-            options: {
-                customBodyRender: Functions.NumericRender
-            },
-        },
-        {
-            name: "fecha_embarque",
-            label: "Fecha Embarque"
-        },
-        {
-            name: "fecha_llegada",
-            label: "Fecha Llegada"
-        },
-        {
-            name: "fecha_bodega",
-            label: "Fecha Bodega"
-        },
+
     ]
+
 
     const options = {
         responsive: 'standard',
         selectableRows: "none",
+        expandableRows: true,
+        expandableRowsOnClick: true,
+        renderExpandableRow: (rowData, rowMeta) => {
+            console.log("renderExpandableRow");
+            getMoreDetail(details[rowMeta.dataIndex]);
+            return (
+                <TableRow>
+                    <TableCell colSpan={100}>
+                        <Typography>
+                            <table style={{ borderCollapse: 'collapse', width: '1500px' }}>
+                                <thead>
+                                    <tr style={{ backgroundColor: 'firebrick', color: '#ffffff', fontSize: '10px' }}>
+                                        <th style={{ padding: '3px', border: '1px solid #ffffff' }}>Nro Contenedor</th>
+                                        <th style={{ padding: '3px', border: '1px solid #ffffff' }}>Bl House</th>
+                                        <th style={{ padding: '3px', border: '1px solid #ffffff' }}>Fecha Embarque</th>
+                                        <th style={{ padding: '3px', border: '1px solid #ffffff' }}>Fecha Llegada</th>
+                                        <th style={{ padding: '3px', border: '1px solid #ffffff' }}>Fecha Bodega</th>
+                                        <th style={{ padding: '3px', border: '1px solid #ffffff' }}>Cantidad</th>
+                                        <th style={{ padding: '3px', border: '1px solid #ffffff' }}>Precio Total</th>
+                                        <th style={{ padding: '3px', border: '1px solid #ffffff' }}>Estado Embarque</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {details[rowMeta.dataIndex].containers.map((container, index) => (
+                                        <tr key={index} style={{ borderBottom: '1px solid #ddd', fontSize: '12px' }}>
+                                            <td style={{ padding: '3px', border: '1px solid #ddd' }}>
+                                                <span
+                                                    style={{ cursor: 'pointer' }}
+                                                    onMouseOver={(e) => {
+                                                        e.target.style.color = 'blue';
+                                                        e.target.style.textDecoration = 'underline';
+                                                    }}
+                                                    onMouseOut={(e) => {
+                                                        e.target.style.color = 'black';
+                                                        e.target.style.textDecoration = 'none';
+                                                    }}
+                                                    onClick={() => handleRowClick(container.nro_contenedor)}
+                                                >
+                                                    {container.nro_contenedor}
+                                                </span>
+                                            </td>
+                                            <td style={{ padding: '3px', border: '1px solid #ddd' }}>
+                                                <span
+                                                    style={{ cursor: 'pointer' }}
+                                                    onMouseOver={(e) => {
+                                                        e.target.style.color = 'blue';
+                                                        e.target.style.textDecoration = 'underline';
+                                                    }}
+                                                    onMouseOut={(e) => {
+                                                        e.target.style.color = 'black';
+                                                        e.target.style.textDecoration = 'none';
+                                                    }}
+                                                    onClick={() => handleRowClick3(container.codigo_bl_house)}
+                                                >
+                                                    {container.codigo_bl_house}
+                                                </span>
+                                            </td>
+                                            <td style={{ padding: '3px', border: '1px solid #ddd' }}>{container.fecha_embarque}</td>
+                                            <td style={{ padding: '3px', border: '1px solid #ddd' }}>{container.fecha_llegada}</td>
+                                            <td style={{ padding: '3px', border: '1px solid #ddd' }}>{container.fecha_bodega}</td>
+                                            <td style={{ padding: '3px', border: '1px solid #ddd' }}>{Functions.NumericRender(container.fob)}</td>
+                                            <td style={{ padding: '3px', border: '1px solid #ddd' }}>{Functions.NumericRender(container.cantidad)}</td>
+                                            <td style={{ padding: '3px', border: '1px solid #ddd' }}>{Functions.StatusRender(container.estado_embarque, statusList)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </Typography>
+                    </TableCell>
+                </TableRow>
+
+            );
+        },
         textLabels: {
             body: {
                 noMatch: "Lo siento, no se encontraron registros",
@@ -454,8 +475,9 @@ function Details() {
                 deleteAria: "Borrar fila seleccionada"
             }
         }
+    };
 
-    }
+
 
     const getMuiTheme = () =>
         createTheme({
@@ -468,13 +490,13 @@ function Details() {
                             paddingTop: '0px',
                             paddingBottom: '0px',
                             backgroundColor: '#00000',
-                            whiteSpace: 'normal', // Cambiamos 'nowrap' a 'normal'
-                            overflowWrap: 'break-word', // Agregamos esta propiedad para dividir el texto
+                            whiteSpace: 'normal',
+                            overflowWrap: 'break-word',
                             flex: 1,
                             borderBottom: '1px solid #ddd',
                             borderRight: '1px solid #ddd',
                             fontSize: '12px',
-                            minWidth: '150px', // Aumenta el valor del ancho mínimo
+                            minWidth: '150px',
                         },
                         head: {
                             backgroundColor: 'firebrick',
@@ -533,6 +555,7 @@ function Details() {
                     data={details}
                     columns={columns}
                     options={options}
+
                 />
             </ThemeProvider>
         </div>
