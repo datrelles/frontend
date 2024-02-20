@@ -13,13 +13,8 @@ import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
 import Functions from "../helpers/Functions";
 import { useAuthContext } from "../context/authContext";
-import {
-    Toolbar,
-    Typography,
-    Grid,
-    TableCell,
-    TableRow,
-} from "@material-ui/core";
+import { Toolbar, Typography, Grid, TableCell, TableRow, } from "@material-ui/core";
+
 
 const API = process.env.REACT_APP_API;
 
@@ -302,18 +297,16 @@ function Details() {
             label: "Estado Orden",
             options: {
                 customBodyRender: (value) => Functions.StatusRender(value, statusListPo),
-                customFilterListRender: (options) => {
-                    // Verifica si options es un arreglo antes de mapearlo
-                    if (Array.isArray(options)) {
-                        return options.map((option) => {
-                            return Functions.StatusRender(option, statusListPo); // Aplicar la función a cada opción
-                        });
-                    } else {
-                        return []; // Devuelve un arreglo vacío si options no es un arreglo
-                    }
+                filter: true,
+                customFilterListOptions: { render: v => `Estado: ${v}` },
+                filterOptions: {
+                    names: statusListPo.map(state => state.nombre),
+                    logic: Functions.customFilterLogic(statusListPo)
                 }
             },
         },
+
+
         {
             name: "saldo_producto",
             label: "Saldo Producto",
@@ -474,9 +467,8 @@ function Details() {
                 delete: "Borrar",
                 deleteAria: "Borrar fila seleccionada"
             }
-        }
+        },
     };
-
 
 
     const getMuiTheme = () =>

@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@material-ui/icons/Search';
 import LinearProgress from '@mui/material/LinearProgress';
 import { useAuthContext } from "../context/authContext";
-
+import Functions from "../helpers/Functions";
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -226,6 +226,12 @@ function PostSales() {
       label: "Estado",
       options: {
         customBodyRender: (value) => renderProgress(value),
+        filter: true,
+                customFilterListOptions: { render: v => `Estado: ${v}` },
+                filterOptions: {
+                    names: statusList.map(state => state.nombre),
+                    logic: Functions.customFilterLogic(statusList)
+                }
       },
     },
   ]

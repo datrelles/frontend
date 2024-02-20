@@ -34,6 +34,19 @@ class Functions {
       );
     }
 
+    static customFilterLogic(statusListPo) {
+      return function(status, filterVal) {
+          if (filterVal.length === 0) {
+              return false;
+          }
+          const selectedCodes = statusListPo
+              .filter(state => filterVal.indexOf(state.nombre) !== -1) 
+              .map(state => state.cod);
+          const show = selectedCodes.indexOf(status) === -1;
+          return show;
+      };
+  }
+
   }
 
   function getBackgroundColor(progress) {

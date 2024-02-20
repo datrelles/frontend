@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import AddIcon from '@material-ui/icons/Add';
 import SearchIcon from '@material-ui/icons/Search';
 import LinearProgress from '@mui/material/LinearProgress';
-
+import Functions from "../helpers/Functions";
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -41,6 +41,7 @@ function PostSales() {
   const [fromDate, setFromDate] = useState(moment().subtract(3,"months"));
   const [toDate, setToDate] = useState(moment);
   const [menus, setMenus] = useState([])
+  
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
 
@@ -219,6 +220,12 @@ function PostSales() {
       label: "Estado",
       options: {
         customBodyRender: (value) => renderProgress(value),
+        filter: true,
+                customFilterListOptions: { render: v => `Estado: ${v}` },
+                filterOptions: {
+                    names: statusList.map(state => state.nombre),
+                    logic: Functions.customFilterLogic(statusList)
+                }
       },
     },
   ]
