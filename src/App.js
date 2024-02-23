@@ -39,11 +39,9 @@ import LoginAuth from "./components/loginSecondAuth/Login";
 import SecondAuth from "./components/loginSecondAuth/secondAuth";
 import SaveDevice from "./components/loginSecondAuth/saveDevice";
 import { ElectronicFilesSri } from "./components/contabilidad/filesSri";
+import { CaseManager } from "./components/garantias/caseManager/caseManager";
 
 const API = process.env.REACT_APP_API;
-
-
-
 function App() {
   const {  removeToken, setToken } = useToken();
   const [authorizedSystems, setAuthorizedSystems] = useState(['IMP', 'REP', 'GAR', 'PBI','CON', 'IN']);
@@ -140,10 +138,10 @@ function App() {
                   <Route exact path="/reports4" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports4 /></Protected>}/>
                   <Route exact path="/reports5" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports5 /></Protected>}/>
                   <Route exact path="/electronicFile" element={<Protected isLoggedIn={authorizedSystems.includes('CON')}><ElectronicFilesSri/></Protected>}/>
-                  <Route exact path="/settings" element={<Settings />}></Route>
+                  <Route exact path="/warranty" element={<Protected isLoggedIn={authorizedSystems.includes('GAR')}><CaseManager/></Protected>}/>
+                  <Route exact path="/settings" element={<Settings/>}></Route>
                 </Routes>
-              </>
-              
+              </>            
             )}
         </Router>
       <ToastContainer />

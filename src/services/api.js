@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const API = process.env.REACT_APP_API;
 
-//CONTABILIDAD CARGA_DOC_ELECTRONIC-------------------------------------------------------
+//GET MENUS SHINERAY
 
 export  const getMenus = async (user,enterprise,system,jwt) => {
   try {
@@ -20,6 +20,8 @@ export  const getMenus = async (user,enterprise,system,jwt) => {
     throw error
   }
 }
+
+//CONTABILIDAD CARGA_DOC_ELECTRONIC-------------------------------------------------------
 
 export const postDocumentsSri= async(data, jwt)=>{
   try {
@@ -50,7 +52,7 @@ export const getDocumentsSri = async (start, end, jwt) => {
     throw new Error(errorMessage);
   }
 }
-//FORMAS DE PAGO------------------------------------------------------
+//FORMAS DE PAGO EDITPOSTSALES------------------------------------------------------
 export const getDataFormasDePago= async(cod_proforma, jwt)=>{
   try {
   const response = await axios.get(`${API}/proformas_por_cod_proforma/${cod_proforma}`, {
@@ -132,6 +134,19 @@ export const postPagoAnticipo= async(data, jwt)=>{
   }
 }
 
-
-
+//MODULE GARRANTY
+export const getCasesPostVenta= async(jwt, start_date, end_date)=>{
+  try {
+    const response = await axios.get(`${API}/getInfoCasosPostventas?cod_provincia=17&cod_canton=01&start_date=${start_date}&finish_date=${end_date}&case_status=P&warranty_status=1`, {
+      headers:{
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+  
+    return response.data
+  } catch (error) {
+    console.log(error)
+    throw error
+  }
+}
 
