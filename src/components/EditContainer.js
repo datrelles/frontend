@@ -108,7 +108,7 @@ function EditContainer() {
   }
 
   const getStatusList = async () => {
-    const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=BL&tipo=A&orden=`, {
+    const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=BL&tipo=A`, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + jwt
