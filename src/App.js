@@ -29,6 +29,7 @@ import Reports2 from "./components/Reports2";
 import Reports3 from "./components/Reports3";
 import Reports4 from "./components/Reports4";
 import Reports5 from "./components/Reports5";
+import Reports6 from "./components/Reports6";
 import Settings from "./components/Settings";
 import Menus from "./components/Menus";
 import Details from "./components/Details";
@@ -139,6 +140,7 @@ function App() {
                   <Route exact path="/reports3" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports3/></Protected>} />
                   <Route exact path="/reports4" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports4 /></Protected>}/>
                   <Route exact path="/reports5" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports5 /></Protected>}/>
+                  <Route exact path="/reports6" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports6 /></Protected>}/>
                   <Route exact path="/electronicFile" element={<Protected isLoggedIn={authorizedSystems.includes('CON')}><ElectronicFilesSri/></Protected>}/>
                   <Route exact path="/settings" element={<Settings />}></Route>
                 </Routes>

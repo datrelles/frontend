@@ -1319,6 +1319,37 @@ function EditPostSales() {
 
   }
 
+  const handleGenerateOrder = async (e) => {
+    e.preventDefault();
+
+    if (fechaEstimadaLlegada == '' || fechaEstimadaPuerto == '' || fechaEstimadaProduccion == '') {
+      enqueueSnackbar('¡Por favor, selecciona fechas válidas!', { variant: 'error' });
+      return;
+    }
+
+    const res = await fetch(`${API}/generar_orden_compra`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + jwt
+      },
+      body: JSON.stringify({
+        p_cod_empresa: enterpriseShineray,
+        p_tipo_proforma: tipoCombrobante,
+        p_cod_proforma: codPo,
+        p_cod_agencia: branchShineray,
+        p_usuario: userShineray
+      })
+    })
+    const data = await res.json();
+    console.log(data)
+    if (!data.error) {
+      enqueueSnackbar('¡Generado exitosamente!', { variant: 'success' });
+    } else {
+      enqueueSnackbar(data.error, { variant: 'error' });
+    }
+  }
+
   const handleChange3 = async (e) => {
     e.preventDefault();
     navigate('/newPostSaleDetail', { state: codPo, orden: location.state });
@@ -1457,6 +1488,19 @@ function EditPostSales() {
     </div>
   );
 
+  const getNextStatusList = (currentStatus) => {
+    // Obtener el índice del estado actual en la lista de estados
+    const currentIndex = statusList.findIndex(status => status.nombre === currentStatus);
+
+    // Si el estado actual no se encuentra en la lista o es el último estado, retornar un array vacío
+    if (currentIndex === -1 || currentIndex === statusList.length - 1) {
+      return [];
+    }
+
+    // Retornar un array con el siguiente estado al estado actual
+    return [statusList[currentIndex + 1].nombre];
+  };
+
   const getMuiTheme = () =>
     createTheme({
       components: {
@@ -1559,9 +1603,18 @@ function EditPostSales() {
             <button
               className="btn btn-primary"
               type="button"
-              style={{ marginTop: '10px', marginBottom: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
+              style={{ marginTop: '10px', marginBottom: '10px', marginLeft: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
               onClick={handleChangeAprob}>
               <CheckIcon /> Aprobar
+            </button>
+          )}
+          {authorizedSystems.includes('IMP') && parseInt(formData.cod_item, 10) == 5 && (
+            <button
+              className="btn btn-primary"
+              type="button"
+              style={{ marginTop: '10px', marginBottom: '10px', marginLeft: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
+              onClick={handleGenerateOrder}>
+              <CheckIcon /> Generar Orden
             </button>
           )}
 
@@ -1628,7 +1681,7 @@ function EditPostSales() {
               {authorizedSystems.includes('IMP') && (
                 <Autocomplete
                   id="estado"
-                  options={statusList.map((status) => status.nombre)}
+                  options={getNextStatusList(estado)}
                   value={estado}
                   onChange={handleStatusChange}
                   fullWidth
@@ -1641,6 +1694,7 @@ function EditPostSales() {
                       className="form-control"
                       InputProps={{
                         ...params.InputProps,
+                        readOnly: true, // Esto hace que el campo sea de solo lectura
                       }}
                     />
                   )}
@@ -1737,7 +1791,7 @@ function EditPostSales() {
                 onChange={handleFileUpload}
               />
               <label htmlFor="file-upload">
-                {authorizedSystems.includes('IMP') && parseInt(formData.cod_item, 10) < 6 && (
+                {authorizedSystems.includes('REP') && parseInt(formData.cod_item, 10) < 3 && (
                   <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
                     Actualizar Lista
                   </Button>

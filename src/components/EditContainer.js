@@ -65,6 +65,10 @@ function EditContainer() {
 
   const [esMotos, setEsMotos] = useState(formData.es_motos);
   const [esRepuestos, setEsRepuestos] = useState(formData.es_repuestos);
+  const [codItem, setCodItem] = useState(formData.cod_item);
+  const [codModelo, setCodModelo] = useState(formData.cod_modelo);
+  const [statusList, setStatusList] = useState([])
+  const [estado, setEstado] = useState("");
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -98,21 +102,30 @@ function EditContainer() {
         }
       } else {
         const data = await res.json();
-        setCodTipoContenedor(data[0].agente)
-        setCodigoBlHouse(data[0].codigo_bl_house)
-        setEsCargaSuelta(data[0].buque)
-        setLineSeal(data[0].cod_aforo)
-        setNroContenedor(data[0].cod_item)
-        setObservaciones(data[0].cod_modelo)
-        setPeso(data[0].cod_proveedor)
-        setShipperSeal(data[0].cod_puerto_desembarque)
-        setVolumen(data[0].cod_puerto_embarque)
       }
     } catch (error) {
     }
   }
 
-
+  const getStatusList = async () => {
+    const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=BL&tipo=A&orden=`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + jwt
+      }
+    })
+    const data = await res.json();
+    const list = data.map((item) => ({
+      nombre: item.nombre,
+      cod: item.cod_item,
+      tipo: item.tipo
+    }));
+    if (codItem) {
+      setEstado(list.find((objeto) => objeto.cod === codItem).nombre)
+    }
+    console.log(list)
+    setStatusList(list)
+  }
 
   const getPackingList = async () => {
     try {
@@ -200,6 +213,19 @@ function EditContainer() {
     }
   };
 
+  const handleStatusChange = (event, value) => {
+    if (value) {
+      const statusSeleccionado = statusList.find((status) => status.nombre === value);
+      if (statusSeleccionado) {
+        setCodItem(statusSeleccionado.cod);
+        setEstado(statusSeleccionado.nombre)
+      }
+    } else {
+      setCodItem('');
+      setEstado('')
+    }
+  };
+
 
   useEffect(() => {
     document.title = 'Contenedor ' + nroContenedor;
@@ -208,6 +234,7 @@ function EditContainer() {
     checkAuthorization();
     getMenus();
     getTipoList();
+    getStatusList();
 
   }, [])
 
@@ -682,6 +709,25 @@ function EditContainer() {
                 value={observaciones}
                 className="form-control"
                 fullWidth
+              />
+              <Autocomplete
+                id="estado"
+                options={statusList.map((status) => status.nombre)}
+                value={estado}
+                onChange={handleStatusChange}
+                fullWidth
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    required
+                    label="Estado"
+                    type="text"
+                    className="form-control"
+                    InputProps={{
+                      ...params.InputProps,
+                    }}
+                  />
+                )}
               />
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <Typography>Contiene:</Typography>
