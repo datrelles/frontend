@@ -134,15 +134,14 @@ export const postPagoAnticipo= async(data, jwt)=>{
   }
 }
 
-//MODULE GARRANTY
-export const getCasesPostVenta= async(jwt, start_date, end_date)=>{
+//MODULE GARRANTY----------------------------------------------------------------------
+export const getCasesPostVenta= async(jwt, start_date, end_date, statusWarranty, statusProcess, province, city)=>{
   try {
-    const response = await axios.get(`${API}/getInfoCasosPostventas?cod_provincia=17&cod_canton=01&start_date=${start_date}&finish_date=${end_date}&case_status=P&warranty_status=1`, {
+    const response = await axios.get(`${API}/getInfoCasosPostventas?cod_provincia=${province}&cod_canton=${city}&start_date=${start_date}&finish_date=${end_date}&case_status=${statusProcess}&warranty_status=${statusWarranty}`, {
       headers:{
         Authorization: `Bearer ${jwt}`,
       },
     })
-  
     return response.data
   } catch (error) {
     console.log(error)
@@ -150,3 +149,73 @@ export const getCasesPostVenta= async(jwt, start_date, end_date)=>{
   }
 }
 
+export const getCasesPostVentaSubCases= async(jwt,cod_comprobante)=>{
+  try {
+    const response = await axios.get(`${API}/casosTipo/${cod_comprobante}`, {
+      headers:{
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+    return response.data
+  } catch (error) {
+    console.log(error)
+    throw error
+  }
+}
+
+export const putCasesPostVentaSubCases= async(jwt,cod_comprobante,cod_duracion, status)=>{
+  try {
+    const response = await axios.put(`${API}/update_status_tipo_problema?cod_comprobante=${cod_comprobante}&cod_duracion=${cod_duracion}&status=${status}`,{}, {
+      headers:{
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+    console.log(response.data)
+    return response.data
+  } catch (error) {
+    console.log(error)
+    throw error
+  }
+}
+
+export const getCasesPostVentaSubcasesUrl= async(jwt,cod_comprobante)=>{
+  try {
+    const response = await axios.get(`${API}/casosTipoImages/${cod_comprobante}`, {
+      headers:{
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+    return response.data
+  } catch (error) {
+    console.log(error)
+    throw error
+  }
+}
+
+export const getDataProvinces= async(jwt)=>{
+  try {
+    const response = await axios.get(`${API}/get_info_provinces`, {
+      headers:{
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+    return response.data
+  } catch (error) {
+    console.log(error)
+    throw error
+  }
+}
+
+export const getDataCityByProvince= async(jwt, codeProvince)=>{
+  try {
+    const response = await axios.get(`${API}/get_info_city_by_province/${codeProvince}`, {
+      headers:{
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+    return response.data
+  } catch (error) {
+    console.log(error)
+    throw error
+  }
+}

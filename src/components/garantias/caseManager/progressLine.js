@@ -3,13 +3,16 @@ import React from 'react';
 export const ProgressBar = ({ percentage }) => {
   // Determinar el color basado en el porcentaje
   let color = '';
-  if (percentage <= 25) {
+  const numericPercentage = typeof percentage === 'string' ? parseFloat(percentage) : percentage;
+  if (numericPercentage  <= 25) {
     color = 'red';
-  } else if (percentage <= 50) {
+  }else if (numericPercentage  == undefined) {
+    color = 'red';
+  } else if (numericPercentage  <= 50) {
     color = 'orange';
-  } else if (percentage <= 75) {
+  } else if (numericPercentage <= 75) {
     color = 'yellow';
-  } else if (percentage <= 95) {
+  } else if (numericPercentage  <= 95) {
     color = 'blue';
   } else {
     color = 'green';
@@ -17,7 +20,7 @@ export const ProgressBar = ({ percentage }) => {
 
   // Estilo dinámico para la barra de progreso
   const progressStyle = {
-    width: `${percentage}%`,
+    width: numericPercentage === 0 || numericPercentage === undefined ? '100%' : `${numericPercentage}%`,
     backgroundColor: color,
     height: '5px',
     transition: 'width 0.5s ease',
@@ -27,7 +30,7 @@ export const ProgressBar = ({ percentage }) => {
   return (
     <div>
       <div style={progressStyle}></div>
-      <span>{percentage}%</span>
+      <span>{numericPercentage===undefined?'0':numericPercentage}%</span>
     </div>
   );
 };
