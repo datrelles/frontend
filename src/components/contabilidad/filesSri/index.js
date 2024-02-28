@@ -36,7 +36,6 @@ export const ElectronicFilesSri = () => {
   const [toDate, setToDate] = useState(moment);
 
 
-
   useEffect(() => {
     const menu = async () => {
       try {
@@ -75,8 +74,6 @@ export const ElectronicFilesSri = () => {
       }
     }
     getDataSri();
-
-
   }, [])
 
   const options = {
