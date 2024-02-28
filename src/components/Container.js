@@ -13,6 +13,7 @@ import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
 import { useAuthContext } from "../context/authContext";
+import LinearProgress from '@mui/material/LinearProgress';
 
 
 const API = process.env.REACT_APP_API;
@@ -83,6 +84,45 @@ function Container() {
     }
   }
 
+  const renderProgress = (value) => {
+    const progress = parseInt(value * 100 / (statusList.length - 2), 10);
+    let name = '';
+    if (statusList.find((objeto) => objeto.cod === value)) {
+      name = statusList.find((objeto) => objeto.cod === value).nombre
+    }
+    const backgroundColor = getBackgroundColor(progress);
+    return (
+      <div>
+        <LinearProgress
+          sx={{
+            backgroundColor: 'silver',
+            '& .MuiLinearProgress-bar': {
+              backgroundColor: backgroundColor
+            }
+          }}
+
+          variant="determinate" value={progress} />
+        <span>{name}</span>
+      </div>
+    );
+  };
+
+  function getBackgroundColor(progress) {
+    if (progress <= 20) {
+      return "#FF3F33";
+    } else if (progress <= 40) {
+      return "#FF9333";
+    } else if (progress <= 60) {
+      return "#F0FF33";
+    } else if (progress <= 80) {
+      return "#ACFF33";
+    } else if (progress <= 100) {
+      return "#33FF39";
+    } else
+      return "silver"
+  }
+
+
   useEffect(() => {
     document.title = 'Contenedores';
     getContainers();
@@ -152,6 +192,19 @@ function Container() {
     {
       name: "observaciones",
       label:"Observaciones"
+    },
+    {
+      name: "cod_item",
+      label: "Estado",
+      options: {
+        customBodyRender: (value) => renderProgress(value),
+        filter: true,
+                customFilterListOptions: { render: v => `Estado: ${v}` },
+                filterOptions: {
+                    names: statusList.map(state => state.nombre),
+                    logic: Functions.customFilterLogic(statusList)
+                }
+      },
     },
     {
       name: "cod_tipo_contenedor",

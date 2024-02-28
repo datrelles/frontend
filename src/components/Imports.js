@@ -48,7 +48,7 @@ function PostSales() {
 
   const getPurchaseOrders = async () => {
     try {
-      const res = await fetch(`${API}/orden_compra_cab_param?empresa=${enterpriseShineray}&fecha_inicio=${format(new Date(fromDate), 'dd/MM/yyyy')}&fecha_fin=${format(new Date(toDate), 'dd/MM/yyyy')}&cod_items[]=1&cod_items[]=3&cod_items[]=4&cod_items[]=5&cod_items[]=6&cod_items[]=7&cod_items[]=8`,
+      const res = await fetch(`${API}/orden_compra_cab_param?empresa=${enterpriseShineray}&fecha_inicio=${format(new Date(fromDate), 'dd/MM/yyyy')}&fecha_fin=${format(new Date(toDate), 'dd/MM/yyyy')}&cod_items[]=1&cod_items[]=2&cod_items[]=3&cod_items[]=4&cod_items[]=5&cod_items[]=6&cod_items[]=7&cod_items[]=8`,
         {
           headers: {
             'Content-Type': 'application/json',
