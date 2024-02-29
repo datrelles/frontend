@@ -136,8 +136,16 @@ export const postPagoAnticipo= async(data, jwt)=>{
 
 //MODULE GARRANTY----------------------------------------------------------------------
 export const getCasesPostVenta= async(jwt, start_date, end_date, statusWarranty, statusProcess, province, city)=>{
+  function formatNumber(num) {
+    if (typeof num === 'number' && num < 10) {
+      return num < 10 ? `0${num}` : num;
+    } else {
+      return num;
+    }
+  }
+
   try {
-    const response = await axios.get(`${API}/getInfoCasosPostventas?cod_provincia=${province}&cod_canton=${city}&start_date=${start_date}&finish_date=${end_date}&case_status=${statusProcess}&warranty_status=${statusWarranty}`, {
+    const response = await axios.get(`${API}/getInfoCasosPostventas?cod_provincia=${formatNumber(province)}&cod_canton=${formatNumber(city)}&start_date=${start_date}&finish_date=${end_date}&case_status=${statusProcess}&warranty_status=${statusWarranty}`, {
       headers:{
         Authorization: `Bearer ${jwt}`,
       },
