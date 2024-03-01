@@ -173,7 +173,7 @@ function EditShipment() {
   }
 
   const getStatusList = async () => {
-    const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=BL`, {
+    const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=BL&tipos[]=A`, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + jwt
@@ -886,7 +886,6 @@ function EditShipment() {
                 fullWidth
               />
                <TextField
-                disabled
                 id="codigo-bl-house"
                 label="Codigo BL House"
                 type="text"

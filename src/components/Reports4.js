@@ -37,7 +37,7 @@ function Reports4() {
     }
 
     useEffect(() => {
-        document.title = 'Buffer';
+        document.title = 'Analisis de Cartera';
         getMenus();
     }, [])
 
@@ -46,7 +46,7 @@ function Reports4() {
             <div style={{ marginTop: '150px', top: 0, width: "100%", zIndex: 1000 }}>
                 <Navbar0 menus={menus} />
                 <iframe title="Analisis de Cartera" 
-                src="https://app.powerbi.com/reportEmbed?reportId=edf4be7f-a7ef-4791-8eaf-bbe0cec840fe&autoAuth=true&ctid=592efd1e-0d60-483c-975c-7279b5872b49" 
+                src="https://app.powerbi.com/reportEmbed?reportId=9e6c257c-7686-4f9b-ab39-f17a5b26f3ad&autoAuth=true&ctid=592efd1e-0d60-483c-975c-7279b5872b49" 
                 frameborder="0" 
                 style={iframeStyle}
                 allowFullScreen={true}>

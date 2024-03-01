@@ -18,6 +18,12 @@ import Favorite from '@mui/icons-material/TwoWheeler';
 import BookmarkBorderIcon from '@mui/icons-material/SettingsOutlined';
 import BookmarkIcon from '@mui/icons-material/Settings';
 import Typography from '@material-ui/core/Typography';
+import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { format } from 'date-fns'
+import dayjs from 'dayjs';
 
 
 import Autocomplete from '@mui/material/Autocomplete';
@@ -55,6 +61,7 @@ function NewContainer() {
     const [peso, setPeso] = useState("")
     const [shipperSeal, setShipperSeal] = useState("")
     const [volumen, setVolumen] = useState("")
+    const [fechaSalida, setFechaSalida] = useState()
     const [authorizedSystems, setAuthorizedSystems] = useState([]);
     const [packingList, setPackingList] = useState([])
 
@@ -304,6 +311,12 @@ function NewContainer() {
 
     const handleChange2 = async (e) => {
         e.preventDefault();
+
+        if (fechaSalida == null) {
+            enqueueSnackbar('¡Ingrese fecha de salida!', { variant: 'error' });
+            return;
+        }
+
         const res = await fetch(`${API}/contenedor/${nroContenedor}/${enterpriseShineray}`, {
             method: 'POST',
             headers: {
@@ -321,7 +334,8 @@ function NewContainer() {
                 observaciones: observaciones,
                 usuario_crea: userShineray,
                 es_repuestos: esRepuestos === "" ? 0 : esRepuestos,
-                es_motos: esMotos === "" ? 0 : esMotos
+                es_motos: esMotos === "" ? 0 : esMotos,
+                fecha_salida: fechaSalida,
             })
         })
         const data = await res.json();
@@ -705,6 +719,20 @@ function NewContainer() {
                                     icon={<BookmarkBorderIcon style={{ fontSize: 30 }} />}
                                     checkedIcon={<BookmarkIcon style={{ color: 'firebrick', fontSize: 35 }} />}
                                 />
+                            </div>
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                            <div>
+                                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                    <DemoContainer components={['DatePicker', 'DatePicker']}>
+                                        <DatePicker
+                                            label="Fecha Embarque"
+                                            value={dayjs(fechaSalida, "DD/MM/YYYY")}
+                                            onChange={(newValue) => setFechaSalida(format(new Date(newValue), 'dd/MM/yyyy'))}
+                                            format={'DD/MM/YYYY'}
+                                        />
+                                    </DemoContainer>
+                                </LocalizationProvider>
                             </div>
                         </Grid>
                     </Grid>

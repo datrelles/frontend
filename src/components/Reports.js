@@ -48,7 +48,7 @@ function Reports(props) {
                 <Navbar0 menus={menus} />
                 <iframe
                     title="Gastos Administrativo y Ventas Massline"
-                    src="https://app.powerbi.com/reportEmbed?reportId=036af75f-af47-468b-9499-27e398207ecb&autoAuth=true&ctid=592efd1e-0d60-483c-975c-7279b5872b49"
+                    src="https://app.powerbi.com/reportEmbed?reportId=7e15c104-6f8d-4782-a2aa-b8832b826fb1&autoAuth=true&ctid=592efd1e-0d60-483c-975c-7279b5872b49"
                     style={iframeStyle}
                     allowFullScreen={true}
                 ></iframe>

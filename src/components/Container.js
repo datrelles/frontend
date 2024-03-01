@@ -257,6 +257,10 @@ function Container() {
           },
       },
       {
+        name: "fecha_salida",
+        label: "Fecha Salida",
+      },
+      {
         name: "es_carga_suelta",
         label: "Carga Suelta",
         options: {

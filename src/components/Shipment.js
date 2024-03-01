@@ -203,6 +203,10 @@ function Shipment() {
       label: "BL House"
     },
     {
+      name: "bl_house_manual",
+      label: "Referencia"
+    },
+    {
       name: "descripcion",
       label: "Descripcion"
     },

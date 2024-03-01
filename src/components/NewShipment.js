@@ -501,7 +501,7 @@ function NewShipment() {
                 tipo_flete: tipoFlete,
                 adicionado_por: userShineray,
                 cod_modelo: codModelo,
-                cod_item: codItem,
+                cod_item: 'P',
                 cod_aforo: codAforo,
                 cod_regimen: codRegimen,
                 nro_mrn: nroMrn,

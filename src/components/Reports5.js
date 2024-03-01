@@ -37,7 +37,7 @@ function Reports5() {
     }
 
     useEffect(() => {
-        document.title = 'Buffer';
+        document.title = 'Sell Out';
         getMenus();
     }, [])
 
@@ -45,8 +45,8 @@ function Reports5() {
         <SnackbarProvider>
             <div style={{ marginTop: '150px', top: 0, width: "100%", zIndex: 1000 }}>
                 <Navbar0 menus={menus} />
-                <iframe title="Analisis de Cartera" 
-                src="https://app.powerbi.com/reportEmbed?reportId=141446fc-0319-4961-ab46-df6c2ef0d623&autoAuth=true&ctid=592efd1e-0d60-483c-975c-7279b5872b49" 
+                <iframe title="Sell Out" 
+                src="https://app.powerbi.com/reportEmbed?reportId=aa50604c-a686-482e-ba8a-5293cbbbc7cf&autoAuth=true&ctid=592efd1e-0d60-483c-975c-7279b5872b49" 
                 frameborder="0" 
                 style={iframeStyle}
                 allowFullScreen={true}>

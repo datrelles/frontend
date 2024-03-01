@@ -23,6 +23,12 @@ import Favorite from '@mui/icons-material/TwoWheeler';
 import BookmarkBorderIcon from '@mui/icons-material/SettingsOutlined';
 import BookmarkIcon from '@mui/icons-material/Settings';
 import Typography from '@material-ui/core/Typography';
+import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { format } from 'date-fns'
+import dayjs from 'dayjs';
 
 const API = process.env.REACT_APP_API;
 const useStyles = makeStyles({
@@ -54,6 +60,7 @@ function EditContainer() {
   const [peso, setPeso] = useState(formData.peso)
   const [shipperSeal, setShipperSeal] = useState(formData.shipper_seal)
   const [volumen, setVolumen] = useState(formData.volumen)
+  const [fechaSalida, setFechaSalida] = useState(formData.fecha_salida)
   const [authorizedSystems, setAuthorizedSystems] = useState([]);
   const [packingList, setPackingList] = useState([])
 
@@ -108,7 +115,7 @@ function EditContainer() {
   }
 
   const getStatusList = async () => {
-    const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=BL&tipo=A`, {
+    const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=BL`, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + jwt
@@ -400,7 +407,10 @@ function EditContainer() {
         observaciones: observaciones,
         usuario_modifica: userShineray,
         es_repuestos: esRepuestos === "" ? 0 : esRepuestos,
-        es_motos: esMotos === "" ? 0 : esMotos
+        es_motos: esMotos === "" ? 0 : esMotos,
+        fecha_salida: fechaSalida,
+        cod_item: codItem,
+        cod_modelo: codModelo
       })
     })
     const data = await res.json();
@@ -745,6 +755,20 @@ function EditContainer() {
                 />
               </div>
 
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <div>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DemoContainer components={['DatePicker', 'DatePicker']}>
+                    <DatePicker
+                      label="Fecha Salida"
+                      value={dayjs(formData.fecha_salida, "DD/MM/YYYY")}
+                      onChange={(newValue) => setFechaSalida(format(new Date(newValue), 'dd/MM/yyyy'))}
+                      format={'DD/MM/YYYY'}
+                    />
+                  </DemoContainer>
+                </LocalizationProvider>
+              </div>
             </Grid>
           </Grid>
           <div>
