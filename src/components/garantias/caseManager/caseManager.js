@@ -280,7 +280,7 @@ export const CaseManager = () => {
             functionGetCasosPostVenta(fromDate, toDate);
         }
         else {
-            functionGetCasosPostVenta(moment().subtract(1, "months"), moment(), statusWarranty, statusProcess);
+            functionGetCasosPostVenta(moment().subtract(1, "months"), moment());
 
         }
 
@@ -295,6 +295,7 @@ export const CaseManager = () => {
         const getDataProvincesFunction = async () => {
             try {
                 const response = await getDataProvinces(jwt);
+                response.sort((a,b)=>a.descripcion.localeCompare(b.descripcion));
                 setProvinces(response)
             } catch (error) {
                 console.log(error)
@@ -307,7 +308,8 @@ export const CaseManager = () => {
     useEffect(() => {
         const getDataCitiesFunction = async () => {
             try {
-                const response = await getDataCityByProvince(jwt, province)
+                const response = await getDataCityByProvince(jwt, province);
+                response.sort((a,b)=>a.descripcion.localeCompare(b.descripcion));
                 setCities(response)
             } catch (error) {
                 console.log(error)
@@ -319,7 +321,6 @@ export const CaseManager = () => {
     const handleRefresh = () => {
         setRegreshSubcases(prevState => !prevState);
     }
-
     const getMuiTheme = () => createTheme({
         components: {
             MuiTableCell: {
