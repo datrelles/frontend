@@ -1,14 +1,15 @@
 import Navbar0 from "./Navbar0";
 import { makeStyles } from '@mui/styles';
 import { toast } from 'react-toastify';
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import MUIDataTable from "mui-datatables";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import AddIcon from '@material-ui/icons/Add';
 import SearchIcon from '@material-ui/icons/Search';
 import LinearProgress from '@mui/material/LinearProgress';
-
+import LoadingCircle from './/contabilidad/crafter';
+import Grid from '@mui/material/Grid';
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -17,10 +18,19 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { TextField } from '@mui/material';
 import { format } from 'date-fns'
 import moment from "moment";
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
 
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
+import IconButton from '@mui/material/IconButton';
+import EditIcon from '@mui/icons-material/Edit';
+import BuildIcon from '@mui/icons-material/Build';
+import ExtensionIcon from '@mui/icons-material/Extension';
+import ForwardTwoToneIcon from '@mui/icons-material/ArrowForward';
+import ArrowIcon from '@mui/icons-material/ArrowBack';
 
 import { useAuthContext } from "../context/authContext";
 
@@ -35,11 +45,18 @@ const useStyles = makeStyles({
 });
 
 function Formules() {
-  const {jwt, userShineray, enterpriseShineray, systemShineray, branchShineray}=useAuthContext();
+  const { jwt, userShineray, enterpriseShineray, systemShineray, branchShineray } = useAuthContext();
   const [formules, setFormules] = useState([])
   const [statusList, setStatusList] = useState([])
   const [menus, setMenus] = useState([])
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false)
+  const [open, setOpen] = useState(false);
+  const [cantidadGen, setCantidadGen] = useState(0);
+  const [currentStock, setCurrentStock] = useState(0);
+  const [currentAvailableStock, setCurrentAvailableStock] = useState(0);
+  const [currentFormule, setCurrentFormule] = useState('')
+  const [craft, setCraft] = useState(0);
   const { enqueueSnackbar } = useSnackbar();
 
 
@@ -104,32 +121,33 @@ function Formules() {
     const row = formules.filter(item => item.cod_formula === rowData[0])[0];
     var cantidadInventario = 0
     const res = await fetch(`${API}/validar_existencia`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + jwt
-          },
-          body: JSON.stringify({
-            empresa: enterpriseShineray,
-            cod_agencia: 6,
-            cod_producto: row.cod_producto
-          })
-        });
-      if (!res.ok) {
-        if (res.status === 401) {
-          toast.error('Sesión caducada.');
-        }
-      } else {
-        const data = await res.json();
-        cantidadInventario = data.cantidad_inventario
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + jwt
+        },
+        body: JSON.stringify({
+          empresa: enterpriseShineray,
+          cod_agencia: 6,
+          cod_producto: row.cod_producto
+        })
+      });
+    if (!res.ok) {
+      if (res.status === 401) {
+        toast.error('Sesión caducada.');
       }
-    if (parseInt(cantidadInventario, 10)===0){
+    } else {
+      const data = await res.json();
+      cantidadInventario = data.cantidad_inventario
+    }
+    if (parseInt(cantidadInventario, 10) === 0) {
       navigate('/editFormule', { state: row });
-    }else{
-      toast.warning('Existen ' + cantidadInventario +' productos creados con la Formula '+ row.nombre);
+    } else {
+      toast.warning('Existen ' + cantidadInventario + ' productos creados con la Formula ' + row.nombre);
     }
   }
+
 
   const handleChange2 = async (e) => {
     e.preventDefault();
@@ -164,34 +182,45 @@ function Formules() {
       label: "Producto"
     },
     {
-      name: "cod_unidad",
-      label: "unidad"
-    },
-    {
-      name: "cantidad_produccion",
-      label: "Cantidad Produccion",
-    },
-    {
-        name: "activa",
-        label: "Activa",
-    },
-    {
-        name: "mano_obra",
-        label: "Mano de obra",
-    },
-    {
-        name: "costo_standard",
-        label: "Costo Standard",
-    },
-    {
       name: "debito_credito",
       label: "Agrupar/Desagrupar",
-  },
+      options: {
+        customBodyRender: (value) => {
+          // Verificar si la cadena es vacía o nula
+          if (value === 1 || value === "") {
+            return "Agrupar";
+          } else {
+            return "Desagrupar";
+          }
+        },
+      },
+    },
+    {
+      name: "cod_formula",
+      label: "Accion",
+      options: {
+        customBodyRender: (value, tableMeta) => {
+          return (
+            <div style={{ textAlign: "center" }}>
+              <IconButton onClick={() => handleRowClick(tableMeta.rowData)} color="primary" >
+                <EditIcon />
+              </IconButton>
+              <IconButton onClick={() => handleClickOpenNew(value, tableMeta.rowData, 0)} style={{ color: 'firebrick' }}>
+                <BuildIcon />
+              </IconButton>
+              <IconButton onClick={() => handleClickOpenNew(value, tableMeta.rowData, 1)} style={{ color: 'firebrick' }}>
+                <ExtensionIcon />
+              </IconButton>
+
+            </div>
+          );
+        },
+      },
+    },
   ]
 
   const options = {
     responsive: 'standard',
-    onRowClick: handleRowClick,
     textLabels: {
       body: {
         noMatch: "Lo siento, no se encontraron registros",
@@ -228,6 +257,128 @@ function Formules() {
     }
 
   }
+
+  const handleClickOpenNew = async (cod_comprobante, rowData, craft) => {
+    setOpen(true);
+    setCraft(craft)
+    setCurrentFormule(cod_comprobante)
+    const row = formules.filter(item => item.cod_formula === rowData[0])[0];
+    const res = await fetch(`${API}/validar_existencia`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + jwt
+        },
+        body: JSON.stringify({
+          empresa: enterpriseShineray,
+          cod_agencia: 6,
+          cod_producto: row.cod_producto
+        })
+      });
+    if (!res.ok) {
+      if (res.status === 401) {
+        toast.error('Sesión caducada.');
+      }
+    } else {
+      const data = await res.json();
+      setCurrentStock(data.cantidad_inventario)
+    }
+
+    const res1 = await fetch(`${API}/validar_existencia_disponible`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + jwt
+        },
+        body: JSON.stringify({
+          empresa: enterpriseShineray,
+          cod_agencia: 6,
+          cod_formula: row.cod_formula
+        })
+      });
+    if (!res1.ok) {
+      if (res1.status === 401) {
+        toast.error('Sesión caducada.');
+      }
+    } else {
+      const data1 = await res1.json();
+      setCurrentAvailableStock(data1.cantidad_inventario_disponible)
+    }
+
+  };
+  const handleClose = () => {
+    setCantidadGen(0)
+    setCurrentFormule('')
+    setOpen(false);
+    setCurrentStock(0)
+    setCraft(0)
+
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    if (craft == 0) {
+      const res = await fetch(`${API}/generar_combo`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + jwt
+          },
+          body: JSON.stringify({
+            empresa: enterpriseShineray,
+            cod_formula: currentFormule,
+            cantidad: parseInt(cantidadGen, 10),
+            cod_agencia: branchShineray,
+            usuario: userShineray
+          })
+        });
+      const data = await res.json();
+      setLoading(false);
+      console.log(data)
+      if (!data.error) {
+        enqueueSnackbar('¡Generado exitosamente!', { variant: 'success' });
+      } else {
+        enqueueSnackbar(data.error, { variant: 'error' });
+      }
+    }else{
+      if (craft== 1){
+        const res = await fetch(`${API}/desintegrar_combo`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + jwt
+          },
+          body: JSON.stringify({
+            empresa: enterpriseShineray,
+            cod_formula: currentFormule,
+            cantidad: parseInt(cantidadGen, 10),
+            cod_agencia: branchShineray,
+            usuario: userShineray
+          })
+        });
+      const data = await res.json();
+      setLoading(false);
+      console.log(data)
+      if (!data.error) {
+        enqueueSnackbar('¡Desarmado exitosamente!', { variant: 'success' });
+      } else {
+        enqueueSnackbar(data.error, { variant: 'error' });
+      }
+      }
+    }
+
+    setCurrentFormule('')
+    setCantidadGen(0)
+    setOpen(false);
+    setCurrentStock(0)
+    setCraft(0)
+  }
+
 
   const getMuiTheme = () =>
     createTheme({
@@ -282,41 +433,127 @@ function Formules() {
 
 
   return (
-    <SnackbarProvider>
-      <div style={{ marginTop: '150px', top: 0, left:0, width: "100%", zIndex: 1000}}>
-        <Navbar0 menus={menus}/>
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'right',
-            '& > *': {
-              m: 1,
-            },
-          }}
-        >
-          <ButtonGroup variant="text" aria-label="text button group" > 
-            <Button onClick={() => {navigate('/dashboard')}}>Módulos</Button>
-          </ButtonGroup>
-        </Box>
+    <>{loading ? (<LoadingCircle />) : (
+      <SnackbarProvider>
+        <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
+          <Navbar0 menus={menus} />
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'right',
+              '& > *': {
+                m: 1,
+              },
+            }}
+          >
+            <ButtonGroup variant="text" aria-label="text button group" >
+              <Button onClick={() => { navigate('/dashboard') }}>Módulos</Button>
+            </ButtonGroup>
+          </Box>
         </div>
         <button
-            className="btn btn-primary btn-block"
-            type="button"
-            style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
-            onClick={handleChange2} >
-            <AddIcon /> Nuevo
-          </button>
+          className="btn btn-primary btn-block"
+          type="button"
+          style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
+          onClick={handleChange2} >
+          <AddIcon /> Nuevo
+        </button>
         <ThemeProvider theme={getMuiTheme()}>
-        <MUIDataTable
-          title={"Formulas"}
-          data={formules}
-          columns={columns}
-          options={options}
-        />
+          <MUIDataTable
+            title={"Formulas"}
+            data={formules}
+            columns={columns}
+            options={options}
+          />
         </ThemeProvider>
-    </SnackbarProvider>
+
+
+        <Dialog open={open} onClose={handleClose} maxWidth="xs" >
+          <div style={{ display: "flex" }}>
+            <div>
+              <DialogContent >
+                <Grid container spacing={3}>
+                  <Grid item xs={12} sx={3}>
+                    <TextField
+                      disabled
+                      id="stock"
+                      label="Inventario Actual"
+                      type="number"
+                      value={currentStock}
+                      className="form-control"
+                      style={{ width: `130px` }}
+                      InputProps={{
+                        inputProps: {
+                          style: { textAlign: 'right' },
+                        },
+                      }}
+                    />
+                    {craft === 1 && (
+                    <ForwardTwoToneIcon fontSize="large" style={{ marginTop: '10px' }}/>
+                    )}
+                    {craft === 0 && (
+                    <ArrowIcon fontSize="large" style={{ marginTop: '10px' }}/>
+                    )}
+                    <TextField
+                      disabled
+                      id="stockAv"
+                      label="Inventario Disponible"
+                      type="number"
+                      value={currentAvailableStock}
+                      className="form-control"
+                      style={{ width: `170px`}} 
+                      InputProps={{
+                        inputProps: {
+                          style: { textAlign: 'right' },
+                        },
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sx={3}>
+                    <TextField
+                      id="cantidad"
+                      label= {craft === 0 ? "Cantidad a Generar" : "Cantidad a Desarmar"}
+                      type="number"
+                      onChange={e => setCantidadGen(e.target.value)}
+                      value={cantidadGen}
+                      className="form-control"
+                      style={{ width: `160px` }}
+                      InputProps={{
+                        inputProps: {
+                          style: { textAlign: 'right' },
+                        },
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+              </DialogContent>
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <DialogActions>
+                  {craft === 0 && (
+                    <Button onClick={handleSave} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }} >Generar</Button>
+                  )}
+                  {craft === 1 && (
+                    <Button onClick={handleSave} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }} >Desarmar</Button>
+                  )}
+                </DialogActions>
+                <DialogActions>
+                  <Button onClick={handleClose}>Cerrar</Button>
+                </DialogActions>
+              </div>
+            </div>
+          </div>
+        </Dialog>
+      </SnackbarProvider>
+    )}
+    </>
   )
 }
 
-export default Formules
+export default function IntegrationNotistack() {
+  return (
+    <SnackbarProvider maxSnack={3}>
+      <Formules />
+    </SnackbarProvider>
+  );
+}
