@@ -620,8 +620,8 @@ export const CaseManager = () => {
                             {/* Renderiza las imágenes */}
                             {imagesSubCasesUrl.map((image, index) => (
                                 <Grid item key={index}>
-                                    <Paper style={{ width: 200, height: 200 }}>
-                                        <img src={image} alt={`Image ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <Paper style={{ width: "200px", height: "200px" }}>
+                                        <img src={image.toLowerCase()} alt={`Image ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                     </Paper>
                                 </Grid>
                             ))}
@@ -631,7 +631,7 @@ export const CaseManager = () => {
                         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", margin: "10px" }}>
                             {videosSubCasesUrl.map((video, index) => (
                                 <Typography key={index} component="div" variant="body1">
-                                    <a href={video} target="_blank" rel="noopener noreferrer">
+                                    <a href={video.toLowerCase()} target="_blank" rel="noopener noreferrer">
                                         Video {index + 1}
                                     </a>
                                 </Typography>
