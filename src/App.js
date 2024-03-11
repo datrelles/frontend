@@ -30,6 +30,8 @@ import Reports3 from "./components/Reports3";
 import Reports4 from "./components/Reports4";
 import Reports5 from "./components/Reports5";
 import Reports6 from "./components/Reports6";
+import Reports7 from "./components/Reports7";
+import Reports8 from "./components/Reports8";
 import Settings from "./components/Settings";
 import Menus from "./components/Menus";
 import Details from "./components/Details";
@@ -139,6 +141,8 @@ function App() {
                   <Route exact path="/reports4" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports4 /></Protected>}/>
                   <Route exact path="/reports5" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports5 /></Protected>}/>
                   <Route exact path="/reports6" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports6 /></Protected>}/>
+                  <Route exact path="/reports7" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports7 /></Protected>}/>
+                  <Route exact path="/reports8" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports8 /></Protected>}/>
                   <Route exact path="/electronicFile" element={<Protected isLoggedIn={authorizedSystems.includes('CON')}><ElectronicFilesSri/></Protected>}/>
                   <Route exact path="/warranty" element={<Protected isLoggedIn={authorizedSystems.includes('GAR')}><CaseManager/></Protected>}/>
                   <Route exact path="/settings" element={<Settings/>}></Route>
