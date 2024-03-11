@@ -145,6 +145,7 @@ function Formules() {
       navigate('/editFormule', { state: row });
     } else {
       toast.warning('Existen ' + cantidadInventario + ' productos creados con la Formula ' + row.nombre);
+      navigate('/editFormule', { state: row });
     }
   }
 
