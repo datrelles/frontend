@@ -18,6 +18,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { TextField } from '@mui/material';
 import { format } from 'date-fns'
 import moment from "moment";
+import Autocomplete from '@mui/material/Autocomplete';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
@@ -31,6 +32,7 @@ import BuildIcon from '@mui/icons-material/Build';
 import ExtensionIcon from '@mui/icons-material/Extension';
 import ForwardTwoToneIcon from '@mui/icons-material/ArrowForward';
 import ArrowIcon from '@mui/icons-material/ArrowBack';
+import ArrowIcon2 from '@mui/icons-material/ManageHistoryTwoTone';
 
 import { useAuthContext } from "../context/authContext";
 
@@ -49,6 +51,9 @@ function Formules() {
   const [formules, setFormules] = useState([])
   const [statusList, setStatusList] = useState([])
   const [menus, setMenus] = useState([])
+  const [lotes, setLotes] = useState([])
+  const [currentLote, setCurrentLote] = useState()
+  const [currentTipoLote, setCurrentTipoLote] = useState()
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false);
@@ -201,24 +206,50 @@ function Formules() {
       label: "Accion",
       options: {
         customBodyRender: (value, tableMeta) => {
+          const isButtonEnabled = tableMeta.rowData[3] === 2;
           return (
             <div style={{ textAlign: "center" }}>
               <IconButton onClick={() => handleRowClick(tableMeta.rowData)} color="primary" >
                 <EditIcon />
               </IconButton>
-              <IconButton onClick={() => handleClickOpenNew(value, tableMeta.rowData, 0)} style={{ color: 'firebrick' }}>
+              <IconButton onClick={() => handleClickOpenNew(value, tableMeta.rowData, 0)} style={{ color: isButtonEnabled ? 'grey' : 'firebrick' }} disabled={isButtonEnabled}>
                 <BuildIcon />
               </IconButton>
-              <IconButton onClick={() => handleClickOpenNew(value, tableMeta.rowData, 1)} style={{ color: 'firebrick' }}>
+              <IconButton onClick={() => handleClickOpenNew(value, tableMeta.rowData, 1)} style={{ color: isButtonEnabled ? 'grey' : 'firebrick' }} disabled={isButtonEnabled}>
+                <ArrowIcon2 />
+              </IconButton>
+              <IconButton onClick={() => handleClickOpenNew(value, tableMeta.rowData, 2)} style={{ color: isButtonEnabled ? 'firebrick' : 'grey' }} disabled={!isButtonEnabled}>
                 <ExtensionIcon />
               </IconButton>
-
             </div>
           );
         },
       },
     },
   ]
+
+  const getLotes = async (cod_producto) => {
+    const res = await fetch(`${API}/lotes_by_prod`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + jwt
+      },
+      body: JSON.stringify({
+        empresa: enterpriseShineray,
+        cod_producto: cod_producto,
+        cod_agencia: branchShineray
+      })
+    })
+    const data = await res.json();
+    console.log(data)
+    if (!data.error) {
+      setLotes(data.lotes)
+      console.log(data.lotes)
+    } else {
+      enqueueSnackbar(data.error, { variant: 'error' });
+    }
+  }
 
   const options = {
     responsive: 'standard',
@@ -264,6 +295,7 @@ function Formules() {
     setCraft(craft)
     setCurrentFormule(cod_comprobante)
     const row = formules.filter(item => item.cod_formula === rowData[0])[0];
+    getLotes(row.cod_producto)
     const res = await fetch(`${API}/validar_existencia`,
       {
         method: 'POST',
@@ -315,6 +347,9 @@ function Formules() {
     setOpen(false);
     setCurrentStock(0)
     setCraft(0)
+    setLotes([])
+    setCurrentLote('')
+    setCurrentTipoLote('')
 
   };
 
@@ -345,9 +380,35 @@ function Formules() {
       } else {
         enqueueSnackbar(data.error, { variant: 'error' });
       }
-    }else{
-      if (craft== 1){
+    } else {
+      if (craft == 1) {
         const res = await fetch(`${API}/desintegrar_combo`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + jwt
+            },
+            body: JSON.stringify({
+              empresa: enterpriseShineray,
+              cod_formula: currentFormule,
+              cantidad: parseInt(cantidadGen, 10),
+              cod_agencia: branchShineray,
+              usuario: userShineray
+            })
+          });
+        const data = await res.json();
+        setLoading(false);
+        console.log(data)
+        if (!data.error) {
+          enqueueSnackbar('¡Desarmado exitosamente!', { variant: 'success' });
+        } else {
+          enqueueSnackbar(data.error, { variant: 'error' });
+        }
+      }
+    }
+    if (craft == 2) {
+      const res = await fetch(`${API}/generar_despiece`,
         {
           method: 'POST',
           headers: {
@@ -359,7 +420,9 @@ function Formules() {
             cod_formula: currentFormule,
             cantidad: parseInt(cantidadGen, 10),
             cod_agencia: branchShineray,
-            usuario: userShineray
+            usuario: userShineray,
+            cod_comprobante_lote: currentLote,
+            tipo_comprobante_lote: currentTipoLote
           })
         });
       const data = await res.json();
@@ -370,7 +433,6 @@ function Formules() {
       } else {
         enqueueSnackbar(data.error, { variant: 'error' });
       }
-      }
     }
 
     setCurrentFormule('')
@@ -378,7 +440,23 @@ function Formules() {
     setOpen(false);
     setCurrentStock(0)
     setCraft(0)
+    setLotes([])
+    setCurrentLote('')
+    setCurrentTipoLote('')
   }
+
+  const handleLoteChange = (event, value) => {
+    if (value) {
+      const loteSeleccionado = lotes.find((lote) => lote.cod_comprobante_lote === value.value);
+      if (loteSeleccionado) {
+        setCurrentLote(loteSeleccionado.cod_comprobante_lote);
+        setCurrentTipoLote(loteSeleccionado.tipo_comprobante_lote)
+      }
+    } else {
+      setCurrentLote('');
+      setCurrentTipoLote('')
+    }
+  };
 
 
   const getMuiTheme = () =>
@@ -491,10 +569,13 @@ function Formules() {
                       }}
                     />
                     {craft === 1 && (
-                    <ForwardTwoToneIcon fontSize="large" style={{ marginTop: '10px' }}/>
+                      <ForwardTwoToneIcon fontSize="large" style={{ marginTop: '10px' }} />
                     )}
                     {craft === 0 && (
-                    <ArrowIcon fontSize="large" style={{ marginTop: '10px' }}/>
+                      <ArrowIcon fontSize="large" style={{ marginTop: '10px' }} />
+                    )}
+                    {craft === 2 && (
+                      <ArrowIcon fontSize="large" style={{ marginTop: '10px' }} />
                     )}
                     <TextField
                       disabled
@@ -503,7 +584,7 @@ function Formules() {
                       type="number"
                       value={currentAvailableStock}
                       className="form-control"
-                      style={{ width: `170px`}} 
+                      style={{ width: `170px` }}
                       InputProps={{
                         inputProps: {
                           style: { textAlign: 'right' },
@@ -512,14 +593,37 @@ function Formules() {
                     />
                   </Grid>
                   <Grid item xs={12} sx={3}>
+                    {craft === 2 && (
+                      <Autocomplete
+                        id="lote"
+                        options={lotes.map((lote) => ({
+                          value: lote.cod_comprobante_lote,
+                          label: `${lote.cod_comprobante_lote} Cont: ${lote.cantidad}`,
+                        }))}
+                        value={currentLote}
+                        onChange={handleLoteChange}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            required
+                            label="Lote"
+                            type="text"
+                            className="form-control"
+                            InputProps={{
+                              ...params.InputProps,
+                            }}
+                          />
+                        )}
+                      />
+                    )}
                     <TextField
                       id="cantidad"
-                      label= {craft === 0 ? "Cantidad a Generar" : "Cantidad a Desarmar"}
+                      label={craft === 0 ? "Cantidad a Generar" : "Cantidad a Desarmar"}
                       type="number"
                       onChange={e => setCantidadGen(e.target.value)}
                       value={cantidadGen}
                       className="form-control"
-                      style={{ width: `160px` }}
+                      style={{ width: `160px`, marginTop: `20px` }}
                       InputProps={{
                         inputProps: {
                           style: { textAlign: 'right' },
@@ -536,6 +640,9 @@ function Formules() {
                   )}
                   {craft === 1 && (
                     <Button onClick={handleSave} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }} >Desarmar</Button>
+                  )}
+                  {craft === 2 && (
+                    <Button onClick={handleSave} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }} >Despiezar</Button>
                   )}
                 </DialogActions>
                 <DialogActions>
