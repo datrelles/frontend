@@ -44,6 +44,7 @@ import SecondAuth from "./components/loginSecondAuth/secondAuth";
 import SaveDevice from "./components/loginSecondAuth/saveDevice";
 import { ElectronicFilesSri } from "./components/contabilidad/filesSri";
 import { CaseManager } from "./components/garantias/caseManager/caseManager";
+import { UpdateYear } from "./components/repuestos/updateYear";
 
 const API = process.env.REACT_APP_API;
 function App() {
@@ -118,6 +119,7 @@ function App() {
                   <Route exact path="/profile" element={<Profile/>}></Route>
                   <Route exact path="/dashboard" element={<Dashboard />}></Route>
                   <Route exact path="/postSales" element={<Protected isLoggedIn={authorizedSystems.includes('REP')}><PostSales  /></Protected>}></Route>
+                  <Route exact path="/parts" element={<Protected isLoggedIn={authorizedSystems.includes('REP')}> <UpdateYear/></Protected>}></Route>
                   <Route exact path="/editPostSales" element={<EditPostSales/>}></Route>
                   <Route exact path="/menus" element={<Menus/>}></Route>
                   <Route exact path="/newPostSales" element={<NewPostSales />}></Route>
