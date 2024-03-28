@@ -150,6 +150,7 @@ function NewContainer() {
             } else {
                 const data = await res.json();
                 setBlList(data)
+                console.log(data)
             }
         } catch (error) {
             toast.error('Sesión caducada. Por favor, inicia sesión nuevamente.');
@@ -224,7 +225,7 @@ function NewContainer() {
 
     const handleBlChange = (event, value) => {
         if (value) {
-            const blSeleccionado = blList.find((bl) => bl.codigo_bl_house === value);
+            const blSeleccionado = blList.find((bl) => bl.codigo_bl_house === value.value);
             if (blSeleccionado) {
                 setCodigoBlHouse(blSeleccionado.codigo_bl_house);
             }
@@ -607,8 +608,10 @@ function NewContainer() {
                             <Autocomplete
                                 id="bl-house"
                                 fullWidth
-                                options={blList.map((bl) => bl.codigo_bl_house)}
-                                value={codigoBlHouse}
+                                options={blList.map((bl) => ({
+                                    value: bl.codigo_bl_house,
+                                    label: `${bl.bl_house_manual} Ref: ${bl.codigo_bl_house}`,
+                                  }))}  
                                 onChange={handleBlChange}
                                 renderInput={(params) => (
                                     <TextField

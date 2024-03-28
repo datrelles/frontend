@@ -53,6 +53,7 @@ function EditContainer() {
 
   const [codTipoContenedor, setCodTipoContenedor] = useState(formData.cod_tipo_contenedor)
   const [codigoBlHouse, setCodigoBlHouse] = useState(formData.codigo_bl_house)
+  const [codigoBlHouseManual, setCodigoBlHouseManual] = useState('')
   const [esCargaSuelta, setEsCargaSuelta] = useState(formData.es_carga_suelta === '' ? 0 : parseInt(formData.es_carga_suelta, 10));
   const [lineSeal, setLineSeal] = useState(formData.line_seal)
   const [nroContenedor, setNroContenedor] = useState(formData.nro_contenedor)
@@ -95,7 +96,7 @@ function EditContainer() {
 
   const getContainer = async () => {
     try {
-      const res = await fetch(`${API}/container_by_nro?nro_contenedor=${formData.codigo_bl_house}`,
+      const res = await fetch(`${API}/container_by_nro?nro_contenedor=${formData.nro_contenedor}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -109,6 +110,28 @@ function EditContainer() {
         }
       } else {
         const data = await res.json();
+      }
+    } catch (error) {
+    }
+  }
+
+  const getBlInfo = async () => {
+    try {
+      const res = await fetch(`${API}/embarque_param?empresa=${enterpriseShineray}&codigo_bl_house=${formData.codigo_bl_house}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + jwt
+          }
+        });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          toast.error('Sesión caducada.');
+        }
+      } else {
+        const data = await res.json();
+        setCodigoBlHouseManual(data[0].bl_house_manual)
       }
     } catch (error) {
     }
@@ -237,6 +260,7 @@ function EditContainer() {
   useEffect(() => {
     document.title = 'Contenedor ' + nroContenedor;
     getContainer();
+    getBlInfo();
     getPackingList();
     checkAuthorization();
     getMenus();
@@ -615,10 +639,18 @@ function EditContainer() {
               <TextField
                 disabled
                 id="id"
-                label="BL House"
+                label="Referencia BL"
                 type="text"
                 onChange={e => setCodigoBlHouse(e.target.value)}
                 value={codigoBlHouse}
+                className="form-control"
+              />
+              <TextField
+                disabled
+                id="id"
+                label="BL House"
+                type="text"
+                value={codigoBlHouseManual}
                 className="form-control"
               />
               <TextField
