@@ -227,3 +227,38 @@ export const getDataCityByProvince= async(jwt, codeProvince)=>{
     throw error
   }
 }
+
+//PARTS UPDATE YEAR
+
+export const getDataDespiece= async(jwt, codeEnterprise)=>{
+  try {
+    const response = await axios.get(`${API}/get_info_despiece/motos?empresa=${codeEnterprise}`, {
+      headers:{
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+    return response.data
+  } catch (error) {
+    console.log(error)
+    throw error
+  }
+}
+
+export const getInfoDespiece= async(jwt, codeEnterprise, codeSubsystem)=>{
+  try {
+    const response = await axios.get(`${API}/get_info_despiece/parts?empresa=${codeEnterprise}&subsistema=${codeSubsystem}`, {
+      headers:{
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+    console.log(response.data)
+    return response.data
+  } catch (error) {
+    console.log(error)
+    throw error
+  }
+}
+
+
+
+
