@@ -242,6 +242,7 @@ export const CaseManager = () => {
     ]
     const options = {
         selectableRows: false,
+        rowsPerPage: 100
     }
     //Menu
     useEffect(() => {

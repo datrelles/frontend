@@ -32,9 +32,9 @@
 
   .scroll-container {
     width: 58vw; /* o el ancho que desees */
-    height: 50vh; /* o la altura que desees */
+    height: 25vh; /* o la altura que desees */
     overflow-y: scroll; /* añade un scroll vertical */
-    font-size: 14px;
+    font-size: 12px;
   }
   
   .content-1 ul {
@@ -53,3 +53,20 @@
   .content-1 ul li.selected {
     background-color: #E8EAF6; /* color de fondo para el elemento seleccionado */
   }
+
+  .controlYears{
+    width: 100%;
+    display: flex;
+    justify-content: center; /* Espacio entre los elementos */
+    align-items: center; /* Centra verticalmente los elementos */
+  }
+
+  .controlYearsSelector{
+    width: 150px;
+    display: flex;
+    margin-left: 20px;
+    margin-right: 20px;
+   /* Espacio entre los elementos */
+    align-items: center; /* Centra verticalmente los elementos */
+  }
+

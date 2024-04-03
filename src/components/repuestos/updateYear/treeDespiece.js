@@ -18,28 +18,6 @@ const useStyles = makeStyles({
   },
 });
 
-const data = {
-  id: 'root',
-  name: 'Parent',
-  children: [
-    {
-      id: '1',
-      name: 'Child - 1',
-    },
-    {
-      id: '3',
-      name: 'Child - 3',
-      children: [
-        {
-          id: '4',
-          name: 'Child - 4',
-        },
-      ],
-    },
-  ],
-};
-
-
 export const TreeDespiece = ({ updateCodeSubsistemaSelected }) => {
   const classes = useStyles();
   const { jwt, userShineray, enterpriseShineray, branchShineray, systemShineray } = useAuthContext()
@@ -64,28 +42,91 @@ export const TreeDespiece = ({ updateCodeSubsistemaSelected }) => {
       const newDataProcess = ProcessData(response)
       setAllDataMotos(newDataProcess)
 
+
     } catch (error) {
       console.log(error)
     }
   }
 
+  const findNodeLabel = (nodeId, allDataMotos) => {
+    if (allDataMotos.id === nodeId) {
+      return allDataMotos.name;
+    }
+
+    if (allDataMotos.children) {
+      for (let child of allDataMotos.children) {
+        const label = findNodeLabel(nodeId, child);
+        if (label) {
+          return label;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  const updateCodeSubsistemaSelectedAux = (nodeId) => {
+    setCodeSubsistemaSelected(nodeId)
+    const resultName = findNodeLabel(nodeId, allDataMotos)
+    const resultChildren = findChildrenById(allDataMotos, nodeId)
+    const resultChildrenWithOutSubChildren = checkChildren(resultChildren)
+    updateCodeSubsistemaSelected(nodeId, resultName, resultChildrenWithOutSubChildren)
+
+  }
+
+  function findChildrenById(node, targetId) {
+    if (targetId == 'SHINERAY' || targetId == 'BULTACO' || targetId == 'SHM ELECTRICAS' || targetId == 'root') {
+      const message = 'conjunto restringido'
+      return message
+    }
+
+    if (node.id === targetId) {
+      return node.children;
+    }
+
+
+    if (node.children) {
+      for (let child of node.children) {
+        const result = findChildrenById(child, targetId);
+        if (result) {
+          return result;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  const checkChildren = (items) => {
+    const captureIds = [];
+
+    if (!Array.isArray(items)) {
+      return null;
+    }
+
+    for (let item of items) {
+  
+      if (item.children) {
+        return null;
+      } else {
+        captureIds.push(item.id);
+      }
+    }
+
+    return captureIds;
+}
 
   return (
     <div >
-      {/* <text className='poppins-regular'>
-        Seleccione 
-      </text> */}
-
       <TreeView
         className={classes.root}
         defaultCollapseIcon={<ExpandMoreIcon />}
         defaultExpanded={['root']}
         defaultExpandIcon={<ChevronRightIcon />}
-        onNodeSelect={(event, nodeId, label) => updateCodeSubsistemaSelected(nodeId, label)}
+        onNodeSelect={(event, nodeId) => updateCodeSubsistemaSelectedAux(nodeId)}
       >
         {renderTree(allDataMotos)}
       </TreeView>
     </div>
-
   )
 }

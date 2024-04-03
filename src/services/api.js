@@ -251,7 +251,6 @@ export const getInfoDespiece= async(jwt, codeEnterprise, codeSubsystem)=>{
         Authorization: `Bearer ${jwt}`,
       },
     })
-    console.log(response.data)
     return response.data
   } catch (error) {
     console.log(error)
