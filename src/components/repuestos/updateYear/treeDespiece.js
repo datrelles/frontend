@@ -7,6 +7,7 @@ import TreeItem from '@material-ui/lab/TreeItem';
 import { getDataDespiece } from '../../../services/api';
 import { useAuthContext } from '../../../context/authContext';
 import { ProcessData } from './processDataDespiece';
+import { toast } from 'react-toastify';
 const useStyles = makeStyles({
   root: {
     height: 240,
@@ -31,7 +32,7 @@ export const TreeDespiece = ({ updateCodeSubsistemaSelected }) => {
   }, [])
 
   const renderTree = (nodes) => (
-    <TreeItem key={nodes.id} nodeId={nodes.id} label={nodes.name}>
+    <TreeItem key={nodes.id} nodeId={nodes.id} label={nodes.name} >
       {Array.isArray(nodes.children) ? nodes.children.map((node) => renderTree(node)) : null}
     </TreeItem>
   );
@@ -123,7 +124,7 @@ export const TreeDespiece = ({ updateCodeSubsistemaSelected }) => {
         defaultCollapseIcon={<ExpandMoreIcon />}
         defaultExpanded={['root']}
         defaultExpandIcon={<ChevronRightIcon />}
-        onNodeSelect={(event, nodeId) => updateCodeSubsistemaSelectedAux(nodeId)}
+        onNodeSelect={(event, nodeId) => updateCodeSubsistemaSelectedAux(nodeId)}    
       >
         {renderTree(allDataMotos)}
       </TreeView>

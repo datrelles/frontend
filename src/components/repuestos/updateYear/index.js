@@ -1,7 +1,7 @@
 import Navbar0 from '../../Navbar0'
 import React, { useState, useEffect, Children } from 'react'
 import { useAuthContext } from '../../../context/authContext'
-import { getMenus, getInfoDespiece } from '../../../services/api'
+import { getMenus, getInfoDespiece, putChangeYearForSubsystem } from '../../../services/api'
 import { toast } from 'react-toastify';
 import { TreeDespiece } from './treeDespiece';
 import './ArbolComponente.css';
@@ -23,6 +23,11 @@ export const UpdateYear = () => {
     const [groupCodeSubsystem, setGroupCodeSubsystem] = useState(null)
     const [onlyOneSubsystem, setOnlyOneSubsystem] = useState(null)
     const [completeSubsystem, setCompleteSubsystem] = useState(null)
+    const [flagIdLevel, setFlagIdLevel] = useState(null)
+    //Aux for years
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentYearTypeNumber = currentYear % 100;
     //"From" "to" selector
     const [fromYear, setFromYear] = useState('');
     const [toYear, setToYear] = useState('');
@@ -38,6 +43,7 @@ export const UpdateYear = () => {
         setCompleteSubsystem(newCode)
         setNameSelected(name)
         setGroupCodeSubsystem(resultChildren)
+        setFlagIdLevel(1)
 
     }
     const getDataDespieceRepuestos = async (jwt, enterpriseShineray) => {
@@ -49,6 +55,20 @@ export const UpdateYear = () => {
             console.log(error)
         }
     }
+    const putDataDespieceRepuestosAnio = async (jwt, fromYear, toYear, flag_id_level, empresa, userShineray, data) => {
+       
+        try {
+            const response = await putChangeYearForSubsystem(jwt, fromYear, toYear, flag_id_level, empresa, userShineray, data);
+            console.log(response)
+            toast.success(response.succes)
+
+        } catch (error) {
+            toast.error(error.message)
+            console.log(error.message)
+        }
+    }
+
+
     const handleItemClick = (id, name, kindOfParts) => {
         if (kindOfParts == 'singleParts') {
             setCompleteSubsystem(null)
@@ -56,6 +76,7 @@ export const UpdateYear = () => {
             setNameSusbsistemaSelected(name);
             setNameSelected(id)
             setOnlyOneSubsystem(id)
+            setFlagIdLevel(2)
 
         } else {
             console.log('only single parts')
@@ -67,17 +88,37 @@ export const UpdateYear = () => {
     const handleChangeToYear = (event) => {
         setToYear(event.target.value);
     };
+
     //DIALOG
-    const handleClose=()=>{
-        console.log('cerrado')
+    const handleClose = () => {
+        setOpen(false)
     }
-    const handleClickOpenNew=()=>{
-        console.log('open')
+    const handleClickOpenNew = () => {
+        setOpen(true)
     }
-    const handleSave=()=>{
-        console.log('save')
+    const handleSave = () => {
+        console.log(flagIdLevel)
+        let data = []
+        if (groupCodeSubsystem != null) {
+            data = {
+                "cod_subsystem": groupCodeSubsystem
+            }
+        } else if (completeSubsystem != null){      
+            data = {
+                "cod_subsystem": [completeSubsystem]
+            }
+        } else if (onlyOneSubsystem){
+            data = {
+                "cod_producto": [onlyOneSubsystem]
+            }
+        }
+
+        putDataDespieceRepuestosAnio(jwt, fromYear, toYear, flagIdLevel, enterpriseShineray, userShineray, data)
+        setOpen(false)
+
     }
-    const years = Array.from({ length: 101 }, (_, i) => 2000 + i);
+
+    const years = Array.from({ length: currentYearTypeNumber + 4 }, (_, i) => 2000 + i);
     //Menu
     useEffect(() => {
         const menu = async () => {
@@ -141,7 +182,7 @@ export const UpdateYear = () => {
                                     <div className='controlYearsSelector'>
                                         <TextField
                                             select
-                                            label="From Year"
+                                            label="Desde"
                                             value={fromYear}
                                             onChange={handleChangeFromYear}
                                             fullWidth
@@ -159,13 +200,12 @@ export const UpdateYear = () => {
                                     <div className='controlYearsSelector'>
                                         <TextField
                                             select
-                                            label="To Year"
+                                            label="Hasta"
                                             value={toYear}
                                             onChange={handleChangeToYear}
                                             fullWidth
                                             variant="outlined"
                                             margin="normal"
-                                            sx={{ fontSize: '12px' }}
                                         >
                                             {years.map((year) => (
                                                 <MenuItem key={year} value={year} sx={{ fontSize: '14px' }}>
@@ -174,7 +214,7 @@ export const UpdateYear = () => {
                                             ))}
                                         </TextField>
                                     </div>
-                                    <Button onClick={() => handleClickOpenNew(value)} color="primary" style={{ marginLeft: '20px', marginTop: '5px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '120px', borderRadius: '5px', marginRight: '15px' }}>
+                                    <Button onClick={() => handleClickOpenNew()} color="primary" style={{ marginLeft: '20px', marginTop: '5px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '120px', borderRadius: '5px', marginRight: '15px' }}>
                                         ACTUALIZAR
                                     </Button>
 
@@ -188,11 +228,15 @@ export const UpdateYear = () => {
             </div>
             {/* --DIALOGO LIST-- */}
             <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth >
-                <div style={{ display: "flex" }}>
+                <div style={{ display: "flex", justifyContent: 'center' }}>
                     <div>
                         <DialogContent >
                             <Grid container spacing={2}>
-                                <>HOLA</>
+                                <p className='poppins-regular'> <br></br> <br></br> Se actualizará el año de la siguiente sección:  {nameSelected} {nameSubsistemaSelected ? ('  = ' + nameSubsistemaSelected) : (null)} </p>
+                            </Grid>
+
+                            <Grid container spacing={2}>
+                                <p className='poppins-regular'> <br></br> <br></br> Rango seleccionado:  {fromYear + '-' + toYear}  </p>
                             </Grid>
 
                         </DialogContent>
@@ -205,7 +249,6 @@ export const UpdateYear = () => {
                             </DialogActions>
                         </div>
                     </div>
-          
                 </div>
             </Dialog>
         </div>
