@@ -8,6 +8,8 @@ import { getDataDespiece } from '../../../services/api';
 import { useAuthContext } from '../../../context/authContext';
 import { ProcessData } from './processDataDespiece';
 import { toast } from 'react-toastify';
+import LoadingCircle from '../../contabilidad/loader';
+
 const useStyles = makeStyles({
   root: {
     height: 240,
@@ -24,6 +26,8 @@ export const TreeDespiece = ({ updateCodeSubsistemaSelected }) => {
   const { jwt, userShineray, enterpriseShineray, branchShineray, systemShineray } = useAuthContext()
   const [allDataMotos, setAllDataMotos] = useState([]);
   const [codeSubsistemaSelected, setCodeSubsistemaSelected] = useState('')
+  const [loading, setLoading] = useState(false);
+
 
 
   useEffect(() => {
@@ -39,13 +43,15 @@ export const TreeDespiece = ({ updateCodeSubsistemaSelected }) => {
 
   const getDataDespieceMotos = async (jwt, enterpriseShineray) => {
     try {
+      setLoading(true)
       const response = await getDataDespiece(jwt, enterpriseShineray);
       const newDataProcess = ProcessData(response)
       setAllDataMotos(newDataProcess)
-
+      setLoading(false)
 
     } catch (error) {
       console.log(error)
+      setLoading(false)
     }
   }
 
@@ -106,7 +112,7 @@ export const TreeDespiece = ({ updateCodeSubsistemaSelected }) => {
     }
 
     for (let item of items) {
-  
+
       if (item.children) {
         return null;
       } else {
@@ -115,19 +121,23 @@ export const TreeDespiece = ({ updateCodeSubsistemaSelected }) => {
     }
 
     return captureIds;
-}
+  }
 
   return (
-    <div >
-      <TreeView
-        className={classes.root}
-        defaultCollapseIcon={<ExpandMoreIcon />}
-        defaultExpanded={['root']}
-        defaultExpandIcon={<ChevronRightIcon />}
-        onNodeSelect={(event, nodeId) => updateCodeSubsistemaSelectedAux(nodeId)}    
-      >
-        {renderTree(allDataMotos)}
-      </TreeView>
-    </div>
+    <>
+      {loading ? (<LoadingCircle />) : (
+        <div >
+          <TreeView
+            className={classes.root}
+            defaultCollapseIcon={<ExpandMoreIcon />}
+            defaultExpanded={['root']}
+            defaultExpandIcon={<ChevronRightIcon />}
+            onNodeSelect={(event, nodeId) => updateCodeSubsistemaSelectedAux(nodeId)}
+          >
+            {renderTree(allDataMotos)}
+          </TreeView>
+        </div>
+      )}
+    </>
   )
 }

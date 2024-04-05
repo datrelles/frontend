@@ -265,7 +265,6 @@ export const putChangeYearForSubsystem = async (jwt, fromYear, toYear, flag_id_l
   }
 
   try {
-    console.log(jwt, fromYear, toYear, flag_id_level, empresa, userShineray, data)
     const response = await axios.put(`${API}/update_year_parts?from_year=${fromYear}&to_year=${toYear}&flag_id_level=${flag_id_level}&empresa=${empresa}&user_shineray=${userShineray}`, data, {
       headers: {
         Authorization: `Bearer ${jwt}`,
@@ -279,6 +278,17 @@ export const putChangeYearForSubsystem = async (jwt, fromYear, toYear, flag_id_l
   }
 }
 
-
-
+export const getYearOfPartsMotocycle = async (jwt, empresa, cod_producto) => {
+  try {
+    const response = await axios.get(`${API}/get_info_parts_year_by_cod_producto?empresa=${empresa}&cod_producto=${cod_producto}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+    return response.data
+  } catch {
+    console.log(error)
+    throw error
+  }
+}
 
