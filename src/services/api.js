@@ -286,7 +286,7 @@ export const getYearOfPartsMotocycle = async (jwt, empresa, cod_producto) => {
       },
     })
     return response.data
-  } catch {
+  } catch(error) {
     console.log(error)
     throw error
   }
