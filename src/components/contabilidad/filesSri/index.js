@@ -60,7 +60,8 @@ export const ElectronicFilesSri = () => {
         const end_date = toDate.format('DD/MM/YYYY')
         if (start_date !== null && end_date !== null) {
           const response = await getDocumentsSri(start_date, end_date, jwt);
-          if(response.length>0){
+          if (response.length > 0) {
+            console.log(response)
             setDataSri(response)
           }
           setLoading(false)
@@ -141,10 +142,7 @@ export const ElectronicFilesSri = () => {
       name: "identificacion_receptor",
       label: "Identificación del Receptor"
     },
-    {
-      name: "importe_total",
-      label: "Importe Total"
-    },
+
     {
       name: "numero_autorizacion",
       label: "Número de Autorización"
@@ -172,20 +170,42 @@ export const ElectronicFilesSri = () => {
     {
       name: "clave_acceso",
       label: "Clave de Acceso"
-    }
+    },
+    {
+      name: "valor_sin_impuestos",
+      label: "valor sin IVA"
+    },
+    {
+      name: "iva",
+      label: "IVA"
+    },
+
+    {
+      name: "importe_total",
+      label: "Importe Total"
+    },
   ];
 
 
   // Función para realizar la búsqueda y reemplazo
   const buscarYReemplazar = (cadena) => {
-    const mapeoReemplazos = {
-      'Retenci�n': 'Retencion',
-      'Cr�dito': 'Credito',
-      'D�bito': 'Debito',
-    };
+    if (cadena == undefined) {
+      console.log(cadena)
+      return undefined
+    } else {
+      const mapeoReemplazos = {
+        'Retenci�n': 'Retencion',
+        'Cr�dito': 'Credito',
+        'D�bito': 'Debito',
+      };
 
-    // Realizar el reemplazo utilizando expresiones regulares
-    return cadena.replace(/Retenci�n|Cr�dito|D�bito/g, (match) => mapeoReemplazos[match]);
+      // Realizar el reemplazo utilizando expresiones regulares
+      return cadena.replace(/Retenci�n|Cr�dito|D�bito/g, (match) => mapeoReemplazos[match]);
+
+    }
+
+
+
   };
   const handleSaveData = async () => {
     try {
@@ -197,9 +217,9 @@ export const ElectronicFilesSri = () => {
       const response = await postDocumentsSri(datosActualizados, jwt);
       setLoading(false)
 
-
     } catch (error) {
       setLoading(false)
+      console.log(error)
 
     }
   };
@@ -219,18 +239,20 @@ export const ElectronicFilesSri = () => {
         const jsonData = lines.slice(1).map((line) => {
           const fields = line.split('\t');
           return {
-            COMPROBANTE: fields[0],
-            SERIE_COMPROBANTE: fields[1],
-            RUC_EMISOR: fields[2],
-            RAZON_SOCIAL_EMISOR: fields[3],
-            FECHA_EMISION: fields[4],
+            COMPROBANTE: fields[2],
+            SERIE_COMPROBANTE: fields[3],
+            RUC_EMISOR: fields[0],
+            RAZON_SOCIAL_EMISOR: fields[1],
+            FECHA_EMISION: fields[6],
             FECHA_AUTORIZACION: fields[5],
-            TIPO_EMISION: fields[6],
-            NUMERO_DOCUMENTO_MODIFICADO: fields[7],
-            IDENTIFICACION_RECEPTOR: fields[8],
-            CLAVE_ACCESO: fields[9],
-            NUMERO_AUTORIZACION: fields[10],
-            IMPORTE_TOTAL: fields[11],
+            //TIPO_EMISION: fields[6],
+            VALOR_SIN_IMPUESTOS: fields[8],
+            NUMERO_DOCUMENTO_MODIFICADO: fields[11],
+            IDENTIFICACION_RECEPTOR: fields[7],
+            CLAVE_ACCESO: fields[4],
+            //NUMERO_AUTORIZACION: fields[10],
+            IVA: fields[9],
+            IMPORTE_TOTAL: fields[10]
           };
         });
 
@@ -298,28 +320,28 @@ export const ElectronicFilesSri = () => {
 
   };
 
-  const handleChangeDate = async() => {
-      try {
-        setLoading(true)
-        const start_date = fromDate.format('DD/MM/YYYY')
-        const end_date = toDate.format('DD/MM/YYYY')
-        if (start_date !== null && end_date !== null) {
-          setToDate(null);
-          setFromDate(null);
-          const response = await getDocumentsSri(start_date, end_date, jwt);
-          if(response.length>=0){
-            setDataSri(response)
-          }
-          setLoading(false)
-         
+  const handleChangeDate = async () => {
+    try {
+      setLoading(true)
+      const start_date = fromDate.format('DD/MM/YYYY')
+      const end_date = toDate.format('DD/MM/YYYY')
+      if (start_date !== null && end_date !== null) {
+        setToDate(null);
+        setFromDate(null);
+        const response = await getDocumentsSri(start_date, end_date, jwt);
+        if (response.length >= 0) {
+          setDataSri(response)
         }
-
-      } catch (error) {
         setLoading(false)
 
       }
 
-  }
+    } catch (error) {
+      setLoading(false)
+
+    }
+
+  };
 
 
 
