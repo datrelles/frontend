@@ -46,7 +46,7 @@ function Reports6() {
             <div style={{ marginTop: '150px', top: 0, width: "100%", zIndex: 1000 }}>
                 <Navbar0 menus={menus} />
                 <iframe title="Gastos Mercadeo" 
-                src="https://app.powerbi.com/reportEmbed?reportId=dd68ff50-474e-4926-a46e-9754288965b1&autoAuth=true&ctid=592efd1e-0d60-483c-975c-7279b5872b49" 
+                src="https://app.powerbi.com/reportEmbed?reportId=2ea4e709-14db-4a1d-a81a-f4942ca1daa0&autoAuth=true&ctid=592efd1e-0d60-483c-975c-7279b5872b49" 
                 frameborder="0" 
                 style={iframeStyle}
                 allowFullScreen={true}>
