@@ -175,43 +175,6 @@ function EditCabecera() {
     }
 
 
-
-    const handleDeleteRows = async (rowsDeleted) => {
-        const userResponse = window.confirm('¿Está seguro de eliminar estos registros?')
-        if (userResponse) {
-            await rowsDeleted.data.forEach((deletedRow) => {
-                const deletedRowIndex = deletedRow.dataIndex;
-                const deletedRowValue = formulaD[deletedRowIndex];
-                console.log(deletedRowValue.secuencia);
-
-                fetch(`${API}/formule_d`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + jwt
-                    },
-                    body: JSON.stringify({
-                        empresa: enterpriseShineray,
-                        cod_formula: formData.cod_formula,
-                        secuencia: deletedRowValue.secuencia
-                    })
-                })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Error en la llamada a la API');
-                        }
-                        console.log('Elemento eliminado exitosamente');
-                        enqueueSnackbar('¡Elementos eliminados exitosamente!', { variant: 'success' });
-                    })
-                    .catch(error => {
-                        console.error(error);
-                        enqueueSnackbar(error, { variant: 'error' });
-                    });
-            });
-        }
-    };
-
-
     const handleStatus1Change = (event, value) => {
         if (value) {
             const statusSeleccionado = statusList1.find((status) => status.nombre === value);
@@ -350,7 +313,6 @@ function EditCabecera() {
 
     const options = {
         filterType: 'dropdown',
-        onRowsDelete: handleDeleteRows,
         onChangeRowsPerPage(numberOfRows) {
             setRowsPerPage(numberOfRows);
         },

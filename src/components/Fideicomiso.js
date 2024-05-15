@@ -161,33 +161,6 @@ function Fideicomiso() {
     console.log(row)
   }
 
-  const handleDeleteRows = async (rowsDeleted) => {
-    const userResponse = window.confirm('¿Está seguro de eliminar la orden de compra?')
-    if (userResponse) {
-      await rowsDeleted.data.forEach((deletedRow) => {
-        const deletedRowIndex = deletedRow.dataIndex;
-        const deletedRowValue = purchaseOrders[deletedRowIndex];
-        fetch(`${API}/eliminar_orden_compra_total/${deletedRowValue.cod_po}/${enterpriseShineray}/PO`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + jwt
-          },
-        })
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Error en la llamada a la API');
-            }
-            enqueueSnackbar('¡Elementos eliminados exitosamente!', { variant: 'success' });
-          })
-          .catch(error => {
-            console.error(error);
-            enqueueSnackbar(error, { variant: 'error' });
-          });
-      });
-    }
-  };
-
   const handleChange2 = async (e) => {
     e.preventDefault();
 
@@ -586,7 +559,6 @@ function Fideicomiso() {
   const options = {
     responsive: 'standard',
     onRowClick: handleRowClick,
-    onRowsDelete: handleDeleteRows,
     onChangeRowsPerPage(numberOfRows) {
       setRowsPerPage(numberOfRows);
     },
