@@ -20,6 +20,7 @@ function Dashboard() {
 
     const data = await res.json();
     setModuleList(data)
+    console.log(data)
   }
 
   function HoverImage(props) {
