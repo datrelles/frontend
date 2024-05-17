@@ -1046,18 +1046,6 @@ function EditCabecera() {
                             style={{ display: 'none' }}
                             onChange={handleFileUpload}
                         />
-                        <label htmlFor="file-upload">
-                            <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
-                                Agregar Cuotas
-                            </Button>
-                            <button
-                                className="btn btn-primary btn-block"
-                                type="button"
-                                style={{ backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
-                                onClick={handleChange2}>
-                                <SaveIcon /> Guardar
-                            </button>
-                        </label>
                         <div>
                             <ThemeProvider theme={getMuiTheme()}>
                                 <MUIDataTable title={"Tabla de Amortización"} data={details} columns={columns} options={options} />
@@ -1073,18 +1061,6 @@ function EditCabecera() {
                             style={{ display: 'none' }}
                             onChange={handleFileUploadFee}
                         />
-                        <label htmlFor="file-upload">
-                            <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
-                                Agregar Pagos
-                            </Button>
-                            <button
-                                className="btn btn-primary btn-block"
-                                type="button"
-                                style={{ backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
-                                onClick={handleChange3}>
-                                <SaveIcon /> Guardar
-                            </button>
-                        </label>
                         <div>
                             <ThemeProvider theme={getMuiTheme()}>
                                 <MUIDataTable title={"Tabla de Pagos"} data={fees} columns={columnsFee} options={options} />

@@ -121,7 +121,7 @@ function NewNegociacion() {
       const data = await res.json();
       console.log(data)
       setProvidersList(data)
-      setNombre(data.find((objeto) => objeto.cod_producto === codProducto)?.nombre || '');
+      setNombre(data.find((objeto) => objeto.cod_proveedor === codProveedor)?.nombre || '');
     }
   };
 
@@ -141,7 +141,7 @@ function NewNegociacion() {
       const data = await res.json();
       console.log(data)
       setCostumersList(data)
-      setNombreCostumer(data.find((objeto) => objeto.cod_producto === codProducto)?.nombre || '');
+      setNombreCostumer(data.find((objeto) => objeto.cod_cliente === codCliente)?.apellido1 || '');
     }
   };
 
@@ -326,10 +326,10 @@ function NewNegociacion() {
 
   const handleCostumerChange = (event, value) => {
     if (value) {
-      const proveedorSeleccionado = costumersList.find((proveedor) => proveedor.nombre === value);
+      const proveedorSeleccionado = costumersList.find((proveedor) => proveedor.apellido1 === value);
       if (proveedorSeleccionado) {
         setCodCliente(proveedorSeleccionado.cod_cliente);
-        setNombreCostumer(proveedorSeleccionado.nombre);
+        setNombreCostumer(proveedorSeleccionado.apellido1);
       }
     } else {
       setCodCliente('');
@@ -674,7 +674,7 @@ function NewNegociacion() {
                   fullWidth
                   required
                   id="codigo-provider"
-                  label="Buscar Proveedor por codigo"
+                  label="Buscar Proveedor por nombre"
                   type="text"
                   onChange={e => setEntradaCodProveedor(e.target.value)}
                   onKeyDown={handleKeyDown}
@@ -708,7 +708,7 @@ function NewNegociacion() {
                   fullWidth
                   required
                   id="codigo-cliente"
-                  label="Buscar Cliente por codigo"
+                  label="Buscar Cliente por nombre"
                   type="text"
                   onChange={e => setEntradaCodCliente(e.target.value)}
                   onKeyDown={handleKeyDown2}
@@ -718,7 +718,7 @@ function NewNegociacion() {
                 <Autocomplete
                   id="Cliente"
                   fullWidth
-                  options={costumersList.map((producto) => producto.nombre)}
+                  options={costumersList.map((producto) => producto.apellido1)}
                   value={nombreCostumer}
                   onChange={handleCostumerChange}
                   renderInput={(params) => (
