@@ -55,43 +55,17 @@ function NewNegociacion() {
   const [statusList, setStatusList] = useState([])
   const [providersList, setProvidersList] = useState([])
   const [nombre, setNombre] = useState("");
+  const [costumersList, setCostumersList] = useState([])
+  const [nombreCostumer, setNombreCostumer] = useState("");
   const [excelData, setExcelData] = useState([]);
   const [fromDate, setFromDate] = useState(moment().subtract(3, "months"));
   const [toDate, setToDate] = useState(moment);
   const [menus, setMenus] = useState([])
   const { enqueueSnackbar } = useSnackbar();
+  const [entradaCodProveedor, setEntradaCodProveedor] = useState("")
+  const [entradaCodCliente, setEntradaCodCliente] = useState("")
 
   const classes = useStyles();
-
-
-  const getCabeceras = async () => {
-    try {
-      const res = await fetch(`${API}/fin/cabeceras`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + jwt
-          },
-          body: JSON.stringify({
-            empresa: enterpriseShineray,
-            cod_comprobante: codComprobante
-          })
-        });
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          toast.error('Sesión caducada.');
-        }
-      } else {
-        const data = await res.json();
-        setCabeceras(data)
-        console.log(data)
-      }
-    } catch (error) {
-      toast.error('Sesión caducada. Por favor, inicia sesión nuevamente.');
-    }
-  }
 
   const getMenus = async () => {
     try {
@@ -117,7 +91,7 @@ function NewNegociacion() {
   }
 
   const getProvidersList = async () => {
-    const res = await fetch(`${API}/proveedores_ext?empresa=${enterpriseShineray}`, {
+    const res = await fetch(`${API}/proveedores_nac?empresa=${enterpriseShineray}`, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + jwt
@@ -130,6 +104,46 @@ function NewNegociacion() {
     }));
     setProvidersList(list)
   }
+
+  const handleKeyDown = async (e) => {
+    if (e.key === 'Enter') {
+      const res = await fetch(`${API}/fin/providers_by_cod`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + jwt
+        },
+        body: JSON.stringify({
+          empresa: enterpriseShineray,
+          cod_proveedor: entradaCodProveedor.toUpperCase()
+        })
+      })
+      const data = await res.json();
+      console.log(data)
+      setProvidersList(data)
+      setNombre(data.find((objeto) => objeto.cod_producto === codProducto)?.nombre || '');
+    }
+  };
+
+  const handleKeyDown2 = async (e) => {
+    if (e.key === 'Enter') {
+      const res = await fetch(`${API}/fin/costumers_by_cod`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + jwt
+        },
+        body: JSON.stringify({
+          empresa: enterpriseShineray,
+          cod_cliente: entradaCodCliente.toUpperCase()
+        })
+      })
+      const data = await res.json();
+      console.log(data)
+      setCostumersList(data)
+      setNombreCostumer(data.find((objeto) => objeto.cod_producto === codProducto)?.nombre || '');
+    }
+  };
 
   useEffect(() => {
     document.title = 'Nueva Negociación';
@@ -307,6 +321,19 @@ function NewNegociacion() {
     } else {
       setCodProveedor('');
       setNombre('');
+    }
+  };
+
+  const handleCostumerChange = (event, value) => {
+    if (value) {
+      const proveedorSeleccionado = costumersList.find((proveedor) => proveedor.nombre === value);
+      if (proveedorSeleccionado) {
+        setCodCliente(proveedorSeleccionado.cod_cliente);
+        setNombreCostumer(proveedorSeleccionado.nombre);
+      }
+    } else {
+      setCodCliente('');
+      setNombreCostumer('');
     }
   };
 
@@ -625,48 +652,6 @@ function NewNegociacion() {
                     />
                   )}
                 />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <Autocomplete
-                  id="Proveedor"
-                  options={providersList.map((proveedor) => proveedor.nombre)}
-                  onChange={handleProviderChange}
-                  fullWidth
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      required
-                      label="Proveedor"
-                      type="text"
-                      value={nombre}
-                      className="form-control"
-                      InputProps={{
-                        ...params.InputProps,
-                      }}
-                    />
-                  )}
-                />
-                <TextField
-                  disabled
-                  fullWidth
-                  id="id-prov"
-                  label="Codigo Proveedor"
-                  type="text"
-                  onChange={e => setCodProveedor(e.target.value)}
-                  value={codProveedor}
-                  className="form-control"
-                />
-                <TextField
-                  fullWidth
-                  id="id-cliente"
-                  label="Cliente"
-                  type="text"
-                  onChange={e => setCodCliente(e.target.value)}
-                  value={codCliente}
-                  className="form-control"
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
                 <div className={classes.datePickersContainer}>
                   <div>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -683,6 +668,74 @@ function NewNegociacion() {
                     </LocalizationProvider>
                   </div>
                 </div>
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  required
+                  id="codigo-provider"
+                  label="Buscar Proveedor por codigo"
+                  type="text"
+                  onChange={e => setEntradaCodProveedor(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  value={entradaCodProveedor}
+                  className="form-control"
+                />
+                <Autocomplete
+                  id="proveedor"
+                  fullWidth
+                  options={providersList.map((producto) => producto.nombre)}
+                  value={nombre}
+                  onChange={handleProviderChange}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      required
+                      multiline
+                      rows={2}
+                      label="Proveedor"
+                      type="text"
+                      className="form-control"
+                      InputProps={{
+                        ...params.InputProps,
+                      }}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+              <TextField
+                  fullWidth
+                  required
+                  id="codigo-cliente"
+                  label="Buscar Cliente por codigo"
+                  type="text"
+                  onChange={e => setEntradaCodCliente(e.target.value)}
+                  onKeyDown={handleKeyDown2}
+                  value={entradaCodCliente}
+                  className="form-control"
+                />
+                <Autocomplete
+                  id="Cliente"
+                  fullWidth
+                  options={costumersList.map((producto) => producto.nombre)}
+                  value={nombreCostumer}
+                  onChange={handleCostumerChange}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      required
+                      multiline
+                      rows={2}
+                      label="Cliente"
+                      type="text"
+                      className="form-control"
+                      InputProps={{
+                        ...params.InputProps,
+                      }}
+                    />
+                  )}
+                />
               </Grid>
             </Grid>
           </div>
