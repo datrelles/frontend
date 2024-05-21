@@ -790,16 +790,20 @@ function Fideicomiso() {
                       />
                     )}
                   />
-                  <TextField
-                    disabled
-                    fullWidth
-                    id="id-cliente"
-                    label="Cliente"
-                    type="text"
-                    onChange={e => setCodCliente(e.target.value)}
-                    value={codCliente}
-                    className="form-control"
-                  />
+                  <div className={classes.datePickersContainer}>
+                    <div>
+                      <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <DemoContainer components={['DatePicker', 'DatePicker']}>
+                          <DatePicker
+                            label="Fecha Negociacion"
+                            value={dayjs(formData.fecha_negociacion, "DD/MM/YYYY")}
+                            onChange={(newValue) => setFechaNegociacion(format(new Date(newValue), 'dd/MM/yyyy'))}
+                            format={'DD/MM/YYYY'}
+                          />
+                        </DemoContainer>
+                      </LocalizationProvider>
+                    </div>
+                  </div>
                 </Grid>
                 <Grid item xs={12} md={3}>
                   <TextField
@@ -824,20 +828,16 @@ function Fideicomiso() {
                   />
                 </Grid>
                 <Grid item xs={12} md={3}>
-                  <div className={classes.datePickersContainer}>
-                    <div>
-                      <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <DemoContainer components={['DatePicker', 'DatePicker']}>
-                          <DatePicker
-                            label="Fecha Negociacion"
-                            value={dayjs(formData.fecha_negociacion, "DD/MM/YYYY")}
-                            onChange={(newValue) => setFechaNegociacion(format(new Date(newValue), 'dd/MM/yyyy'))}
-                            format={'DD/MM/YYYY'}
-                          />
-                        </DemoContainer>
-                      </LocalizationProvider>
-                    </div>
-                  </div>
+                  <TextField
+                    disabled
+                    fullWidth
+                    id="id-cliente"
+                    label="Cliente"
+                    type="text"
+                    onChange={e => setCodCliente(e.target.value)}
+                    value={codCliente}
+                    className="form-control"
+                  />
                 </Grid>
               </Grid>
             </div>

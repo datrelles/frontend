@@ -46,7 +46,7 @@ function Reports11() {
             <div style={{ marginTop: '150px', top: 0, width: "100%", zIndex: 1000 }}>
                 <Navbar0 menus={menus} />
                 <iframe title="Analisis Sell in Con Proyección" 
-                src="https://app.powerbi.com/reportEmbed?reportId=6cc84aaa-5bfa-4254-9577-eb5dffaed228&autoAuth=true&ctid=592efd1e-0d60-483c-975c-7279b5872b49" 
+                src="https://app.powerbi.com/reportEmbed?reportId=b703226f-8797-4e05-935b-cb0469f216c6&autoAuth=true&ctid=592efd1e-0d60-483c-975c-7279b5872b49" 
                 frameborder="0" 
                 style={iframeStyle}
                 allowFullScreen={true}>
