@@ -11,6 +11,7 @@ import dayjs from 'dayjs';
 import AddIcon from '@material-ui/icons/Add';
 import SearchIcon from '@material-ui/icons/Search';
 import LinearProgress from '@mui/material/LinearProgress';
+import LoadingCircle from './/contabilidad/crafter';
 import Functions from "../helpers/Functions";
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import SaveIcon from '@material-ui/icons/Save';
@@ -64,6 +65,7 @@ function NewNegociacion() {
   const { enqueueSnackbar } = useSnackbar();
   const [entradaCodProveedor, setEntradaCodProveedor] = useState("")
   const [entradaCodCliente, setEntradaCodCliente] = useState("")
+  const [loading, setLoading] = useState(false)
 
   const classes = useStyles();
 
@@ -162,57 +164,41 @@ function NewNegociacion() {
 
   const handleChange2 = async (e) => {
     e.preventDefault();
-    const res1 = await fetch(`${API}/fin/negociacion`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + jwt
-      },
-      body: JSON.stringify({
-        empresa: enterpriseShineray,
-        tipo_comprobante: tipoComprobante,
-        cod_agencia: branchShineray,
-        cod_cliente: codCliente,
-        cod_proveedor: codProveedor,
-        usuario_crea: userShineray,
-        tipo_destino: tipoDestino,
-        fecha_negociacion: fechaNegociacion
-      })
-    });
-    const data1 = await res1.json();
-    if (!data1.error) {
-      enqueueSnackbar('Negociación creada', { variant: 'success' });
-      if (data1.cod_comprobante) {
-        setCodComprobante(data1.cod_comprobante);
-        console.log(data1.cod_comprobante)
-      }
-    } else {
-      enqueueSnackbar(data1.error, { variant: 'error' });
-    }
-
     if (excelData && excelData.length > 0) {
-      const res2 = await fetch(`${API}/fin/cab`, {
+      setLoading(true);
+      const res2 = await fetch(`${API}/fin/total_neg`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + jwt
         },
         body: JSON.stringify({
-          cabeceras: excelData,
-          cod_comprobante: data1.cod_comprobante,
+          empresa: enterpriseShineray,
+          tipo_comprobante: tipoComprobante,
+          cod_agencia: branchShineray,
           cod_cliente: codCliente,
           cod_proveedor: codProveedor,
+          usuario_crea: userShineray,
+          tipo_destino: tipoDestino,
+          fecha_negociacion: fechaNegociacion,
+          cabeceras: excelData
         })
       });
       const data2 = await res2.json();
+      console.log(data2)
+      setLoading(false);
       if (!data2.error) {
         enqueueSnackbar('Crédito(s) agregados correctamente', { variant: 'success' });
-        if (data2.invalids && data2.invalids.length > 0) {
-          enqueueSnackbar('Nro. Operación ya existe: ' + data2.invalids.join(', '), { variant: 'warning' });
-        }
       } else {
-        enqueueSnackbar(data2.error, { variant: 'error' });
+        if (data2.costumers) {
+          enqueueSnackbar(data2.costumers, { variant: 'error' });
+        }
+        if (data2.cabs) {
+          enqueueSnackbar(data2.cabs, { variant: 'error' });
+        }
+        
       }
+
     }
   }
 
@@ -589,190 +575,192 @@ function NewNegociacion() {
 
 
   return (
-    <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
-      <Navbar0 menus={menus} />
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'right',
-          '& > *': {
-            m: 1,
-          },
-        }}
-      >
-        <ButtonGroup variant="text" aria-label="text button group" >
-          <Button style={{ width: `100px`, marginTop: '10px', marginRight: '10px', color: '#1976d2' }} onClick={() => { navigate('/dashboard') }}>Módulos</Button>
-          <Button style={{ marginTop: '10px', marginRight: '10px', color: '#1976d2' }} onClick={() => { navigate(-1) }}>Negociaciones</Button>
-        </ButtonGroup>
-      </Box>
-      <Box
-        component="form"
-        sx={{
-          '& .MuiTextField-root': { m: 1, width: '30ch' },
-          width: '100%'
-        }}
-        noValidate
-        autoComplete="off"
-      >
-        <div>
+    <>{loading ? (<LoadingCircle />) : (
+      <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
+        <Navbar0 menus={menus} />
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'right',
+            '& > *': {
+              m: 1,
+            },
+          }}
+        >
+          <ButtonGroup variant="text" aria-label="text button group" >
+            <Button style={{ width: `100px`, marginTop: '10px', marginRight: '10px', color: '#1976d2' }} onClick={() => { navigate('/dashboard') }}>Módulos</Button>
+            <Button style={{ marginTop: '10px', marginRight: '10px', color: '#1976d2' }} onClick={() => { navigate(-1) }}>Negociaciones</Button>
+          </ButtonGroup>
+        </Box>
+        <Box
+          component="form"
+          sx={{
+            '& .MuiTextField-root': { m: 1, width: '30ch' },
+            width: '100%'
+          }}
+          noValidate
+          autoComplete="off"
+        >
+          <div>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginBottom: '20px' }}>
-            <h5 style={{ marginTop: '20px', marginRight: '700px' }}>Información Negociación</h5>
-          </div>
-          <div style={{ display: 'flex', gap: '10px', backgroundColor: '#f0f0f0', padding: '10px' }}>
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={3}>
-                <TextField
-                  disabled
-                  fullWidth
-                  id="cod-comprobante"
-                  label="Código Comprobante"
-                  type="text"
-                  onChange={e => setCodComprobante(e.target.value)}
-                  value={codComprobante}
-                  className="form-control"
-                />
-                <Autocomplete
-                  id="tipo"
-                  options={tipoComprobanteList.map((tipo) => tipo.nombre)}
-                  value={tipoComprobanteNombre}
-                  onChange={handleTipoComprobanteChange}
-                  fullWidth
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      required
-                      label="Tipo Comprobante"
-                      type="text"
-                      className="form-control"
-                      InputProps={{
-                        ...params.InputProps,
-                      }}
-                    />
-                  )}
-                />
-                <div className={classes.datePickersContainer}>
-                  <div>
-                    <LocalizationProvider dateAdapter={AdapterDayjs}>
-                      <DemoContainer components={['DatePicker', 'DatePicker']}>
-                        <DatePicker
-                          label="Fecha Negociacion"
-                          value={dayjs(fechaNegociacion, "DD/MM/YYYY")}
-                          onChange={(newValue) =>
-                            setFechaNegociacion(format(new Date(newValue), "dd/MM/yyyy"))
-                          }
-                          format={"DD/MM/YYYY"}
-                        />
-                      </DemoContainer>
-                    </LocalizationProvider>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginBottom: '20px' }}>
+              <h5 style={{ marginTop: '20px', marginRight: '700px' }}>Información Negociación</h5>
+            </div>
+            <div style={{ display: 'flex', gap: '10px', backgroundColor: '#f0f0f0', padding: '10px' }}>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={3}>
+                  <TextField
+                    disabled
+                    fullWidth
+                    id="cod-comprobante"
+                    label="Código Comprobante"
+                    type="text"
+                    onChange={e => setCodComprobante(e.target.value)}
+                    value={codComprobante}
+                    className="form-control"
+                  />
+                  <Autocomplete
+                    id="tipo"
+                    options={tipoComprobanteList.map((tipo) => tipo.nombre)}
+                    value={tipoComprobanteNombre}
+                    onChange={handleTipoComprobanteChange}
+                    fullWidth
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        required
+                        label="Tipo Comprobante"
+                        type="text"
+                        className="form-control"
+                        InputProps={{
+                          ...params.InputProps,
+                        }}
+                      />
+                    )}
+                  />
+                  <div className={classes.datePickersContainer}>
+                    <div>
+                      <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <DemoContainer components={['DatePicker', 'DatePicker']}>
+                          <DatePicker
+                            label="Fecha Negociacion"
+                            value={dayjs(fechaNegociacion, "DD/MM/YYYY")}
+                            onChange={(newValue) =>
+                              setFechaNegociacion(format(new Date(newValue), "dd/MM/yyyy"))
+                            }
+                            format={"DD/MM/YYYY"}
+                          />
+                        </DemoContainer>
+                      </LocalizationProvider>
+                    </div>
                   </div>
-                </div>
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <TextField
+                    fullWidth
+                    required
+                    id="codigo-provider"
+                    label="Buscar Proveedor por nombre"
+                    type="text"
+                    onChange={e => setEntradaCodProveedor(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    value={entradaCodProveedor}
+                    className="form-control"
+                  />
+                  <Autocomplete
+                    id="proveedor"
+                    fullWidth
+                    options={providersList.map((producto) => producto.nombre)}
+                    value={nombre}
+                    onChange={handleProviderChange}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        required
+                        multiline
+                        rows={2}
+                        label="Proveedor"
+                        type="text"
+                        className="form-control"
+                        InputProps={{
+                          ...params.InputProps,
+                        }}
+                      />
+                    )}
+                  />
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <TextField
+                    fullWidth
+                    required
+                    id="codigo-cliente"
+                    label="Buscar Cliente por nombre"
+                    type="text"
+                    onChange={e => setEntradaCodCliente(e.target.value)}
+                    onKeyDown={handleKeyDown2}
+                    value={entradaCodCliente}
+                    className="form-control"
+                  />
+                  <Autocomplete
+                    id="Cliente"
+                    fullWidth
+                    options={costumersList.map((producto) => producto.apellido1)}
+                    value={nombreCostumer}
+                    onChange={handleCostumerChange}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        required
+                        multiline
+                        rows={2}
+                        label="Cliente"
+                        type="text"
+                        className="form-control"
+                        InputProps={{
+                          ...params.InputProps,
+                        }}
+                      />
+                    )}
+                  />
+                </Grid>
               </Grid>
-              <Grid item xs={12} md={3}>
-                <TextField
-                  fullWidth
-                  required
-                  id="codigo-provider"
-                  label="Buscar Proveedor por nombre"
-                  type="text"
-                  onChange={e => setEntradaCodProveedor(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  value={entradaCodProveedor}
-                  className="form-control"
-                />
-                <Autocomplete
-                  id="proveedor"
-                  fullWidth
-                  options={providersList.map((producto) => producto.nombre)}
-                  value={nombre}
-                  onChange={handleProviderChange}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      required
-                      multiline
-                      rows={2}
-                      label="Proveedor"
-                      type="text"
-                      className="form-control"
-                      InputProps={{
-                        ...params.InputProps,
-                      }}
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-              <TextField
-                  fullWidth
-                  required
-                  id="codigo-cliente"
-                  label="Buscar Cliente por nombre"
-                  type="text"
-                  onChange={e => setEntradaCodCliente(e.target.value)}
-                  onKeyDown={handleKeyDown2}
-                  value={entradaCodCliente}
-                  className="form-control"
-                />
-                <Autocomplete
-                  id="Cliente"
-                  fullWidth
-                  options={costumersList.map((producto) => producto.apellido1)}
-                  value={nombreCostumer}
-                  onChange={handleCostumerChange}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      required
-                      multiline
-                      rows={2}
-                      label="Cliente"
-                      type="text"
-                      className="form-control"
-                      InputProps={{
-                        ...params.InputProps,
-                      }}
-                    />
-                  )}
-                />
-              </Grid>
-            </Grid>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
+              <input
+                accept=".xlsx, .xls"
+                id="file-upload"
+                multiple
+                type="file"
+                style={{ display: 'none' }}
+                onChange={handleFileUpload}
+              />
+              <label htmlFor="file-upload">
+                <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
+                  Agregar Creditos
+                </Button>
+              </label>
+              <button
+                className="btn btn-primary"
+                type="button"
+                style={{ marginTop: '10px', marginBottom: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
+                onClick={handleChange2}>
+                <SaveIcon /> Guardar
+              </button>
+            </div>
+            <ThemeProvider theme={getMuiTheme()}>
+              <MUIDataTable
+                title={"Créditos"}
+                data={cabeceras}
+                columns={columns}
+                options={options}
+              />
+            </ThemeProvider>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-            <input
-              accept=".xlsx, .xls"
-              id="file-upload"
-              multiple
-              type="file"
-              style={{ display: 'none' }}
-              onChange={handleFileUpload}
-            />
-            <label htmlFor="file-upload">
-              <Button variant="contained" component="span" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '50px', width: '170px', borderRadius: '5px', marginRight: '15px' }}>
-                Agregar Creditos
-              </Button>
-            </label>
-            <button
-              className="btn btn-primary"
-              type="button"
-              style={{ marginTop: '10px', marginBottom: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
-              onClick={handleChange2}>
-              <SaveIcon /> Guardar
-            </button>
-          </div>
-          <ThemeProvider theme={getMuiTheme()}>
-            <MUIDataTable
-              title={"Créditos"}
-              data={cabeceras}
-              columns={columns}
-              options={options}
-            />
-          </ThemeProvider>
-        </div>
-      </Box >
-    </div>
-
+        </Box >
+      </div>
+    )}
+    </>
   )
 }
 
