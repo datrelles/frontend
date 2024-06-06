@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 
 
 
+
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -65,8 +66,8 @@ export default function VerticalTabs() {
   };
 
   return (
-    <div style={{ marginTop: '150px'}}>
-      <Navbar0 menus={menus}/>
+    <div style={{ marginTop: '150px' }}>
+      <Navbar0 menus={menus} />
       <Box
         sx={{ flexGrow: 1, bgcolor: 'background.paper', display: 'flex', maxHeight: '100%' }}
       >
@@ -86,7 +87,7 @@ export default function VerticalTabs() {
 
         </Tabs>
         <TabPanel value={value} index={0}>
-          Item
+          Item One
         </TabPanel>
         <TabPanel value={value} index={1}>
           Item Two
