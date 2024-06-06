@@ -53,11 +53,12 @@ import SaveDevice from "./components/loginSecondAuth/saveDevice";
 import { ElectronicFilesSri } from "./components/contabilidad/filesSri";
 import { CaseManager } from "./components/garantias/caseManager/caseManager";
 import { UpdateYear } from "./components/repuestos/updateYear";
+import { SellManager } from "./components/ventas/caseManager/caseManager";
 
 const API = process.env.REACT_APP_API;
 function App() {
   const {  removeToken, setToken } = useToken();
-  const [authorizedSystems, setAuthorizedSystems] = useState(['IMP', 'REP', 'GAR', 'PBI','CON', 'IN', 'FIN']);
+  const [authorizedSystems, setAuthorizedSystems] = useState(['IMP', 'REP', 'GAR', 'PBI','CON', 'IN', 'FIN', 'VE']);
 
   const {jwt, userShineray,enterpriseShineray, flag, temporalFlag, logout}=useAuthContext();
   const token=jwt
@@ -165,6 +166,7 @@ function App() {
                   <Route exact path="/reports12" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports12 /></Protected>}/>
                   <Route exact path="/electronicFile" element={<Protected isLoggedIn={authorizedSystems.includes('CON')}><ElectronicFilesSri/></Protected>}/>
                   <Route exact path="/warranty" element={<Protected isLoggedIn={authorizedSystems.includes('GAR')}><CaseManager/></Protected>}/>
+                  <Route exact path="/invoice" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><SellManager/></Protected>}/>
                   <Route exact path="/settings" element={<Settings/>}></Route>
                 </Routes>
               </>            

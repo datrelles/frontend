@@ -135,7 +135,7 @@ export const postPagoAnticipo = async (data, jwt) => {
   }
 }
 
-//MODULE GARRANTY----------------------------------------------------------------------
+//MODULE GARRANTY-------------------------------------------------------------------------------------
 export const getCasesPostVenta = async (jwt, start_date, end_date, statusWarranty, statusProcess, province, city) => {
   function formatNumber(num) {
     if (typeof num === 'number' && num < 10) {
@@ -229,7 +229,7 @@ export const getDataCityByProvince = async (jwt, codeProvince) => {
   }
 }
 
-//PARTS UPDATE YEAR
+//PARTS UPDATE YEAR---------------------------------------
 
 export const getDataDespiece = async (jwt, codeEnterprise) => {
   try {
@@ -292,3 +292,33 @@ export const getYearOfPartsMotocycle = async (jwt, empresa, cod_producto) => {
   }
 }
 
+// ECOMMERCE MANAGE--------------------------------------------
+export const getSellEcommerce = async (jwt, start_date, end_date, statusProcess) => {
+  try {
+    const response = await axios.get(`${API}/get_invoice_ecommerce?start_date=${start_date}&finish_date=${end_date}&case_status=${statusProcess}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+    console.log(response.data)
+    return response.data
+
+  } catch (error) {
+    console.log(error)
+    throw error
+  }
+}
+
+export const getBuyPartsEcommerce = async (jwt, id) => {
+  try {
+    const response = await axios.get(`${API}/buy_parts_ecommerce/${id}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+    return response.data
+  } catch (error) {
+    console.log(error)
+    throw error
+  }
+}
