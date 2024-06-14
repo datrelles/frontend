@@ -135,11 +135,11 @@ function Dispatch() {
         setFromDate(null);
     }, [])
 
-    const handleRowClick = (rowData, rowMeta) => {
+   /*  const handleRowClick = (rowData, rowMeta) => {
         const row = negociaciones.filter(item => item.cod_comprobante === rowData[0])[0];
         navigate('/fideicomiso', { state: row });
         console.log(row)
-    }
+    } */
 
     const handleChange2 = async (e) => {
         e.preventDefault();
@@ -195,7 +195,7 @@ function Dispatch() {
 
     const options = {
         responsive: 'standard',
-        onRowClick: handleRowClick,
+       /*  onRowClick: handleRowClick, */
         textLabels: {
             body: {
                 noMatch: "Lo siento, no se encontraron registros",

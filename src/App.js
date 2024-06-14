@@ -44,7 +44,7 @@ import Reports12 from "./components/Reports12";
 import Settings from "./components/Settings";
 import Menus from "./components/Menus";
 import Details from "./components/Details";
-import Dispatch from "./components/dispatch"
+import Dispatch from "./components/Dispatch"
 import Formule from "./components/Formule";
 import NewFormule from "./components/NewFormule";
 import EditFormule from "./components/EditFormule";

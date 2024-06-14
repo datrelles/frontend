@@ -46,7 +46,7 @@ function Reports5() {
             <div style={{ marginTop: '150px', top: 0, width: "100%", zIndex: 1000 }}>
                 <Navbar0 menus={menus} />
                 <iframe title="Sell Out" 
-                src="https://app.powerbi.com/reportEmbed?reportId=aa50604c-a686-482e-ba8a-5293cbbbc7cf&autoAuth=true&ctid=592efd1e-0d60-483c-975c-7279b5872b49" 
+                src="https://app.powerbi.com/reportEmbed?reportId=eb7a9fb6-dd54-43d6-b97f-1b2e75a22476&autoAuth=true&ctid=592efd1e-0d60-483c-975c-7279b5872b49" 
                 frameborder="0" 
                 style={iframeStyle}
                 allowFullScreen={true}>
