@@ -102,11 +102,10 @@ export const SellManager = () => {
             label: "Fecha",
             options: {
                 customBodyRender: (value) => {
-                    const valueWithHor = new Date(value)
-                    const valueWithOutHor = valueWithHor.toISOString().split('T')[0];
+                    //const valueWithOutHor = valueWithHor.toISOString().split('T')[0];
                     return (
                         <div style={{ textAlign: "center" }}>
-                            {valueWithOutHor}
+                            {value}
                         </div>
                     );
                 },
