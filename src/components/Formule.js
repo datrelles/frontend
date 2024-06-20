@@ -215,9 +215,9 @@ function Formules() {
               <IconButton onClick={() => handleClickOpenNew(value, tableMeta.rowData, 0)} style={{ color: isButtonEnabled ? 'grey' : 'firebrick' }} disabled={isButtonEnabled}>
                 <BuildIcon />
               </IconButton>
-              <IconButton onClick={() => handleClickOpenNew(value, tableMeta.rowData, 1)} style={{ color: isButtonEnabled ? 'grey' : 'firebrick' }} disabled={isButtonEnabled}>
+              {/* <IconButton onClick={() => handleClickOpenNew(value, tableMeta.rowData, 1)} style={{ color: isButtonEnabled ? 'grey' : 'firebrick' }} disabled={isButtonEnabled}>
                 <ArrowIcon2 />
-              </IconButton>
+              </IconButton> */}
               <IconButton onClick={() => handleClickOpenNew(value, tableMeta.rowData, 2)} style={{ color: isButtonEnabled ? 'firebrick' : 'grey' }} disabled={!isButtonEnabled}>
                 <ExtensionIcon />
               </IconButton>
@@ -247,7 +247,7 @@ function Formules() {
       setLotes(data.lotes)
       console.log(data.lotes)
     } else {
-      enqueueSnackbar(data.error, { variant: 'error' });
+      enqueueSnackbar(data.error, { variant: 'warning' });
     }
   }
 

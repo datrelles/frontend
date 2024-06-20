@@ -313,9 +313,9 @@ function NewFormule() {
         },
         {
             name: "costo_standard",
-            label: "Costo Standard",
+            label: "% Costo",
             options: {
-                display: false,
+                display: debitoCredito === 2,
             },
         },
 
@@ -593,7 +593,7 @@ function NewFormule() {
                                 />
                             </Grid>
                             <Grid item xs={12} md={3}>
-                                <Autocomplete
+                                {/* <Autocomplete
                                     id="estado2"
                                     fullWidth
                                     options={statusList2.map((producto) => producto.nombre)}
@@ -613,7 +613,7 @@ function NewFormule() {
                                             }}
                                         />
                                     )}
-                                />
+                                /> */}
                                 <Autocomplete
                                     id="producto"
                                     fullWidth
@@ -637,7 +637,7 @@ function NewFormule() {
                                 />
                             </Grid>
                             <Grid item xs={12} md={3}>
-                                <Autocomplete
+                                {/* <Autocomplete
                                     id="estado3"
                                     fullWidth
                                     options={statusList3.map((producto) => producto.nombre)}
@@ -657,10 +657,10 @@ function NewFormule() {
                                             }}
                                         />
                                     )}
-                                />
+                                /> */}
                             </Grid>
                             <Grid item xs={12} md={3}>
-                                <Autocomplete
+                                {/* <Autocomplete
                                     id="estado1"
                                     fullWidth
                                     options={statusList1.map((status) => status.nombre)}
@@ -680,7 +680,7 @@ function NewFormule() {
                                             }}
                                         />
                                     )}
-                                />
+                                /> */}
                             </Grid>
 
                         </Grid>

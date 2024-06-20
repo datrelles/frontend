@@ -156,46 +156,6 @@ function NewFormule() {
         }
     };
 
-    const handleStatus1Change = (event, value) => {
-        if (value) {
-            const statusSeleccionado = statusList1.find((status) => status.nombre === value);
-            if (statusSeleccionado) {
-                setStatus1(statusSeleccionado.cod_item);
-                setStatusList1Nombre(statusSeleccionado.nombre)
-            }
-        } else {
-            setStatus1('01');
-            setStatusList1Nombre('')
-        }
-    };
-
-    const handleStatus2Change = (event, value) => {
-        if (value) {
-            const statusSeleccionado = statusList2.find((status) => status.nombre === value);
-            if (statusSeleccionado) {
-                setStatus2(statusSeleccionado.cod_item);
-                setStatusList2Nombre(statusSeleccionado.nombre)
-            }
-        } else {
-            setStatus2('Z');
-            setStatusList2Nombre('')
-        }
-    };
-
-    const handleStatus3Change = (event, value) => {
-        if (value) {
-            const statusSeleccionado = statusList3.find((status) => status.nombre === value);
-            if (statusSeleccionado) {
-                setStatus3(statusSeleccionado.cod_item);
-                setStatusList3Nombre(statusSeleccionado.nombre)
-                getProductList(statusSeleccionado.cod_item);
-            }
-        } else {
-            setStatus3('MTR');
-            setStatusList3Nombre('')
-        }
-    };
-
     const handleActivaChange = (event, value) => {
         if (value) {
             const activaSeleccionado = activaList.find((status) => status.nombre === value);
@@ -220,6 +180,11 @@ function NewFormule() {
             setDebitoCredito('');
             setDebitoCreditoNombre('')
         }
+    };
+
+    const handleDeleteRows = (rowsDeleted) => {
+        const idsToDelete = rowsDeleted.data.map(d => d.dataIndex);
+        setFormulaD((prevFormulaD) => prevFormulaD.filter((_, index) => !idsToDelete.includes(index)));
     };
 
     useEffect(() => {
@@ -260,16 +225,16 @@ function NewFormule() {
         },
         {
             name: "costo_standard",
-            label: "Costo Standard",
+            label: "% Costo",
             options: {
-                display: false,
+                display: debitoCredito === 2,
             },
         },
-
     ]
 
     const options = {
         filterType: 'dropdown',
+        onRowsDelete: handleDeleteRows,
         textLabels: {
             body: {
                 noMatch: "Lo siento, no se encontraron registros",
@@ -308,32 +273,70 @@ function NewFormule() {
 
 
     const handleChange2 = async (e) => {
-        e.preventDefault();
-        const res = await fetch(`${API}/formule_total`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + jwt
-            },
-            body: JSON.stringify({
-                formula: {
-                    empresa: enterpriseShineray,
-                    nombre: nombre,
-                    cod_producto: codProducto,
-                    mano_obra: parseFloat(manoObra, 10),
-                    costo_standard: parseFloat(costoStandard, 10),
-                    activa: parseFloat(activa, 10),
-                    debito_credito: debitoCredito
+        if (debitoCredito === 1) {
+            e.preventDefault();
+            const res = await fetch(`${API}/formule_total`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + jwt
                 },
-                detalles: formulaD
+                body: JSON.stringify({
+                    formula: {
+                        empresa: enterpriseShineray,
+                        nombre: nombre,
+                        cod_producto: codProducto,
+                        mano_obra: parseFloat(manoObra, 10),
+                        costo_standard: parseFloat(costoStandard, 10),
+                        activa: parseFloat(activa, 10),
+                        debito_credito: debitoCredito
+                    },
+                    detalles: formulaD
+                })
             })
-        })
-        const data = await res.json();
-        setCodFormula(data.cod_formula)
-        if (!data.error) {
-            enqueueSnackbar('¡Guardado exitosamente!', { variant: 'success' });
+            const data = await res.json();
+            setCodFormula(data.cod_formula)
+            if (!data.error) {
+                enqueueSnackbar('¡Guardado exitosamente!', { variant: 'success' });
+            } else {
+                enqueueSnackbar(data.error, { variant: 'error' });
+            }
         } else {
-            enqueueSnackbar(data.error, { variant: 'error' });
+            console.log(formulaD)
+            const sumaCostoStandard = formulaD.reduce((suma, registro) => suma + registro.costo_standard, 0);
+            console.log(sumaCostoStandard)
+            if (debitoCredito === 2 && sumaCostoStandard === 100) {
+                e.preventDefault();
+                const res = await fetch(`${API}/formule_total`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + jwt
+                    },
+                    body: JSON.stringify({
+                        formula: {
+                            empresa: enterpriseShineray,
+                            nombre: nombre,
+                            cod_producto: codProducto,
+                            mano_obra: parseFloat(manoObra, 10),
+                            costo_standard: parseFloat(costoStandard, 10),
+                            activa: parseFloat(activa, 10),
+                            debito_credito: debitoCredito
+                        },
+                        detalles: formulaD
+                    })
+                })
+                const data = await res.json();
+                setCodFormula(data.cod_formula)
+                if (!data.error) {
+                    enqueueSnackbar('¡Guardado exitosamente!', { variant: 'success' });
+                } else {
+                    enqueueSnackbar(data.error, { variant: 'error' });
+                }
+            }else{
+                enqueueSnackbar('La suma porcentual del costo de items no es correcta.', { variant: 'error' });
+            }
+
         }
     }
 
@@ -520,7 +523,7 @@ function NewFormule() {
                                 />
                             </Grid>
                             <Grid item xs={12} md={3}>
-                                <Autocomplete
+                                {/* <Autocomplete
                                     id="estado2"
                                     fullWidth
                                     options={statusList2.map((producto) => producto.nombre)}
@@ -540,7 +543,7 @@ function NewFormule() {
                                             }}
                                         />
                                     )}
-                                />
+                                /> */}
                                 <Autocomplete
                                     id="producto"
                                     fullWidth
@@ -564,7 +567,7 @@ function NewFormule() {
                                 />
                             </Grid>
                             <Grid item xs={12} md={3}>
-                                <Autocomplete
+                                {/* <Autocomplete
                                     id="estado3"
                                     fullWidth
                                     options={statusList3.map((producto) => producto.nombre)}
@@ -584,10 +587,10 @@ function NewFormule() {
                                             }}
                                         />
                                     )}
-                                />
+                                /> */}
                             </Grid>
                             <Grid item xs={12} md={3}>
-                                <Autocomplete
+                                {/* <Autocomplete
                                     id="estado1"
                                     fullWidth
                                     options={statusList1.map((status) => status.nombre)}
@@ -607,7 +610,7 @@ function NewFormule() {
                                             }}
                                         />
                                     )}
-                                />
+                                /> */}
                             </Grid>
                         </Grid>
 
