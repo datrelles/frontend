@@ -90,47 +90,6 @@ const NewFormuleD = ({ onClose, onAgregarDetalle, debitoCredito }) => {
     setStatusList3(data)
   }
 
-  const handleStatus1Change = (event, value) => {
-    if (value) {
-      const statusSeleccionado = statusList1.find((status) => status.nombre === value);
-      if (statusSeleccionado) {
-        setStatus1(statusSeleccionado.cod_item);
-        setStatusList1Nombre(statusSeleccionado.nombre)
-      }
-    } else {
-      setStatus1('01');
-      setStatusList1Nombre('')
-    }
-  };
-
-  const handleStatus2Change = (event, value) => {
-    if (value) {
-      const statusSeleccionado = statusList2.find((status) => status.nombre === value);
-      if (statusSeleccionado) {
-        setStatus2(statusSeleccionado.cod_item);
-        setStatusList2Nombre(statusSeleccionado.nombre)
-      }
-    } else {
-      setStatus2('Z');
-      setStatusList2Nombre('')
-    }
-  };
-
-  const handleStatus3Change = (event, value) => {
-    if (value) {
-      const statusSeleccionado = statusList3.find((status) => status.nombre === value);
-      if (statusSeleccionado) {
-        setStatus3(statusSeleccionado.cod_item);
-        setStatusList3Nombre(statusSeleccionado.nombre)
-        getProductList(statusSeleccionado.cod_item);
-      }
-    } else {
-      setStatus3('MTR');
-      setStatusList3Nombre('')
-    }
-
-
-  };
 
   const handleProductoChange = (event, value) => {
     if (value) {
