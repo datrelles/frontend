@@ -575,7 +575,7 @@ function Formules() {
                       <ArrowIcon fontSize="large" style={{ marginTop: '10px' }} />
                     )}
                     {craft === 2 && (
-                      <ArrowIcon fontSize="large" style={{ marginTop: '10px' }} />
+                      <ForwardTwoToneIcon fontSize="large" style={{ marginTop: '10px' }} />
                     )}
                     <TextField
                       disabled
