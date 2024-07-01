@@ -72,76 +72,8 @@ export const SellManager = () => {
     }
     const columnsCasosPostventa = [
         {
-            name: "cod_comprobante",
-            label: "Código proforma",
-            options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "center" }}>
-                            {value}
-                        </div>
-                    );
-                },
-            },
-        },
-        {
             name: "id_transaction",
-            label: "ID METODO DE PAGO",
-            options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "center" }}>
-                           {value}
-                        </div>
-                    );
-                },
-            },
-        },
-        {
-            name: "fecha",
-            label: "Fecha",
-            options: {
-                customBodyRender: (value) => {
-                    //const valueWithOutHor = valueWithHor.toISOString().split('T')[0];
-                    return (
-                        <div style={{ textAlign: "center" }}>
-                            {value}
-                        </div>
-                    );
-                },
-            },
-        },
-        {
-            name: "amount",
-            label: "Monto",
-            options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "center" }}>
-                           {value}
-                        </div>
-                    );
-                },
-            },
-        },
-
-        {
-            name: "client_name",
-            label: "Nombres",
-            options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "center" }}>
-                            {value}
-                        </div>
-                    );
-                },
-            },
-        },
-
-        {
-            name: "client_last_name",
-            label: "Apellidos",
+            label: "ID Transacción",
             options: {
                 customBodyRender: (value) => {
                     return (
@@ -154,10 +86,22 @@ export const SellManager = () => {
         },
 
 
-
+        {
+            name: "payment_type",
+            label: "Tipo de Pago",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
         {
             name: "payment_brand",
-            label: "TARJETA",
+            label: "Marca de Pago",
             options: {
                 customBodyRender: (value) => {
                     return (
@@ -169,8 +113,35 @@ export const SellManager = () => {
             },
         },
         {
+            name: "sub_total",
+            label: "Subtotal",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "total",
+            label: "Total",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+
+        {
             name: "id_transaction",
-            label: "REPUESTOS",
+            label: "Repuestos",
             options: {
                 customBodyRender: (value) => {
                     return (
@@ -183,10 +154,297 @@ export const SellManager = () => {
                 },
             },
         },
+   
+        {
+            name: "discount_percentage",
+            label: "Porcentaje de Descuento",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "discount_amount",
+            label: "Monto de Descuento",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "currency",
+            label: "Moneda",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "batch_no",
+            label: "Número de Lote",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "id_guia_servientrega",
+            label: "ID Guía Servientrega",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "card_type",
+            label: "Tipo de Tarjeta",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "bin_card",
+            label: "BIN de la Tarjeta",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "last_4_digits",
+            label: "Últimos 4 Dígitos",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "holder",
+            label: "Titular",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "expiry_month",
+            label: "Mes de Expiración",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "expiry_year",
+            label: "Año de Expiración",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "acquirer_code",
+            label: "Código del Adquiriente",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "client_type_id",
+            label: "Tipo de ID del Cliente",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "client_name",
+            label: "Nombre del Cliente",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "client_last_name",
+            label: "Apellido del Cliente",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "client_id",
+            label: "ID del Cliente",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "client_address",
+            label: "Dirección del Cliente",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "cost_shiping_calculate",
+            label: "Costo de Envío Calculado",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "shiping_discount",
+            label: "Descuento en Envío",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "cod_orden_ecommerce",
+            label: "Código de Orden Ecommerce",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "cod_comprobante",
+            label: "Código Comprobante",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "fecha",
+            label: "Fecha",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+            },
+        },
 
         {
             name: "fecha_cierre",
-            label: "FACTURAR",
+            label: "Facturar",
             options: {
                 customBodyRender: (value) => {
                     return (
@@ -197,8 +455,8 @@ export const SellManager = () => {
                 },
             },
         }
-
-    ]
+    ];
+    
     const options = {
         selectableRows: false,
         rowsPerPage: 100
@@ -436,12 +694,12 @@ export const SellManager = () => {
                         <DialogContent >
                             <Grid container spacing={2}>
                                 {subCases.map((item, index) => (
-                                    <Grid item xs={12} key={index}>
-                                        <div>
+                                    <Grid item lg={12} key={index}>
+                                        <div style={{width:"500px"}}>
                                         <TextField
-                                            label={`CODIGO PRODUCTO: ${item.codigo}`}
-                                            value={item.cantidad}
-                                            variant="outlined"
+                                            label={`REPUESTOS`}
+                                            value={`COD PRODUCTO: ${item.codigo} UNIDADES:${item.cantidad}`}
+                                            //variant="outlined"
                                             fullWidth
                                             disabled
                                         />
