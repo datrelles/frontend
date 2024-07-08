@@ -33,8 +33,8 @@ export const SellManager = () => {
     const [loading, setLoading] = useState(false)
     const [fromDate, setFromDate] = useState(moment().subtract(1, "months"))
     const [toDate, setToDate] = useState(moment)
-    const [statusWarranty, setStatusWarranty] = useState('2')
-    const [statusProcess, setStatusProcess] = useState('A')
+    const [invoiced, setInvoiced] = useState(0)
+    const [payMethod, setPayMethod] = useState('datafast')
   
     const [open, setOpen] = useState(false);
     const [subCases, setSubCases] = useState([]);
@@ -44,32 +44,6 @@ export const SellManager = () => {
     const [videosSubCasesUrl, setVideosSubCasesUrl] = useState([]);
     const [refreshSubcases, setRegreshSubcases] = useState(false);
 
-
-    const listaProblemas = {
-        46: "MOTOR",
-        47: "ELECTRICO",
-        48: "ESTRUCTURAL",
-        49: "FALTANTE",
-        50: "ESTETICO",
-        51: "OTROS",
-        52: "AMORTIGUADOR",
-        53: "TANQUE",
-        54: "BATERIA",
-        55: "SISTEMA DE FRENO",
-        56: "EMBRAGUE",
-        57: "CARBURADOR",
-        58: "TUBO DE ESCAPE",
-        59: "CAJA DE CAMBIO",
-        60: "VELOCIMETRO",
-        61: "CILINDRO",
-        62: "CABEZOTE",
-        63: "CIGUEÑAL",
-        64: "BOYA DE GASOLINA",
-        65: "COMERCIAL",
-        66: "OVERHAUL",
-        67: "ENSAMBLAJE",
-        68: "OBSEQUIOS"
-    }
     const columnsCasosPostventa = [
         {
             name: "id_transaction",
@@ -478,12 +452,12 @@ export const SellManager = () => {
     }, [])
     //Data filter
     useEffect(() => {
-        const functionGetCasosPostVenta = async (s, t) => {
+        const functionGetEcommerceSell = async (s, t) => {
             const start_date = s.format('DD/MM/YYYY')
             const end_date = t.format('DD/MM/YYYY')
             try {
                 setLoading(true)
-                const casosPostVenta = await getSellEcommerce(jwt, start_date, end_date, statusProcess)
+                const casosPostVenta = await getSellEcommerce(jwt, start_date, end_date, payMethod, invoiced)
                 setDataSellEcommerce(casosPostVenta)
                 setLoading(false)
             }
@@ -495,14 +469,14 @@ export const SellManager = () => {
         }
 
         if (fromDate !== null && toDate !== null) {
-            functionGetCasosPostVenta(fromDate, toDate);
+            functionGetEcommerceSell(fromDate, toDate);
         }
         else {
-            functionGetCasosPostVenta(moment().subtract(1, "months"), moment());
+            functionGetEcommerceSell(moment().subtract(1, "months"), moment());
 
         }
 
-    }, [fromDate, toDate, statusProcess, refreshSubcases])
+    }, [fromDate, toDate, payMethod, refreshSubcases])
     // Need to use pickDate
     useEffect(() => {
         setToDate(null);
@@ -513,6 +487,7 @@ export const SellManager = () => {
     const handleRefresh = () => {
         setRegreshSubcases(prevState => !prevState);
     }
+
     const getMuiTheme = () => createTheme({
         components: {
             MuiTableCell: {
@@ -566,7 +541,7 @@ export const SellManager = () => {
         const fetchDataSubcases = async () => {
             try {
                 setLoading(true)
-                const data = await getBuyPartsEcommerce(jwt, id);
+                const data = await getBuyPartsEcommerce(jwt, id, payMethod);
                 setSubCases(data)
                 setLoading(false)
                 setOpen(true);
@@ -586,12 +561,6 @@ export const SellManager = () => {
         setApprovalData([]);
         setImagesSubCasesUrl([]);
         setVideosSubCasesUrl([]);
-    };
-    const handleApproval = (index, estado) => {
-        const newData = [...approvalData];
-        newData[index] = { ...subCases[index], estado };
-        setApprovalData(newData);
-
     };
     const handleSave = async () => {
         try {
@@ -657,25 +626,27 @@ export const SellManager = () => {
                         </div>
                     </div>
                 </div>
+                
                 <div style={{ display: 'flex', justifyContent: 'left', alignItems: 'space-between', marginLeft: '25px', width: '350px' }} >
                     <div style={{ width: '48%', marginRight: '10px' }}>
-                        <label>Estado</label>
+                        <label>Método de Pago</label>
                         <Select
                             margin="dense"
                             id="status_case"
                             name="status_case"
-                            label="Proceso"
+                            label="Método de Pago"
                             style={{ width: '100%' }}
-                            value={statusProcess}
-                            onChange={(event) => setStatusProcess(event.target.value)}
+                            value={payMethod}
+                            onChange={(event) => setPayMethod(event.target.value)}
                         >
-                            <MenuItem value="">Todos</MenuItem>
-                            <MenuItem value="P">Pendiente</MenuItem>
-                            <MenuItem value="A">Facturado</MenuItem>
+                            <MenuItem value="datafast">Todos</MenuItem>
+                            <MenuItem value="datafast">Datafast</MenuItem>
+                            <MenuItem value="deuna">DeUna</MenuItem>
                         </Select>
 
                     </div>
                 </div>
+
                 <div style={{ display: "flex", justifyContent:"left" }}>
                     <Button onClick={handleSave} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '40px', width: '150px', borderRadius: '5px', marginLeft: '25px' }} >Facturar TODO</Button>
                 </div>
