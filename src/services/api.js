@@ -293,9 +293,9 @@ export const getYearOfPartsMotocycle = async (jwt, empresa, cod_producto) => {
 }
 
 // ECOMMERCE MANAGE--------------------------------------------
-export const getSellEcommerce = async (jwt, start_date, end_date, statusProcess) => {
+export const getSellEcommerce = async (jwt, start_date, end_date, pay_method, invoiced ) => {
   try {
-    const response = await axios.get(`${API}/get_invoice_ecommerce?start_date=${start_date}&finish_date=${end_date}&case_status=${statusProcess}`, {
+    const response = await axios.get(`${API}/get_invoice_ecommerce?start_date=${start_date}&finish_date=${end_date}&pay_method=${pay_method}&invoiced=${invoiced}`, {
       headers: {
         Authorization: `Bearer ${jwt}`,
       },
@@ -309,9 +309,9 @@ export const getSellEcommerce = async (jwt, start_date, end_date, statusProcess)
   }
 }
 
-export const getBuyPartsEcommerce = async (jwt, id) => {
+export const getBuyPartsEcommerce = async (jwt, id, pay_method) => {
   try {
-    const response = await axios.get(`${API}/buy_parts_ecommerce/${id}`, {
+    const response = await axios.get(`${API}/buy_parts_ecommerce/${id}?pay_method=${pay_method}`, {
       headers: {
         Authorization: `Bearer ${jwt}`,
       },
