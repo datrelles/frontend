@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuthContext } from '../../../context/authContext';
 import { getMenus, postImageMaterialDespiece } from '../../../services/api';
 import { toast } from 'react-toastify';
-
+import { useNavigate } from 'react-router-dom';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Dialog from '@mui/material/Dialog';
@@ -22,7 +22,7 @@ export const UpdateImage = () => {
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [uploadResults, setUploadResults] = useState([]);
     const [imageList, setImageList] = useState([]);
-
+    const navigate = useNavigate();
     const { jwt, userShineray, enterpriseShineray } = useAuthContext();
 
     const getMuiTheme = () =>
