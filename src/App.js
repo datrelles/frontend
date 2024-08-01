@@ -46,8 +46,10 @@ import Settings from "./components/Settings";
 import Menus from "./components/Menus";
 import Details from "./components/Details";
 import Dispatch from "./components/Dispatch"
+import Asignacion from "./components/Asignacion"
 import Formule from "./components/Formule";
 import NewFormule from "./components/NewFormule";
+import NewAsignacion from "./components/NewAsignacion";
 import EditFormule from "./components/EditFormule";
 import LoginAuth from "./components/loginSecondAuth/Login";
 import SecondAuth from "./components/loginSecondAuth/secondAuth";
@@ -61,7 +63,7 @@ const API = process.env.REACT_APP_API;
 function App() {
   const {  removeToken, setToken } = useToken();
 
-  const [authorizedSystems, setAuthorizedSystems] = useState(['IMP', 'REP', 'GAR', 'PBI','CON', 'IN', 'FIN', 'VE', 'LOG']);
+  const [authorizedSystems, setAuthorizedSystems] = useState(['IMP', 'REP', 'GAR', 'PBI','CON', 'IN', 'FIN', 'VE', 'LOG', 'RET']);
 
 
   const {jwt, userShineray,enterpriseShineray, flag, temporalFlag, logout}=useAuthContext();
@@ -151,6 +153,8 @@ function App() {
                   <Route exact path="/formule" element={<Protected isLoggedIn={authorizedSystems.includes('IN')}><Formule/></Protected>} />
                   <Route exact path="/fideicomiso" element={<Protected isLoggedIn={authorizedSystems.includes('FIN')}><Fideicomiso/></Protected>} />
                   <Route exact path="/negociacion" element={<Protected isLoggedIn={authorizedSystems.includes('FIN')}><Negociacion/></Protected>} />
+                  <Route exact path="/asignacion" element={<Protected isLoggedIn={authorizedSystems.includes('RET')}><Asignacion/></Protected>} />
+                  <Route exact path="/newAsignacion" element={<Protected isLoggedIn={authorizedSystems.includes('RET')}><NewAsignacion/></Protected>} />
                   <Route exact path="/dispatch" element={<Protected isLoggedIn={authorizedSystems.includes('LOG')}><Dispatch/></Protected>} />
                   <Route exact path="/newNegociacion" element={<Protected isLoggedIn={authorizedSystems.includes('FIN')}><NewNegociacion/></Protected>} />
                   <Route exact path="/costumer" element={<Protected isLoggedIn={authorizedSystems.includes('FIN')}><Costumer/></Protected>} />

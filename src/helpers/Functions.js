@@ -12,6 +12,14 @@ class Functions {
       );
     }
 
+    static IntRender(value) {
+      return (
+        <div style={{ textAlign: "right" }}>
+          {value}
+        </div>
+      );
+    }
+
     static StatusRender(value, statusListPo) {
       const progress = parseInt(value * 100 / (statusListPo.length - 1), 10);
       let name = '';

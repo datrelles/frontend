@@ -5,7 +5,6 @@ import MUIDataTable from "mui-datatables";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
-import Autocomplete from '@mui/material/Autocomplete';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { SnackbarProvider } from 'notistack';
@@ -28,10 +27,6 @@ const useStyles = makeStyles({
         display: 'flex',
         gap: '15px',
     },
-    textField: {
-        marginBottom: '15px',
-    },
-
 });
 
 function Dispatch() {
@@ -46,12 +41,11 @@ function Dispatch() {
     const [direccion, setDireccion] = useState("");
     const [fromDate, setFromDate] = useState(dayjs().subtract(1, 'year').format('DD/MM/YYYY'));
     const [toDate, setToDate] = useState(dayjs().subtract(11, 'months').format('DD/MM/YYYY'));
+    const [status, setStatus] = useState("");
     const [tipoDocumento, setTipoDocumento] = useState("");
     const [menus, setMenus] = useState([]);
     const [excelDataFee, setExcelDataFee] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [statusNombre, setStatusNombre] = useState("");
-    const [statusCode, setStatusCode] = useState("T");
     const navigate = useNavigate();
     const classes = useStyles();
 
@@ -67,16 +61,12 @@ function Dispatch() {
                     pn_empresa: enterpriseShineray,
                     pn_cod_agencia: branchShineray,
                     pv_cod_tipo_pedido: "PC",
-                    pv_estado: statusCode,
                     pd_fecha_inicial: fromDate,
                     pd_fecha_final: toDate,
                     pv_cod_persona_cli: identificacion,
-                    pedido: pedido,
-                    orden: orden,
-                    cliente: cliente,
-                    direccion: direccion,
-                    bodega_consignacion: bodega
-
+                    pedido,
+                    orden,
+                    cliente
                 })
             });
 
@@ -115,14 +105,6 @@ function Dispatch() {
         }
     };
 
-    const status = [
-        { name: "T", label: "TODOS" },
-        { name: "BOD", label: "EN BODEGA" },
-        { name: "DEP", label: "DESPACHO PARCIAL" },
-        { name: "DES", label: "DESPACHADOS" },
-        { name: "CAD", label: "CADUCADOS" },
-        { name: "A", label: "ANULADOS" }]
-
     useEffect(() => {
         document.title = 'Despachos Motos';
         getDispatchs();
@@ -132,7 +114,7 @@ function Dispatch() {
 
     useEffect(() => {
         getDispatchs();
-    }, [fromDate, toDate, pedido, orden, identificacion, cliente, bodega, statusCode, direccion]);
+    }, [fromDate, toDate, pedido, orden, identificacion, cliente]);
 
     const handleDateChange = (newValue) => {
         const formattedDate = dayjs(newValue).format('DD/MM/YYYY');
@@ -144,20 +126,11 @@ function Dispatch() {
         setToDate(formattedDate);
     };
 
-    const handleStatusChange = (event, value) => {
-        if (value) {
-            const statusSeleccionado = status.find((stat) => stat.label === value);
-            console.log(statusSeleccionado)
-            if (statusSeleccionado) {
-                setStatusCode(statusSeleccionado.name);
-                setStatusNombre(statusSeleccionado.label)
-            }
-        } else {
-            setStatusCode('');
-            setStatusNombre('')
+    const handleKeyDown = async (e) => {
+        if (e.key === 'Enter') {
+            getDispatchs();
         }
     };
-
 
     const getStatusList = async () => {
         const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=FIN`, {
@@ -388,16 +361,17 @@ function Dispatch() {
                             </LocalizationProvider>
                         </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginTop: '15px' }}>
-                        <Grid container spacing={2} justify="center">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
+                        <Grid container spacing={3}>
                             <Grid item xs={12} md={3}>
                                 <TextField
                                     fullWidth
                                     id="cod-comprobante"
-                                    label="Código Pedido"
+                                    label="Código Comprobante"
                                     type="text"
                                     onChange={e => setPedido(e.target.value)}
                                     value={pedido}
+                                    className="form-control"
                                 />
                                 <TextField
                                     multiline
@@ -406,6 +380,7 @@ function Dispatch() {
                                     type="text"
                                     onChange={e => setOrden(e.target.value)}
                                     value={orden}
+                                    className="form-control"
                                 />
                             </Grid>
                             <Grid item xs={12} md={3}>
@@ -415,7 +390,9 @@ function Dispatch() {
                                     label="Identificacion"
                                     type="text"
                                     onChange={e => setIdentificacion(e.target.value)}
+                                    onKeyDown={handleKeyDown}
                                     value={identificacion}
+                                    className="form-control"
                                 />
                                 <TextField
                                     fullWidth
@@ -424,6 +401,7 @@ function Dispatch() {
                                     type="text"
                                     onChange={e => setCliente(e.target.value)}
                                     value={cliente}
+                                    className="form-control"
                                 />
                             </Grid>
                             <Grid item xs={12} md={3}>
@@ -434,6 +412,7 @@ function Dispatch() {
                                     type="text"
                                     onChange={e => setBodega(e.target.value)}
                                     value={bodega}
+                                    className="form-control"
                                 />
                                 <TextField
                                     fullWidth
@@ -442,25 +421,18 @@ function Dispatch() {
                                     type="text"
                                     onChange={e => setDireccion(e.target.value)}
                                     value={direccion}
+                                    className="form-control"
                                 />
                             </Grid>
                             <Grid item xs={12} md={3}>
-                            <Autocomplete
-                                    id="status"
+                                <TextField
                                     fullWidth
-                                    options={status.map((producto) => producto.label)}
-                                    value={statusNombre}
-                                    onChange={handleStatusChange}
-                                    renderInput={(params) => (
-                                        <TextField
-                                            {...params}
-                                            label="Estado"
-                                            type="text"
-                                            InputProps={{
-                                                ...params.InputProps,
-                                            }}
-                                        />
-                                    )}
+                                    id="status"
+                                    label="Estado"
+                                    type="text"
+                                    onChange={e => setStatus(e.target.value)}
+                                    value={status}
+                                    className="form-control"
                                 />
                             </Grid>
                         </Grid>
