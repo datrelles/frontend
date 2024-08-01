@@ -322,3 +322,18 @@ export const getBuyPartsEcommerce = async (jwt, id, pay_method) => {
     throw error
   }
 }
+
+export const postImageMaterialDespiece = async (jwt, formData) => {
+  try {
+      const response = await axios.post(`${API}/post_image_material_imagen_despiece`, formData, {
+          headers: {
+              Authorization: `Bearer ${jwt}`,
+              'Content-Type': 'multipart/form-data'
+          }
+      });
+      return response.data;
+  } catch (error) {
+      console.log(error);
+      throw error;
+  }
+};
