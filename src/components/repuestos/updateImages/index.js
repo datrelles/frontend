@@ -216,7 +216,7 @@ export const UpdateImage = () => {
 
                 <h5 style={{ marginTop: '20px', marginLeft: '10vw' }}>SUBIR IMAGENES REPUESTOS</h5>
 
-                <div className='content-1'>
+                <div className='content-1ImagesParts'>
                     <div>
                         <p>Formato: RXXX-XXXXXX NOMBREPRODUCTO.png</p>
                     </div>
