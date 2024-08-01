@@ -58,6 +58,7 @@ import { ElectronicFilesSri } from "./components/contabilidad/filesSri";
 import { CaseManager } from "./components/garantias/caseManager/caseManager";
 import { UpdateYear } from "./components/repuestos/updateYear";
 import { SellManager } from "./components/ventas/caseManager/caseManager";
+import { UpdateImage } from "./components/repuestos/updateImages";
 
 const API = process.env.REACT_APP_API;
 function App() {
@@ -135,6 +136,7 @@ function App() {
                   <Route exact path="/dashboard" element={<Dashboard />}></Route>
                   <Route exact path="/postSales" element={<Protected isLoggedIn={authorizedSystems.includes('REP')}><PostSales  /></Protected>}></Route>
                   <Route exact path="/parts" element={<Protected isLoggedIn={authorizedSystems.includes('REP')}> <UpdateYear/></Protected>}></Route>
+                  <Route exact path="/img_parts" element={<Protected isLoggedIn={authorizedSystems.includes('REP')}> <UpdateImage/></Protected>}></Route>
                   <Route exact path="/editPostSales" element={<EditPostSales/>}></Route>
                   <Route exact path="/menus" element={<Menus/>}></Route>
                   <Route exact path="/newPostSales" element={<NewPostSales />}></Route>
