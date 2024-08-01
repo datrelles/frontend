@@ -1,6 +1,6 @@
 
   
-  .content {
+  .contentImagesParts {
     display: flex;
     justify-content: center;
     padding-top: 10px; /* Ajusta el margen superior para evitar que el contenido se solape con el div fijo */
@@ -12,7 +12,7 @@
 
   }
 
-  .content-1 {
+  .content-1ImagesParts {
     display: flex;
     justify-content: left;
     padding-top: 10px; /* Ajusta el margen superior para evitar que el contenido se solape con el div fijo */
