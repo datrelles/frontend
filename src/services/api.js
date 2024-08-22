@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Button from '@mui/material/Button';
 
 const API = process.env.REACT_APP_API;
 
@@ -292,7 +293,7 @@ export const getYearOfPartsMotocycle = async (jwt, empresa, cod_producto) => {
   }
 }
 
-// ECOMMERCE MANAGE--------------------------------------------
+// ECOMMERCE MANAGER--------------------------------------------
 export const getSellEcommerce = async (jwt, start_date, end_date, pay_method, invoiced ) => {
   try {
     const response = await axios.get(`${API}/get_invoice_ecommerce?start_date=${start_date}&finish_date=${end_date}&pay_method=${pay_method}&invoiced=${invoiced}`, {
@@ -337,3 +338,77 @@ export const postImageMaterialDespiece = async (jwt, formData) => {
       throw error;
   }
 };
+
+//PARAMETRIZACION MOTOS-MODELOdespiece
+
+export const getListModelMotorcycle = async (jwt, empresa) => {
+  try {
+    const response = await axios.get(`${API}/get_list_model_motorcycle?empresa=${empresa}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+export const getDespieceData = async (jwt, empresa) => {
+  try {
+    const response = await axios.get(`${API}/get_list_model_despiece_motorcycle?empresa=${empresa}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+export const postModeloCrecimientoBI = async (jwt, data) => {
+  try {
+    const response = await axios.post(`${API}/post_modelo_crecimiento_bi`, data, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+export const getModeloCrecimientoBI = async (jwt) => {
+  try {
+    const response = await axios.get(`${API}/get_modelo_crecimiento_bi`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+export const updateModeloCrecimientoBI = async (jwt, data) => {
+  try {
+    const response = await axios.put(`${API}/update_modelo_crecimiento_bi`, data, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
