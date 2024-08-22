@@ -218,7 +218,6 @@ export const UpdateYear = () => {
                                         </div>
                                     )}
 
-
                                     <div className='controlYears'>
 
                                         <div className='controlYearsSelector'>
@@ -259,9 +258,7 @@ export const UpdateYear = () => {
                                         <Button onClick={() => handleClickOpenNew()} color="primary" style={{ marginLeft: '20px', marginTop: '5px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '120px', borderRadius: '5px', marginRight: '15px' }}>
                                             ACTUALIZAR
                                         </Button>
-
                                     </div>
-
                                 </div>
                             </div>
                         </div>
