@@ -24,7 +24,6 @@ import Navbar0 from '../../Navbar0'
 import { useAuthContext } from '../../../context/authContext'
 import { getMenus } from '../../../services/api'
 import { getSellEcommerce, getBuyPartsEcommerce, putCasesPostVentaSubCases, getCasesPostVentaSubcasesUrl, getDataProvinces, getDataCityByProvince } from '../../../services/api';
-import { ProgressBar } from './progressLine';
 import LoadingCircle from '../../contabilidad/loader';
 
 export const SellManager = () => {
@@ -351,7 +350,7 @@ export const SellManager = () => {
             },
         },
         {
-            name: "cost_shiping_calculate",
+            name: "cost_shiping",
             label: "Costo de Envío Calculado",
             options: {
                 customBodyRender: (value) => {
@@ -590,6 +589,7 @@ export const SellManager = () => {
         setImagesSubCasesUrl([]);
         setVideosSubCasesUrl([]);
     }
+    //console.log(dataSellEcommerce)
 
     return (
         <>{loading ? (<LoadingCircle />) : (
