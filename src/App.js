@@ -55,6 +55,7 @@ import { ElectronicFilesSri } from "./components/contabilidad/filesSri";
 import { CaseManager } from "./components/garantias/caseManager/caseManager";
 import { UpdateYear } from "./components/repuestos/updateYear";
 import { SellManager } from "./components/ventas/caseManager/caseManager";
+import { TransEcommerce } from "./components/ventas/transportistas";
 import { UpdateImage } from "./components/repuestos/updateImages";
 import { ParametrizacionModelosDespiece } from "./components/inventario/updateModelDespiece";
 import { ParametrizacionModelosDespieceAnio } from "./components/inventario/updateModelDespieceYearBI";
@@ -177,6 +178,7 @@ function App() {
                   <Route exact path="/electronicFile" element={<Protected isLoggedIn={authorizedSystems.includes('CON')}><ElectronicFilesSri/></Protected>}/>
                   <Route exact path="/warranty" element={<Protected isLoggedIn={authorizedSystems.includes('GAR')}><CaseManager/></Protected>}/>
                   <Route exact path="/invoice" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><SellManager/></Protected>}/>
+                  <Route exact path="/transEcommerce" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><TransEcommerce/></Protected>}/>
                   <Route exact path="/settings" element={<Settings/>}></Route>
                 </Routes>
               </>            
