@@ -1,5 +1,5 @@
 import axios from 'axios';
-import Button from '@mui/material/Button';
+
 
 const API = process.env.REACT_APP_API;
 
@@ -408,6 +408,122 @@ export const updateModeloCrecimientoBI = async (jwt, data) => {
     return response.data;
   } catch (error) {
     console.log(error);
+    throw error;
+  }
+};
+
+// MANAGE TRANS. ECOMMERCE-------
+
+// Función para crear un transportista
+export const createTransportistaEcommerce = async (jwt, data) => {
+  try {
+    const response = await axios.post(`${API}/create_transportista_ecommerce`, data, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error creando transportista:", error);
+    throw error;
+  }
+};
+
+// Función para actualizar un transportista
+export const updateTransportistaEcommerce = async (jwt, data) => {
+  try {
+    const response = await axios.put(`${API}/update_transportista_ecommerce`, data, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error actualizando transportista:", error);
+    throw error;
+  }
+};
+
+// Función para eliminar un transportista
+export const deleteTransportistaEcommerce = async (jwt, cod_transportista, empresa) => {
+  try {
+    const response = await axios.delete(`${API}/delete_transportista_ecommerce`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+      data: {
+        cod_transportista,
+        empresa,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error eliminando transportista:", error);
+    throw error;
+  }
+};
+
+// Función para obtener la lista de transportistas de una empresa
+export const getTransportistasEcommerce = async (jwt, empresa) => {
+  try {
+    const response = await axios.get(`${API}/get_transportistas_ecommerce?empresa=${empresa}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error obteniendo transportistas:", error);
+    throw error;
+  }
+};
+
+// Aprobacion Credito Directo:
+
+export const getCabCreditoDirecto = async (jwt) => {
+  try {
+    const response = await axios.get(`${API}/get_cab_credito_directo`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error obteniendo cabecera de crédito directo:", error);
+    throw error;
+  }
+};
+
+
+export const updateCabCreditoDirecto = async (jwt, data) => {
+  try {
+    const response = await axios.put(`${API}/update_cab_credito_directo`, data, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error actualizando cabecera de crédito directo:", error);
+    throw error;
+  }
+};
+
+
+export const getDetCreditoDirecto = async (jwt, id_transaction) => {
+  try {
+    const response = await axios.get(`${API}/get_det_credito_directo?id_transaction=${id_transaction}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error obteniendo detalle de crédito directo:", error);
     throw error;
   }
 };
