@@ -59,6 +59,7 @@ import { TransEcommerce } from "./components/ventas/transportistas";
 import { UpdateImage } from "./components/repuestos/updateImages";
 import { ParametrizacionModelosDespiece } from "./components/inventario/updateModelDespiece";
 import { ParametrizacionModelosDespieceAnio } from "./components/inventario/updateModelDespieceYearBI";
+import { CreditoDirectoManager } from "./components/ventas/approveCredit";
 
 const API = process.env.REACT_APP_API;
 function App() {
@@ -179,6 +180,7 @@ function App() {
                   <Route exact path="/warranty" element={<Protected isLoggedIn={authorizedSystems.includes('GAR')}><CaseManager/></Protected>}/>
                   <Route exact path="/invoice" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><SellManager/></Protected>}/>
                   <Route exact path="/transEcommerce" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><TransEcommerce/></Protected>}/>
+                  <Route exact path="/approve_credit" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><CreditoDirectoManager/></Protected>}/>
                   <Route exact path="/settings" element={<Settings/>}></Route>
                 </Routes>
               </>            

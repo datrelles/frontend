@@ -9,18 +9,20 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
 import { useAuthContext } from '../../../context/authContext';
-import { 
-  createTransportistaEcommerce, 
-  updateTransportistaEcommerce, 
-  deleteTransportistaEcommerce, 
-  getTransportistasEcommerce 
+import { getMenus } from '../../../services/api'
+import {
+  createTransportistaEcommerce,
+  updateTransportistaEcommerce,
+  deleteTransportistaEcommerce,
+  getTransportistasEcommerce
 } from '../../../services/api';
 import Navbar0 from '../../Navbar0';
 
 export const TransEcommerce = () => {
+  const [menus, setMenus] = useState([]);
   const [transportistas, setTransportistas] = useState([]);
   const [loading, setLoading] = useState(false);
-  const { jwt, enterpriseShineray } = useAuthContext();
+  const { jwt, enterpriseShineray, userShineray } = useAuthContext();
   const [open, setOpen] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedTransportista, setSelectedTransportista] = useState(null);
@@ -66,7 +68,7 @@ export const TransEcommerce = () => {
       cod_tipo_identificacion: '',
       es_activo: 1,
       activo_ecommerce: 1,
-      empresa:enterpriseShineray
+      empresa: enterpriseShineray
     });
     setOpen(true);
   };
@@ -143,16 +145,16 @@ export const TransEcommerce = () => {
           const transportista = transportistas[tableMeta.rowIndex];
           return (
             <>
-              <Button 
-                variant="contained" 
-                style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft:'15px' }}
+              <Button
+                variant="contained"
+                style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft: '15px' }}
                 onClick={() => handleOpenDialog(transportista)}
               >
                 Editar
               </Button>
-              <Button 
-                variant="contained" 
-                style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft:'15px' }}
+              <Button
+                variant="contained"
+                style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft: '15px' }}
                 onClick={() => handleDeleteClick(transportista)}
               >
                 Eliminar
@@ -225,14 +227,30 @@ export const TransEcommerce = () => {
     }
   });
 
+  //Menu
+  useEffect(() => {
+    const menu = async () => {
+      try {
+        const data = await getMenus(userShineray, enterpriseShineray, 'VE', jwt)
+        setMenus(data)
+
+      }
+      catch (error) {
+        toast.error(error)
+      }
+
+    }
+    menu();
+  }, [])
+
   return (
     <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
-      <Navbar0 menus={[]} />
+      <Navbar0 menus={menus} />
       <div style={{ padding: '20px' }}>
-        <Button 
-          variant="contained" 
+        <Button
+          variant="contained"
           onClick={() => handleOpenDialog()}
-          style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft:'15px' }}
+          style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft: '15px' }}
         >
           CREAR
         </Button>
@@ -310,11 +328,11 @@ export const TransEcommerce = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}
-            style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft:'15px' }}>
+            style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft: '15px' }}>
             Cancelar
           </Button>
-          <Button onClick={handleSave} 
-           style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft:'15px' }}
+          <Button onClick={handleSave}
+            style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft: '15px' }}
           >
             {selectedTransportista ? 'Actualizar' : 'Guardar'}
           </Button>
@@ -326,11 +344,11 @@ export const TransEcommerce = () => {
         <DialogTitle>¿Está seguro de eliminar este transportista?</DialogTitle>
         <DialogActions>
           <Button onClick={handleCloseDeleteDialog}
-            style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft:'15px' }}>
+            style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft: '15px' }}>
             Cancelar
           </Button>
-          <Button onClick={confirmDelete} 
-           style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft:'15px' }}
+          <Button onClick={confirmDelete}
+            style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft: '15px' }}
           >
             Eliminar
           </Button>

@@ -414,7 +414,6 @@ export const updateModeloCrecimientoBI = async (jwt, data) => {
 
 // MANAGE TRANS. ECOMMERCE-------
 
-
 // Función para crear un transportista
 export const createTransportistaEcommerce = async (jwt, data) => {
   try {
@@ -481,3 +480,51 @@ export const getTransportistasEcommerce = async (jwt, empresa) => {
     throw error;
   }
 };
+
+// Aprobacion Credito Directo:
+
+export const getCabCreditoDirecto = async (jwt) => {
+  try {
+    const response = await axios.get(`${API}/get_cab_credito_directo`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error obteniendo cabecera de crédito directo:", error);
+    throw error;
+  }
+};
+
+
+export const updateCabCreditoDirecto = async (jwt, data) => {
+  try {
+    const response = await axios.put(`${API}/update_cab_credito_directo`, data, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error actualizando cabecera de crédito directo:", error);
+    throw error;
+  }
+};
+
+
+export const getDetCreditoDirecto = async (jwt, id_transaction) => {
+  try {
+    const response = await axios.get(`${API}/get_det_credito_directo?id_transaction=${id_transaction}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error obteniendo detalle de crédito directo:", error);
+    throw error;
+  }
+};
+
