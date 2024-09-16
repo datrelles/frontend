@@ -552,8 +552,6 @@ export const SellManager = () => {
         setOpen(false);
         setSubCases([]);
         setApprovalData([]);
-        setImagesSubCasesUrl([]);
-        setVideosSubCasesUrl([]);
     };
     const handleSave = async () => {
         try {
@@ -580,8 +578,6 @@ export const SellManager = () => {
         handleRefresh();
         setSubCases([]);
         setApprovalData([]);
-        setImagesSubCasesUrl([]);
-        setVideosSubCasesUrl([]);
     }
     //console.log(dataSellEcommerce)
 
