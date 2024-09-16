@@ -155,7 +155,6 @@ export const CreditoDirectoManager = () => {
         { name: 'descripcion', label: 'Descripción', options: { filter: false } },
         { name: 'id_agencia_transporte', label: 'ID Agencia Transporte', options: { filter: false } },
         { name: 'nombre_agencia_transporte', label: 'Nombre Agencia Transporte', options: { filter: false } },
-
     ];
 
     const options = {
