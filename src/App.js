@@ -60,7 +60,9 @@ import { UpdateImage } from "./components/repuestos/updateImages";
 import { ParametrizacionModelosDespiece } from "./components/inventario/updateModelDespiece";
 import { ParametrizacionModelosDespieceAnio } from "./components/inventario/updateModelDespieceYearBI";
 import { CreditoDirectoManager } from "./components/ventas/approveCredit";
+import { SellManagerB2B } from "./components/ventas/b2bCaseManager";
 
+///SellManagerB2B
 const API = process.env.REACT_APP_API;
 function App() {
   const {  removeToken, setToken } = useToken();
@@ -181,6 +183,7 @@ function App() {
                   <Route exact path="/invoice" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><SellManager/></Protected>}/>
                   <Route exact path="/transEcommerce" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><TransEcommerce/></Protected>}/>
                   <Route exact path="/approve_credit" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><CreditoDirectoManager/></Protected>}/>
+                  <Route exact path="/invoice_b2b" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><SellManagerB2B/></Protected>}/>
                   <Route exact path="/settings" element={<Settings/>}></Route>
                 </Routes>
               </>            

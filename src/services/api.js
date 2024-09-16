@@ -528,3 +528,33 @@ export const getDetCreditoDirecto = async (jwt, id_transaction) => {
   }
 };
 
+// Función para obtener las facturas B2B
+export const getInvoiceB2B = async (jwt, start_date, end_date, pay_method, invoiced) => {
+  try {
+    const response = await axios.get(`${API}/get_invoice_b2b?start_date=${start_date}&finish_date=${end_date}&pay_method=${pay_method}&invoiced=${invoiced}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+// Función para obtener las partes de la compra B2B
+export const getBuyPartsB2B = async (jwt, id_code, pay_method) => {
+  try {
+    const response = await axios.get(`${API}/buy_parts_b2b/${id_code}?pay_method=${pay_method}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
