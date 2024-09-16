@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import MUIDataTable from 'mui-datatables'
+import React, { useState, useEffect } from 'react';
+import MUIDataTable from 'mui-datatables';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { toast } from 'react-toastify';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -16,151 +16,125 @@ import MenuItem from '@mui/material/MenuItem';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 
-import Navbar0 from '../../Navbar0'
-import { useAuthContext } from '../../../context/authContext'
-import { getMenus } from '../../../services/api'
-import { getSellEcommerce, getBuyPartsEcommerce, putCasesPostVentaSubCases, getCasesPostVentaSubcasesUrl, getDataProvinces, getDataCityByProvince } from '../../../services/api';
+import Navbar0 from '../../Navbar0';
+import { useAuthContext } from '../../../context/authContext';
+import { getMenus } from '../../../services/api';
+import { getInvoiceB2B, getBuyPartsB2B } from '../../../services/api'; // Importa los endpoints B2B
 import LoadingCircle from '../../contabilidad/loader';
 
-export const SellManager = () => {
+export const SellManagerB2B = () => {
     const [menus, setMenus] = useState([]);
-    const { jwt, userShineray, enterpriseShineray, branchShineray, systemShineray } = useAuthContext()
-    const [loading, setLoading] = useState(false)
-    const [fromDate, setFromDate] = useState(moment().subtract(1, "months"))
-    const [toDate, setToDate] = useState(moment)
-    const [invoiced, setInvoiced] = useState(0)
-    const [payMethod, setPayMethod] = useState('datafast')
+    const { jwt, userShineray, enterpriseShineray } = useAuthContext();
+    const [loading, setLoading] = useState(false);
+    const [fromDate, setFromDate] = useState(moment().subtract(1, "months"));
+    const [toDate, setToDate] = useState(moment());
+    const [invoiced, setInvoiced] = useState(0);
+    const [payMethod, setPayMethod] = useState('datafast');
 
     const [open, setOpen] = useState(false);
     const [subCases, setSubCases] = useState([]);
-    const [approvalData, setApprovalData] = useState([]);
-    const [dataSellEcommerce, setDataSellEcommerce] = useState([]);
+    const [dataSellB2B, setDataSellB2B] = useState([]);
     const [refreshSubcases, setRegreshSubcases] = useState(false);
 
-    const columnsCasosPostventa = [
+    const columnsCasosB2B = [
         {
             name: "id_transaction",
             label: "ID Transacción",
             options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "center" }}>
-                            {value}
-                        </div>
-                    );
-                },
+                customBodyRender: (value) => (
+                    <div style={{ textAlign: "center" }}>{value}</div>
+                ),
             },
         },
-
-
         {
             name: "payment_type",
             label: "Tipo de Pago",
             options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "center" }}>
-                            {value}
-                        </div>
-                    );
-                },
+                customBodyRender: (value) => (
+                    <div style={{ textAlign: "center" }}>{value}</div>
+                ),
             },
         },
         {
             name: "payment_brand",
             label: "Marca de Pago",
             options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "center" }}>
-                            {value}
-                        </div>
-                    );
-                },
+                customBodyRender: (value) => (
+                    <div style={{ textAlign: "center" }}>{value}</div>
+                ),
             },
         },
         {
             name: "sub_total",
             label: "Subtotal",
             options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "center" }}>
-                            {value}
-                        </div>
-                    );
-                },
+                customBodyRender: (value) => (
+                    <div style={{ textAlign: "center" }}>{value}</div>
+                ),
             },
         },
         {
             name: "total",
             label: "Total",
             options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "center" }}>
-                            {value}
-                        </div>
-                    );
-                },
+                customBodyRender: (value) => (
+                    <div style={{ textAlign: "center" }}>{value}</div>
+                ),
             },
         },
-
         {
             name: "id_transaction",
             label: "Repuestos",
             options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "left" }}>
-                            <Button onClick={() => handleClickOpenNew(value)} color="primary" style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }}>
-                                ABRIR
-                            </Button>
-                        </div>
-                    );
-                },
+                customBodyRender: (value) => (
+                    <div style={{ textAlign: "left" }}>
+                        <Button
+                            onClick={() => handleClickOpenNew(value)}
+                            color="primary"
+                            style={{
+                                marginBottom: '10px',
+                                marginTop: '10px',
+                                backgroundColor: 'firebrick',
+                                color: 'white',
+                                height: '30px',
+                                width: '100px',
+                                borderRadius: '5px',
+                                marginRight: '15px'
+                            }}>
+                            ABRIR
+                        </Button>
+                    </div>
+                ),
             },
         },
-
         {
             name: "discount_percentage",
             label: "Porcentaje de Descuento",
             options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "center" }}>
-                            {value}
-                        </div>
-                    );
-                },
+                customBodyRender: (value) => (
+                    <div style={{ textAlign: "center" }}>{value}</div>
+                ),
             },
         },
         {
             name: "discount_amount",
             label: "Monto de Descuento",
             options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "center" }}>
-                            {value}
-                        </div>
-                    );
-                },
+                customBodyRender: (value) => (
+                    <div style={{ textAlign: "center" }}>{value}</div>
+                ),
             },
         },
         {
             name: "currency",
             label: "Moneda",
             options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "center" }}>
-                            {value}
-                        </div>
-                    );
-                },
+                customBodyRender: (value) => (
+                    <div style={{ textAlign: "center" }}>{value}</div>
+                ),
             },
         },
+
         {
             name: "batch_no",
             label: "Número de Lote",
@@ -422,54 +396,72 @@ export const SellManager = () => {
                 },
             },
         }
+        // Añadir el resto de las columnas similares a las del componente original
     ];
 
     const options = {
         selectableRows: false,
-        rowsPerPage: 100
-    }
-    //Menu
-    useEffect(() => {
-        const menu = async () => {
-            try {
-                const data = await getMenus(userShineray, enterpriseShineray, 'VE', jwt)
-                setMenus(data)
+        rowsPerPage: 100,
+    };
 
-            }
-            catch (error) {
-                toast.error(error)
-            }
-
-        }
-        menu();
-    }, [])
-    //Data filter
     useEffect(() => {
-        const functionGetEcommerceSell = async (s, t) => {
-            const start_date = s.format('DD/MM/YYYY')
-            const end_date = t.format('DD/MM/YYYY')
+        const fetchMenus = async () => {
             try {
-                setLoading(true)
-                const casosPostVenta = await getSellEcommerce(jwt, start_date, end_date, payMethod, invoiced)
-                setDataSellEcommerce(casosPostVenta)
-                setLoading(false)
+                const data = await getMenus(userShineray, enterpriseShineray, 'VE', jwt);
+                setMenus(data);
+            } catch (error) {
+                toast.error(error);
             }
-            catch (error) {
-                console.log(error)
-                setLoading(false)
-                throw error
+        };
+        fetchMenus();
+    }, [userShineray, enterpriseShineray, jwt]);
+
+    useEffect(() => {
+        const fetchB2BData = async (start, end) => {
+            const start_date = start.format('DD/MM/YYYY');
+            const end_date = end.format('DD/MM/YYYY');
+            try {
+                setLoading(true);
+                const data = await getInvoiceB2B(jwt, start_date, end_date, payMethod, invoiced);
+                setDataSellB2B(data);
+                setLoading(false);
+            } catch (error) {
+                console.log(error);
+                setLoading(false);
+                toast.error('Error fetching data');
             }
-        }
+        };
 
         if (fromDate !== null && toDate !== null) {
-            functionGetEcommerceSell(fromDate, toDate);
+            fetchB2BData(fromDate, toDate);
+        } else {
+            fetchB2BData(moment().subtract(1, "months"), moment());
         }
-        else {
-            functionGetEcommerceSell(moment().subtract(1, "months"), moment());
+    }, [fromDate, toDate, payMethod, invoiced, jwt, refreshSubcases]);
 
-        }
+    const handleClickOpenNew = (id) => {
+        const fetchDataSubcases = async () => {
+            try {
+                setLoading(true);
+                const data = await getBuyPartsB2B(jwt, id, payMethod);
+                setSubCases(data);
+                setLoading(false);
+                setOpen(true);
+            } catch (error) {
+                toast.error('NO SE PUEDE CARGAR LOS SUBCASOS');
+                console.log('Error fetching parts', error);
+                setLoading(false);
+            }
+        };
 
-    }, [fromDate, toDate, payMethod, refreshSubcases])
+        fetchDataSubcases();
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+        setSubCases([]);
+    };
+
     // Need to use pickDate
     useEffect(() => {
         setToDate(null);
@@ -477,30 +469,25 @@ export const SellManager = () => {
     }, [])
 
 
-    const handleRefresh = () => {
-        setRegreshSubcases(prevState => !prevState);
-    }
-
     const getMuiTheme = () => createTheme({
         components: {
             MuiTableCell: {
                 styleOverrides: {
                     root: {
-                        paddingLeft: '3px', // Relleno a la izquierda
+                        paddingLeft: '3px',
                         paddingRight: '3px',
-                        paddingTop: '0px', // Ajusta el valor en el encabezado si es necesario
+                        paddingTop: '0px',
                         paddingBottom: '0px',
                         backgroundColor: '#00000',
                         whiteSpace: 'nowrap',
-                        flex: 1,
                         borderBottom: '1px solid #ddd',
                         borderRight: '1px solid #ddd',
                         fontSize: '14px'
                     },
                     head: {
-                        backgroundColor: 'firebrick', // Color de fondo para las celdas de encabezado
-                        color: '#ffffff', // Color de texto para las celdas de encabezado
-                        fontWeight: 'bold', // Añadimos negrita para resaltar el encabezado
+                        backgroundColor: 'firebrick',
+                        color: '#ffffff',
+                        fontWeight: 'bold',
                         paddingLeft: '0px',
                         paddingRight: '0px',
                         fontSize: '12px'
@@ -510,14 +497,14 @@ export const SellManager = () => {
             MuiTable: {
                 styleOverrides: {
                     root: {
-                        borderCollapse: 'collapse', // Fusionamos los bordes de las celdas
+                        borderCollapse: 'collapse',
                     },
                 },
             },
             MuiTableHead: {
                 styleOverrides: {
                     root: {
-                        borderBottom: '5px solid #ddd', // Línea inferior más gruesa para el encabezado
+                        borderBottom: '5px solid #ddd',
                     },
                 },
             },
@@ -530,60 +517,6 @@ export const SellManager = () => {
             }
         }
     });
-    const handleClickOpenNew = (id) => {
-        const fetchDataSubcases = async () => {
-            try {
-                setLoading(true)
-                const data = await getBuyPartsEcommerce(jwt, id, payMethod);
-                setSubCases(data)
-                setLoading(false)
-                setOpen(true);
-            } catch (error) {
-                toast.error('NO SE PUEDE CARGAR LOS SUBCASOS')
-                console.log('error')
-                setLoading(false)
-            }
-        }
-
-        fetchDataSubcases();
-
-    };
-    const handleClose = () => {
-        setOpen(false);
-        setSubCases([]);
-        setApprovalData([]);
-        setImagesSubCasesUrl([]);
-        setVideosSubCasesUrl([]);
-    };
-    const handleSave = async () => {
-        try {
-            setLoading(true);
-            setOpen(false);
-            for (const caso of approvalData) {
-                await putCasesPostVentaSubCases(
-                    jwt,
-                    caso.cod_comprobante,
-                    caso.codigo_problema,
-                    caso.estado
-                );
-                console.log(`Caso actualizado: ${caso.descripcion}`);
-                toast.success(`Caso actualizado: ${caso.descripcion}`)
-            }
-            console.log("Todos los casos han sido actualizados con éxito.");
-            setLoading(false)
-            toast.success("Todos los casos han sido actualizados con éxito.");
-        } catch (error) {
-            setLoading(false)
-            console.error("Error al actualizar los casos:", error);
-            toast.error("Error al actualizar los casos:", error);
-        }
-        handleRefresh();
-        setSubCases([]);
-        setApprovalData([]);
-        setImagesSubCasesUrl([]);
-        setVideosSubCasesUrl([]);
-    }
-    //console.log(dataSellEcommerce)
 
     return (
         <>{loading ? (<LoadingCircle />) : (
@@ -592,100 +525,69 @@ export const SellManager = () => {
 
                 <div style={{ display: 'flex' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', margin: '25px' }}>
-                        <div>
-                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                <DemoContainer components={['DatePicker']}>
-                                    <DatePicker
-                                        label="Fecha Desde"
-                                        value={fromDate}
-                                        onChange={(newValue) => setFromDate(newValue)}
-                                        renderInput={(params) => <TextField {...params} />}
-                                        format="DD/MM/YYYY"
-                                    />
-                                </DemoContainer>
-                            </LocalizationProvider>
-                        </div>
-                        <div style={{ margin: '0 5px' }}>
-                            <LocalizationProvider dateAdapter={AdapterDayjs} >
-                                <DemoContainer components={['DatePicker']} >
-                                    <DatePicker
-                                        label="Fecha Hasta"
-                                        value={toDate}
-                                        onChange={(newValue) => setToDate(newValue)}
-                                        renderInput={(params) => <TextField {...params} />}
-                                        format="DD/MM/YYYY"
-                                    />
-                                </DemoContainer>
-                            </LocalizationProvider>
-                        </div>
+                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                            <DemoContainer components={['DatePicker']}>
+                                <DatePicker
+                                    label="Fecha Desde"
+                                    value={fromDate}
+                                    onChange={(newValue) => setFromDate(newValue)}
+                                    renderInput={(params) => <TextField {...params} />}
+                                    format="DD/MM/YYYY"
+                                />
+                            </DemoContainer>
+                            <DemoContainer components={['DatePicker']}>
+                                <DatePicker
+                                    label="Fecha Hasta"
+                                    value={toDate}
+                                    onChange={(newValue) => setToDate(newValue)}
+                                    renderInput={(params) => <TextField {...params} />}
+                                    format="DD/MM/YYYY"
+                                />
+                            </DemoContainer>
+                        </LocalizationProvider>
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'left', alignItems: 'space-between', marginLeft: '25px', width: '350px' }} >
-                    <div style={{ width: '48%', marginRight: '10px' }}>
-                        <label>Método de Pago</label>
-                        <Select
-                            margin="dense"
-                            id="status_case"
-                            name="status_case"
-                            label="Método de Pago"
-                            style={{ width: '100%' }}
-                            value={payMethod}
-                            onChange={(event) => setPayMethod(event.target.value)}
-                        >
-                            <MenuItem value="datafast">Todos</MenuItem>
-                            <MenuItem value="datafast">Datafast</MenuItem>
-                            <MenuItem value="deuna">DeUna</MenuItem>
-                        </Select>
-
-                    </div>
-                </div>
-
-                <div style={{ display: "flex", justifyContent: "left" }}>
-                    <Button onClick={handleSave} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '40px', width: '150px', borderRadius: '5px', marginLeft: '25px' }} >Facturar TODO</Button>
+                <div style={{ display: 'flex', justifyContent: 'left', marginLeft: '25px', width: '350px' }}>
+                    <Select
+                        margin="dense"
+                        label="Método de Pago"
+                        value={payMethod}
+                        onChange={(event) => setPayMethod(event.target.value)}
+                        style={{ width: '100%' }}
+                    >
+                        <MenuItem value="datafast">Datafast</MenuItem>
+                        <MenuItem value="deuna">DeUna</MenuItem>
+                    </Select>
                 </div>
 
                 <div style={{ margin: '25px' }}>
                     <ThemeProvider theme={getMuiTheme()}>
-                        <MUIDataTable title={"VENTAS E-COMMERCE"} data={dataSellEcommerce} columns={columnsCasosPostventa} options={options} />
+                        <MUIDataTable title={"VENTAS B2B"} data={dataSellB2B} columns={columnsCasosB2B} options={options} />
                     </ThemeProvider>
                 </div>
+
+                <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+                    <DialogContent>
+                        <Grid container spacing={2}>
+                            {subCases.map((item, index) => (
+                                <Grid item lg={12} key={index}>
+                                    <TextField
+                                        label="REPUESTOS"
+                                        value={`COD PRODUCTO: ${item.codigo} UNIDADES:${item.cantidad}`}
+                                        fullWidth
+                                        disabled
+                                    />
+                                </Grid>
+                            ))}
+                        </Grid>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleClose}>Cerrar</Button>
+                    </DialogActions>
+                </Dialog>
             </div>
         )}
-            {/* --DIALOGO LIST-- */}
-            <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth >
-                <div style={{ display: "flex", justifyContent: "center" }}>
-                    <div>
-                        <DialogContent >
-                            <Grid container spacing={2}>
-                                {subCases.map((item, index) => (
-                                    <Grid item lg={12} key={index}>
-                                        <div style={{ width: "500px" }}>
-                                            <TextField
-                                                label={`REPUESTOS`}
-                                                value={`COD PRODUCTO: ${item.codigo} UNIDADES:${item.cantidad}`}
-                                                //variant="outlined"
-                                                fullWidth
-                                                disabled
-                                            />
-                                        </div>
-
-                                    </Grid>
-                                ))}
-                            </Grid>
-
-                        </DialogContent>
-                        <div style={{ display: 'flex', justifyContent: 'center' }}>
-                            <DialogActions>
-                                <Button onClick={handleClose}>Cerrar</Button>
-                            </DialogActions>
-                        </div>
-                    </div>
-
-                </div>
-            </Dialog>
         </>
-    )
-}
-
-//data={proformasFormasDePago} columns={columnsFormasDePago} options={optionsProformas}
+    );
+};
