@@ -558,3 +558,18 @@ export const getBuyPartsB2B = async (jwt, id_code, pay_method) => {
     throw error;
   }
 };
+
+// Función para obtener los datos de balance de un cliente B2B
+export const getBalanceDataClientB2B = async (jwt, empresa, client_id) => {
+  try {
+    const response = await axios.get(`${API}/get_balance_data_client_b2b?empresa=${empresa}&client_id=${client_id}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error obteniendo los datos de balance del cliente B2B:", error);
+    throw error;
+  }
+};
