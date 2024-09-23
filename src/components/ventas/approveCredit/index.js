@@ -8,7 +8,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import moment from "moment";
 import Button from '@mui/material/Button';
 import { useAuthContext } from '../../../context/authContext';
-import { getCabCreditoDirecto, updateCabCreditoDirecto, getDetCreditoDirecto } from '../../../services/api';
+import { getCabCreditoDirecto, updateCabCreditoDirecto, getDetCreditoDirecto, getBalanceDataClientB2B } from '../../../services/api';
 import { getMenus } from '../../../services/api'
 import LoadingCircle from '../../contabilidad/loader';
 import Navbar0 from '../../Navbar0';
@@ -25,6 +25,9 @@ export const CreditoDirectoManager = () => {
     const [loading, setLoading] = useState(false);
     const [creditos, setCreditos] = useState([]);
     const [detalles, setDetalles] = useState([]);
+    const [balanceData, setBalanceData] = useState(null);
+    const [openBalanceDialog, setOpenBalanceDialog] = useState(false);
+
     const [open, setOpen] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [selectedTransaction, setSelectedTransaction] = useState(null);
@@ -63,7 +66,7 @@ export const CreditoDirectoManager = () => {
             const credito = creditos.find(c => c.id_transaction === selectedTransaction);
             const updatedCredito = { ...credito, estado_aprobacion: '1' }; // Cambiar estado de aprobación a "APROBADO"
             const dataForAprove = {
-                'estado_aprobacion':updatedCredito['estado_aprobacion'],
+                'estado_aprobacion': updatedCredito['estado_aprobacion'],
                 'id_transaction': updatedCredito['id_transaction']
             }
             await updateCabCreditoDirecto(jwt, dataForAprove);
@@ -104,14 +107,32 @@ export const CreditoDirectoManager = () => {
         setSelectedTransaction(null);
     };
 
-    // Define Table Columns
+    const handleGetBalance = async (client_id) => {
+        try {
+            const data = await getBalanceDataClientB2B(jwt, enterpriseShineray, client_id);
+            setBalanceData(data); // Guarda los datos del balance
+            setOpenBalanceDialog(true); // Abre el modal para mostrar los resultados
+        } catch (error) {
+            toast.error("Error obteniendo los datos de balance");
+        }
+    };
+
+
+    const handleCloseBalanceDialog = () => {
+        setOpenBalanceDialog(false);
+        setBalanceData(null);
+    };
+
+    // Define Table Columns 'id_transaction"'
     const columns = [
+        { name: 'id_transaction', label: 'ID PEDIDO', options: { filter: false } },
         { name: 'fecha', label: 'Fecha', options: { filter: true } },
         { name: 'client_id', label: 'ID Cliente', options: { filter: false } },
         { name: 'client_name', label: 'Nombre Cliente', options: { filter: false } },
         { name: 'client_last_name', label: 'Apellido Cliente', options: { filter: false } },
         { name: 'total', label: 'Total', options: { filter: false } },
         { name: 'estado_aprobacion', label: 'Estado Aprobación', options: { filter: true } },
+        { name: 'cuotas', label: 'Cuotas', options: { filter: false } },
         {
             name: 'id_transaction',
             label: 'Acciones',
@@ -123,7 +144,7 @@ export const CreditoDirectoManager = () => {
                             variant="contained"
                             style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft: '15px' }}
                             onClick={() => handleClickOpenNew(value)}
-                         
+
                         >
                             Abrir
                         </Button>
@@ -139,22 +160,37 @@ export const CreditoDirectoManager = () => {
                 ),
             },
         },
+        {
+            name: 'client_id',
+            label: 'Acción Balance',
+            options: {
+                filter: false,
+                customBodyRender: (value) => (
+                    <Button
+                        variant="contained"
+                        style={{ backgroundColor: 'firebrick', color: 'white' }}
+                        onClick={() => handleGetBalance(value)} // Usamos el client_id para hacer la llamada
+                    >
+                        Balance
+                    </Button>
+                ),
+            },
+        },
         { name: 'sub_total', label: 'Subtotal', options: { filter: false } },
         { name: 'discount_percentage', label: 'Porcentaje de Descuento', options: { filter: false } },
         { name: 'discount_amount', label: 'Monto de Descuento', options: { filter: false } },
-        { name: 'currency', label: 'Moneda', options: { filter: false } },
-        { name: 'id_guia_servientrega', label: 'ID Guía Servientrega', options: { filter: false } },
         { name: 'client_type_id', label: 'Tipo de Cliente', options: { filter: false } },
         { name: 'client_address', label: 'Dirección Cliente', options: { filter: false } },
+        { name: 'id_agencia_transporte', label: 'ID Agencia Transporte', options: { filter: false } },
+        { name: 'nombre_agencia_transporte', label: 'Nombre Agencia Transporte', options: { filter: false } },
+        { name: 'id_guia_servientrega', label: 'ID Guía Servientrega', options: { filter: false } },
         { name: 'cost_shiping', label: 'Costo Envío', options: { filter: false } },
         { name: 'cod_orden_ecommerce', label: 'Código Orden Ecommerce', options: { filter: false } },
         { name: 'cod_comprobante', label: 'Código Comprobante', options: { filter: false } },
         { name: 'shiping_discount', label: 'Descuento Envío', options: { filter: false } },
-        { name: 'cuotas', label: 'Cuotas', options: { filter: false } },
         { name: 'fecha_aprobacion', label: 'Fecha Aprobación', options: { filter: false, customBodyRender: (value) => value ? moment(value).format('DD/MM/YYYY') : '' } },
         { name: 'descripcion', label: 'Descripción', options: { filter: false } },
-        { name: 'id_agencia_transporte', label: 'ID Agencia Transporte', options: { filter: false } },
-        { name: 'nombre_agencia_transporte', label: 'Nombre Agencia Transporte', options: { filter: false } },
+      
     ];
 
     const options = {
@@ -222,7 +258,7 @@ export const CreditoDirectoManager = () => {
 
             <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
                 <Navbar0 menus={menus} />
-            
+
 
                 <div style={{ margin: '25px' }}>
                     <ThemeProvider theme={getMuiTheme()}>
@@ -270,6 +306,33 @@ export const CreditoDirectoManager = () => {
                 <DialogActions>
                     <Button onClick={handleCloseConfirm} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft: '15px' }}>Cancelar</Button>
                     <Button onClick={handleApprove} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft: '15px' }}>Aprobar</Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog open={openBalanceDialog} onClose={handleCloseBalanceDialog} maxWidth="sm" fullWidth>
+                <DialogTitle>Balance del Cliente</DialogTitle>
+                <DialogContent>
+                    {balanceData ? (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                            <div style={{ width: '50%' }}>
+                                <p><strong>Total por vencer:</strong></p>
+                                <p><strong>Total vencido:</strong></p>
+                                <p><strong>Total deuda:</strong></p>
+                            </div>
+                            <div style={{ width: '50%', textAlign: 'right' }}>
+                                <p>{balanceData.total_x_vencer}</p>
+                                <p>{balanceData.total_vencido}</p>
+                                <p>{balanceData.total_deuda}</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <p>Cargando datos...</p>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseBalanceDialog} color="primary">
+                        Cerrar
+                    </Button>
                 </DialogActions>
             </Dialog>
         </>
