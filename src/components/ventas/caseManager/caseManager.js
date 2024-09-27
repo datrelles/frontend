@@ -19,7 +19,7 @@ import DialogActions from '@mui/material/DialogActions';
 import Navbar0 from '../../Navbar0'
 import { useAuthContext } from '../../../context/authContext'
 import { getMenus } from '../../../services/api'
-import { getSellEcommerce, getBuyPartsEcommerce, putCasesPostVentaSubCases, getCasesPostVentaSubcasesUrl, getDataProvinces, getDataCityByProvince } from '../../../services/api';
+import { getSellEcommerce, getBuyPartsEcommerce, putCasesPostVentaSubCases, getCasesPostVentaSubcasesUrl, getDataProvinces, getDataCityByProvince, postChangePriceEcommerce } from '../../../services/api';
 import LoadingCircle from '../../contabilidad/loader';
 
 export const SellManager = () => {
@@ -64,6 +64,7 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+                filter: false
             },
         },
         {
@@ -77,6 +78,7 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+                filter: false
             },
         },
         {
@@ -90,6 +92,7 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+                filter: false
             },
         },
         {
@@ -103,6 +106,7 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+                filter: false
             },
         },
 
@@ -119,6 +123,7 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+                filter: false
             },
         },
 
@@ -134,23 +139,11 @@ export const SellManager = () => {
                     );
                 },
             },
+            filter: false
         },
         {
             name: "discount_amount",
             label: "Monto de Descuento",
-            options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "center" }}>
-                            {value}
-                        </div>
-                    );
-                },
-            },
-        },
-        {
-            name: "currency",
-            label: "Moneda",
             options: {
                 customBodyRender: (value) => {
                     return (
@@ -172,6 +165,7 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+                filter: false
             },
         },
         {
@@ -198,6 +192,7 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+                filter: false
             },
         },
         {
@@ -211,6 +206,7 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+                filter: false
             },
         },
         {
@@ -224,6 +220,7 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+                filter: false
             },
         },
         {
@@ -237,6 +234,7 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+                filter: false
             },
         },
         {
@@ -250,6 +248,7 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+                filter: false
             },
         },
         {
@@ -263,6 +262,7 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+                filter: false
             },
         },
         {
@@ -276,6 +276,7 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+                filter: false
             },
         },
         {
@@ -289,6 +290,7 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+                filter: false
             },
         },
         {
@@ -302,6 +304,7 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+                filter: false
             },
         },
         {
@@ -315,6 +318,7 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+                filter: false
             },
         },
         {
@@ -341,7 +345,9 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+                filter: false
             },
+            
         },
         {
             name: "cost_shiping",
@@ -354,6 +360,7 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+                filter: false
             },
         },
         {
@@ -367,7 +374,38 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+                filter: false
             },
+        },
+
+        {
+            name: "cost_shiping",
+            label: "Actualizar precio envio",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            <Button
+                                onClick={() => handleUpdatePrice(value)}
+                                color="primary"
+                                style={{
+                                    marginBottom: '10px',
+                                    marginTop: '10px',
+                                    backgroundColor: 'firebrick',
+                                    color: 'white',
+                                    height: '30px',
+                                    width: '100px',
+                                    borderRadius: '5px'
+                                }}
+                            >
+                                Actualizar
+                            </Button>
+                        </div>
+                    );
+                },
+                filter: false
+            },
+            
         },
         {
             name: "cod_orden_ecommerce",
@@ -380,6 +418,7 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+                filter: false
             },
         },
         {
@@ -393,6 +432,7 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+                filter: false
             },
         },
         {
@@ -420,6 +460,7 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+                filter: false
             },
         }
     ];
@@ -578,11 +619,26 @@ export const SellManager = () => {
         handleRefresh();
         setSubCases([]);
         setApprovalData([]);
-    }
-    //console.log(dataSellEcommerce)
+    };
+
+    const handleUpdatePrice = async (price) => {
+        try {
+            setLoading(true);
+            const response = await postChangePriceEcommerce(jwt, price);
+            toast.success('Envío actualizado con éxito');
+            console.log('Envío actualizado:', response);
+            setLoading(false);
+            handleRefresh(); // Actualiza los datos después de la operación
+        } catch (error) {
+            setLoading(false);
+            console.error('Error al actualizar el precio de envío:', error);
+            toast.error('Error al actualizar el precio de envío');
+        }
+    };
+
 
     return (
-        <>{loading ? (<LoadingCircle />) : (
+        <>
             <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
                 <Navbar0 menus={menus} />
 
@@ -647,7 +703,7 @@ export const SellManager = () => {
                     </ThemeProvider>
                 </div>
             </div>
-        )}
+
             {/* --DIALOGO LIST-- */}
             <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth >
                 <div style={{ display: "flex", justifyContent: "center" }}>
@@ -680,6 +736,19 @@ export const SellManager = () => {
 
                 </div>
             </Dialog>
+
+            <Dialog open={loading} maxWidth="xl" fullScreen>
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+                    <div>
+                        <DialogContent>
+                            <div style={{ justifyContent: 'center', width: "500px" }}>
+                                <LoadingCircle />
+                            </div>
+                        </DialogContent>
+                    </div>
+                </div>
+            </Dialog>
+
         </>
     )
 }

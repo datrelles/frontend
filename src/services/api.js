@@ -573,3 +573,22 @@ export const getBalanceDataClientB2B = async (jwt, empresa, client_id) => {
     throw error;
   }
 };
+
+export const postChangePriceEcommerce = async (jwt, price) => {
+  try {
+    const response = await axios.post(
+      `${API}/post_change_price_ecommerce?price=${price}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error cambiando el precio en ecommerce:", error);
+    throw error;
+  }
+};
