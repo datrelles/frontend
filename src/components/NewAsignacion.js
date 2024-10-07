@@ -93,7 +93,7 @@ function NewAsignacion() {
             const data = await res.json();
             console.log(data)
             setCostumersList(data)
-            setNombreCostumer(data.find((objeto) => objeto.cod_cliente === codCliente)?.apellido1 || '');
+            setNombreCostumer(data.find((objeto) => objeto.cod_cliente === rucCliente)?.apellido1 || '');
         }
     };
 

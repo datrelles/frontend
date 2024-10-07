@@ -15,11 +15,14 @@ import { TextField } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
-import Box from '@mui/material/Box';
+import EditIcon from '@mui/icons-material/Edit';
 import Navbar0 from "./Navbar0";
 import { useAuthContext } from "../context/authContext";
 import LoadingCircle from './contabilidad/crafter';
 import Functions from "../helpers/Functions";
+import { IconButton, Tooltip, Modal, Box } from '@mui/material';
+import TwoWheelerIcon from '@mui/icons-material/TwoWheeler';
+import { useSnackbar } from 'notistack';
 
 const API = process.env.REACT_APP_API;
 
@@ -44,8 +47,8 @@ function Dispatch() {
     const [cliente, setCliente] = useState("");
     const [bodega, setBodega] = useState("");
     const [direccion, setDireccion] = useState("");
-    const [fromDate, setFromDate] = useState(dayjs().subtract(1, 'year').format('DD/MM/YYYY'));
-    const [toDate, setToDate] = useState(dayjs().subtract(11, 'months').format('DD/MM/YYYY'));
+    const [fromDate, setFromDate] = useState(dayjs().subtract(1, 'month').format('DD/MM/YYYY'));
+    const [toDate, setToDate] = useState(dayjs().format('DD/MM/YYYY'));
     const [tipoDocumento, setTipoDocumento] = useState("");
     const [menus, setMenus] = useState([]);
     const [excelDataFee, setExcelDataFee] = useState([]);
@@ -53,7 +56,25 @@ function Dispatch() {
     const [statusNombre, setStatusNombre] = useState("");
     const [statusCode, setStatusCode] = useState("T");
     const navigate = useNavigate();
+    const { enqueueSnackbar } = useSnackbar();
     const classes = useStyles();
+
+    const [selectedRow, setSelectedRow] = useState(0);
+    const [openModal, setOpenModal] = useState(false);
+    const [currentPedido, setCurrentPedido] = useState("");
+    const [currentOrden, setCurrentOrden] = useState("");
+    const [currentTipoPedido, setCurrentTipoPedido] = useState("");
+    const [currentTipoOrden, setCurrentTipoOrden] = useState("");
+    const [currentIdentificacion, setCurrentIdentificacion] = useState("");
+    const [currentCliente, setCurrentCliente] = useState("");
+    const [currentBodega, setCurrentBodega] = useState("");
+    const [currentDireccion, setCurrentDireccion] = useState("");
+    const [currentFecha, setCurrentFecha] = useState("");
+    const [currentCodBodega, setCurrentCodBodega] = useState("");
+    const [currentCodBodegaDesp, setCurrentCodBodegaDesp] = useState("");
+    const [currentCodDireccion, setCurrentCodDireccion] = useState("");
+
+    const [motos, setMotos] = useState([]);
 
     const getDispatchs = async () => {
         try {
@@ -87,6 +108,7 @@ function Dispatch() {
             } else {
                 const data = await res.json();
                 setDispatchs(data);
+                console.log(data)
             }
         } catch (error) {
             toast.error(error.message);
@@ -173,6 +195,209 @@ function Dispatch() {
         })));
     };
 
+
+
+    const CustomToolbarSelect = ({ selectedRows }) => {
+        return (
+            <>
+                <Tooltip title="B1">
+                    <Box sx={{ ml: 2 }}>
+                        <IconButton onClick={handleOpenModal}>
+                            <TwoWheelerIcon />
+                        </IconButton>
+                    </Box>
+                </Tooltip>
+            </>
+        );
+    };
+
+    const handleRowSelection = (currentRowsSelected, allRowsSelected) => {
+        if (allRowsSelected.length > 0) {
+            setSelectedRow(allRowsSelected[0].dataIndex);
+        } else {
+            setSelectedRow(null);
+        }
+    };
+
+    const handleOpenModal = async () => {
+        if (selectedRow !== null) {
+            console.log(dispatchs[selectedRow])
+            setOpenModal(true);
+            setCurrentPedido(dispatchs[selectedRow].COD_PEDIDO)
+            setCurrentOrden(dispatchs[selectedRow].COD_ORDEN)
+            setCurrentFecha(dispatchs[selectedRow].FECHA_PEDIDO)
+            setCurrentIdentificacion(dispatchs[selectedRow].COD_PERSONA_CLI)
+            setCurrentCliente(dispatchs[selectedRow].NOMBRE_PERSONA_CLI)
+            setCurrentBodega(dispatchs[selectedRow].BODEGA_ENVIA)
+            setCurrentDireccion(dispatchs[selectedRow].DIRECCION)
+            setCurrentTipoOrden(dispatchs[selectedRow].COD_TIPO_ORDEN)
+            setCurrentTipoPedido(dispatchs[selectedRow].COD_TIPO_PEDIDO)
+            setCurrentCodDireccion(dispatchs[selectedRow].COD_DIRECCION)
+            setCurrentCodBodega(dispatchs[selectedRow].COD_BODEGA_ENVIA)
+            setCurrentCodBodegaDesp(dispatchs[selectedRow].COD_BODEGA_DESPACHA)
+            try {
+                const res = await fetch(`${API}/log/listado_pedido`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + jwt
+                    },
+                    body: JSON.stringify({
+                        pn_empresa: enterpriseShineray,
+                        pv_cod_tipo_pedido: dispatchs[selectedRow].COD_TIPO_PEDIDO,
+                        pedido: dispatchs[selectedRow].COD_PEDIDO,
+                        pn_cod_agencia: dispatchs[selectedRow].COD_BODEGA_DESPACHA,
+                        bodega_consignacion: dispatchs[selectedRow].COD_BODEGA_ENVIA,
+                        cod_direccion: dispatchs[selectedRow].COD_DIRECCION,
+                        p_tipo_orden: dispatchs[selectedRow].COD_TIPO_ORDEN,
+                        orden: dispatchs[selectedRow].COD_ORDEN
+                    })
+                });
+    
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        toast.error('Sesión caducada.');
+                    }
+                } else {
+                    const data = await res.json();
+                    setMotos(data);
+                    console.log(data)
+                }
+            } catch (error) {
+                toast.error(error.message);
+            }
+
+        } else {
+            alert("Seleccione una fila");
+        }
+
+    };
+
+    const handleCloseModal = () => {
+        setOpenModal(false);
+        setMotos([]);
+    };
+
+
+    const columnsMotos = [
+        {
+            name: "COD_SECUENCIA_MOV", label: "Sec", options: {
+                customBodyRender: Functions.IntRender
+            },
+        },
+        { name: "COD_PRODUCTO", label: "Cod Producto" },
+        { name: "NOMBRE", label: "Nombre" },
+        {
+            name: "CANTIDAD_PEDIDA", label: "Cant Pedida", options: {
+                customBodyRender: Functions.IntRender
+            },
+        },
+        {
+            name: "CANTIDAD_TRANS", label: "Cant Guia", options: {
+                customBodyRender: Functions.IntRender
+            },
+        },
+        {
+            name: "cod_formula",
+            label: "Escanear",
+            options: {
+              customBodyRender: (value, tableMeta) => {
+                const isButtonEnabled = tableMeta.rowData[3] === 2;
+                return (
+                  <div style={{ textAlign: "center" }}>
+                  </div>
+                );
+              },
+            },
+          },
+    ];
+
+    const optionsMotos = {
+        responsive: 'standard',
+        onRowSelectionChange: handleRowSelection,
+        selectableRows: 'single',
+        customToolbarSelect: (selectedRows) => (
+            <CustomToolbarSelect selectedRows={selectedRows} />
+        ),
+        textLabels: {
+            body: {
+                noMatch: "Lo siento, no se encontraron registros",
+                toolTip: "Ordenar",
+                columnHeaderTooltip: column => `Ordenar por ${column.label}`
+            },
+            pagination: {
+                next: "Siguiente",
+                previous: "Anterior",
+                rowsPerPage: "Filas por página:",
+                displayRows: "de"
+            },
+            toolbar: {
+                search: "Buscar",
+                downloadCsv: "Descargar CSV",
+                print: "Imprimir",
+                viewColumns: "Ver columnas",
+                filterTable: "Filtrar tabla"
+            },
+            filter: {
+                all: "Todos",
+                title: "FILTROS",
+                reset: "REINICIAR"
+            },
+            viewColumns: {
+                title: "Mostrar columnas",
+                titleAria: "Mostrar/Ocultar columnas de tabla"
+            },
+            selectedRows: {
+                text: "fila(s) seleccionada(s)",
+                delete: "Borrar",
+                deleteAria: "Borrar fila seleccionada"
+            }
+        }
+    };
+
+    const options = {
+        responsive: 'standard',
+        onRowSelectionChange: handleRowSelection,
+        selectableRows: 'single',
+        customToolbarSelect: (selectedRows) => (
+            <CustomToolbarSelect selectedRows={selectedRows} />
+        ),
+        textLabels: {
+            body: {
+                noMatch: "Lo siento, no se encontraron registros",
+                toolTip: "Ordenar",
+                columnHeaderTooltip: column => `Ordenar por ${column.label}`
+            },
+            pagination: {
+                next: "Siguiente",
+                previous: "Anterior",
+                rowsPerPage: "Filas por página:",
+                displayRows: "de"
+            },
+            toolbar: {
+                search: "Buscar",
+                downloadCsv: "Descargar CSV",
+                print: "Imprimir",
+                viewColumns: "Ver columnas",
+                filterTable: "Filtrar tabla"
+            },
+            filter: {
+                all: "Todos",
+                title: "FILTROS",
+                reset: "REINICIAR"
+            },
+            viewColumns: {
+                title: "Mostrar columnas",
+                titleAria: "Mostrar/Ocultar columnas de tabla"
+            },
+            selectedRows: {
+                text: "fila(s) seleccionada(s)",
+                delete: "Borrar",
+                deleteAria: "Borrar fila seleccionada"
+            }
+        }
+    };
+
     const columns = [
         { name: "COD_PEDIDO", label: "Pedido" },
         { name: "COD_ORDEN", label: "Orden" },
@@ -254,43 +479,6 @@ function Dispatch() {
         },
     ];
 
-    const options = {
-        responsive: 'standard',
-        textLabels: {
-            body: {
-                noMatch: "Lo siento, no se encontraron registros",
-                toolTip: "Ordenar",
-                columnHeaderTooltip: column => `Ordenar por ${column.label}`
-            },
-            pagination: {
-                next: "Siguiente",
-                previous: "Anterior",
-                rowsPerPage: "Filas por página:",
-                displayRows: "de"
-            },
-            toolbar: {
-                search: "Buscar",
-                downloadCsv: "Descargar CSV",
-                print: "Imprimir",
-                viewColumns: "Ver columnas",
-                filterTable: "Filtrar tabla"
-            },
-            filter: {
-                all: "Todos",
-                title: "FILTROS",
-                reset: "REINICIAR"
-            },
-            viewColumns: {
-                title: "Mostrar columnas",
-                titleAria: "Mostrar/Ocultar columnas de tabla"
-            },
-            selectedRows: {
-                text: "fila(s) seleccionada(s)",
-                delete: "Borrar",
-                deleteAria: "Borrar fila seleccionada"
-            }
-        }
-    };
 
     const getMuiTheme = () =>
         createTheme({
@@ -307,7 +495,7 @@ function Dispatch() {
                             flex: 1,
                             borderBottom: '1px solid #ddd',
                             borderRight: '1px solid #ddd',
-                            fontSize: '14px'
+                            fontSize: '12px'
                         },
                         head: {
                             backgroundColor: 'firebrick', // Color de fondo para las celdas de encabezado
@@ -315,7 +503,7 @@ function Dispatch() {
                             fontWeight: 'bold', // Añadimos negrita para resaltar el encabezado
                             paddingLeft: '0px',
                             paddingRight: '0px',
-                            fontSize: '12px'
+                            fontSize: '10px'
                         },
                     }
                 },
@@ -400,7 +588,7 @@ function Dispatch() {
                                     value={pedido}
                                 />
                                 <TextField
-                                    multiline
+                                    fullWidth
                                     id="orden-disp"
                                     label="Orden Despacho"
                                     type="text"
@@ -445,7 +633,7 @@ function Dispatch() {
                                 />
                             </Grid>
                             <Grid item xs={12} md={3}>
-                            <Autocomplete
+                                <Autocomplete
                                     id="status"
                                     fullWidth
                                     options={status.map((producto) => producto.label)}
@@ -473,6 +661,94 @@ function Dispatch() {
                             options={options}
                         />
                     </ThemeProvider>
+                    <Modal
+                        open={openModal}
+                        onClose={handleCloseModal}
+                        aria-labelledby="simple-modal-title"
+                        aria-describedby="simple-modal-description"
+                    >
+                        <Box sx={{ p: 8, backgroundColor: 'white', margin: 'auto', width: '90%', marginTop: '50px' }}>
+                            <h2 id="simple-modal-title">Detalles del Despacho</h2>
+                            <Grid container spacing={2} justify="center">
+                                <Grid item xs={12} md={3}>
+                                    <TextField
+                                        disabled
+                                        fullWidth
+                                        id="cod-comprobante"
+                                        label="Código Pedido"
+                                        type="text"
+                                        value={currentPedido}
+                                    />
+                                    <TextField
+                                        disabled
+                                        fullWidth
+                                        id="orden-disp"
+                                        label="Orden Despacho"
+                                        type="text"
+                                        value={currentOrden}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} md={3}>
+                                    <TextField
+                                        disabled
+                                        fullWidth
+                                        id="id-cli"
+                                        label="Identificacion"
+                                        type="text"
+                                        value={currentIdentificacion}
+                                    />
+                                    <TextField
+                                        disabled
+                                        fullWidth
+                                        id="id-cliente"
+                                        label="Cliente"
+                                        type="text"
+                                        value={currentCliente}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} md={3}>
+                                    <TextField
+                                        disabled
+                                        fullWidth
+                                        id="bod-consi"
+                                        label="Bodega Consignacion"
+                                        type="text"
+                                        value={currentBodega}
+                                    />
+                                    <TextField
+                                        disabled
+                                        fullWidth
+                                        id="dir-recep"
+                                        label="Direccion Recepcion"
+                                        type="text"
+                                        value={currentDireccion}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} md={3}>
+                                    <TextField
+                                        disabled
+                                        fullWidth
+                                        id="date"
+                                        label="Fecha Pedido"
+                                        type="text"
+                                        value={currentFecha}
+                                    />
+                                </Grid>
+                            </Grid>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginTop: '15px' }}>
+                            <ThemeProvider theme={getMuiTheme()}>
+                                <MUIDataTable
+                                    title={"Detalle Pedido"}
+                                    data={motos}
+                                    columns={columnsMotos}
+                                    options={optionsMotos}
+                                />
+                            </ThemeProvider>
+                            </div>
+                            <IconButton onClick={handleCloseModal}>Cerrar</IconButton>
+                        </Box>
+                    </Modal>
+
                 </div>
             </SnackbarProvider>
         )}

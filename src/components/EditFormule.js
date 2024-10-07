@@ -323,7 +323,6 @@ function NewFormule() {
 
     const options = {
         filterType: 'dropdown',
-        onRowsDelete: handleDeleteRows,
         textLabels: {
             body: {
                 noMatch: "Lo siento, no se encontraron registros",

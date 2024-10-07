@@ -47,6 +47,7 @@ import Menus from "./components/Menus";
 import Details from "./components/Details";
 import Dispatch from "./components/Dispatch"
 import Asignacion from "./components/Asignacion"
+import Presupuesto from "./components/Presupuesto"
 import Formule from "./components/Formule";
 import NewFormule from "./components/NewFormule";
 import NewAsignacion from "./components/NewAsignacion";
@@ -165,6 +166,7 @@ function App() {
                   <Route exact path="/negociacion" element={<Protected isLoggedIn={authorizedSystems.includes('FIN')}><Negociacion/></Protected>} />
                   <Route exact path="/asignacion" element={<Protected isLoggedIn={authorizedSystems.includes('RET')}><Asignacion/></Protected>} />
                   <Route exact path="/newAsignacion" element={<Protected isLoggedIn={authorizedSystems.includes('RET')}><NewAsignacion/></Protected>} />
+                  <Route exact path="/presupuesto" element={<Protected isLoggedIn={authorizedSystems.includes('RET')}><Presupuesto/></Protected>} />
                   <Route exact path="/dispatch" element={<Protected isLoggedIn={authorizedSystems.includes('LOG')}><Dispatch/></Protected>} />
                   <Route exact path="/newNegociacion" element={<Protected isLoggedIn={authorizedSystems.includes('FIN')}><NewNegociacion/></Protected>} />
                   <Route exact path="/costumer" element={<Protected isLoggedIn={authorizedSystems.includes('FIN')}><Costumer/></Protected>} />
