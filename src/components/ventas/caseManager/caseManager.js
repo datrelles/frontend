@@ -19,12 +19,12 @@ import DialogActions from '@mui/material/DialogActions';
 import Navbar0 from '../../Navbar0'
 import { useAuthContext } from '../../../context/authContext'
 import { getMenus } from '../../../services/api'
-import { getSellEcommerce, getBuyPartsEcommerce, putCasesPostVentaSubCases, getCasesPostVentaSubcasesUrl, getDataProvinces, getDataCityByProvince, postChangePriceEcommerce } from '../../../services/api';
+import { getSellEcommerce, getBuyPartsEcommerce, putCasesPostVentaSubCases, postChangePriceEcommerce, postCodComprobanteEcommerce } from '../../../services/api';
 import LoadingCircle from '../../contabilidad/loader';
 
 export const SellManager = () => {
     const [menus, setMenus] = useState([]);
-    const { jwt, userShineray, enterpriseShineray, branchShineray, systemShineray } = useAuthContext()
+    const { jwt, userShineray, enterpriseShineray } = useAuthContext()
     const [loading, setLoading] = useState(false)
     const [fromDate, setFromDate] = useState(moment().subtract(1, "months"))
     const [toDate, setToDate] = useState(moment)
@@ -32,11 +32,13 @@ export const SellManager = () => {
     const [payMethod, setPayMethod] = useState('datafast')
 
     const [open, setOpen] = useState(false);
+    const [openCodComprobateContainer, setOpenCodComprobante] = useState(false)
     const [subCases, setSubCases] = useState([]);
     const [approvalData, setApprovalData] = useState([]);
     const [dataSellEcommerce, setDataSellEcommerce] = useState([]);
     const [refreshSubcases, setRegreshSubcases] = useState(false);
-
+    const [codComprobante, setCodComprobante] = useState('')
+    const [idSellEcommerce, setIdSellEcommerce] = useState('')
     const columnsCasosPostventa = [
         {
             name: "id_transaction",
@@ -51,11 +53,9 @@ export const SellManager = () => {
                 },
             },
         },
-
-
         {
-            name: "payment_type",
-            label: "Tipo de Pago",
+            name: "client_name",
+            label: "Nombre del Cliente",
             options: {
                 customBodyRender: (value) => {
                     return (
@@ -68,8 +68,8 @@ export const SellManager = () => {
             },
         },
         {
-            name: "payment_brand",
-            label: "Marca de Pago",
+            name: "client_last_name",
+            label: "Apellido del Cliente",
             options: {
                 customBodyRender: (value) => {
                     return (
@@ -82,8 +82,8 @@ export const SellManager = () => {
             },
         },
         {
-            name: "sub_total",
-            label: "Subtotal",
+            name: "client_id",
+            label: "ID del Cliente",
             options: {
                 customBodyRender: (value) => {
                     return (
@@ -92,7 +92,6 @@ export const SellManager = () => {
                         </div>
                     );
                 },
-                filter: false
             },
         },
         {
@@ -155,8 +154,8 @@ export const SellManager = () => {
             },
         },
         {
-            name: "batch_no",
-            label: "Número de Lote",
+            name: "cost_shiping",
+            label: "Costo de Envío Calculado",
             options: {
                 customBodyRender: (value) => {
                     return (
@@ -169,6 +168,50 @@ export const SellManager = () => {
             },
         },
         {
+            name: "shiping_discount",
+            label: "Descuento en Envío",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+                filter: false
+            },
+        },
+
+        {
+            name: "cost_shiping",
+            label: "Actualizar precio envio",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            <Button
+                                onClick={() => handleUpdatePrice(value)}
+                                style={{
+                                    marginBottom: '10px',
+                                    marginTop: '10px',
+                                    backgroundColor: 'firebrick',
+                                    color: 'white',
+                                    height: '30px',
+                                    width: '100px',
+                                    borderRadius: '5px'
+                                }}
+                            >
+                                Actualizar
+                            </Button>
+                        </div>
+                    );
+                },
+                filter: false
+            },
+
+        },
+
+        {
             name: "id_guia_servientrega",
             label: "ID Guía Servientrega",
             options: {
@@ -179,6 +222,21 @@ export const SellManager = () => {
                         </div>
                     );
                 },
+            },
+        },
+
+        {
+            name: "batch_no",
+            label: "Número de Lote",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            {value}
+                        </div>
+                    );
+                },
+                filter: false
             },
         },
         {
@@ -279,61 +337,7 @@ export const SellManager = () => {
                 filter: false
             },
         },
-        {
-            name: "client_type_id",
-            label: "Tipo de ID del Cliente",
-            options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "center" }}>
-                            {value}
-                        </div>
-                    );
-                },
-                filter: false
-            },
-        },
-        {
-            name: "client_name",
-            label: "Nombre del Cliente",
-            options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "center" }}>
-                            {value}
-                        </div>
-                    );
-                },
-                filter: false
-            },
-        },
-        {
-            name: "client_last_name",
-            label: "Apellido del Cliente",
-            options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "center" }}>
-                            {value}
-                        </div>
-                    );
-                },
-                filter: false
-            },
-        },
-        {
-            name: "client_id",
-            label: "ID del Cliente",
-            options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "center" }}>
-                            {value}
-                        </div>
-                    );
-                },
-            },
-        },
+
         {
             name: "client_address",
             label: "Dirección del Cliente",
@@ -347,11 +351,12 @@ export const SellManager = () => {
                 },
                 filter: false
             },
-            
+
         },
+
         {
-            name: "cost_shiping",
-            label: "Costo de Envío Calculado",
+            name: "fecha",
+            label: "Fecha",
             options: {
                 customBodyRender: (value) => {
                     return (
@@ -360,34 +365,18 @@ export const SellManager = () => {
                         </div>
                     );
                 },
-                filter: false
-            },
-        },
-        {
-            name: "shiping_discount",
-            label: "Descuento en Envío",
-            options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "center" }}>
-                            {value}
-                        </div>
-                    );
-                },
-                filter: false
             },
         },
 
         {
-            name: "cost_shiping",
-            label: "Actualizar precio envio",
+            name: "id_transaction",
+            label: "Facturado",
             options: {
                 customBodyRender: (value) => {
                     return (
                         <div style={{ textAlign: "center" }}>
                             <Button
-                                onClick={() => handleUpdatePrice(value)}
-                                color="primary"
+                                onClick={() => handleClickOpenCodComprobanteContainer(value)}
                                 style={{
                                     marginBottom: '10px',
                                     marginTop: '10px',
@@ -398,15 +387,15 @@ export const SellManager = () => {
                                     borderRadius: '5px'
                                 }}
                             >
-                                Actualizar
+                                COD
                             </Button>
                         </div>
                     );
                 },
                 filter: false
             },
-            
         },
+
         {
             name: "cod_orden_ecommerce",
             label: "Código de Orden Ecommerce",
@@ -434,35 +423,8 @@ export const SellManager = () => {
                 },
                 filter: false
             },
-        },
-        {
-            name: "fecha",
-            label: "Fecha",
-            options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "center" }}>
-                            {value}
-                        </div>
-                    );
-                },
-            },
-        },
-
-        {
-            name: "fecha_cierre",
-            label: "Facturar",
-            options: {
-                customBodyRender: (value) => {
-                    return (
-                        <div style={{ textAlign: "left" }}>
-                            {value}
-                        </div>
-                    );
-                },
-                filter: false
-            },
         }
+
     ];
 
     const options = {
@@ -510,7 +472,7 @@ export const SellManager = () => {
 
         }
 
-    }, [fromDate, toDate, payMethod, refreshSubcases])
+    }, [fromDate, toDate, payMethod, refreshSubcases, invoiced])
     // Need to use pickDate
     useEffect(() => {
         setToDate(null);
@@ -589,11 +551,24 @@ export const SellManager = () => {
         fetchDataSubcases();
 
     };
+
+    const handleClickOpenCodComprobanteContainer = (id) => {
+        setOpenCodComprobante(true)
+        setIdSellEcommerce(id)
+    }
+
     const handleClose = () => {
         setOpen(false);
         setSubCases([]);
         setApprovalData([]);
     };
+
+    const handleCloseCointainerComprobante = () => {
+        setOpenCodComprobante(false)
+        setIdSellEcommerce('')
+        setCodComprobante('')
+    }
+
     const handleSave = async () => {
         try {
             setLoading(true);
@@ -621,6 +596,7 @@ export const SellManager = () => {
         setApprovalData([]);
     };
 
+
     const handleUpdatePrice = async (price) => {
         try {
             setLoading(true);
@@ -636,7 +612,28 @@ export const SellManager = () => {
         }
     };
 
+    const handleUpdateCodComprobante = async (codComprobante) => {
+        try {
+            setLoading(true);
+            const response = await postCodComprobanteEcommerce(jwt, payMethod, idSellEcommerce, codComprobante);
+            toast.success('Envío actualizado con éxito');
+            console.log('Envío actualizado:', response);
+            setLoading(false);
+            handleRefresh(); // Actualiza los datos después de la operación
+        } catch (error) {
+            setLoading(false);
+            console.error('Error al actualizar el precio de envío:', error);
+            toast.error('Error al actualizar el precio de envío');
+        } finally {
+            handleCloseCointainerComprobante()
+        }
+    };
 
+    const handleChangeComprobante = (event) => {
+        setCodComprobante(event.target.value);
+    };
+
+    //setInvoiced
     return (
         <>
             <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
@@ -691,6 +688,22 @@ export const SellManager = () => {
                         </Select>
 
                     </div>
+                    <div style={{ width: '48%', marginRight: '10px' }}>
+                        <label>Estado</label>
+                        <Select
+                            margin="dense"
+                            id="status_sell"
+                            name="status_sell"
+                            label="Estado"
+                            style={{ width: '100%' }}
+                            value={invoiced}
+                            onChange={(event) => setInvoiced(event.target.value)}
+                        >
+                                  <MenuItem value={1}>Facturado</MenuItem>
+                                  <MenuItem value={0}>No Facturado</MenuItem>
+                        </Select>
+
+                    </div>
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "left" }}>
@@ -721,11 +734,9 @@ export const SellManager = () => {
                                                 disabled
                                             />
                                         </div>
-
                                     </Grid>
                                 ))}
                             </Grid>
-
                         </DialogContent>
                         <div style={{ display: 'flex', justifyContent: 'center' }}>
                             <DialogActions>
@@ -733,7 +744,35 @@ export const SellManager = () => {
                             </DialogActions>
                         </div>
                     </div>
+                </div>
+            </Dialog>
 
+            <Dialog open={openCodComprobateContainer} onClose={handleCloseCointainerComprobante} maxWidth="md" fullWidth >
+                <div style={{ display: "flex", justifyContent: "center" }}>
+                    <div>
+                        <DialogContent>
+                            <Grid container spacing={2}>
+                                <Grid item lg={12}>
+                                    <div style={{ width: "500px" }}>
+                                        <TextField
+                                            label="Insertar cod_comprobante"
+                                            value={codComprobante}
+                                            onChange={handleChangeComprobante}
+                                            fullWidth
+                                        />
+                                    </div>
+                                </Grid>
+                            </Grid>
+                        </DialogContent>
+                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            <DialogActions>
+                                <Button onClick={handleCloseCointainerComprobante}>Cerrar</Button>
+                                <Button onClick={() => handleUpdateCodComprobante(codComprobante)} color="primary" variant="contained">
+                                    Guardar
+                                </Button>
+                            </DialogActions>
+                        </div>
+                    </div>
                 </div>
             </Dialog>
 
@@ -753,4 +792,3 @@ export const SellManager = () => {
     )
 }
 
-//data={proformasFormasDePago} columns={columnsFormasDePago} options={optionsProformas}
