@@ -56,6 +56,7 @@ function Presupuesto() {
     const classes = useStyles();
 
     const [currentProduct, setCurrentProduct] = useState('')
+    const [currentCodProduct, setCurrentCodProduct] = useState('')
     const [currentCostumer, setCurrentCostumer] = useState('')
     const [currentCodCostumer, setCurrentCodCostumer] = useState('')
     const [currentMonth, setCurrentMonth] = useState(0)
@@ -134,6 +135,7 @@ function Presupuesto() {
         console.log(row)
         setCurrentCostumer(row.CLIENTE)
         setCurrentProduct(row.NOMBRE)
+        setCurrentCodProduct(row.COD_PRODUCTO_MODELO)
         setCurrentCodCostumer(row.COD_PERSONA)
         setCurrentMonth(row.MES)
         setCurrentYear(row.ANIO)
@@ -141,6 +143,7 @@ function Presupuesto() {
     const handleClose = () => {
         setCurrentCostumer('')
         setCurrentProduct('')
+        setCurrentCodProduct('')
         setCurrentCodCostumer('')
         setCurrentMonth(0)
         setCurrentYear(0)
@@ -151,7 +154,7 @@ function Presupuesto() {
         e.preventDefault();
         setLoading(true);
         if (parseInt(currentValue) > 0) {
-            const res = await fetch(`${API}/com/asig_edit`,
+            const res = await fetch(`${API}/log/update_value`,
                 {
                     method: 'POST',
                     headers: {
@@ -160,26 +163,28 @@ function Presupuesto() {
                     },
                     body: JSON.stringify({
                         empresa: enterpriseShineray,
-                        ruc_cliente: currentCodCostumer,
-                        cod_producto: currentProduct,
-                        cantidad_minima: parseInt(currentCantidad, 10),
-                        porcentaje_maximo: parseInt(currentPorcentaje, 10),
+                        cod_persona: currentCodCostumer,
+                        cod_producto_modelo: currentCodProduct,
+                        mes: parseInt(currentMonth, 10),
+                        anio: parseInt(currentYear, 10),
+                        valor:parseInt(currentValue, 10)
                     })
                 });
             const data = await res.json();
             setLoading(false);
             console.log(data)
             if (!data.error) {
-                enqueueSnackbar('Asignación Actualizada', { variant: 'success' });
+                enqueueSnackbar('Presupuesto Actualizado', { variant: 'success' });
             } else {
                 enqueueSnackbar(data.error, { variant: 'error' });
             }
-            setCurrentProduct('')
-            setCurrentCodCostumer('')
             setCurrentCostumer('')
-            setCurrentPorcentaje(0)
-            setCurrentCantidad(0)
-            setOpen(false)
+            setCurrentProduct('')
+            setCurrentCodProduct('')
+            setCurrentCodCostumer('')
+            setCurrentMonth(0)
+            setCurrentYear(0)
+            setOpen(false);
         } else {
             setLoading(false);
             enqueueSnackbar('Valor inválido', { variant: 'error' });
@@ -400,7 +405,7 @@ function Presupuesto() {
                                             type="text"
                                             value={currentProduct}
                                             className="form-control"
-                                            sx={{ mb: 1 }} 
+                                            sx={{ mb: 1 }}
                                         />
                                         <TextField
                                             disabled
@@ -419,7 +424,7 @@ function Presupuesto() {
                                             onChange={e => setCurrentValue(e.target.value)}
                                             value={currentValue}
                                             className="form-control"
-                                            sx={{ mb: 1 }} 
+                                            sx={{ mb: 1 }}
                                         />
                                     </Grid>
                                     <Grid item xs={12} sm={6}>
@@ -431,7 +436,7 @@ function Presupuesto() {
                                             onChange={e => setCurrentYear(e.target.value)}
                                             value={currentYear}
                                             className="form-control"
-                                            sx={{ mb: 1 }} 
+                                            sx={{ mb: 1 }}
                                         />
                                         <TextField
                                             disabled
