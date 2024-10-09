@@ -66,7 +66,7 @@ function Presupuesto() {
 
     const getPresupuestos = async () => {
         try {
-            const res = await fetch(`${API}/log/presupuesto`,
+            const res = await fetch(`${API}/com/presupuesto`,
                 {
                     method: 'POST',
                     headers: {
@@ -74,7 +74,7 @@ function Presupuesto() {
                         'Authorization': 'Bearer ' + jwt
                     },
                     body: JSON.stringify({
-                        empresa: 20
+                        empresa: enterpriseShineray
                     }),
                 });
 
@@ -154,7 +154,7 @@ function Presupuesto() {
         e.preventDefault();
         setLoading(true);
         if (parseInt(currentValue) > 0) {
-            const res = await fetch(`${API}/log/update_value`,
+            const res = await fetch(`${API}/com/update_value`,
                 {
                     method: 'POST',
                     headers: {
