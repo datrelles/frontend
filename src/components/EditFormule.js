@@ -547,7 +547,7 @@ function NewFormule() {
                 <div>
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginBottom: '20px' }}>
-                        <h5 style={{ marginTop: '20px', marginRight: '700px' }}>Nueva Formula</h5>
+                        <h5 style={{ marginTop: '20px', marginRight: '700px' }}>Formula</h5>
                         <button
                             className="btn btn-primary btn-block"
                             type="button"
@@ -765,13 +765,13 @@ function NewFormule() {
                             />
                         </Grid>
                     </Grid>
-                    <button
+                    {/* <button
                         className="btn btn-primary btn-block"
                         type="button"
                         style={{ marginTop: '20px', backgroundColor: 'firebrick', borderRadius: '5px', marginRight: '15px' }}
                         onClick={handleOpenForm}>
                         <AddIcon /> Agregar Detalle
-                    </button>
+                    </button> */}
                     {showForm && (
                         <NewFormuleD
                             onClose={handleCloseForm}
