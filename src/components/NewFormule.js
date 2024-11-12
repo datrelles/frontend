@@ -49,6 +49,7 @@ function NewFormule() {
     const [codItemCat, setCodItemCat] = useState("")
     const [codItem, setCodItem] = useState("")
     const [codItemCat1, setCodItemCat1] = useState("")
+    const [cantidadTotal, setCantidadTotal] = useState(0)
 
     const [nombreProducto, setNombreProducto] = useState("");
     const [productoList, setProductoList] = useState([])
@@ -273,7 +274,7 @@ function NewFormule() {
 
 
     const handleChange2 = async (e) => {
-        if (debitoCredito === 1) {
+        if (debitoCredito === 1 && cantidadTotal > 1) {
             e.preventDefault();
             const res = await fetch(`${API}/formule_total`, {
                 method: 'POST',
@@ -305,7 +306,7 @@ function NewFormule() {
             console.log(formulaD)
             const sumaCostoStandard = formulaD.reduce((suma, registro) => suma + registro.costo_standard, 0);
             console.log(sumaCostoStandard)
-            if (debitoCredito === 2 && sumaCostoStandard === 100) {
+            if (debitoCredito === 2 && sumaCostoStandard === 100 && cantidadTotal > 1) {
                 e.preventDefault();
                 const res = await fetch(`${API}/formule_total`, {
                     method: 'POST',
@@ -334,7 +335,11 @@ function NewFormule() {
                     enqueueSnackbar(data.error, { variant: 'error' });
                 }
             }else{
-                enqueueSnackbar('La suma porcentual del costo de items no es correcta.', { variant: 'error' });
+                if (cantidadTotal > 1){
+                    enqueueSnackbar('La suma porcentual del costo de items no es correcta.', { variant: 'error' });
+                }else{
+                    enqueueSnackbar('La cantidad de items no supera una unidad', { variant: 'error' });
+                }
             }
 
         }
@@ -346,6 +351,8 @@ function NewFormule() {
         // Agregar el detalle a la lista formulaD
         setFormulaD((prevFormulaD) => [...prevFormulaD, detalle]);
         console.log(formulaD)
+        setCantidadTotal(cantidadTotal + parseInt(detalle.cantidad_f))
+        console.log(cantidadTotal)
     };
 
     const handleOpenForm = () => {
