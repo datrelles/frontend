@@ -173,7 +173,7 @@ export const CreditoDirectoManager = () => {
                             variant="contained"
                             style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft: '15px' }}
                             onClick={() => handleOpenConfirm(value)}
-                            disabled={creditos.find(c => c.id_transaction === value).estado_aprobacion === '10'}
+                            disabled={['1', '2'].includes(creditos.find(c => c.id_transaction === value).estado_aprobacion)}
                         >
                             Aprobar
                         </Button>
