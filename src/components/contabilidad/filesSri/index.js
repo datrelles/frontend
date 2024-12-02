@@ -61,7 +61,6 @@ export const ElectronicFilesSri = () => {
         if (start_date !== null && end_date !== null) {
           const response = await getDocumentsSri(start_date, end_date, jwt);
           if (response.length > 0) {
-            console.log(response)
             setDataSri(response)
           }
           setLoading(false)
@@ -225,19 +224,30 @@ export const ElectronicFilesSri = () => {
   };
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
-    setName(file.name)
+    setName(file.name);
+  
     if (file) {
       const reader = new FileReader();
-
+  
       reader.onload = (e) => {
         const fileContent = e.target.result;
-
-        // Divide el contenido en líneas
-        const lines = fileContent.split('\n');
-
-        // Divide cada línea en campos y crea objetos JSON
+  
+        // Divide el contenido en líneas y filtra las vacías
+        const lines = fileContent.split('\n').filter(line => line.trim() !== '');
+  
+        // Procesa cada línea para crear objetos JSON
         const jsonData = lines.slice(1).map((line) => {
-          const fields = line.split('\t');
+          let fields = line.split('\t');
+  
+          // Rellenar los campos faltantes con espacios vacíos
+          const expectedFieldsCount = 12; // Número de campos esperados
+          if (fields.length < expectedFieldsCount) {
+            fields = [
+              ...fields,
+              ...Array(expectedFieldsCount - fields.length).fill(" ")
+            ];
+          }
+  
           return {
             COMPROBANTE: fields[2],
             SERIE_COMPROBANTE: fields[3],
@@ -245,23 +255,25 @@ export const ElectronicFilesSri = () => {
             RAZON_SOCIAL_EMISOR: fields[1],
             FECHA_EMISION: fields[6],
             FECHA_AUTORIZACION: fields[5],
-            //TIPO_EMISION: fields[6],
             VALOR_SIN_IMPUESTOS: fields[8],
             NUMERO_DOCUMENTO_MODIFICADO: fields[11],
             IDENTIFICACION_RECEPTOR: fields[7],
             CLAVE_ACCESO: fields[4],
-            //NUMERO_AUTORIZACION: fields[10],
             IVA: fields[9],
             IMPORTE_TOTAL: fields[10]
           };
         });
-
+  
+        // Actualizar el estado con los datos procesados
         setData(jsonData);
+      
       };
-
+  
+      // Leer el archivo como texto
       reader.readAsText(file);
     }
   };
+
   const getMuiTheme = () =>
     createTheme({
       components: {
@@ -319,7 +331,6 @@ export const ElectronicFilesSri = () => {
     XLSX.writeFile(wb, `_detalles.xlsx`);
 
   };
-
   const handleChangeDate = async () => {
     try {
       setLoading(true)
@@ -397,11 +408,8 @@ export const ElectronicFilesSri = () => {
                   </>
                 }
               </div>
-
             </div>
-
           </div>
-
           <div style={{ display: 'flex' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <div>

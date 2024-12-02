@@ -78,6 +78,27 @@ export const CreditoDirectoManager = () => {
         }
     };
 
+    //No Aprove Credit Function
+
+    const handleNoApprove = async () => {
+        try {
+            const credito = creditos.find(c => c.id_transaction === selectedTransaction);
+            const updatedCredito = { ...credito, estado_aprobacion: '2' }; // Cambiar estado de aprobación a " NO APROBADO"
+            const dataForAprove = {
+                'estado_aprobacion': updatedCredito['estado_aprobacion'],
+                'id_transaction': updatedCredito['id_transaction']
+            }
+            await updateCabCreditoDirecto(jwt, dataForAprove);
+            toast.success(`Crédito con ID ${selectedTransaction} NO aprobado.`);
+            setCreditos(creditos.map(c => c.id_transaction === selectedTransaction ? updatedCredito : c));
+            setConfirmOpen(false); // Cerrar confirmación después de NO aprobar
+        } catch (error) {
+            toast.error("Error NO  aprobando el crédito");
+        }
+    };
+
+
+
     // Fetch Detail Data
     const handleClickOpenNew = async (id_transaction) => {
         try {
@@ -152,7 +173,7 @@ export const CreditoDirectoManager = () => {
                             variant="contained"
                             style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft: '15px' }}
                             onClick={() => handleOpenConfirm(value)}
-                            disabled={creditos.find(c => c.id_transaction === value).estado_aprobacion === '1'}
+                            disabled={creditos.find(c => c.id_transaction === value).estado_aprobacion === '10'}
                         >
                             Aprobar
                         </Button>
@@ -259,7 +280,6 @@ export const CreditoDirectoManager = () => {
             <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
                 <Navbar0 menus={menus} />
 
-
                 <div style={{ margin: '25px' }}>
                     <ThemeProvider theme={getMuiTheme()}>
                         <MUIDataTable
@@ -301,11 +321,12 @@ export const CreditoDirectoManager = () => {
             <Dialog open={confirmOpen} onClose={handleCloseConfirm}>
                 <DialogTitle>Confirmar Aprobación</DialogTitle>
                 <DialogContent>
-                    <p>¿Está seguro que desea aprobar el crédito con ID: {selectedTransaction}?</p>
+                    <p>Aprobar o rechazar crédito con ID: {selectedTransaction} </p>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseConfirm} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft: '15px' }}>Cancelar</Button>
                     <Button onClick={handleApprove} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft: '15px' }}>Aprobar</Button>
+                    <Button onClick={handleNoApprove} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'white', color: '00BFFF', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft: '15px' }}>RECHAZAR</Button>
                 </DialogActions>
             </Dialog>
 
