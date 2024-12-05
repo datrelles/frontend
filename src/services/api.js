@@ -341,6 +341,28 @@ export const postCodComprobanteEcommerce = async (jwt, payMethod, payId, codComp
   }
 };
 
+
+export const postCodComprobanteEcommerceCreditoDirecto = async (jwt, payMethod, payId, codComprobante) => {
+  try {
+    const response = await axios.post(
+      `${API}/post_cod_comprobante_ecommerce_credito_directo?pay_method=${payMethod}&pay_id=${payId}&cod_comprobante=${codComprobante}`,
+      {}, // Empty body since this is a POST request with parameters in the URL
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+
+
+
+
 export const postImageMaterialDespiece = async (jwt, formData) => {
   try {
       const response = await axios.post(`${API}/post_image_material_imagen_despiece`, formData, {
