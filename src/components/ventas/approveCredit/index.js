@@ -8,7 +8,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import moment from "moment";
 import Button from '@mui/material/Button';
 import { useAuthContext } from '../../../context/authContext';
-import { getCabCreditoDirecto, updateCabCreditoDirecto, getDetCreditoDirecto, getBalanceDataClientB2B } from '../../../services/api';
+import { getCabCreditoDirecto, updateCabCreditoDirecto, getDetCreditoDirecto, getBalanceDataClientB2B, postCodComprobanteEcommerceCreditoDirecto } from '../../../services/api';
 import { getMenus } from '../../../services/api'
 import LoadingCircle from '../../contabilidad/loader';
 import Navbar0 from '../../Navbar0';
@@ -31,6 +31,10 @@ export const CreditoDirectoManager = () => {
     const [open, setOpen] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [selectedTransaction, setSelectedTransaction] = useState(null);
+    const [openCodComprobateContainer, setOpenCodComprobante] = useState(false)
+    const [idSellEcommerce, setIdSellEcommerce] = useState('')
+    const [codComprobante, setCodComprobante] = useState('')
+    const [refreshSubcases, setRegreshSubcases] = useState(false);
 
     // Fetch Menus and Credit Data
     useEffect(() => {
@@ -58,7 +62,7 @@ export const CreditoDirectoManager = () => {
             }
         };
         fetchCreditos();
-    }, [jwt]);
+    }, [jwt,refreshSubcases]);
 
     // Approve Credit Function
     const handleApprove = async () => {
@@ -128,6 +132,12 @@ export const CreditoDirectoManager = () => {
         setSelectedTransaction(null);
     };
 
+    const handleClickOpenCodComprobanteContainer = (id) => {
+        setOpenCodComprobante(true)
+        setIdSellEcommerce(id)
+    }
+
+
     const handleGetBalance = async (client_id) => {
         try {
             const data = await getBalanceDataClientB2B(jwt, enterpriseShineray, client_id);
@@ -144,6 +154,17 @@ export const CreditoDirectoManager = () => {
         setBalanceData(null);
     };
 
+    const handleCloseCointainerComprobante = () => {
+        setOpenCodComprobante(false)
+        setIdSellEcommerce('')
+        setCodComprobante('')
+    };
+
+    const handleRefresh = () => {
+        setRegreshSubcases(prevState => !prevState);
+    }
+
+
     // Define Table Columns 'id_transaction"'
     const columns = [
         { name: 'id_transaction', label: 'ID PEDIDO', options: { filter: false } },
@@ -152,6 +173,7 @@ export const CreditoDirectoManager = () => {
         { name: 'client_name', label: 'Nombre Cliente', options: { filter: false } },
         { name: 'client_last_name', label: 'Apellido Cliente', options: { filter: false } },
         { name: 'total', label: 'Total', options: { filter: false } },
+        { name: 'sub_total', label: 'Subtotal', options: { filter: false } },
         { name: 'estado_aprobacion', label: 'Estado Aprobación', options: { filter: true } },
         { name: 'cuotas', label: 'Cuotas', options: { filter: false } },
         {
@@ -173,7 +195,7 @@ export const CreditoDirectoManager = () => {
                             variant="contained"
                             style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px', marginLeft: '15px' }}
                             onClick={() => handleOpenConfirm(value)}
-                            disabled={creditos.find(c => c.id_transaction === value).estado_aprobacion === '10'}
+                            disabled={['1', '2'].includes(creditos.find(c => c.id_transaction === value).estado_aprobacion)}
                         >
                             Aprobar
                         </Button>
@@ -197,7 +219,7 @@ export const CreditoDirectoManager = () => {
                 ),
             },
         },
-        { name: 'sub_total', label: 'Subtotal', options: { filter: false } },
+ 
         { name: 'discount_percentage', label: 'Porcentaje de Descuento', options: { filter: false } },
         { name: 'discount_amount', label: 'Monto de Descuento', options: { filter: false } },
         { name: 'client_type_id', label: 'Tipo de Cliente', options: { filter: false } },
@@ -207,6 +229,33 @@ export const CreditoDirectoManager = () => {
         { name: 'id_guia_servientrega', label: 'ID Guía Servientrega', options: { filter: false } },
         { name: 'cost_shiping', label: 'Costo Envío', options: { filter: false } },
         { name: 'cod_orden_ecommerce', label: 'Código Orden Ecommerce', options: { filter: false } },
+        {
+            name: "id_transaction",
+            label: "Facturado",
+            options: {
+                customBodyRender: (value) => {
+                    return (
+                        <div style={{ textAlign: "center" }}>
+                            <Button
+                                onClick={() => handleClickOpenCodComprobanteContainer(value)}
+                                style={{
+                                    marginBottom: '10px',
+                                    marginTop: '10px',
+                                    backgroundColor: 'firebrick',
+                                    color: 'white',
+                                    height: '30px',
+                                    width: '100px',
+                                    borderRadius: '5px'
+                                }}
+                            >
+                                COD
+                            </Button>
+                        </div>
+                    );
+                },
+                filter: false
+            },
+        },
         { name: 'cod_comprobante', label: 'Código Comprobante', options: { filter: false } },
         { name: 'shiping_discount', label: 'Descuento Envío', options: { filter: false } },
         { name: 'fecha_aprobacion', label: 'Fecha Aprobación', options: { filter: false, customBodyRender: (value) => value ? moment(value).format('DD/MM/YYYY') : '' } },
@@ -273,6 +322,26 @@ export const CreditoDirectoManager = () => {
             }
         }
     });
+    const handleChangeComprobante = (event) => {
+        setCodComprobante(event.target.value);
+    };
+
+    const handleUpdateCodComprobante = async (codComprobante) => {
+        try {
+            setLoading(true);
+            const response = await postCodComprobanteEcommerceCreditoDirecto(jwt,'credito_directo' , idSellEcommerce, codComprobante);
+            toast.success('Envío actualizado con éxito');
+            console.log('Envío actualizado:', response);
+            setLoading(false);
+            handleRefresh(); // Actualiza los datos después de la operación
+        } catch (error) {
+            setLoading(false);
+            console.error('Error al actualizar el codComrpobante:', error);
+            toast.error('Error al ingresar código comprobante');
+        } finally {
+            handleCloseCointainerComprobante()
+        }
+    };
 
     return (
         <>
@@ -356,6 +425,36 @@ export const CreditoDirectoManager = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            <Dialog open={openCodComprobateContainer} onClose={handleCloseCointainerComprobante} maxWidth="md" fullWidth >
+                <div style={{ display: "flex", justifyContent: "center" }}>
+                    <div>
+                        <DialogContent>
+                            <Grid container spacing={2}>
+                                <Grid item lg={12}>
+                                    <div style={{ width: "500px" }}>
+                                        <TextField
+                                            label="Insertar cod_comprobante"
+                                            value={codComprobante}
+                                            onChange={handleChangeComprobante}
+                                            fullWidth
+                                        />
+                                    </div>
+                                </Grid>
+                            </Grid>
+                        </DialogContent>
+                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            <DialogActions>
+                                <Button onClick={handleCloseCointainerComprobante}>Cerrar</Button>
+                                <Button onClick={() => handleUpdateCodComprobante(codComprobante)} color="primary" variant="contained">
+                                    Guardar
+                                </Button>
+                            </DialogActions>
+                        </div>
+                    </div>
+                </div>
+            </Dialog>
+
         </>
     );
 };

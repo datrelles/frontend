@@ -1,7 +1,7 @@
 import Navbar0 from '../../Navbar0';
 import React, { useState, useEffect } from 'react';
 import { useAuthContext } from '../../../context/authContext';
-import { getMenus, postImageMaterialDespiece } from '../../../services/api';
+import { getMenus, postImageMaterialDespiece, getProductDetailsWithoutImages } from '../../../services/api';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import DialogContent from '@mui/material/DialogContent';
@@ -15,6 +15,8 @@ import ButtonGroup from '@mui/material/ButtonGroup';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import MUIDataTable from "mui-datatables";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import * as XLSX from 'xlsx'; // Importamos la librería xlsx
+import LoadingCircle from '../../contabilidad/loader';
 
 export const UpdateImage = () => {
     const [menus, setMenus] = useState([]);
@@ -75,7 +77,7 @@ export const UpdateImage = () => {
                 }
             }
         });
-    
+
     // Dialog
     const handleClose = () => {
         setOpen(false);
@@ -112,7 +114,7 @@ export const UpdateImage = () => {
     const options = {
         filterType: 'dropdown',
         rowsPerPage: 100, // Most
-        selectableRows: 'none', 
+        selectableRows: 'none',
         textLabels: {
             body: {
                 noMatch: "Lo siento, no se encontraron registros",
@@ -195,6 +197,34 @@ export const UpdateImage = () => {
         }
     };
 
+    const exportToExcel = async () => {
+        try {
+            // Llama a la función para obtener los datos
+            const data = await getProductDetailsWithoutImages(jwt);
+
+            if (!data || data.length === 0) {
+                toast.info("No hay datos disponibles para exportar.");
+                return;
+            }
+
+            // Convierte los datos en una hoja de trabajo
+            const worksheet = XLSX.utils.json_to_sheet(data);
+
+            // Crea un libro de trabajo y agrega la hoja
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "ProductDetails");
+
+            // Genera un archivo Excel y lo descarga
+            const excelFileName = "ProductDetails.xlsx";
+            XLSX.writeFile(workbook, excelFileName);
+
+            toast.success("El archivo Excel se ha descargado con éxito.");
+        } catch (error) {
+            console.error("Error exportando los datos a Excel:", error);
+            toast.error("Ocurrió un error al exportar los datos.");
+        }
+    };
+
     return (
         <>
             <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
@@ -222,6 +252,7 @@ export const UpdateImage = () => {
                     </div>
                 </div>
 
+
                 <div style={{ width: "100vw", display: "flex", justifyContent: 'left', alignItems: 'center', marginLeft: '10vw' }}>
                     <div>
                         <div>
@@ -231,13 +262,17 @@ export const UpdateImage = () => {
                                 </label>
                                 <input id="file-upload" type="file" multiple onChange={handleFileChange} style={{ display: 'none' }} />
                                 {selectedFiles.length > 0 && (
-                                <div style={{ marginTop: '10px', marginLeft: '0px', color: 'green', display: 'flex', alignItems: 'center' }}>
-                                    <CheckCircleIcon style={{ marginRight: '5px' }} />
-                                    <span>{selectedFiles.length} imágenes seleccionadas</span>
-                                </div>
-                            )}
+                                    <div style={{ marginTop: '10px', marginLeft: '0px', color: 'green', display: 'flex', alignItems: 'center' }}>
+                                        <CheckCircleIcon style={{ marginRight: '5px' }} />
+                                        <span>{selectedFiles.length} imágenes seleccionadas</span>
+                                    </div>
+                                )}
                                 <Button onClick={handleClickOpenNew} color="primary" style={{ marginLeft: '20px', marginTop: '5px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '120px', borderRadius: '5px', marginRight: '15px' }}>
                                     GUARDAR
+                                </Button>
+
+                                <Button onClick={exportToExcel} style={{ marginLeft: '20px', marginTop: '5px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '120px', borderRadius: '5px', marginRight: '15px' }}>
+                                    EXPORT INF.
                                 </Button>
                             </div>
                         </div>

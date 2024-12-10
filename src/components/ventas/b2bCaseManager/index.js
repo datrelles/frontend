@@ -396,7 +396,7 @@ export const SellManagerB2B = () => {
                 },
             },
         }
-        // Añadir el resto de las columnas similares a las del componente original
+        
     ];
 
     const options = {
