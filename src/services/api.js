@@ -631,3 +631,19 @@ export const postChangePriceEcommerce = async (jwt, price) => {
     throw error;
   }
 };
+
+
+// Función para obtener los detalles del producto sin imágenes
+export const getProductDetailsWithoutImages = async (jwt, empresa) => {
+  try {
+    const response = await axios.get(`${API}/get_product_details_without_images?enterprise=${empresa}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error obteniendo los detalles del producto sin imágenes:", error);
+    throw error;
+  }
+};
