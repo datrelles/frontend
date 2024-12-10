@@ -272,7 +272,7 @@ export const UpdateImage = () => {
                                 </Button>
 
                                 <Button onClick={exportToExcel} style={{ marginLeft: '20px', marginTop: '5px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '120px', borderRadius: '5px', marginRight: '15px' }}>
-                                    Exportar
+                                    EXPORT INF.
                                 </Button>
                             </div>
                         </div>
