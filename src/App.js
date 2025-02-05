@@ -44,6 +44,22 @@ import Reports12 from "./components/Reports12";
 import Reports13 from "./components/Reports13";
 import Reports14 from "./components/Reports14";
 import Reports15 from "./components/Reports15";
+import Reports16 from "./components/Reports16";
+import Reports17 from "./components/Reports17";
+import Reports18 from "./components/Reports18";
+import Reports19 from "./components/Reports19";
+import Reports20 from "./components/Reports20";
+import Reports21 from "./components/Reports20";
+import Reports22 from "./components/Reports20";
+import Reports23 from "./components/Reports20";
+import Reports24 from "./components/Reports20";
+import Reports25 from "./components/Reports20";
+import Reports26 from "./components/Reports20";
+import Reports27 from "./components/Reports20";
+import Reports28 from "./components/Reports20";
+import Reports29 from "./components/Reports20";
+import Reports30 from "./components/Reports20";
+
 import Settings from "./components/Settings";
 import Menus from "./components/Menus";
 import Details from "./components/Details";
@@ -190,6 +206,22 @@ function App() {
                   <Route exact path="/reports13" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports13 /></Protected>}/>
                   <Route exact path="/reports14" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports14 /></Protected>}/>
                   <Route exact path="/reports15" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports15 /></Protected>}/>
+                  <Route exact path="/reports16" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports16 /></Protected>}/>
+                  <Route exact path="/reports17" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports17 /></Protected>}/>
+                  <Route exact path="/reports18" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports18 /></Protected>}/>
+                  <Route exact path="/reports19" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports19 /></Protected>}/>
+                  <Route exact path="/reports20" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports20 /></Protected>}/>
+                  <Route exact path="/reports21" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports21 /></Protected>}/>
+                  <Route exact path="/reports22" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports22 /></Protected>}/>
+                  <Route exact path="/reports23" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports23 /></Protected>}/>
+                  <Route exact path="/reports24" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports24 /></Protected>}/>
+                  <Route exact path="/reports25" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports25 /></Protected>}/>
+                  <Route exact path="/reports26" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports26 /></Protected>}/>
+                  <Route exact path="/reports27" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports27 /></Protected>}/>
+                  <Route exact path="/reports28" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports28 /></Protected>}/>
+                  <Route exact path="/reports29" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports29 /></Protected>}/>
+                  <Route exact path="/reports30" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports30 /></Protected>}/>
+
                   <Route exact path="/electronicFile" element={<Protected isLoggedIn={authorizedSystems.includes('CON')}><ElectronicFilesSri/></Protected>}/>
                   <Route exact path="/warranty" element={<Protected isLoggedIn={authorizedSystems.includes('GAR')}><CaseManager/></Protected>}/>
                   <Route exact path="/invoice" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><SellManager/></Protected>}/>
