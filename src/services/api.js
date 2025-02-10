@@ -230,6 +230,131 @@ export const getDataCityByProvince = async (jwt, codeProvince) => {
   }
 }
 
+
+/**
+ * 1) ENDPOINT: check_info_bye_engine_code
+ *    METHOD: GET
+ *    PATH: /check_info_bye_engine_code
+ *
+ *    Descripción: Verifica información de un motor usando el parámetro 'engine_code'.
+ */
+export const getCheckInfoByEngineCode = async (jwt, engineCode) => {
+  try {
+    const response = await axios.get(
+      `${API}/warranty/check_info_bye_engine_code?engine_code=${engineCode}`,
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      }
+    )
+    return response.data
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+/**
+ * 2) ENDPOINT: get_info_active_talleres
+ *    METHOD: GET
+ *    PATH: /get_info_active_talleres
+ *
+ *    Descripción: Retorna lista de talleres autorizados.
+ *    Recibe dos query params obligatorios:
+ *      - active (1 o 0)
+ *      - enterprise (código de empresa)
+ */
+export const getInfoActiveTalleres = async (jwt, active, enterprise) => {
+  try {
+    const response = await axios.get(
+      `${API}/warranty/get_info_active_talleres?active=${active}&enterprise=${enterprise}`,
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      }
+    )
+    return response.data
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+/**
+ * 3) ENDPOINT: get_cliente_data_for_id
+ *    METHOD: GET
+ *    PATH: /get_cliente_data_for_id
+ *
+ *    Descripción: Retorna datos de cliente según 'cod_cliente' y 'enterprise'.
+ */
+export const getClienteDataForId = async (jwt, codCliente, enterprise) => {
+  try {
+    const response = await axios.get(
+      `${API}/warranty/get_cliente_data_for_id?cod_cliente=${codCliente}&enterprise=${enterprise}`,
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      }
+    )
+    return response.data
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+/**
+ * 4) ENDPOINT: get_list_tipo_problema
+ *    METHOD: GET
+ *    PATH: /get_list_tipo_problema
+ *
+ *    Descripción: Retorna la lista de tipos de problema.
+ */
+export const getListTipoProblema = async (jwt) => {
+  try {
+    const response = await axios.get(`${API}/warranty/get_list_tipo_problema`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+    return response.data
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+/**
+ * 5) ENDPOINT: save_post_case_warranty
+ *    METHOD: POST
+ *    PATH: /save_post_case_warranty
+ *
+ *    Descripción: Guarda un caso de garantía (POST).
+ *    Recibe parámetros en el body (JSON) y:
+ *      - userShineray y enterpriseShineray por query string.
+ */
+export const postSaveCaseWarranty = async (jwt, dataCaso, userShineray, enterpriseShineray) => {
+  try {
+    const response = await axios.post(
+      `${API}/warranty/save_post_case_warranty?userShineray=${userShineray}&enterpriseShineray=${enterpriseShineray}`,
+      dataCaso,
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      }
+    )
+    return response.data
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+
 //PARTS UPDATE YEAR---------------------------------------
 
 export const getDataDespiece = async (jwt, codeEnterprise) => {
@@ -358,10 +483,6 @@ export const postCodComprobanteEcommerceCreditoDirecto = async (jwt, payMethod, 
     throw error;
   }
 };
-
-
-
-
 
 export const postImageMaterialDespiece = async (jwt, formData) => {
   try {
@@ -536,7 +657,6 @@ export const getCabCreditoDirecto = async (jwt) => {
   }
 };
 
-
 export const updateCabCreditoDirecto = async (jwt, data) => {
   try {
     const response = await axios.put(`${API}/update_cab_credito_directo`, data, {
@@ -551,7 +671,6 @@ export const updateCabCreditoDirecto = async (jwt, data) => {
     throw error;
   }
 };
-
 
 export const getDetCreditoDirecto = async (jwt, id_transaction) => {
   try {
@@ -631,8 +750,6 @@ export const postChangePriceEcommerce = async (jwt, price) => {
     throw error;
   }
 };
-
-
 // Función para obtener los detalles del producto sin imágenes
 export const getProductDetailsWithoutImages = async (jwt, empresa) => {
   try {
