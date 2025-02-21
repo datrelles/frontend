@@ -75,6 +75,7 @@ import SecondAuth from "./components/loginSecondAuth/secondAuth";
 import SaveDevice from "./components/loginSecondAuth/saveDevice";
 import { ElectronicFilesSri } from "./components/contabilidad/filesSri";
 import { CaseManager } from "./components/garantias/caseManager/caseManager";
+import { OpenCase } from "./components/garantias/openCase/openCase";
 import { UpdateYear } from "./components/repuestos/updateYear";
 import { SellManager } from "./components/ventas/caseManager/caseManager";
 import { TransEcommerce } from "./components/ventas/transportistas";
@@ -83,6 +84,7 @@ import { ParametrizacionModelosDespiece } from "./components/inventario/updateMo
 import { ParametrizacionModelosDespieceAnio } from "./components/inventario/updateModelDespieceYearBI";
 import { CreditoDirectoManager } from "./components/ventas/approveCredit";
 import { SellManagerB2B } from "./components/ventas/b2bCaseManager";
+import { AdminTallerUsuarios } from "./components/garantias/adminTallerUsuarios/adminTallerUsuarios";
 
 ///SellManagerB2B
 const API = process.env.REACT_APP_API;
@@ -224,6 +226,8 @@ function App() {
 
                   <Route exact path="/electronicFile" element={<Protected isLoggedIn={authorizedSystems.includes('CON')}><ElectronicFilesSri/></Protected>}/>
                   <Route exact path="/warranty" element={<Protected isLoggedIn={authorizedSystems.includes('GAR')}><CaseManager/></Protected>}/>
+                  <Route exact path="/warranty/openCaseWarranty" element={<Protected isLoggedIn={authorizedSystems.includes('GAR')}><OpenCase/></Protected>}/>
+                  <Route exacth path="/warranty/manageAdministradorTaller" element={<Protected isLoggedIn={authorizedSystems.includes('GAR')}><AdminTallerUsuarios/></Protected>}/>
                   <Route exact path="/invoice" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><SellManager/></Protected>}/>
                   <Route exact path="/transEcommerce" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><TransEcommerce/></Protected>}/>
                   <Route exact path="/approve_credit" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><CreditoDirectoManager/></Protected>}/>
