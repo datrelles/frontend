@@ -136,7 +136,8 @@ export const postPagoAnticipo = async (data, jwt) => {
   }
 }
 
-//MODULE GARRANTY-------------------------------------------------------------------------------------
+//MODULE GARRANTY---------------------------------------------------------------------------------------------
+
 export const getCasesPostVenta = async (jwt, start_date, end_date, statusWarranty, statusProcess, province, city) => {
   function formatNumber(num) {
     if (typeof num === 'number' && num < 10) {
@@ -283,12 +284,148 @@ export const getInfoActiveTalleres = async (jwt, active, enterprise) => {
 }
 
 /**
+ * Endpoint to retrieve information of users associated with the 'ASTGAR' role.
+ * GET /get_usuarios_rol_astgar
+ *
+ * Returns an array of objects:
+ * [
+ *   {
+ *     "usuario": "...",
+ *     "nombre": "...",
+ *     "apellido1": "..."
+ *   },
+ *   ...
+ * ]
+ */
+export const getUsuariosRolAstgar = async (jwt) => {
+  try {
+    const response = await axios.get(`${API}/warranty/get_usuarios_rol_astgar`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+/**
  * 3) ENDPOINT: get_cliente_data_for_id
  *    METHOD: GET
  *    PATH: /get_cliente_data_for_id
  *
  *    Descripción: Retorna datos de cliente según 'cod_cliente' y 'enterprise'.
  */
+
+/**
+ * 1) Endpoint to create (assign) a new record in AR_TALLER_SERVICIO_USUARIO
+ *    POST /assign_taller_usuario
+ *
+ *    Body JSON example:
+ *    {
+ *      "empresa": 20,
+ *      "codigo_taller": "T123",
+ *      "cod_rol": "ASTGAR",
+ *      "usuario": "AMENDOZA",
+ *      "activo": 1
+ *    }
+ */
+export const postAssignTallerUsuario = async (jwt, data) => {
+  try {
+    const response = await axios.post(`${API}/warranty/assign_taller_usuario`, data, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+/**
+ * 2) Endpoint to update an existing record in AR_TALLER_SERVICIO_USUARIO
+ *    PUT /update_taller_usuario
+ *
+ *    Body JSON example:
+ *    {
+ *      "empresa": 20,
+ *      "codigo_taller": "T123",
+ *      "cod_rol": "ASTGAR",
+ *      "usuario": "AMENDOZA",
+ *      "activo": 0,
+ *      "modificado_por": "ASANCHEZ"
+ *    }
+ */
+export const putUpdateTallerUsuario = async (jwt, data) => {
+  try {
+    const response = await axios.put(`${API}/warranty/update_taller_usuario`, data, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+/**
+ * 3) Endpoint to delete a record in AR_TALLER_SERVICIO_USUARIO
+ *    DELETE /delete_taller_usuario
+ *
+ *    Body JSON example:
+ *    {
+ *      "empresa": 20,
+ *      "codigo_taller": "T123",
+ *      "cod_rol": "ASTGAR",
+ *      "usuario": "AMENDOZA"
+ *    }
+ */
+export const deleteTallerUsuario = async (jwt, data) => {
+  try {
+    // Note that with DELETE, axios allows sending a "data" key in the config
+    // if you need to pass JSON in the body.
+    const response = await axios.delete(`${API}/warranty/delete_taller_usuario`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+      data: data,
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+
+export const getTallerUsuarioRelations = async (jwt, enterprise) => {
+  try {
+    let url = `${API}/warranty/get_taller_usuario_relations`;
+    if (enterprise) {
+      // Append query param if we want to filter by a specific empresa
+      url += `?empresa=${enterprise}`;
+    }
+
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
 export const getClienteDataForId = async (jwt, codCliente, enterprise) => {
   try {
     const response = await axios.get(
@@ -353,6 +490,35 @@ export const postSaveCaseWarranty = async (jwt, dataCaso, userShineray, enterpri
     throw error
   }
 }
+
+/**
+ * 6) ENDPOINT: get_caso_postventa
+ *    METHOD: GET
+ *    PATH: /get_caso_postventa
+ *
+ *    Descripción: Retorna la información de un caso postventa por:
+ *      - empresa
+ *      - tipo_comprobante
+ *      - cod_comprobante
+ */
+export const getCasoPostventa = async (jwt, empresa, tipoComprobante, codComprobante) => {
+  try {
+    const response = await axios.get(
+      `${API}/warranty/get_caso_postventa?empresa=${empresa}&tipo_comprobante=${tipoComprobante}&cod_comprobante=${codComprobante}`,
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      }
+    )
+    return response.data
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+
 
 
 //PARTS UPDATE YEAR---------------------------------------
