@@ -34,8 +34,12 @@ export const AdminTallerUsuarios = () => {
   // Edit mode
   const [editMode, setEditMode] = useState(false);
   const [relationshipToEdit, setRelationshipToEdit] = useState(null);
+  //filters
 
-  // Optional: If you have a navbar
+  const [filterProvince, setFilterProvince] = useState("");
+  const [filterCanton, setFilterCanton] = useState("");
+
+  //  If you have a navbar
   const [menus, setMenus] = useState([]);
 
   // --------------------------------------------------------
@@ -204,9 +208,29 @@ export const AdminTallerUsuarios = () => {
   //   ...
   // }, []);
 
-  // --------------------------------------------------------
-  // Render
-  // --------------------------------------------------------
+
+
+  // Get unique options for provinces and cantons
+const provinces = Array.from(new Set(talleres.map((t) => t.provincia)));
+const cantons = filterProvince
+  ? Array.from(
+      new Set(
+        talleres
+          .filter((t) => t.provincia === filterProvince)
+          .map((t) => t.canton)
+      )
+    )
+  : Array.from(new Set(talleres.map((t) => t.canton)));
+
+// Filter the talleres array based on the selected filters
+const filteredTalleres = talleres.filter(
+  (t) =>
+    (filterProvince === "" || t.provincia === filterProvince) &&
+    (filterCanton === "" || t.canton === filterCanton)
+);
+
+
+  
   return (
     <div style={{ marginTop: '150px', top: 0, left: 0, width: '100%', zIndex: 1000 }}>
       <Navbar0 menus={menus}  />
@@ -214,8 +238,8 @@ export const AdminTallerUsuarios = () => {
         <h2>Admin - Talleres & Usuarios (ASTGAR)</h2>
 
         {/* SELECT USER */}
-        <Box sx={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-          <FormControl sx={{ minWidth: 300 }}>
+        <Box sx={{ display: 'flex', gap: '20px', marginBottom: '20px'}}>
+          <FormControl sx={{ minWidth: 320 }}>
             <InputLabel>Usuario (ASTGAR)</InputLabel>
             <Select
               value={selectedUser}
@@ -235,29 +259,75 @@ export const AdminTallerUsuarios = () => {
         </Box>
 
         {/* SELECT TALLER */}
-        <Box sx={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-          <FormControl sx={{ minWidth: 300 }}>
-            <InputLabel>Taller Autorizado</InputLabel>
-            <Select
-              value={selectedTaller}
-              label="Taller Autorizado"
-              onChange={(e) => setSelectedTaller(e.target.value)}
-            >
-              <MenuItem value="">
-                <em>-- Seleccionar Taller --</em>
-              </MenuItem>
-              {talleres.map((t, idx) => (
-                <MenuItem key={idx} value={t.codigo}>
-                  {t.taller+ " "+"("+t.provincia+"-"+t.canton+")" }
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+{/* Box for selecting taller with filters */}
+<Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '20px' }}>
+  {/* Filters */}
+  <Box sx={{ display: 'flex', gap: '20px' }}>
+    <FormControl sx={{ minWidth: 150 }}>
+      <InputLabel>Province</InputLabel>
+      <Select
+        value={filterProvince}
+        label="Province"
+        onChange={(e) => {
+          setFilterProvince(e.target.value);
+          setFilterCanton(''); // Reset canton when changing province
+        }}
+      >
+        <MenuItem value="">
+          <em>All</em>
+        </MenuItem>
+        {provinces.map((prov, idx) => (
+          <MenuItem key={idx} value={prov}>
+            {prov}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
 
-          <Button variant="contained" onClick={handleAssign}>
-            Asignar Taller
-          </Button>
-        </Box>
+    <FormControl sx={{ minWidth: 150 }}>
+      <InputLabel>Canton</InputLabel>
+      <Select
+        value={filterCanton}
+        label="Canton"
+        onChange={(e) => setFilterCanton(e.target.value)}
+      >
+        <MenuItem value="">
+          <em>All</em>
+        </MenuItem>
+        {cantons.map((can, idx) => (
+          <MenuItem key={idx} value={can}>
+            {can}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  </Box>
+
+  {/* Taller selection based on the applied filters */}
+  <Box sx={{ display: 'flex', gap: '20px' }}>
+    <FormControl sx={{ minWidth: 320 }}>
+      <InputLabel>Authorized Taller</InputLabel>
+      <Select
+        value={selectedTaller}
+        label="Authorized Taller"
+        onChange={(e) => setSelectedTaller(e.target.value)}
+      >
+        <MenuItem value="">
+          <em>-- Select Taller --</em>
+        </MenuItem>
+        {filteredTalleres.map((t, idx) => (
+          <MenuItem key={idx} value={t.codigo}>
+            {t.taller + " (" + t.provincia + "-" + t.canton + ")"}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+
+    <Button variant="contained" onClick={handleAssign}>
+      Assign Taller
+    </Button>
+  </Box>
+</Box>
 
         {/* TABLE OF EXISTING RELATIONSHIPS */}
         <Box>
