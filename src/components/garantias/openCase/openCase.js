@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Button, TextField, Select, MenuItem, InputLabel, FormControl, Box } from '@mui/material'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
@@ -13,7 +13,8 @@ import {
   getListTipoProblema,
   postSaveCaseWarranty,
   getMenus,
-  getClienteDataForId
+  getClienteDataForId,
+  getIncidencesByMotorYear
 } from '../../../services/api'
 
 import { useAuthContext } from '../../../context/authContext'
@@ -28,6 +29,11 @@ export const OpenCase = () => {
   const [motorInfo, setMotorInfo] = useState(null)
   const [talleres, setTalleres] = useState([])
   const [selectedTaller, setSelectedTaller] = useState('')
+
+  // Nuevos estados para filtros de provincia y cantón
+  const [selectedProvincia, setSelectedProvincia] = useState('')
+  const [selectedCanton, setSelectedCanton] = useState('')
+
   const [tipoProblemas, setTipoProblemas] = useState([])
   const [kilometraje, setKilometraje] = useState('')
 
@@ -52,6 +58,8 @@ export const OpenCase = () => {
   const [problemList, setProblemList] = useState([
     { tipoProblema: '', descripcion: '' }
   ])
+  // INCIDENCIAS POR AÑO
+  const [incidencesByYear, setIncidencesByYear] = useState([])
 
   // MENU
   const [menus, setMenus] = useState([])
@@ -96,13 +104,38 @@ export const OpenCase = () => {
     menu()
   }, [userShineray, enterpriseShineray, jwt])
 
+  // ----- Cálculos para los filtros interdependientes -----
+  // Obtiene la lista única de provincias
+  const uniqueProvincias = useMemo(() => {
+    return [...new Set(talleres.map(t => t.provincia))]
+  }, [talleres])
+
+  // Obtiene la lista única de cantones en función de la provincia seleccionada
+  const uniqueCantones = useMemo(() => {
+    if (!selectedProvincia) return []
+    return [...new Set(talleres.filter(t => t.provincia === selectedProvincia).map(t => t.canton))]
+  }, [talleres, selectedProvincia])
+
+  // Filtra los talleres según la provincia y el cantón seleccionados
+  const filteredTalleres = useMemo(() => {
+    return talleres.filter(t => {
+      return (selectedProvincia ? t.provincia === selectedProvincia : true) &&
+             (selectedCanton ? t.canton === selectedCanton : true)
+    })
+  }, [talleres, selectedProvincia, selectedCanton])
+
   // ----- HANDLERS -----
   const handleBlurEngineCode = async () => {
     if (!engineCode) return
     try {
+      // 1) Llamada para traer info general del motor
       const info = await getCheckInfoByEngineCode(jwt, engineCode)
       setMotorInfo(info)
       toast.success('Información de motor cargada.')
+
+      // 2) Llamada para traer incidencias por año
+      const incidences = await getIncidencesByMotorYear(jwt, enterpriseShineray, engineCode)
+      setIncidencesByYear(incidences)
     } catch (error) {
       console.error(error)
       toast.error('No se encontró información para ese #Motor')
@@ -159,12 +192,14 @@ export const OpenCase = () => {
         PROBLEMAS: JSON.stringify(arrayProblemas),
         TELEFONO_CONTACTO1: telefonoContacto1,
         E_MAIL: email,
-        E_MAIL_NOTIFICACIONES: emailNotificaciones,
+        //E_MAIL_NOTIFICACIONES: emailNotificaciones,
+        MANUAL_GARANTIA: "0",
+        TELEFONO_CONTACTO2: telefonoContacto1,
       }
 
       console.log(dataCaso)
       const response = await postSaveCaseWarranty(jwt, dataCaso, userShineray, enterpriseShineray)
-      
+
       toast.success('Caso creado con éxito!')
       resetForm()
     } catch (error) {
@@ -188,6 +223,9 @@ export const OpenCase = () => {
     setEmail('')
     setEmailNotificaciones('')
     setProblemList([{ tipoProblema: '', descripcion: '' }])
+    // Reiniciamos también los filtros de taller
+    setSelectedProvincia('')
+    setSelectedCanton('')
   }
 
   // ----- RENDER -----
@@ -235,8 +273,8 @@ export const OpenCase = () => {
               label="Tipo ID"
               onChange={(e) => setTipoIdentificacion(e.target.value)}
             >
-              <MenuItem value="CED">Cédula</MenuItem>
-              <MenuItem value="PAS">RUC</MenuItem>
+              <MenuItem value='1' >Cédula</MenuItem>
+              <MenuItem value='2' >RUC</MenuItem>
             </Select>
           </FormControl>
 
@@ -271,7 +309,48 @@ export const OpenCase = () => {
           />
         </Box>
 
+        {/* FILTROS PARA TALLER */}
         <Box sx={{ display: 'flex', gap: '20px', marginTop: '20px', flexWrap: 'wrap' }}>
+          <FormControl sx={{ width: '250px' }}>
+            <InputLabel>Provincia</InputLabel>
+            <Select
+              value={selectedProvincia}
+              label="Provincia"
+              onChange={(e) => {
+                setSelectedProvincia(e.target.value)
+                setSelectedCanton('')
+                setSelectedTaller('')
+              }}
+            >
+              <MenuItem value="">-- Seleccionar --</MenuItem>
+              {uniqueProvincias.map((prov) => (
+                <MenuItem key={prov} value={prov}>
+                  {prov}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl sx={{ width: '250px' }}>
+            <InputLabel>Cantón</InputLabel>
+            <Select
+              value={selectedCanton}
+              label="Cantón"
+              onChange={(e) => {
+                setSelectedCanton(e.target.value)
+                setSelectedTaller('')
+              }}
+              disabled={!selectedProvincia}
+            >
+              <MenuItem value="">-- Seleccionar --</MenuItem>
+              {uniqueCantones.map((cant) => (
+                <MenuItem key={cant} value={cant}>
+                  {cant}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
           <FormControl sx={{ width: '250px' }}>
             <InputLabel>Taller</InputLabel>
             <Select
@@ -280,26 +359,26 @@ export const OpenCase = () => {
               onChange={(e) => setSelectedTaller(e.target.value)}
             >
               <MenuItem value="">-- Seleccionar --</MenuItem>
-              {talleres.map((t) => (
+              {filteredTalleres.map((t) => (
                 <MenuItem key={t.codigo} value={t.codigo}>
                   {t.taller}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
-          <LocalizationProvider dateAdapter={AdapterDayjs}  >
+
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
               label="Fecha Venta"
               views={['year', 'month']}
               value={fechaVenta}
               onChange={(newValue) => setFechaVenta(newValue)}
               format="YYYY/MM"
-           
             />
           </LocalizationProvider>
         </Box>
 
-        {/* SCROLL PARA LA SECCIÓN DE PROBLEMAS */}
+        {/* SECCIÓN DE PROBLEMAS */}
         <Box
           sx={{
             maxHeight: '180px',
@@ -379,6 +458,18 @@ export const OpenCase = () => {
             <p><b>Código Producto:</b> {motorInfo.COD_PRODUCTO}</p>
             <p><b>Chasis:</b> {motorInfo.COD_CHASIS}</p>
             <p><b>Importación:</b> {motorInfo.IMPORTACION}</p>
+
+            {/* Sección para número de incidencias por año */}
+            {incidencesByYear.length > 0 && (
+              <Box sx={{ marginTop: '20px' }}>
+                <h4>Número de incidencias por año:</h4>
+                {incidencesByYear.map((item, index) => (
+                  <p key={index}>
+                    Año {item.year}: <strong>{item.incidences}</strong> incidencias
+                  </p>
+                ))}
+              </Box>
+            )}
           </Box>
         )}
       </Box>
