@@ -518,6 +518,29 @@ export const getCasoPostventa = async (jwt, empresa, tipoComprobante, codComprob
   }
 }
 
+/**
+ * Description: Groups by year the number of incidences (cases),
+ * filtering by 'empresa' (company) and 'cod_motor_' (motor code)
+ * in the ST_CASOS_POSTVENTA table.
+ */
+export const getIncidencesByMotorYear = async (jwt, enterprise, motorCode) => {
+  try {
+    // Construct the endpoint URL with query parameters
+    // e.g. /get_incidences_by_motor_year?empresa=10&cod_motor_=ABC123
+    const url = `${API}/warranty/get_incidences_by_motor_year?empresa=${enterprise}&cod_motor_=${motorCode}`;
+
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
 
 
 
