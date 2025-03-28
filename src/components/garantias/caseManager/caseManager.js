@@ -19,6 +19,8 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 
+import { PedidoDialog } from './pedidosDialog'
+
 import Navbar0 from '../../Navbar0'
 import { useAuthContext } from '../../../context/authContext'
 import { getMenus } from '../../../services/api'
@@ -33,18 +35,18 @@ import {
   getPostventasObsByCod,
   putUpdatePostventasObs,
   deletePostventasObs,
-  // Importa aquí tu servicio para Generar Pedido, etc.
+  getCasoPostventa
 } from '../../../services/api'
-
-// Importamos la función que llama a la API de caso postventa
-import { getCasoPostventa } from '../../../services/api'
 
 import { ProgressBar } from './progressLine'
 import LoadingCircle from '../../contabilidad/loader'
 
+// Import your new API calls:
+import { cierrePrevio, cerrarCaso } from '../../../services/api'
+
 export const CaseManager = () => {
   const [menus, setMenus] = useState([]);
-  const { jwt, userShineray, enterpriseShineray, branchShineray, systemShineray } = useAuthContext()
+  const { jwt, userShineray, enterpriseShineray } = useAuthContext()
   const [loading, setLoading] = useState(false)
   const [fromDate, setFromDate] = useState(moment().subtract(1, "months"))
   const [toDate, setToDate] = useState(moment)
@@ -62,26 +64,19 @@ export const CaseManager = () => {
   const [provinces, setProvinces] = useState([]);
   const [cities, setCities] = useState([]);
 
-  // ---------------------------
-  // ESTADOS PARA OBSERVACIONES
-  // ---------------------------
+  // STATES FOR OBSERVATIONS
   const [observaciones, setObservaciones] = useState([]);
   const [editingObservation, setEditingObservation] = useState(null);
   const [editedObservationText, setEditedObservationText] = useState('');
   const observationRef = useRef(null);
 
-  // ---------------------------
-  // ESTADO PARA EL DIALOGO DE VISUALIZACIÓN/EDICIÓN
-  // ---------------------------
+  // DIALOG: Edit/view case
   const [openEdit, setOpenEdit] = useState(false);
   const [dataCasoPostventaEdit, setDataCasoPostventaEdit] = useState(null);
 
-  // ---------------------------
-  // ESTADO PARA EL NUEVO DIALOGO DE "REALIZAR PEDIDO"
-  // ---------------------------
+  // DIALOG: "Realizar Pedido"
   const [openPedido, setOpenPedido] = useState(false);
 
-  // Mapeo de tipos de problema (ya lo tenías en tu código)
   const listaProblemas = {
     46: "MOTOR",
     47: "ELECTRICO",
@@ -291,7 +286,7 @@ export const CaseManager = () => {
   }
 
   // --------------------------------------
-  // EFECTOS (USEEFFECT) - SIN ALTERAR NADA
+  // USEEFFECT (Menus)
   // --------------------------------------
   useEffect(() => {
     const menu = async () => {
@@ -306,6 +301,9 @@ export const CaseManager = () => {
     menu();
   }, [])
 
+  // --------------------------------------
+  // USEEFFECT - GET CASOS POSTVENTA
+  // --------------------------------------
   useEffect(() => {
     const functionGetCasosPostVenta = async (s, t) => {
       const start_date = s.format('DD/MM/YYYY')
@@ -364,13 +362,12 @@ export const CaseManager = () => {
     getDataCitiesFunction();
   }, [province])
 
-  // ----------------------------------------
-  // MANEJO DE SUB-CASOS (ya existente)
-  // ----------------------------------------
+  // SUBCASOS
   const handleRefresh = () => {
     setRegreshSubcases(prevState => !prevState);
   }
 
+  // MUI THEME
   const getMuiTheme = () =>
     createTheme({
       components: {
@@ -432,7 +429,6 @@ export const CaseManager = () => {
         setOpen(true);
       } catch (error) {
         toast.error('NO SE PUEDE CARGAR LOS SUBCASOS')
-        console.log('error')
         setLoading(false)
       }
     }
@@ -446,7 +442,6 @@ export const CaseManager = () => {
         setVideosSubCasesUrl(videos);
       } catch (error) {
         toast.error('NO SE PUEDE CARGAR LOS SUBCASOS')
-        console.log('error')
       }
     }
 
@@ -494,9 +489,7 @@ export const CaseManager = () => {
     setVideosSubCasesUrl([]);
   }
 
-  // ----------------------------------------
-  // MANEJO DEL NUEVO DIALOGO "EDITAR CASO"
-  // ----------------------------------------
+  // EDIT DIALOG
   const handleClickOpenEdit = async (rowData) => {
     const codComprobante = rowData[0]
     const empresa = 20
@@ -507,7 +500,7 @@ export const CaseManager = () => {
       const data = await getCasoPostventa(jwt, empresa, tipoComprobante, codComprobante)
       setDataCasoPostventaEdit(data)
 
-      // --- obtener observaciones ---
+      // Observations
       const obs = await getPostventasObsByCod(jwt, codComprobante)
       setObservaciones(obs)
 
@@ -525,14 +518,9 @@ export const CaseManager = () => {
     setDataCasoPostventaEdit(null)
   }
 
-  const handleSaveEdit = () => {
-    // Aquí podrías hacer un PUT/PATCH si quisieras editar.
-    toast.info("OPCION DESHABILITADA")
-  }
-
-  // -------------------------------------------------------
-  // MANEJO OBSERVACIONES
-  // -------------------------------------------------------
+  // -------------------------------
+  // HANDLERS FOR NEW OBSERVATIONS
+  // -------------------------------
   const handleAddObservation = async () => {
     if (!dataCasoPostventaEdit) return;
     const currentObservation = observationRef.current.value;
@@ -559,7 +547,7 @@ export const CaseManager = () => {
       toast.success("Observación agregada");
       observationRef.current.value = ''; // Limpia el campo
 
-      // Recargamos la lista
+      // Reload
       const obs = await getPostventasObsByCod(jwt, dataCasoPostventaEdit.cod_comprobante)
       setObservaciones(obs);
     } catch (error) {
@@ -598,7 +586,7 @@ export const CaseManager = () => {
       setEditingObservation(null);
       setEditedObservationText('');
 
-      // Vuelve a recargar la lista
+      // Reload
       const obs = await getPostventasObsByCod(jwt, editingObservation.cod_comprobante);
       setObservaciones(obs);
     } catch (error) {
@@ -614,7 +602,7 @@ export const CaseManager = () => {
       setLoading(true);
       await deletePostventasObs(jwt, obs.cod_comprobante, obs.secuencia);
       toast.success("Observación eliminada");
-      // Recargamos la lista
+      // Recarga
       const newObs = await getPostventasObsByCod(jwt, obs.cod_comprobante)
       setObservaciones(newObs);
     } catch (error) {
@@ -625,12 +613,74 @@ export const CaseManager = () => {
     }
   };
 
-  // -------------------------------------------------------
-  // DIALOGO PARA "REALIZAR PEDIDO" (NUEVO)
-  // -------------------------------------------------------
+  // -----------------------------------------
+  // CIERRE PREVIO
+  // -----------------------------------------
+  const handleCierrePrevio = async () => {
+    if (!dataCasoPostventaEdit) return;
+    try {
+      // Prompt for an observation (or you can open a small modal)
+      const observa = prompt("Ingrese observación para Cierre Previo:", "Cierre preliminar");
+      if (observa === null) return; // user clicked Cancel
+
+      const payload = {
+        empresa: dataCasoPostventaEdit.empresa,
+        tipoComprobante: dataCasoPostventaEdit.tipo_comprobante, 
+        codComprobante: dataCasoPostventaEdit.cod_comprobante,
+        observacion: observa,
+        usuarioCierra: userShineray
+      };
+
+      setLoading(true);
+      await cierrePrevio(jwt, payload);
+      toast.success("Cierre preliminar realizado con éxito.");
+      setLoading(false);
+
+      // (Optional) Refresh or close
+      // handleCloseEdit();
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+      toast.error("Error al realizar el cierre preliminar");
+    }
+  }
+
+  // -----------------------------------------
+  // CERRAR CASO DEFINITIVAMENTE
+  // -----------------------------------------
+  const handleCerrarCaso = async () => {
+    if (!dataCasoPostventaEdit) return;
+    try {
+      const observa = prompt("Ingrese la observación final del caso:", "Cierre definitivo");
+      if (observa === null) return;
+
+      const body = {
+        empresa: enterpriseShineray,
+        cod_comprobante: dataCasoPostventaEdit.cod_comprobante,
+        aplica_garantia: dataCasoPostventaEdit.aplica_garantia , // assume 2 = pendiente if not defined
+        observacion_final: observa,
+        usuario_cierra: userShineray,
+        tipo_comprobante: "CP",
+      };
+
+      setLoading(true);
+      await cerrarCaso(jwt, body);
+      toast.success("Caso cerrado definitivamente.");
+      setLoading(false);
+
+      // (Optional) Refresh or close
+      // handleCloseEdit();
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+      toast.error("Error al cerrar el caso");
+    }
+  }
+
+  // -----------------------------------------
+  // DIALOG: "REALIZAR PEDIDO"
+  // -----------------------------------------
   const handleOpenPedido = () => {
-    // AQUÍ podrías cargar la información que quieras mostrar en el pedido:
-    // ejemplo: fetchProductosGarantia(codComprobante), etc.
     setOpenPedido(true);
   };
 
@@ -638,21 +688,17 @@ export const CaseManager = () => {
     setOpenPedido(false);
   };
 
-  // Funciones de ejemplo para el desarrollo:
   const handleGenerarPedido = () => {
-    // TODO: Aquí tu lógica para generar un pedido específico.
-    // Ej: postGenerarPedido(...).then()...
     toast.info("Generar Pedido (uno) - Pendiente de implementar");
   };
 
   const handleGenerarPedidoTodos = () => {
-    // TODO: Aquí tu lógica para generar todos los pedidos.
     toast.info("Generar Pedido (todos) - Pendiente de implementar");
   };
 
-  // ----------------------------------------
-  // RENDER PRINCIPAL
-  // ----------------------------------------
+  // -----------------------------------------
+  // RENDER
+  // -----------------------------------------
   return (
     <>
       <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
@@ -778,11 +824,11 @@ export const CaseManager = () => {
           </ThemeProvider>
         </div>
       </div>
-      {/* --DIALOGO LIST (SUB CASOS)-- */}
+
+      {/* SUBCASES DIALOG */}
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
         <div style={{ display: 'flex', width: '100%' }}>
-
-          {/* Div izquierdo: 50% de ancho */}
+          {/* Left side */}
           <div style={{ width: '50%', margin: '10px' }}>
             <DialogContent>
               <Grid container spacing={2}>
@@ -848,7 +894,7 @@ export const CaseManager = () => {
             </div>
           </div>
 
-          {/* Div derecho: 50% de ancho */}
+          {/* Right side */}
           <div style={{ width: '50%', margin: '10px' }}>
             <Grid container spacing={2}>
               {imagesSubCasesUrl.map((image, index) => (
@@ -877,7 +923,7 @@ export const CaseManager = () => {
         </div>
       </Dialog>
 
-      {/* DIALOGO PARA VISUALIZAR/EDITAR EL CASO POSTVENTA */}
+      {/* EDIT / VIEW CASE DIALOG */}
       <Dialog open={openEdit} onClose={handleCloseEdit} maxWidth="md" fullWidth>
         <DialogTitle>Información del Caso Postventa</DialogTitle>
         <DialogContent dividers>
@@ -1113,9 +1159,7 @@ export const CaseManager = () => {
                 />
               </Grid>
 
-              {/* -------------------------------------- */}
-              {/* --- NUEVA SECCIÓN DE OBSERVACIONES --- */}
-              {/* -------------------------------------- */}
+              {/* OBSERVACIONES */}
               <Grid item xs={12}>
                 <Typography variant="h6" style={{ marginTop: '30px' }}>
                   Observaciones
@@ -1194,6 +1238,14 @@ export const CaseManager = () => {
                             >
                               Editar
                             </Button>
+                            <Button
+                              onClick={() => handleDeleteObservation(obs)}
+                              variant="outlined"
+                              color="error"
+                              size="small"
+                            >
+                              Eliminar
+                            </Button>
                           </div>
                         </>
                       )}
@@ -1207,160 +1259,37 @@ export const CaseManager = () => {
           )}
         </DialogContent>
         <DialogActions>
-          {/* Botón que abre el nuevo Diálogo de "Pedido" */}
+          {/* 1) ABRIR DIALOGO "REALIZAR PEDIDO" */}
           <Button onClick={handleOpenPedido} variant="contained" color="primary">
             Realizar Pedido
           </Button>
 
-          <Button onClick={handleSaveEdit} variant="contained" color="primary">
+          {/* 2) CIERRE PREVIO */}
+          <Button onClick={handleCierrePrevio} variant="contained" color="primary">
             Cierre Previo
           </Button>
-          <Button onClick={handleSaveEdit} variant="contained" color="primary">
+
+          {/* 3) CERRAR CASO DEFINITIVO */}
+          <Button onClick={handleCerrarCaso} variant="contained" color="primary">
             Cerrar Caso
           </Button>
+
           <Button onClick={handleCloseEdit} variant="outlined">
             Cerrar
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* -----------------------------------------
-          NUEVO DIALOG: "REALIZAR PEDIDO"
-          (Adaptado al estilo de la imagen)
-      ------------------------------------------ */}
-      <Dialog open={openPedido} onClose={handleClosePedido} maxWidth="md" fullWidth>
-        <DialogTitle>Generar Pedido</DialogTitle>
-        <DialogContent dividers>
-          {/* Encabezado similar a la imagen */}
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField
-                label="Identificación"
-                variant="outlined"
-                fullWidth
-                // TODO: data real
-                value="1234567890"
-                margin="dense"
-              />
-            </Grid>
+      {/* DIALOG "REALIZAR PEDIDO" */}
+      <PedidoDialog
+        openPedido={openPedido}
+        handleClosePedido={handleClosePedido}
+        handleGenerarPedido={handleGenerarPedido}
+        handleGenerarPedidoTodos={handleGenerarPedidoTodos}
+        dataCasoPostventaEdit={dataCasoPostventaEdit}
+      />
 
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField
-                label="Cliente"
-                variant="outlined"
-                fullWidth
-                // TODO: data real
-                value="MENENDEZ FERNANDEZ"
-                margin="dense"
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField
-                label="Dirección"
-                variant="outlined"
-                fullWidth
-                // TODO: data real
-                value="Direccion X"
-                margin="dense"
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField
-                label="Agencia"
-                variant="outlined"
-                fullWidth
-                // TODO: data real
-                value="F1 - Principal Repuestos"
-                margin="dense"
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField
-                label="Política"
-                variant="outlined"
-                fullWidth
-                // TODO: data real
-                value="GARANTIAS"
-                margin="dense"
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField
-                label="Agente"
-                variant="outlined"
-                fullWidth
-                // TODO: data real
-                value="001078 HERRERA"
-                margin="dense"
-              />
-            </Grid>
-          </Grid>
-
-          {/* Tabla de productos en garantía */}
-          <div style={{ marginTop: '20px' }}>
-            <Typography variant="subtitle1" style={{ marginBottom: '10px' }}>
-              Productos cubiertos por garantía
-            </Typography>
-
-            {/* 
-              Puedes usar MUIDataTable o una simple <table>.
-              Ejemplo de tabla simple con MUI (Grid + Paper):
-            */}
-            <Paper variant="outlined" style={{ padding: '10px' }}>
-              <Grid container style={{ fontWeight: 'bold', borderBottom: '1px solid #ccc', marginBottom: '5px' }}>
-                <Grid item xs={1}>Sec</Grid>
-                <Grid item xs={2}>Cod Producto</Grid>
-                <Grid item xs={2}>Lote</Grid>
-                <Grid item xs={3}>Producto</Grid>
-                <Grid item xs={2}>Cant.</Grid>
-                <Grid item xs={2}>Precio</Grid>
-              </Grid>
-
-              {/* EJEMPLO FILAS (harcodeado) */}
-              <Grid container style={{ borderBottom: '1px solid #eee', padding: '5px 0' }}>
-                <Grid item xs={1}>1</Grid>
-                <Grid item xs={2}>R150-151113</Grid>
-                <Grid item xs={2}>F1241213</Grid>
-                <Grid item xs={3}>OSCILANTE GNX LOC</Grid>
-                <Grid item xs={2}>
-                  <TextField
-                    type="number"
-                    size="small"
-                    defaultValue={1}
-                    style={{ width: '60px' }}
-                  />
-                </Grid>
-                <Grid item xs={2}>24.13</Grid>
-              </Grid>
-
-              {/* Agrega más filas segun sea necesario */}
-              {/* ... */}
-
-              <div style={{ textAlign: 'right', marginTop: '10px' }}>
-                Total: 24.13
-              </div>
-            </Paper>
-          </div>
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={handleGenerarPedido} variant="contained" color="primary">
-            Generar Pedido
-          </Button>
-          <Button onClick={handleGenerarPedidoTodos} variant="contained" color="primary">
-            Generar Pedido (todos)
-          </Button>
-          <Button onClick={handleClosePedido} variant="outlined">
-            Cerrar
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Capa de loading */}
+      {/* LOADING SPINNER */}
       {loading && (
         <div
           style={{
@@ -1382,4 +1311,3 @@ export const CaseManager = () => {
     </>
   )
 }
-
