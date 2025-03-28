@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import MUIDataTable from 'mui-datatables'
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { toast } from 'react-toastify';
@@ -10,7 +10,6 @@ import moment from "moment";
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
-
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -29,7 +28,12 @@ import {
   putCasesPostVentaSubCases,
   getCasesPostVentaSubcasesUrl,
   getDataProvinces,
-  getDataCityByProvince
+  getDataCityByProvince,
+  postPostventasObs,
+  getPostventasObsByCod,
+  putUpdatePostventasObs,
+  deletePostventasObs,
+  // Importa aquí tu servicio para Generar Pedido, etc.
 } from '../../../services/api'
 
 // Importamos la función que llama a la API de caso postventa
@@ -59,10 +63,23 @@ export const CaseManager = () => {
   const [cities, setCities] = useState([]);
 
   // ---------------------------
+  // ESTADOS PARA OBSERVACIONES
+  // ---------------------------
+  const [observaciones, setObservaciones] = useState([]);
+  const [editingObservation, setEditingObservation] = useState(null);
+  const [editedObservationText, setEditedObservationText] = useState('');
+  const observationRef = useRef(null);
+
+  // ---------------------------
   // ESTADO PARA EL DIALOGO DE VISUALIZACIÓN/EDICIÓN
   // ---------------------------
   const [openEdit, setOpenEdit] = useState(false);
   const [dataCasoPostventaEdit, setDataCasoPostventaEdit] = useState(null);
+
+  // ---------------------------
+  // ESTADO PARA EL NUEVO DIALOGO DE "REALIZAR PEDIDO"
+  // ---------------------------
+  const [openPedido, setOpenPedido] = useState(false);
 
   // Mapeo de tipos de problema (ya lo tenías en tu código)
   const listaProblemas = {
@@ -91,7 +108,6 @@ export const CaseManager = () => {
     68: "OBSEQUIOS"
   }
 
-  // COLUMNAS DE LA TABLA (no se altera nada del funcionamiento original)
   const columnsCasosPostventa = [
     {
       name: "cod_comprobante",
@@ -227,6 +243,24 @@ export const CaseManager = () => {
         ),
       },
     },
+
+    {
+      name: "Detalles",
+      label: "Detalles",
+      options: {
+        customBodyRender: (_, tableMeta) => {
+          return (
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => handleClickOpenEdit(tableMeta.rowData)}
+            >
+              ABRIR
+            </Button>
+          );
+        }
+      }
+    },
     {
       name: "fecha_cierre",
       label: "FECHA CIERRE",
@@ -248,32 +282,12 @@ export const CaseManager = () => {
           </div>
         ),
       },
-    },
-    // BOTÓN EXTRA PARA VISUALIZAR/EDITAR EL CASO POSTVENTA
-    {
-      name: "editar",
-      label: "Editar",
-      options: {
-        customBodyRender: (_, tableMeta) => {
-          // tableMeta.rowData corresponde a la data de esa fila
-          // en el orden definido arriba
-          return (
-            <Button
-              variant="contained"
-              color="secondary"
-              onClick={() => handleClickOpenEdit(tableMeta.rowData)}
-            >
-              EDITAR
-            </Button>
-          );
-        }
-      }
     }
   ];
 
   const options = {
     selectableRows: false,
-    rowsPerPage: 100
+    rowsPerPage: 10
   }
 
   // --------------------------------------
@@ -357,55 +371,56 @@ export const CaseManager = () => {
     setRegreshSubcases(prevState => !prevState);
   }
 
-  const getMuiTheme = () => createTheme({
-    components: {
-      MuiTableCell: {
-        styleOverrides: {
-          root: {
-            paddingLeft: '3px',
-            paddingRight: '3px',
-            paddingTop: '0px',
-            paddingBottom: '0px',
-            backgroundColor: '#00000',
-            whiteSpace: 'nowrap',
-            flex: 1,
-            borderBottom: '1px solid #ddd',
-            borderRight: '1px solid #ddd',
-            fontSize: '14px'
-          },
-          head: {
-            backgroundColor: 'firebrick',
-            color: '#ffffff',
-            fontWeight: 'bold',
-            paddingLeft: '0px',
-            paddingRight: '0px',
-            fontSize: '12px'
-          },
-        }
-      },
-      MuiTable: {
-        styleOverrides: {
-          root: {
-            borderCollapse: 'collapse',
+  const getMuiTheme = () =>
+    createTheme({
+      components: {
+        MuiTableCell: {
+          styleOverrides: {
+            root: {
+              paddingLeft: '3px',
+              paddingRight: '3px',
+              paddingTop: '0px',
+              paddingBottom: '0px',
+              backgroundColor: '#00000',
+              whiteSpace: 'nowrap',
+              flex: 1,
+              borderBottom: '1px solid #ddd',
+              borderRight: '1px solid #ddd',
+              fontSize: '14px'
+            },
+            head: {
+              backgroundColor: 'firebrick',
+              color: '#ffffff',
+              fontWeight: 'bold',
+              paddingLeft: '0px',
+              paddingRight: '0px',
+              fontSize: '12px'
+            },
+          }
+        },
+        MuiTable: {
+          styleOverrides: {
+            root: {
+              borderCollapse: 'collapse',
+            },
           },
         },
-      },
-      MuiTableHead: {
-        styleOverrides: {
-          root: {
-            borderBottom: '5px solid #ddd',
+        MuiTableHead: {
+          styleOverrides: {
+            root: {
+              borderBottom: '5px solid #ddd',
+            },
           },
         },
-      },
-      MuiToolbar: {
-        styleOverrides: {
-          regular: {
-            minHeight: '10px',
+        MuiToolbar: {
+          styleOverrides: {
+            regular: {
+              minHeight: '10px',
+            }
           }
         }
       }
-    }
-  });
+    });
 
   const handleClickOpenNew = (cod_comprobante) => {
     const fetchDataSubcases = async () => {
@@ -483,16 +498,6 @@ export const CaseManager = () => {
   // MANEJO DEL NUEVO DIALOGO "EDITAR CASO"
   // ----------------------------------------
   const handleClickOpenEdit = async (rowData) => {
-    /*
-      rowData es un array con las celdas de la fila en orden:
-        rowData[0] -> cod_comprobante
-        rowData[1] -> % de avance
-        ...
-      Ajusta según tu lógica real si necesitas.
-      
-      En este ejemplo forzamos (empresa=1, tipoComprobante="FA").
-      Cámbialos para que coincidan con tu implementación real.
-    */
     const codComprobante = rowData[0]
     const empresa = 20
     const tipoComprobante = "CP"
@@ -501,6 +506,11 @@ export const CaseManager = () => {
       setLoading(true)
       const data = await getCasoPostventa(jwt, empresa, tipoComprobante, codComprobante)
       setDataCasoPostventaEdit(data)
+
+      // --- obtener observaciones ---
+      const obs = await getPostventasObsByCod(jwt, codComprobante)
+      setObservaciones(obs)
+
       setOpenEdit(true)
       setLoading(false)
     } catch (error) {
@@ -517,179 +527,303 @@ export const CaseManager = () => {
 
   const handleSaveEdit = () => {
     // Aquí podrías hacer un PUT/PATCH si quisieras editar.
-    // Ahora solo mostramos un mensaje de ejemplo.
-    toast.info("Aquí iría la lógica para GUARDAR cambios (PUT/PATCH).")
-    handleCloseEdit()
+    toast.info("OPCION DESHABILITADA")
   }
+
+  // -------------------------------------------------------
+  // MANEJO OBSERVACIONES
+  // -------------------------------------------------------
+  const handleAddObservation = async () => {
+    if (!dataCasoPostventaEdit) return;
+    const currentObservation = observationRef.current.value;
+    if (!currentObservation.trim()) {
+      toast.error("La observación está vacía");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const currentDateTime = moment().format('YYYY-MM-DDTHH:mm:ss');
+
+      const payload = {
+        empresa: 20,
+        tipo_comprobante: "CP",
+        cod_comprobante: dataCasoPostventaEdit.cod_comprobante,
+        fecha: currentDateTime,
+        usuario: userShineray,
+        observacion: currentObservation,
+        tipo: "OBS"
+      };
+
+      await postPostventasObs(jwt, payload);
+      toast.success("Observación agregada");
+      observationRef.current.value = ''; // Limpia el campo
+
+      // Recargamos la lista
+      const obs = await getPostventasObsByCod(jwt, dataCasoPostventaEdit.cod_comprobante)
+      setObservaciones(obs);
+    } catch (error) {
+      console.log(error);
+      toast.error("Error al agregar la observación");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditObservation = (obs) => {
+    setEditingObservation(obs);
+    setEditedObservationText(obs.observacion);
+  };
+
+  const handleUpdateObservation = async () => {
+    if (!editingObservation) return;
+
+    try {
+      setLoading(true);
+      const updatePayload = {
+        fecha: editingObservation.fecha,
+        usuario: editingObservation.usuario,
+        observacion: editedObservationText,
+        tipo: editingObservation.tipo
+      };
+
+      await putUpdatePostventasObs(
+        jwt,
+        editingObservation.cod_comprobante,
+        editingObservation.secuencia,
+        updatePayload
+      );
+
+      toast.success("Observación actualizada");
+      setEditingObservation(null);
+      setEditedObservationText('');
+
+      // Vuelve a recargar la lista
+      const obs = await getPostventasObsByCod(jwt, editingObservation.cod_comprobante);
+      setObservaciones(obs);
+    } catch (error) {
+      console.log(error);
+      toast.error("Error al actualizar la observación");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteObservation = async (obs) => {
+    try {
+      setLoading(true);
+      await deletePostventasObs(jwt, obs.cod_comprobante, obs.secuencia);
+      toast.success("Observación eliminada");
+      // Recargamos la lista
+      const newObs = await getPostventasObsByCod(jwt, obs.cod_comprobante)
+      setObservaciones(newObs);
+    } catch (error) {
+      console.log(error);
+      toast.error("No se pudo eliminar la observación");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // -------------------------------------------------------
+  // DIALOGO PARA "REALIZAR PEDIDO" (NUEVO)
+  // -------------------------------------------------------
+  const handleOpenPedido = () => {
+    // AQUÍ podrías cargar la información que quieras mostrar en el pedido:
+    // ejemplo: fetchProductosGarantia(codComprobante), etc.
+    setOpenPedido(true);
+  };
+
+  const handleClosePedido = () => {
+    setOpenPedido(false);
+  };
+
+  // Funciones de ejemplo para el desarrollo:
+  const handleGenerarPedido = () => {
+    // TODO: Aquí tu lógica para generar un pedido específico.
+    // Ej: postGenerarPedido(...).then()...
+    toast.info("Generar Pedido (uno) - Pendiente de implementar");
+  };
+
+  const handleGenerarPedidoTodos = () => {
+    // TODO: Aquí tu lógica para generar todos los pedidos.
+    toast.info("Generar Pedido (todos) - Pendiente de implementar");
+  };
 
   // ----------------------------------------
   // RENDER PRINCIPAL
   // ----------------------------------------
   return (
     <>
-      {loading ? (
-        <LoadingCircle />
-      ) : (
-        <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
-          <Navbar0 menus={menus} />
+      <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
+        <Navbar0 menus={menus} />
 
-          <div style={{ display: 'flex' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', margin: '25px' }}>
-              <div>
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                  <DemoContainer components={['DatePicker']}>
-                    <DatePicker
-                      label="Fecha Desde"
-                      value={fromDate}
-                      onChange={(newValue) => setFromDate(newValue)}
-                      renderInput={(params) => <TextField {...params} />}
-                      format="DD/MM/YYYY"
-                    />
-                  </DemoContainer>
-                </LocalizationProvider>
-              </div>
-              <div style={{ margin: '0 5px' }}>
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                  <DemoContainer components={['DatePicker']}>
-                    <DatePicker
-                      label="Fecha Hasta"
-                      value={toDate}
-                      onChange={(newValue) => setToDate(newValue)}
-                      renderInput={(params) => <TextField {...params} />}
-                      format="DD/MM/YYYY"
-                    />
-                  </DemoContainer>
-                </LocalizationProvider>
-              </div>
+        <div style={{ display: 'flex' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', margin: '25px' }}>
+            <div>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DemoContainer components={['DatePicker']}>
+                  <DatePicker
+                    label="Fecha Desde"
+                    value={fromDate}
+                    onChange={(newValue) => setFromDate(newValue)}
+                    renderInput={(params) => <TextField {...params} />}
+                    format="DD/MM/YYYY"
+                  />
+                </DemoContainer>
+              </LocalizationProvider>
             </div>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'left', alignItems: 'space-between', marginLeft: '25px', width: '350px' }}>
-            <div style={{ width: '48%', marginRight: '10px' }}>
-              <label>Garantia</label>
-              <Select
-                margin="dense"
-                id="aplica_garantia"
-                name="Garantia"
-                label="Garantia"
-                style={{ width: '100%' }}
-                value={statusWarranty}
-                onChange={(event) => setStatusWarranty(event.target.value)}
-              >
-                <MenuItem value="2">Pendiente</MenuItem>
-                <MenuItem value="1">Aplica Garantia</MenuItem>
-                <MenuItem value="0">No Aplica</MenuItem>
-              </Select>
+            <div style={{ margin: '0 5px' }}>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DemoContainer components={['DatePicker']}>
+                  <DatePicker
+                    label="Fecha Hasta"
+                    value={toDate}
+                    onChange={(newValue) => setToDate(newValue)}
+                    renderInput={(params) => <TextField {...params} />}
+                    format="DD/MM/YYYY"
+                  />
+                </DemoContainer>
+              </LocalizationProvider>
             </div>
-
-            <div style={{ width: '48%', marginRight: '10px' }}>
-              <label>Estado</label>
-              <Select
-                margin="dense"
-                id="status_case"
-                name="status_case"
-                label="Proceso"
-                style={{ width: '100%' }}
-                value={statusProcess}
-                onChange={(event) => setStatusProcess(event.target.value)}
-              >
-                <MenuItem value="">Todos</MenuItem>
-                <MenuItem value="A">Pendiente</MenuItem>
-                <MenuItem value="P">En Proceso</MenuItem>
-                <MenuItem value="R">Cierre Previo</MenuItem>
-                <MenuItem value="C">Cerrado</MenuItem>
-              </Select>
-            </div>
-
-            <div style={{ width: '48%', marginRight: '10px' }}>
-              <label>Provincia</label>
-              <Select
-                margin="dense"
-                id="province"
-                name="provincia"
-                label="provincia"
-                style={{ width: '100%' }}
-                value={province}
-                onChange={(event) => setProvince(event.target.value)}
-              >
-                {provinces.map((p) => (
-                  <MenuItem key={p.codigo_provincia} value={p.codigo_provincia}>
-                    {p.descripcion}
-                  </MenuItem>
-                ))}
-                <MenuItem value=''>Todos</MenuItem>
-              </Select>
-            </div>
-
-            <div style={{ width: '48%', marginRight: '10px' }}>
-              <label>Ciudad</label>
-              <Select
-                margin="dense"
-                id="aplica_garantia"
-                name="Garantia"
-                label="Garantia"
-                style={{ width: '100%' }}
-                value={city}
-                onChange={(event) => setCity(event.target.value)}
-              >
-                {cities.map((c) => (
-                  <MenuItem key={c.codigo_ciudad} value={c.codigo_ciudad}>
-                    {c.descripcion}
-                  </MenuItem>
-                ))}
-                <MenuItem value=''>Todos</MenuItem>
-              </Select>
-            </div>
-          </div>
-
-          <div style={{ margin: '25px' }}>
-            <ThemeProvider theme={getMuiTheme()}>
-              <MUIDataTable
-                title={"Casos PostVenta"}
-                data={dataCasosPostVenta}
-                columns={columnsCasosPostventa}
-                options={options}
-              />
-            </ThemeProvider>
           </div>
         </div>
-      )}
 
+        <div style={{ display: 'flex', justifyContent: 'left', alignItems: 'space-between', marginLeft: '25px', width: '350px' }}>
+          <div style={{ width: '48%', marginRight: '10px' }}>
+            <label>Garantia</label>
+            <Select
+              margin="dense"
+              id="aplica_garantia"
+              name="Garantia"
+              label="Garantia"
+              style={{ width: '100%' }}
+              value={statusWarranty}
+              onChange={(event) => setStatusWarranty(event.target.value)}
+            >
+              <MenuItem value="2">Pendiente</MenuItem>
+              <MenuItem value="1">Aplica Garantia</MenuItem>
+              <MenuItem value="0">No Aplica</MenuItem>
+            </Select>
+          </div>
+
+          <div style={{ width: '48%', marginRight: '10px' }}>
+            <label>Estado</label>
+            <Select
+              margin="dense"
+              id="status_case"
+              name="status_case"
+              label="Proceso"
+              style={{ width: '100%' }}
+              value={statusProcess}
+              onChange={(event) => setStatusProcess(event.target.value)}
+            >
+              <MenuItem value="">Todos</MenuItem>
+              <MenuItem value="A">Pendiente</MenuItem>
+              <MenuItem value="P">En Proceso</MenuItem>
+              <MenuItem value="R">Cierre Previo</MenuItem>
+              <MenuItem value="C">Cerrado</MenuItem>
+            </Select>
+          </div>
+
+          <div style={{ width: '48%', marginRight: '10px' }}>
+            <label>Provincia</label>
+            <Select
+              margin="dense"
+              id="province"
+              name="provincia"
+              label="provincia"
+              style={{ width: '100%' }}
+              value={province}
+              onChange={(event) => setProvince(event.target.value)}
+            >
+              {provinces.map((p) => (
+                <MenuItem key={p.codigo_provincia} value={p.codigo_provincia}>
+                  {p.descripcion}
+                </MenuItem>
+              ))}
+              <MenuItem value=''>Todos</MenuItem>
+            </Select>
+          </div>
+
+          <div style={{ width: '48%', marginRight: '10px' }}>
+            <label>Ciudad</label>
+            <Select
+              margin="dense"
+              id="aplica_garantia"
+              name="Garantia"
+              label="Garantia"
+              style={{ width: '100%' }}
+              value={city}
+              onChange={(event) => setCity(event.target.value)}
+            >
+              {cities.map((c) => (
+                <MenuItem key={c.codigo_ciudad} value={c.codigo_ciudad}>
+                  {c.descripcion}
+                </MenuItem>
+              ))}
+              <MenuItem value=''>Todos</MenuItem>
+            </Select>
+          </div>
+        </div>
+
+        <div style={{ margin: '25px' }}>
+          <ThemeProvider theme={getMuiTheme()}>
+            <MUIDataTable
+              title={"Casos PostVenta"}
+              data={dataCasosPostVenta}
+              columns={columnsCasosPostventa}
+              options={options}
+            />
+          </ThemeProvider>
+        </div>
+      </div>
       {/* --DIALOGO LIST (SUB CASOS)-- */}
-      <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth >
-        <div style={{ display: "flex" }}>
-          <div>
+      <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+        <div style={{ display: 'flex', width: '100%' }}>
+
+          {/* Div izquierdo: 50% de ancho */}
+          <div style={{ width: '50%', margin: '10px' }}>
             <DialogContent>
               <Grid container spacing={2}>
-                {subCases.map((item, index) => (
-                  <Grid item xs={12} key={index}>
-                    <div>
-                      <TextField
-                        label={listaProblemas[item.codigo_problema]}
-                        value={item.descripcion}
-                        variant="outlined"
-                        fullWidth
-                        disabled
-                      />
-                      <TextField
-                        select
-                        label="Estado"
-                        value={approvalData[index] ? approvalData[index].estado : subCases[index].estado}
-                        onChange={(e) => handleApproval(index, e.target.value)}
-                        variant="outlined"
-                        fullWidth
-                        style={{ marginTop: '8px' }}
-                      >
-                        <MenuItem value={2}>Pendiente</MenuItem>
-                        <MenuItem value={1}>Aprobado</MenuItem>
-                        <MenuItem value={0}>Rechazado</MenuItem>
-                      </TextField>
-                    </div>
-                    <div style={{ width: '100%', height: '1px', background: 'black', marginTop: '10px' }}></div>
+                {subCases.length === 0 ? (
+                  <Grid item xs={12} container justifyContent="center" alignItems="center">
+                    <Typography variant="body1">No hay subcasos</Typography>
                   </Grid>
-                ))}
+                ) : (
+                  subCases.map((item, index) => (
+                    <Grid item xs={12} key={index}>
+                      <Paper style={{ padding: '16px', marginBottom: '16px' }}>
+                        <TextField
+                          label={listaProblemas[item.codigo_problema]}
+                          value={item.descripcion}
+                          variant="outlined"
+                          fullWidth
+                          disabled
+                          multiline
+                          minRows={2}
+                          maxRows={3}
+                        />
+                        <TextField
+                          select
+                          label="Estado"
+                          value={approvalData[index] ? approvalData[index].estado : subCases[index].estado}
+                          onChange={(e) => handleApproval(index, e.target.value)}
+                          variant="outlined"
+                          fullWidth
+                          style={{ marginTop: '8px' }}
+                        >
+                          <MenuItem value={2}>Pendiente</MenuItem>
+                          <MenuItem value={1}>Aprobado</MenuItem>
+                          <MenuItem value={0}>Rechazado</MenuItem>
+                        </TextField>
+                      </Paper>
+                    </Grid>
+                  ))
+                )}
               </Grid>
             </DialogContent>
+
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <DialogActions>
                 <Button
@@ -714,12 +848,12 @@ export const CaseManager = () => {
             </div>
           </div>
 
-          <div style={{ margin: "25px" }}>
+          {/* Div derecho: 50% de ancho */}
+          <div style={{ width: '50%', margin: '10px' }}>
             <Grid container spacing={2}>
-              {/* Renderiza las imágenes */}
               {imagesSubCasesUrl.map((image, index) => (
-                <Grid item key={index}>
-                  <Paper style={{ width: "200px", height: "200px" }}>
+                <Grid item xs={6} sm={6} key={index}>
+                  <Paper style={{ width: '100%', height: '200px' }}>
                     <img
                       src={image.toLowerCase()}
                       alt={`Image ${index + 1}`}
@@ -730,8 +864,7 @@ export const CaseManager = () => {
               ))}
             </Grid>
 
-            {/* Renderiza los enlaces de los videos */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", margin: "10px" }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '10px' }}>
               {videosSubCasesUrl.map((video, index) => (
                 <Typography key={index} component="div" variant="body1">
                   <a href={video.toLowerCase()} target="_blank" rel="noopener noreferrer">
@@ -744,43 +877,38 @@ export const CaseManager = () => {
         </div>
       </Dialog>
 
-      {/* -- NUEVO DIALOGO PARA VISUALIZAR/EDITAR EL CASO POSTVENTA -- */}
+      {/* DIALOGO PARA VISUALIZAR/EDITAR EL CASO POSTVENTA */}
       <Dialog open={openEdit} onClose={handleCloseEdit} maxWidth="md" fullWidth>
         <DialogTitle>Información del Caso Postventa</DialogTitle>
         <DialogContent dividers>
           {dataCasoPostventaEdit ? (
             <Grid container spacing={2}>
-
-              {/* Puedes acomodarlos en dos columnas, en la que quieras. Aquí se hace a 2 columnas (xs={12} sm={6}). */}
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Código Caso"
+                  value={dataCasoPostventaEdit.cod_comprobante || ''}
+                  fullWidth
+                  margin="dense"
+                  InputProps={{ readOnly: true }}
+                />
+              </Grid>
 
               <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Nombre Caso"
+                  value={dataCasoPostventaEdit.cod_motor || ''}
+                  fullWidth
+                  margin="dense"
+                  InputProps={{ readOnly: true }}
+                />
+              </Grid>
 
-                <Grid item xs={12} >
-                  <TextField
-                    label="Código Caso"
-                    value={dataCasoPostventaEdit.cod_comprobante || ''}
-                    fullWidth
-                    margin="dense"
-                    InputProps={{ readOnly: true }}
-                  />
-                </Grid>
-
-                <Grid item xs={12}>
-                  <TextField
-                    label="Nombre Caso"
-                    value={dataCasoPostventaEdit.cod_motor || ''}
-                    fullWidth
-                    margin="dense"
-                    InputProps={{ readOnly: true }}
-                  />
-                </Grid>
-
+              <Grid item xs={12} sm={6}>
                 <TextField
                   label="Adicionado por"
                   value={dataCasoPostventaEdit.adicionado_por || ''}
                   fullWidth
                   margin="dense"
-
                 />
               </Grid>
 
@@ -794,22 +922,20 @@ export const CaseManager = () => {
                 />
               </Grid>
 
-
-
               <Grid item xs={12} sm={6}>
                 <TextField
-                  label="Aplica Garantia (1 Subcaso)"
+                  label="Aplica Garantia"
                   value={
                     dataCasoPostventaEdit.aplica_garantia === 1 ? "APROBADA" :
                       dataCasoPostventaEdit.aplica_garantia === 0 ? "NEGADA" :
-                        dataCasoPostventaEdit.aplica_garantia === 2 ? "PENDIENTE" : ''
+                        dataCasoPostventaEdit.aplica_garantia === 2 ? "PENDIENTE" :
+                          ''
                   }
                   fullWidth
                   margin="dense"
                   InputProps={{ readOnly: true }}
                 />
               </Grid>
-
 
               <Grid item xs={12} sm={6}>
                 <TextField
@@ -821,7 +947,6 @@ export const CaseManager = () => {
                 />
               </Grid>
 
-
               <Grid item xs={12} sm={6}>
                 <TextField
                   label="cod producto"
@@ -831,7 +956,6 @@ export const CaseManager = () => {
                   InputProps={{ readOnly: true }}
                 />
               </Grid>
-
 
               <Grid item xs={12}>
                 <TextField
@@ -863,12 +987,16 @@ export const CaseManager = () => {
                 />
               </Grid>
 
-
-
               <Grid item xs={12} sm={6}>
                 <TextField
                   label="estado"
-                  value={dataCasoPostventaEdit.estado || ''}
+                  value={
+                    dataCasoPostventaEdit.estado === 'A' ? 'Pendiente' :
+                      dataCasoPostventaEdit.estado === 'P' ? 'En proceso' :
+                        dataCasoPostventaEdit.estado === 'R' ? 'R cierre previo' :
+                          dataCasoPostventaEdit.estado === 'C' ? 'C cerrado' :
+                            ''
+                  }
                   fullWidth
                   margin="dense"
                   InputProps={{ readOnly: true }}
@@ -935,22 +1063,10 @@ export const CaseManager = () => {
                 />
               </Grid>
 
-
               <Grid item xs={12}>
                 <TextField
                   label="nombre cliente"
                   value={dataCasoPostventaEdit.nombre_cliente || ''}
-                  fullWidth
-                  margin="dense"
-                  InputProps={{ readOnly: true }}
-                />
-              </Grid>
-
-
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="observacion final"
-                  value={dataCasoPostventaEdit.observacion_final || ''}
                   fullWidth
                   margin="dense"
                   InputProps={{ readOnly: true }}
@@ -996,20 +1112,274 @@ export const CaseManager = () => {
                   InputProps={{ readOnly: true }}
                 />
               </Grid>
+
+              {/* -------------------------------------- */}
+              {/* --- NUEVA SECCIÓN DE OBSERVACIONES --- */}
+              {/* -------------------------------------- */}
+              <Grid item xs={12}>
+                <Typography variant="h6" style={{ marginTop: '30px' }}>
+                  Observaciones
+                </Typography>
+
+                <div style={{ display: 'flex', marginTop: '10px', marginBottom: '20px' }}>
+                  <TextField
+                    label="Nueva Observación"
+                    inputRef={observationRef}
+                    defaultValue=""
+                    multiline
+                    minRows={2}
+                    fullWidth
+                  />
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleAddObservation}
+                    style={{ marginLeft: '10px', height: '54px' }}
+                  >
+                    Agregar
+                  </Button>
+                </div>
+
+                {observaciones.length === 0 ? (
+                  <Typography variant="body2">
+                    No hay observaciones.
+                  </Typography>
+                ) : (
+                  observaciones.map((obs) => (
+                    <Paper key={obs.secuencia} style={{ padding: '10px', marginBottom: '10px' }}>
+                      {editingObservation && editingObservation.secuencia === obs.secuencia ? (
+                        <>
+                          <TextField
+                            label={`Editando secuencia #${obs.secuencia}`}
+                            value={editedObservationText}
+                            onChange={(e) => setEditedObservationText(e.target.value)}
+                            multiline
+                            minRows={2}
+                            fullWidth
+                          />
+                          <div style={{ marginTop: '8px', textAlign: 'right' }}>
+                            <Button
+                              onClick={handleUpdateObservation}
+                              variant="contained"
+                              color="primary"
+                              size="small"
+                              style={{ marginRight: '6px' }}
+                            >
+                              Guardar
+                            </Button>
+                            <Button
+                              onClick={() => setEditingObservation(null)}
+                              variant="outlined"
+                              size="small"
+                            >
+                              Cancelar
+                            </Button>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <Typography variant="body2">
+                            <strong>Observacion #{obs.secuencia}</strong> | {obs.tipo} | {obs.fecha?.slice(0, 19).replace('T', ' ')} | Usuario: {obs.usuario}
+                          </Typography>
+                          <Typography variant="body2" style={{ marginTop: '5px' }}>
+                            {obs.observacion}
+                          </Typography>
+                          <div style={{ marginTop: '8px', textAlign: 'right' }}>
+                            <Button
+                              onClick={() => handleEditObservation(obs)}
+                              variant="contained"
+                              color="primary"
+                              size="small"
+                              style={{ marginRight: '6px' }}
+                            >
+                              Editar
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                    </Paper>
+                  ))
+                )}
+              </Grid>
             </Grid>
           ) : (
             <p>Cargando datos...</p>
           )}
         </DialogContent>
         <DialogActions>
+          {/* Botón que abre el nuevo Diálogo de "Pedido" */}
+          <Button onClick={handleOpenPedido} variant="contained" color="primary">
+            Realizar Pedido
+          </Button>
+
           <Button onClick={handleSaveEdit} variant="contained" color="primary">
-            Guardar
+            Cierre Previo
+          </Button>
+          <Button onClick={handleSaveEdit} variant="contained" color="primary">
+            Cerrar Caso
           </Button>
           <Button onClick={handleCloseEdit} variant="outlined">
             Cerrar
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* -----------------------------------------
+          NUEVO DIALOG: "REALIZAR PEDIDO"
+          (Adaptado al estilo de la imagen)
+      ------------------------------------------ */}
+      <Dialog open={openPedido} onClose={handleClosePedido} maxWidth="md" fullWidth>
+        <DialogTitle>Generar Pedido</DialogTitle>
+        <DialogContent dividers>
+          {/* Encabezado similar a la imagen */}
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6} md={4}>
+              <TextField
+                label="Identificación"
+                variant="outlined"
+                fullWidth
+                // TODO: data real
+                value="1234567890"
+                margin="dense"
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={4}>
+              <TextField
+                label="Cliente"
+                variant="outlined"
+                fullWidth
+                // TODO: data real
+                value="MENENDEZ FERNANDEZ"
+                margin="dense"
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={4}>
+              <TextField
+                label="Dirección"
+                variant="outlined"
+                fullWidth
+                // TODO: data real
+                value="Direccion X"
+                margin="dense"
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={4}>
+              <TextField
+                label="Agencia"
+                variant="outlined"
+                fullWidth
+                // TODO: data real
+                value="F1 - Principal Repuestos"
+                margin="dense"
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={4}>
+              <TextField
+                label="Política"
+                variant="outlined"
+                fullWidth
+                // TODO: data real
+                value="GARANTIAS"
+                margin="dense"
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={4}>
+              <TextField
+                label="Agente"
+                variant="outlined"
+                fullWidth
+                // TODO: data real
+                value="001078 HERRERA"
+                margin="dense"
+              />
+            </Grid>
+          </Grid>
+
+          {/* Tabla de productos en garantía */}
+          <div style={{ marginTop: '20px' }}>
+            <Typography variant="subtitle1" style={{ marginBottom: '10px' }}>
+              Productos cubiertos por garantía
+            </Typography>
+
+            {/* 
+              Puedes usar MUIDataTable o una simple <table>.
+              Ejemplo de tabla simple con MUI (Grid + Paper):
+            */}
+            <Paper variant="outlined" style={{ padding: '10px' }}>
+              <Grid container style={{ fontWeight: 'bold', borderBottom: '1px solid #ccc', marginBottom: '5px' }}>
+                <Grid item xs={1}>Sec</Grid>
+                <Grid item xs={2}>Cod Producto</Grid>
+                <Grid item xs={2}>Lote</Grid>
+                <Grid item xs={3}>Producto</Grid>
+                <Grid item xs={2}>Cant.</Grid>
+                <Grid item xs={2}>Precio</Grid>
+              </Grid>
+
+              {/* EJEMPLO FILAS (harcodeado) */}
+              <Grid container style={{ borderBottom: '1px solid #eee', padding: '5px 0' }}>
+                <Grid item xs={1}>1</Grid>
+                <Grid item xs={2}>R150-151113</Grid>
+                <Grid item xs={2}>F1241213</Grid>
+                <Grid item xs={3}>OSCILANTE GNX LOC</Grid>
+                <Grid item xs={2}>
+                  <TextField
+                    type="number"
+                    size="small"
+                    defaultValue={1}
+                    style={{ width: '60px' }}
+                  />
+                </Grid>
+                <Grid item xs={2}>24.13</Grid>
+              </Grid>
+
+              {/* Agrega más filas segun sea necesario */}
+              {/* ... */}
+
+              <div style={{ textAlign: 'right', marginTop: '10px' }}>
+                Total: 24.13
+              </div>
+            </Paper>
+          </div>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={handleGenerarPedido} variant="contained" color="primary">
+            Generar Pedido
+          </Button>
+          <Button onClick={handleGenerarPedidoTodos} variant="contained" color="primary">
+            Generar Pedido (todos)
+          </Button>
+          <Button onClick={handleClosePedido} variant="outlined">
+            Cerrar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Capa de loading */}
+      {loading && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <LoadingCircle />
+        </div>
+      )}
     </>
   )
 }
+

@@ -311,27 +311,7 @@ export const getUsuariosRolAstgar = async (jwt) => {
   }
 };
 
-/**
- * 3) ENDPOINT: get_cliente_data_for_id
- *    METHOD: GET
- *    PATH: /get_cliente_data_for_id
- *
- *    Descripción: Retorna datos de cliente según 'cod_cliente' y 'enterprise'.
- */
 
-/**
- * 1) Endpoint to create (assign) a new record in AR_TALLER_SERVICIO_USUARIO
- *    POST /assign_taller_usuario
- *
- *    Body JSON example:
- *    {
- *      "empresa": 20,
- *      "codigo_taller": "T123",
- *      "cod_rol": "ASTGAR",
- *      "usuario": "AMENDOZA",
- *      "activo": 1
- *    }
- */
 export const postAssignTallerUsuario = async (jwt, data) => {
   try {
     const response = await axios.post(`${API}/warranty/assign_taller_usuario`, data, {
@@ -346,20 +326,7 @@ export const postAssignTallerUsuario = async (jwt, data) => {
   }
 };
 
-/**
- * 2) Endpoint to update an existing record in AR_TALLER_SERVICIO_USUARIO
- *    PUT /update_taller_usuario
- *
- *    Body JSON example:
- *    {
- *      "empresa": 20,
- *      "codigo_taller": "T123",
- *      "cod_rol": "ASTGAR",
- *      "usuario": "AMENDOZA",
- *      "activo": 0,
- *      "modificado_por": "ASANCHEZ"
- *    }
- */
+
 export const putUpdateTallerUsuario = async (jwt, data) => {
   try {
     const response = await axios.put(`${API}/warranty/update_taller_usuario`, data, {
@@ -375,18 +342,7 @@ export const putUpdateTallerUsuario = async (jwt, data) => {
   }
 };
 
-/**
- * 3) Endpoint to delete a record in AR_TALLER_SERVICIO_USUARIO
- *    DELETE /delete_taller_usuario
- *
- *    Body JSON example:
- *    {
- *      "empresa": 20,
- *      "codigo_taller": "T123",
- *      "cod_rol": "ASTGAR",
- *      "usuario": "AMENDOZA"
- *    }
- */
+
 export const deleteTallerUsuario = async (jwt, data) => {
   try {
     // Note that with DELETE, axios allows sending a "data" key in the config
@@ -541,6 +497,67 @@ export const getIncidencesByMotorYear = async (jwt, enterprise, motorCode) => {
     throw error;
   }
 };
+
+
+export const postPostventasObs = async (jwt, data) => {
+  try {
+    const response = await axios.post(`${API}/warranty/postventas_obs`, data, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+export const getPostventasObsByCod = async (jwt, codComprobante) => {
+  try {
+    const response = await axios.get(`${API}/warranty/postventas_obs/${codComprobante}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+export const putUpdatePostventasObs = async (jwt, codComprobante, secuencia, data) => {
+  try {
+    const response = await axios.put(`${API}/warranty/postventas_obs/${codComprobante}/${secuencia}`, data, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+export const deletePostventasObs = async (jwt, codComprobante, secuencia) => {
+  try {
+    const response = await axios.delete(`${API}/warranty/postventas_obs/${codComprobante}/${secuencia}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
 
 
 
