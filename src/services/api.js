@@ -311,27 +311,7 @@ export const getUsuariosRolAstgar = async (jwt) => {
   }
 };
 
-/**
- * 3) ENDPOINT: get_cliente_data_for_id
- *    METHOD: GET
- *    PATH: /get_cliente_data_for_id
- *
- *    Descripción: Retorna datos de cliente según 'cod_cliente' y 'enterprise'.
- */
 
-/**
- * 1) Endpoint to create (assign) a new record in AR_TALLER_SERVICIO_USUARIO
- *    POST /assign_taller_usuario
- *
- *    Body JSON example:
- *    {
- *      "empresa": 20,
- *      "codigo_taller": "T123",
- *      "cod_rol": "ASTGAR",
- *      "usuario": "AMENDOZA",
- *      "activo": 1
- *    }
- */
 export const postAssignTallerUsuario = async (jwt, data) => {
   try {
     const response = await axios.post(`${API}/warranty/assign_taller_usuario`, data, {
@@ -346,20 +326,7 @@ export const postAssignTallerUsuario = async (jwt, data) => {
   }
 };
 
-/**
- * 2) Endpoint to update an existing record in AR_TALLER_SERVICIO_USUARIO
- *    PUT /update_taller_usuario
- *
- *    Body JSON example:
- *    {
- *      "empresa": 20,
- *      "codigo_taller": "T123",
- *      "cod_rol": "ASTGAR",
- *      "usuario": "AMENDOZA",
- *      "activo": 0,
- *      "modificado_por": "ASANCHEZ"
- *    }
- */
+
 export const putUpdateTallerUsuario = async (jwt, data) => {
   try {
     const response = await axios.put(`${API}/warranty/update_taller_usuario`, data, {
@@ -375,18 +342,7 @@ export const putUpdateTallerUsuario = async (jwt, data) => {
   }
 };
 
-/**
- * 3) Endpoint to delete a record in AR_TALLER_SERVICIO_USUARIO
- *    DELETE /delete_taller_usuario
- *
- *    Body JSON example:
- *    {
- *      "empresa": 20,
- *      "codigo_taller": "T123",
- *      "cod_rol": "ASTGAR",
- *      "usuario": "AMENDOZA"
- *    }
- */
+
 export const deleteTallerUsuario = async (jwt, data) => {
   try {
     // Note that with DELETE, axios allows sending a "data" key in the config
@@ -541,6 +497,420 @@ export const getIncidencesByMotorYear = async (jwt, enterprise, motorCode) => {
     throw error;
   }
 };
+
+
+export const postPostventasObs = async (jwt, data) => {
+  try {
+    const response = await axios.post(`${API}/warranty/postventas_obs`, data, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+export const getPostventasObsByCod = async (jwt, codComprobante) => {
+  try {
+    const response = await axios.get(`${API}/warranty/postventas_obs/${codComprobante}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+export const putUpdatePostventasObs = async (jwt, codComprobante, secuencia, data) => {
+  try {
+    const response = await axios.put(`${API}/warranty/postventas_obs/${codComprobante}/${secuencia}`, data, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+export const deletePostventasObs = async (jwt, codComprobante, secuencia) => {
+  try {
+    const response = await axios.delete(`${API}/warranty/postventas_obs/${codComprobante}/${secuencia}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+
+
+
+/**
+ * 1) Obtener agencias activas con ordenes tipo 'A0'
+ *    ENDPOINT: GET /agencia/active
+ *    Parámetro query: ?empresa=...
+ */
+export const getActiveAgencies = async (jwt, empresa) => {
+  try {
+    const response = await axios.get(`${API}/warranty/agencia/active?empresa=${empresa}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+    return response.data
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+/**
+ * 2) Obtener política de crédito
+ *    ENDPOINT: GET /politica_credito
+ *    Parámetros query: ?empresa=...&codPolitica=...
+ */
+export const getPoliticaCredito = async (jwt, empresa, codPolitica) => {
+  try {
+    const response = await axios.get(
+      `${API}/warranty/politica_credito?empresa=${empresa}&codPolitica=${codPolitica}`,
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      }
+    )
+    return response.data
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+/**
+ * 3) Obtener vendedores
+ *    ENDPOINT: GET /persona/vendors
+ *    Parámetros query: ?empresa=...&activo=...
+ */
+export const getVendorsByEmpresaAndActivo = async (jwt, empresa, activo) => {
+  try {
+    const response = await axios.get(
+      `${API}/warranty/persona/vendors?empresa=${empresa}&activo=${activo}`,
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      }
+    )
+    return response.data
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+/**
+ * 4) Obtener productos con despiece
+ *    ENDPOINT: GET /producto/despiece
+ *    Parámetros query: ?empresa=...&activo=...
+ */
+export const getProductosWithDespiece = async (jwt, empresa, activo) => {
+  try {
+    const response = await axios.get(
+      `${API}/warranty/producto/despiece?empresa=${empresa}&activo=${activo}`,
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      }
+    )
+    return response.data
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+/**
+ * 5) Obtener lotes con inventario
+ *    ENDPOINT: GET /lotes/inventory
+ *    Parámetros query: ?empresa=...&bodega=...&producto=...
+ */
+export const getLotesWithInventory = async (jwt, empresa, bodega, producto) => {
+  try {
+    const response = await axios.get(
+      `${API}/warranty/lotes/inventory?empresa=${empresa}&bodega=${bodega}&producto=${producto}`,
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      }
+    )
+    return response.data
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+/**
+ * 6) Consulta de existencia (por agencia)
+ *    ENDPOINT: GET /existence_by_agency
+ *    Parámetros query: ?empresa=...&cod_agencia=...&cod_producto=...
+ */
+export const getExistenceByAgency = async (jwt, empresa, codAgencia, codProducto) => {
+  try {
+    const response = await axios.get(
+      `${API}/warranty/existence_by_agency?empresa=${empresa}&cod_agencia=${codAgencia}&cod_producto=${codProducto}`,
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      }
+    )
+    return response.data
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+/**
+ * 7) Consulta de existencia por lote
+ *    ENDPOINT: GET /existencia_lote_by_agency_cod_producto
+ *    Parámetros query: ?empresa=...&cod_agencia=...&cod_producto=...&tipo_comprobante_lote=...&cod_comprobante_lote=...
+ */
+export const getExistenciaLote = async (
+  jwt,
+  empresa,
+  codAgencia,
+  codProducto,
+  tipoComprobanteLote,
+  codComprobanteLote
+) => {
+  try {
+    const response = await axios.get(
+      `${API}/warranty/existencia_lote_by_agency_cod_producto?empresa=${empresa}&cod_agencia=${codAgencia}&cod_producto=${codProducto}&tipo_comprobante_lote=${tipoComprobanteLote}&cod_comprobante_lote=${codComprobanteLote}`,
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      }
+    )
+    return response.data
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+/**
+ * 8) Obtener costo actual (precio)
+ *    ENDPOINT: GET /obt_precio_actual
+ *    Parámetros query: ?empresa=...&cod_producto=...&cod_comprobante_lote=...&tipo_comprobante_lote=...
+ */
+export const getCosto = async (
+  jwt,
+  empresa,
+  codProducto,
+  codComprobanteLote,
+  tipoComprobanteLote
+) => {
+  try {
+    const response = await axios.get(
+      `${API}/warranty/obt_precio_actual?empresa=${empresa}&cod_producto=${codProducto}&cod_comprobante_lote=${codComprobanteLote}&tipo_comprobante_lote=${tipoComprobanteLote}`,
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      }
+    )
+    return response.data
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+/**
+ * 9) Generar pedido de garantía
+ *    ENDPOINT: GET /generate_order_warranty
+ *    Parámetros query: ?empresa=...&tipo_comprobante=...&cod_comprobante=...&cod_agencia=...&cod_politica=...&todos=... (opcional)
+ *                      &cod_pedido=... (opcional, IN OUT) &tipo_pedido=... (opcional, IN OUT)
+ */
+export const generateOrderWarranty = async (
+  jwt,
+  {
+    empresa,
+    tipoComprobante,
+    codComprobante,
+    codAgencia,
+    codPolitica,
+    todos,
+    codPedido,
+    tipoPedido,
+    codAgente // <-- Nuevo
+  }
+) => {
+  try {
+    // Construimos la URL con los parámetros que apliquen
+    let url = `${API}/warranty/generate_order_warranty?empresa=${empresa}&tipo_comprobante=${tipoComprobante}&cod_comprobante=${codComprobante}&cod_agencia=${codAgencia}&cod_politica=${codPolitica}`
+
+    // Añadir codAgente
+    if (codAgente !== undefined) {
+      url += `&cod_agente=${codAgente}`
+    }
+
+    if (todos !== undefined) {
+      url += `&todos=${todos}`
+    }
+    if (codPedido) {
+      url += `&cod_pedido=${codPedido}`
+    }
+    if (tipoPedido) {
+      url += `&tipo_pedido=${tipoPedido}`
+    }
+
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+    return response.data
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+/**
+ * 10) Crear registro en ST_CASOS_PRODUCTOS
+ *     ENDPOINT: POST /casos_productos
+ *     Se envía el body en JSON con los campos requeridos.
+ */
+export const createCasosProductos = async (jwt, dataBody) => {
+  try {
+    const response = await axios.post(`${API}/warranty/casos_productos`, dataBody, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+    })
+    return response.data
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+/**
+ * 11) Obtener casos_productos por cod_comprobante
+ *     ENDPOINT: GET /casos_productos
+ *     Parámetro query: ?cod_comprobante=...
+ */
+export const getCasosProductosByArgs = async (jwt, codComprobante) => {
+  try {
+    const response = await axios.get(`${API}/warranty/casos_productos?cod_comprobante=${codComprobante}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+    return response.data
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+/**
+ * 12) Borrar un registro en ST_CASOS_PRODUCTOS
+ *     ENDPOINT: DELETE /casos_productos
+ *     Parámetros query: ?cod_comprobante=...&secuencia=...
+ */
+export const deleteCasosProductos = async (jwt, codComprobante, secuencia) => {
+  try {
+    const url = `${API}/warranty/casos_productos?cod_comprobante=${codComprobante}&secuencia=${secuencia}`
+    const response = await axios.delete(url, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+    return response.data
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+/**
+ * 13) Cerrar caso definitivamente
+ *     ENDPOINT: POST /casos_postventa/cerrar
+ *     Body JSON: { empresa, cod_comprobante, aplica_garantia, observacion_final, usuario_cierra }
+ */
+export const cerrarCaso = async (jwt, dataBody) => {
+  try {
+    const response = await axios.post(`${API}/warranty/casos_postventa/cerrar`, dataBody, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+    })
+    return response.data
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+/**
+ * 14) Cierre preliminar
+ *     ENDPOINT: POST /close_preliminary
+ *     Se envían los parámetros por query string:
+ *        ?empresa=...&tipo_comprobante=...&cod_comprobante=...&observacion=...&usuario_cierra=...
+ */
+export const cierrePrevio = async (
+  jwt,
+  {
+    empresa,
+    tipoComprobante,
+    codComprobante,
+    observacion,
+    usuarioCierra
+  }
+) => {
+  try {
+    const url = `${API}/warranty/close_preliminary?empresa=${empresa}&tipo_comprobante=${tipoComprobante}&cod_comprobante=${codComprobante}&observacion=${observacion}&usuario_cierra=${usuarioCierra}`
+    const response = await axios.post(url, {}, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+    return response.data
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+
+
+
+
 
 
 
@@ -953,3 +1323,4 @@ export const getProductDetailsWithoutImages = async (jwt, empresa) => {
     throw error;
   }
 };
+

@@ -385,13 +385,15 @@ export const OpenCase = () => {
             overflowY: 'auto',
             marginTop: '20px',
             border: '1px solid #ccc',
-            padding: '10px'
+            padding: '10px',
+            width: '790px' 
           }}
         >
           {problemList.map((item, index) => (
             <Box
               key={index}
-              sx={{ display: 'flex', gap: '20px', marginTop: '10px', flexWrap: 'wrap' }}
+              sx={{ display: 'flex', gap: '20px', marginTop: '10px', flexWrap: 'wrap', width: '80%' }}
+            
             >
               <FormControl sx={{ width: '250px' }}>
                 <InputLabel>Tipo Problema</InputLabel>
@@ -413,7 +415,7 @@ export const OpenCase = () => {
                 label="Descripción del Problema"
                 value={item.descripcion}
                 onChange={(e) => handleProblemChange(index, 'descripcion', e.target.value)}
-                sx={{ width: '400px' }}
+                sx={{ width: '300px' }}
               />
             </Box>
           ))}
@@ -433,7 +435,7 @@ export const OpenCase = () => {
             onChange={(e) => setDescripcionGeneral(e.target.value)}
             multiline
             rows={2}
-            sx={{ width: '80%' }}
+            sx={{ width: '790px' }}
           />
         </Box>
 
