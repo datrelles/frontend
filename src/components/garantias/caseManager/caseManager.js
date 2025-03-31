@@ -1243,6 +1243,7 @@ export const CaseManager = () => {
                               variant="outlined"
                               color="error"
                               size="small"
+                              disabled={true} 
                             >
                               Eliminar
                             </Button>
