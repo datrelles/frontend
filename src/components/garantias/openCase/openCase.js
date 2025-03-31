@@ -40,6 +40,7 @@ export const OpenCase = () => {
   // CAMPOS DE CLIENTE
   const [nombreCliente, setNombreCliente] = useState('')
   const [identificacionCliente, setIdentificacionCliente] = useState('')
+  const [identificacionClienteAux, setIdentificacionClienteAux] = useState('')
   const [tipoIdentificacion, setTipoIdentificacion] = useState('CED')
 
   // CONTACTO
@@ -143,11 +144,12 @@ export const OpenCase = () => {
   }
 
   const handleBlurIdentificacionCliente = async () => {
-    if (!identificacionCliente) return
+    if (!identificacionClienteAux) return
     try {
-      const dataCliente = await getClienteDataForId(jwt, identificacionCliente, enterpriseShineray)
+      const dataCliente = await getClienteDataForId(jwt, identificacionClienteAux, enterpriseShineray)
       setNombreCliente(`${dataCliente.nombre} ${dataCliente.apellido1 || ''}`.trim())
       setTipoIdentificacion(dataCliente.cod_tipo_identificacion)
+      setIdentificacionCliente(dataCliente.cod_cliente)
       toast.success('Datos de cliente cargados.')
     } catch (error) {
       console.error(error)
@@ -280,8 +282,8 @@ export const OpenCase = () => {
 
           <TextField
             label="Identificación"
-            value={identificacionCliente}
-            onChange={(e) => setIdentificacionCliente(e.target.value)}
+            value={identificacionClienteAux}
+            onChange={(e) => setIdentificacionClienteAux(e.target.value)}
             onBlur={handleBlurIdentificacionCliente}
             sx={{ width: '250px' }}
           />
