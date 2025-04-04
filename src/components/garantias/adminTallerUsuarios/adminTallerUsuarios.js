@@ -9,7 +9,8 @@ import {
   postAssignTallerUsuario,
   putUpdateTallerUsuario,
   deleteTallerUsuario,
-  getTallerUsuarioRelations
+  getTallerUsuarioRelations,
+  getMenus
 } from '../../../services/api';
 
 import { useAuthContext } from '../../../context/authContext';
@@ -92,6 +93,20 @@ export const AdminTallerUsuarios = () => {
       toast.error('Unable to load relationships');
     }
   };
+
+  useEffect(() => {
+      const menu = async () => {
+        try {
+          const data = await getMenus(userShineray, enterpriseShineray, 'GAR', jwt)
+          setMenus(data)
+        }
+        catch (error) {
+          toast.error(error)
+        }
+      }
+      menu()
+    }, [userShineray, enterpriseShineray, jwt])
+  
 
   const getTallerProvincia = (codigoTaller) => {
     const found = talleres.find((t) => t.codigo === codigoTaller);
