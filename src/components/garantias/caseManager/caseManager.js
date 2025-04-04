@@ -1118,6 +1118,15 @@ export const CaseManager = () => {
                   InputProps={{ readOnly: true }}
                 />
               </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="observacion final"
+                  value={dataCasoPostventaEdit.observacion_final|| ''}
+                  fullWidth
+                  margin="dense"
+                  InputProps={{ readOnly: true }}
+                />
+              </Grid>
 
               <Grid item xs={12} sm={6}>
                 <TextField
@@ -1261,17 +1270,17 @@ export const CaseManager = () => {
         </DialogContent>
         <DialogActions>
           {/* 1) ABRIR DIALOGO "REALIZAR PEDIDO" */}
-          <Button onClick={handleOpenPedido} variant="contained" color="primary">
+          <Button onClick={handleOpenPedido} variant="contained" color="primary" disabled={!(['P', 'R'].includes(dataCasoPostventaEdit?.estado))}>
             Realizar Pedido
           </Button>
 
           {/* 2) CIERRE PREVIO */}
-          <Button onClick={handleCierrePrevio} variant="contained" color="primary">
+          <Button onClick={handleCierrePrevio} variant="contained" color="primary" disabled={!(['P', 'R'].includes(dataCasoPostventaEdit?.estado))}>
             Cierre Previo
           </Button>
 
           {/* 3) CERRAR CASO DEFINITIVO */}
-          <Button onClick={handleCerrarCaso} variant="contained" color="primary">
+          <Button onClick={handleCerrarCaso} variant="contained" color="primary" disabled={!(['P', 'R'].includes(dataCasoPostventaEdit?.estado))}>
             Cerrar Caso
           </Button>
 
