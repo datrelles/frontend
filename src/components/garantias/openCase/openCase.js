@@ -194,7 +194,7 @@ export const OpenCase = () => {
         PROBLEMAS: JSON.stringify(arrayProblemas),
         TELEFONO_CONTACTO1: telefonoContacto1,
         E_MAIL: email,
-        //E_MAIL_NOTIFICACIONES: emailNotificaciones,
+        E_MAIL2: emailNotificaciones,
         MANUAL_GARANTIA: "0",
         TELEFONO_CONTACTO2: telefonoContacto1,
       }
