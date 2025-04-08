@@ -70,7 +70,6 @@ import { CreditoDirectoManager } from "./components/ventas/approveCredit";
 import { SellManagerB2B } from "./components/ventas/b2bCaseManager";
 import { AdminTallerUsuarios } from "./components/garantias/adminTallerUsuarios/adminTallerUsuarios";
 import Procesos from "./components/formulas/Procesos";
-import EditProceso from "./components/formulas/EditProceso";
 
 ///SellManagerB2B
 const API = process.env.REACT_APP_API;
@@ -203,7 +202,6 @@ function App() {
                 <Route exact path="/approve_credit" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><CreditoDirectoManager /></Protected>} />
                 <Route exact path="/invoice_b2b" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><SellManagerB2B /></Protected>} />
                 <Route exact path="/procesos" element={<Protected isLoggedIn={authorizedSystems.includes('FOR')}><Procesos /></Protected>}></Route>
-                <Route exact path="/editProceso" element={<EditProceso />}></Route>
                 <Route exact path="/settings" element={<Settings />}></Route>
               </Routes>
             </>
