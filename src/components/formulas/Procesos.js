@@ -1,11 +1,10 @@
 import Navbar0 from "../Navbar0";
 import { toast } from 'react-toastify';
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import MUIDataTable from "mui-datatables";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import AddIcon from '@material-ui/icons/Add';
-import { SnackbarProvider, useSnackbar } from 'notistack';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
@@ -16,15 +15,15 @@ import { useAuthContext } from "../../context/authContext";
 const API = process.env.REACT_APP_API;
 
 function Procesos() {
-  const {jwt, userShineray, enterpriseShineray, systemShineray}=useAuthContext();
+  const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
   const [procesos, setProcesos] = useState([])
   const [menus, setMenus] = useState([])
-  
+
   const navigate = useNavigate();
 
   const getProcesos = async () => {
     try {
-      const res = await fetch(`${API}/modulo-formulas/procesos?empresa=${enterpriseShineray}`,
+      const res = await fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -84,34 +83,34 @@ function Procesos() {
     if (!window.confirm('¿Está seguro de eliminar el proceso?')) {
       return false;
     }
-    const {data: deletedData}=rowsDeleted;
+    const { data: deletedData } = rowsDeleted;
     const deletedRowIndex = deletedData[0].index;
     const deletedRowValue = procesos[deletedRowIndex];
-    const newProcesos = procesos.filter((proceso, index)=>index!==deletedRowIndex);
+    const newProcesos = procesos.filter((proceso, index) => index !== deletedRowIndex);
     setProcesos(newProcesos);
-    fetch(`${API}/modulo-formulas/procesos?empresa=${enterpriseShineray}&cod_proceso=${deletedRowValue.cod_proceso}`, {
+    fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos/${deletedRowValue.cod_proceso}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + jwt
       },
     })
-    .then(response=>{
-      if (!response.ok) {
-        getProcesos();
-        return response.json();
-      }
-      toast.success('¡Elemento eliminado exitosamente!');
-    })
-    .then(data=>{
-      if(data){
-        toast.error(data.mensaje);
-      }
-    })
-    .catch(error=>{
-      console.error(error);      
-      toast.error('Ocurrió un error en la llamada a la API');
-    })
+      .then(response => {
+        if (!response.ok) {
+          getProcesos();
+          return response.json();
+        }
+        toast.success('¡Elemento eliminado exitosamente!');
+      })
+      .then(data => {
+        if (data) {
+          toast.error(data.mensaje);
+        }
+      })
+      .catch(error => {
+        console.error(error);
+        toast.error('Ocurrió un error en la llamada a la API');
+      })
     return true;
   };
 
@@ -119,7 +118,7 @@ function Procesos() {
     e.preventDefault();
     navigate('/newProceso');
   }
-  
+
   const renderText = (value) => {
     const progress = parseInt(value);
     const text = progress ? "Activo" : "Inactivo";
@@ -247,42 +246,40 @@ function Procesos() {
 
 
   return (
-    <SnackbarProvider>
-      <div style={{ marginTop: '150px', top: 0, left:0, width: "100%", zIndex: 1000}}>
-        <Navbar0 menus={menus}/>
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'right',
-            '& > *': {
-              m: 1,
-            },
-          }}
-        >
-          <ButtonGroup variant="text" aria-label="text button group" > 
-            <Button onClick={() => {navigate('/dashboard')}}>Módulos</Button>
-          </ButtonGroup>
-        </Box>
-        <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
-          <button
-            className="btn btn-primary btn-block"
-            type="button"
-            style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
-            onClick={handleChange2} >
-            <AddIcon /> Nuevo
-          </button>          
-        </div>
-        <ThemeProvider theme={getMuiTheme()}>
+    <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
+      <Navbar0 menus={menus} />
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'right',
+          '& > *': {
+            m: 1,
+          },
+        }}
+      >
+        <ButtonGroup variant="text" aria-label="text button group" >
+          <Button onClick={() => { navigate('/dashboard') }}>Módulos</Button>
+        </ButtonGroup>
+      </Box>
+      <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
+        <button
+          className="btn btn-primary btn-block"
+          type="button"
+          style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
+          onClick={handleChange2} >
+          <AddIcon /> Nuevo
+        </button>
+      </div>
+      <ThemeProvider theme={getMuiTheme()}>
         <MUIDataTable
           title={"Procesos"}
           data={procesos}
           columns={columns}
           options={options}
         />
-        </ThemeProvider>
-      </div>
-    </SnackbarProvider>
+      </ThemeProvider>
+    </div>
   )
 }
 
