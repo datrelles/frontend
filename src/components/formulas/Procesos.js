@@ -8,8 +8,19 @@ import AddIcon from '@material-ui/icons/Add';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
-
 import { useAuthContext } from "../../context/authContext";
+
+/*
+MODAL
+*/
+import Grid from '@mui/material/Grid';
+import TextField from '@mui/material/TextField';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
 
 
 const API = process.env.REACT_APP_API;
@@ -18,6 +29,11 @@ function Procesos() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
   const [procesos, setProcesos] = useState([])
   const [menus, setMenus] = useState([])
+  //modal
+  const [open, setOpen] = useState(false);
+  const [codProceso, setCodProceso] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [estado, setEstado] = useState(1);
 
   const navigate = useNavigate();
 
@@ -113,11 +129,6 @@ function Procesos() {
       })
     return true;
   };
-
-  const handleChange2 = async (e) => {
-    e.preventDefault();
-    navigate('/newProceso');
-  }
 
   const renderText = (value) => {
     const progress = parseInt(value);
@@ -244,6 +255,40 @@ function Procesos() {
       }
     });
 
+  const handleClickOpenNew = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    const res = await fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + jwt
+      },
+      body: JSON.stringify({
+        empresa: enterpriseShineray,
+        cod_proceso: codProceso,
+        nombre
+      })
+    });
+    const { mensaje } = await res.json();
+    if(res.ok){
+      toast.success(mensaje)
+      setOpen(false)
+      setCodProceso('')
+      setNombre('')
+      setEstado(1)
+      getProcesos()
+    }else{
+      toast.error(mensaje)
+    }
+  }
 
   return (
     <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
@@ -267,7 +312,7 @@ function Procesos() {
           className="btn btn-primary btn-block"
           type="button"
           style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
-          onClick={handleChange2} >
+          onClick={handleClickOpenNew}>
           <AddIcon /> Nuevo
         </button>
       </div>
@@ -279,6 +324,58 @@ function Procesos() {
           options={options}
         />
       </ThemeProvider>
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>Registrar Proceso</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2}>
+            <Grid item xs={4}>
+              <TextField
+                margin="dense"
+                id="cod_proceso"
+                label="Código"
+                type="text"
+                placeholder="COD###"
+                fullWidth
+                value={codProceso}
+                onChange={(e => setCodProceso(e.target.value))}
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <TextField
+                margin="dense"
+                id="nombre"
+                label="Nombre"
+                type="text"
+                fullWidth
+                value={nombre}
+                onChange={(e => setNombre(e.target.value))}
+              />
+            </Grid>
+          </Grid>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
+            <Select
+              margin="dense"
+              id="cod_forma_pago"
+              name="cod_forma_pago"
+              label="Forma de Pago"
+              style={{ width: '48%' }}
+              value={estado}
+              onChange={(e) => setEstado(e.target.value)}
+            >
+              <MenuItem value="1">Activo</MenuItem>
+              <MenuItem value="0">Inactivo</MenuItem>
+            </Select>
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="primary">
+            Cancelar
+          </Button>
+          <Button onClick={handleCreate} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }}>
+            Crear
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   )
 }
