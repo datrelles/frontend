@@ -22,6 +22,7 @@ import Fideicomiso from "./components/Fideicomiso";
 import Negociacion from "./components/Negociacion";
 import NewNegociacion from "./components/NewNegociacion";
 import Costumer from "./components/Costumer";
+import Costumers from "./components/Costumers";
 import EditCabecera from "./components/EditCabecera";
 import EditContainer from "./components/EditContainer";
 import NewContainer from "./components/NewContainer";
@@ -60,6 +61,8 @@ import Reports28 from "./components/Reports28";
 import Reports29 from "./components/Reports29";
 import Reports30 from "./components/Reports30";
 import Reports31 from "./components/Reports31";
+import Reports32 from "./components/Reports32";
+
 
 import Settings from "./components/Settings";
 import Menus from "./components/Menus";
@@ -191,6 +194,7 @@ function App() {
                   <Route exact path="/dispatch" element={<Protected isLoggedIn={authorizedSystems.includes('LOG')}><Dispatch/></Protected>} />
                   <Route exact path="/newNegociacion" element={<Protected isLoggedIn={authorizedSystems.includes('FIN')}><NewNegociacion/></Protected>} />
                   <Route exact path="/costumer" element={<Protected isLoggedIn={authorizedSystems.includes('FIN')}><Costumer/></Protected>} />
+                  <Route exact path="/costumers" element={<Protected isLoggedIn={authorizedSystems.includes('FIN')}><Costumers/></Protected>} />
                   <Route exact path="/editCabecera" element={<Protected isLoggedIn={authorizedSystems.includes('IN')}><EditCabecera/></Protected>} />
                   <Route exact path="/newFormule" element={<Protected isLoggedIn={authorizedSystems.includes('IN')}><NewFormule/></Protected>} />
                   <Route exact path="/EditFormule" element={<Protected isLoggedIn={authorizedSystems.includes('IN')}><EditFormule/></Protected>} />
@@ -225,6 +229,7 @@ function App() {
                   <Route exact path="/reports29" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports29 /></Protected>}/>
                   <Route exact path="/reports30" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports30 /></Protected>}/>
                   <Route exact path="/reports31" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports31 /></Protected>}/>
+                  <Route exact path="/reports32" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports32 /></Protected>}/>
                   <Route exact path="/electronicFile" element={<Protected isLoggedIn={authorizedSystems.includes('CON')}><ElectronicFilesSri/></Protected>}/>
                   <Route exact path="/warranty" element={<Protected isLoggedIn={authorizedSystems.includes('GAR')}><CaseManager/></Protected>}/>
                   <Route exact path="/warranty/openCaseWarranty" element={<Protected isLoggedIn={authorizedSystems.includes('GAR')}><OpenCase/></Protected>}/>

@@ -9,6 +9,7 @@ const SYSTEM_SHINERAY = 'SYSTEM_SHINERAY';
 const SECONDAUTH = 'SECONDAUTH';
 const FLAG = 'FLAG';
 const TEMPORAL_FLAG = 'TEMPORAL_FLAG';
+const KEY_JWT_NET = 'KEY_JWT_NET';
 
 
 export const AuthContext = createContext();
@@ -43,6 +44,10 @@ export default function AuthContextProvider({ children }) {
     );
     const [temporalFlag, setTemporalFlag] = useState(() =>
         window.sessionStorage.getItem(TEMPORAL_FLAG)
+    );
+
+    const [keyJwtNet, setKeyJwtNet] = useState(() =>
+        window.sessionStorage.getItem(KEY_JWT_NET)
     );
 
 
@@ -105,6 +110,7 @@ export default function AuthContextProvider({ children }) {
         window.localStorage.removeItem(KEY_JWT);
         window.localStorage.removeItem(SYSTEM_SHINERAY);
         window.localStorage.removeItem(FLAG);
+        window.localStorage.removeItem(KEY_JWT_NET);
         window.sessionStorage.removeItem(TEMPORAL_FLAG);
         setuserShineray('');
         setbranchShineray('');
@@ -136,7 +142,8 @@ export default function AuthContextProvider({ children }) {
             setHandleFlag,
             flag,
             setHandleFlagTemporal,
-            temporalFlag
+            temporalFlag,
+            keyJwtNet
         }),
         [
             userShineray,
@@ -156,7 +163,8 @@ export default function AuthContextProvider({ children }) {
             setHandleFlag,
             flag,
             setHandleFlagTemporal,
-            temporalFlag
+            temporalFlag,
+            keyJwtNet
         ]
     );
 
