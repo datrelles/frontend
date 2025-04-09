@@ -366,7 +366,7 @@ function Procesos() {
                 id="cod_proceso"
                 label="Código"
                 type="text"
-                placeholder="COD###"
+                placeholder="PROCE###"
                 fullWidth
                 value={codProceso}
                 onChange={(e => setCodProceso(e.target.value))}
