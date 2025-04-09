@@ -86,10 +86,10 @@ function Parametros() {
   }, [openNew, openUpdate])
 
   const handleRowClick = (rowData, rowMeta) => {
-    const row = parametros.filter(item => item.cod_formula === rowData[0])[0];
-    setCodParametro(row.cod_formula)
+    const row = parametros.filter(item => item.cod_parametro === rowData[0])[0];
+    setCodParametro(row.cod_parametro)
     setNombre(row.nombre)
-    setDescripcion(row.observaciones ?? '')
+    setDescripcion(row.descripcion ?? '')
     setEstado(row.estado === 1)
     handleClickOpenUpdate();
   }
@@ -103,7 +103,7 @@ function Parametros() {
     const deletedRowValue = parametros[deletedRowIndex];
     const newParametros = parametros.filter((_, index) => index !== deletedRowIndex);
     setParametros(newParametros);
-    fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/formulas/${deletedRowValue.cod_parametro}`, {
+    fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/parametros/${deletedRowValue.cod_parametro}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -280,7 +280,7 @@ function Parametros() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    const res = await fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/formulas`, {
+    const res = await fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/parametros`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -361,7 +361,7 @@ function Parametros() {
       </div>
       <ThemeProvider theme={getMuiTheme()}>
         <MUIDataTable
-          title={"Fórmulas"}
+          title={"Parámetros"}
           data={parametros}
           columns={columns}
           options={options}
