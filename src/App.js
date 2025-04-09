@@ -89,6 +89,7 @@ import { ParametrizacionModelosDespieceAnio } from "./components/inventario/upda
 import { CreditoDirectoManager } from "./components/ventas/approveCredit";
 import { SellManagerB2B } from "./components/ventas/b2bCaseManager";
 import { AdminTallerUsuarios } from "./components/garantias/adminTallerUsuarios/adminTallerUsuarios";
+import { OpagoManager } from "./components/garantias/laborCase/laborCase";
 
 ///SellManagerB2B
 const API = process.env.REACT_APP_API;
@@ -234,6 +235,7 @@ function App() {
                   <Route exact path="/warranty" element={<Protected isLoggedIn={authorizedSystems.includes('GAR')}><CaseManager/></Protected>}/>
                   <Route exact path="/warranty/openCaseWarranty" element={<Protected isLoggedIn={authorizedSystems.includes('GAR')}><OpenCase/></Protected>}/>
                   <Route exacth path="/warranty/manageAdministradorTaller" element={<Protected isLoggedIn={authorizedSystems.includes('GAR')}><AdminTallerUsuarios/></Protected>}/>
+                  <Route exacth path="/warranty/pago/labor_cost" element={<Protected isLoggedIn={authorizedSystems.includes('GAR')}><OpagoManager/></Protected>}/>
                   <Route exact path="/invoice" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><SellManager/></Protected>}/>
                   <Route exact path="/transEcommerce" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><TransEcommerce/></Protected>}/>
                   <Route exact path="/approve_credit" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><CreditoDirectoManager/></Protected>}/>
