@@ -908,11 +908,85 @@ export const cierrePrevio = async (
 }
 
 
+export const getOpagoRecords = async (jwt, {
+  empresa,
+  fechaFacturaIni,
+  fechaFacturaFin,
+  fechaPagoIni,
+  fechaPagoFin,
+  ruc,
+}) => {
+  try {
+    if (!empresa) {
+      throw new Error("El parámetro 'empresa' es obligatorio.");
+    }
+
+    // Construir la query string usando URLSearchParams
+    const queryParams = new URLSearchParams();
+    queryParams.append('empresa', empresa);
+
+    if (fechaFacturaIni) queryParams.append('fecha_factura_ini', fechaFacturaIni);
+    if (fechaFacturaFin) queryParams.append('fecha_factura_fin', fechaFacturaFin);
+    if (fechaPagoIni)    queryParams.append('fecha_pago_ini', fechaPagoIni);
+    if (fechaPagoFin)    queryParams.append('fecha_pago_fin', fechaPagoFin);
+    if (ruc)             queryParams.append('ruc', ruc);
+
+    // Llamado GET con el token en la cabecera de autorización
+    const response = await axios.get(`${API}/warranty/opago?${queryParams.toString()}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error en getOpagoRecords:", error);
+    throw error;
+  }
+};
+
+export const getDocElectronicos = async (jwt, {
+  fechaEmisionIni,
+  fechaEmisionFin,
+  ruc,
+}) => {
+  try {
+    // Construir la query string usando URLSearchParams
+    const queryParams = new URLSearchParams();
+    if (fechaEmisionIni) queryParams.append('fecha_emision_ini', fechaEmisionIni);
+    if (fechaEmisionFin) queryParams.append('fecha_emision_fin', fechaEmisionFin);
+    if (ruc)             queryParams.append('ruc', ruc);
+
+    // Llamado GET con el token en la cabecera de autorización
+    const response = await axios.get(`${API}/warranty/doc_electronicos?${queryParams.toString()}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error en getDocElectronicos:", error);
+    throw error;
+  }
+};
 
 
 
+export const saveNewDataClient = async (jwt, dataClient) => {
+  try {
+    const response = await axios.post(`${API}/warranty/save_new_data_client`, dataClient, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
 
-
+    return response.data;
+  } catch (error) {
+    console.error("Error en saveNewDataClient:", error);
+    throw error;
+  }
+};
 
 //PARTS UPDATE YEAR---------------------------------------
 
@@ -1130,6 +1204,8 @@ export const updateModeloCrecimientoBI = async (jwt, data) => {
     throw error;
   }
 };
+
+
 
 // MANAGE TRANS. ECOMMERCE-------
 
