@@ -18,6 +18,9 @@ import DialogActions from '@mui/material/DialogActions';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
+import InputAdornment from '@mui/material/InputAdornment';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 import { PedidoDialog } from './pedidosDialog'
 
@@ -35,7 +38,9 @@ import {
   getPostventasObsByCod,
   putUpdatePostventasObs,
   deletePostventasObs,
-  getCasoPostventa
+  getCasoPostventa,
+  updateNumeroGuia,
+  getClienteDataForId
 } from '../../../services/api'
 
 import { ProgressBar } from './progressLine'
@@ -69,6 +74,7 @@ export const CaseManager = () => {
   const [editingObservation, setEditingObservation] = useState(null);
   const [editedObservationText, setEditedObservationText] = useState('');
   const observationRef = useRef(null);
+  const numeroGuiaRef = useRef(null);
 
   // DIALOG: Edit/view case
   const [openEdit, setOpenEdit] = useState(false);
@@ -76,6 +82,9 @@ export const CaseManager = () => {
 
   // DIALOG: "Realizar Pedido"
   const [openPedido, setOpenPedido] = useState(false);
+  const [numeroGuia, setNumeroGuia] = useState('');
+  // Estado para saber si el cliente existe
+  const [clientExists, setClientExists] = useState(null);
 
   const listaProblemas = {
     46: "MOTOR",
@@ -362,6 +371,31 @@ export const CaseManager = () => {
     getDataCitiesFunction();
   }, [province])
 
+  useEffect(() => {
+    if (dataCasoPostventaEdit) {
+      setNumeroGuia(dataCasoPostventaEdit.numero_guia || '');
+    }
+  }, [dataCasoPostventaEdit]);
+
+  // Efecto para llamar al endpoint de verificación del cliente
+  useEffect(() => {
+    const fetchCliente = async () => {
+      if (dataCasoPostventaEdit && dataCasoPostventaEdit.identificacion_cliente) {
+        try {
+          // Se usa el endpoint importado getClienteDataForId (parámetros: jwt, codCliente, enterprise)
+          await getClienteDataForId(jwt, dataCasoPostventaEdit.identificacion_cliente, enterpriseShineray);
+          setClientExists(true);
+        } catch (error) {
+          setClientExists(false);
+        }
+      } else {
+        setClientExists(false);
+      }
+    };
+    fetchCliente();
+  }, [dataCasoPostventaEdit, jwt, enterpriseShineray]);
+
+
   // SUBCASOS
   const handleRefresh = () => {
     setRegreshSubcases(prevState => !prevState);
@@ -625,7 +659,7 @@ export const CaseManager = () => {
 
       const payload = {
         empresa: dataCasoPostventaEdit.empresa,
-        tipoComprobante: dataCasoPostventaEdit.tipo_comprobante, 
+        tipoComprobante: dataCasoPostventaEdit.tipo_comprobante,
         codComprobante: dataCasoPostventaEdit.cod_comprobante,
         observacion: observa,
         usuarioCierra: userShineray
@@ -657,7 +691,7 @@ export const CaseManager = () => {
       const body = {
         empresa: enterpriseShineray,
         cod_comprobante: dataCasoPostventaEdit.cod_comprobante,
-        aplica_garantia: dataCasoPostventaEdit.aplica_garantia , // assume 2 = pendiente if not defined
+        aplica_garantia: dataCasoPostventaEdit.aplica_garantia, // assume 2 = pendiente if not defined
         observacion_final: observa,
         usuario_cierra: userShineray,
         tipo_comprobante: "CP",
@@ -694,6 +728,34 @@ export const CaseManager = () => {
 
   const handleGenerarPedidoTodos = () => {
     toast.info("Generar Pedido (todos) - Pendiente de implementar");
+  };
+
+  const handleGuardarNumeroGuia = async () => {
+    const nuevoNumeroGuia = numeroGuiaRef.current.value; // Lee el valor actual sin disparar re-renders en cada pulsación
+    if (!nuevoNumeroGuia.trim()) {
+      toast.error("Ingrese un número de guía válido.");
+      return;
+    }
+    try {
+      setLoading(true);
+      const payload = {
+        empresa: dataCasoPostventaEdit.empresa,
+        cod_comprobante: dataCasoPostventaEdit.cod_comprobante,
+        numero_guia: nuevoNumeroGuia
+      };
+      await updateNumeroGuia(jwt, payload);
+      toast.success("Número de guía actualizado correctamente.");
+      // Actualizamos opcionalmente el estado del caso
+      setDataCasoPostventaEdit({
+        ...dataCasoPostventaEdit,
+        numero_guia: nuevoNumeroGuia
+      });
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      toast.error("Error al actualizar el número de guía.");
+      console.error(error);
+    }
   };
 
   // -----------------------------------------
@@ -1095,10 +1157,19 @@ export const CaseManager = () => {
                   value={dataCasoPostventaEdit.identificacion_cliente || ''}
                   fullWidth
                   margin="dense"
-                  InputProps={{ readOnly: true }}
+                  InputProps={{
+                    readOnly: true,
+                    // Muestra el ícono si ya se realizó la consulta:
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        {clientExists === null ? null
+                          : clientExists ? <CheckCircleIcon style={{ color: 'green' }} />
+                            : <CancelIcon style={{ color: 'red' }} />}
+                      </InputAdornment>
+                    )
+                  }}
                 />
               </Grid>
-
               <Grid item xs={12} sm={6}>
                 <TextField
                   label="kilometraje"
@@ -1121,7 +1192,7 @@ export const CaseManager = () => {
               <Grid item xs={12}>
                 <TextField
                   label="observacion final"
-                  value={dataCasoPostventaEdit.observacion_final|| ''}
+                  value={dataCasoPostventaEdit.observacion_final || ''}
                   fullWidth
                   margin="dense"
                   InputProps={{ readOnly: true }}
@@ -1166,6 +1237,26 @@ export const CaseManager = () => {
                   margin="dense"
                   InputProps={{ readOnly: true }}
                 />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Número de Guía"
+                  defaultValue={dataCasoPostventaEdit.numero_guia || ''}
+                  inputRef={numeroGuiaRef}
+                  fullWidth
+                  margin="dense"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleGuardarNumeroGuia}
+                  style={{ marginTop: '20px', backgroundColor: 'firebrick' }}
+                >
+                  Agregar Número de Guía
+                </Button>
               </Grid>
 
               {/* OBSERVACIONES */}
@@ -1252,7 +1343,7 @@ export const CaseManager = () => {
                               variant="outlined"
                               color="error"
                               size="small"
-                              disabled={true} 
+                              disabled={true}
                             >
                               Eliminar
                             </Button>
