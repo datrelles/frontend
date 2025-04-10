@@ -988,6 +988,23 @@ export const saveNewDataClient = async (jwt, dataClient) => {
   }
 };
 
+
+export const updateNumeroGuia = async (jwt, { empresa, cod_comprobante, numero_guia }) => {
+  try {
+    const dataBody = { empresa, cod_comprobante, numero_guia }
+    const response = await axios.post(`${API}/warranty/casos_postventa/numero_guia`, dataBody, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+    })
+    return response.data
+  } catch (error) {
+    console.error("Error updating numero_guia:", error)
+    throw error
+  }
+}
+
 //PARTS UPDATE YEAR---------------------------------------
 
 export const getDataDespiece = async (jwt, codeEnterprise) => {
