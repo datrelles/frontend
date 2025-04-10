@@ -115,7 +115,7 @@ function ParametrosProceso() {
           toast.error('Sesión caducada.');
         }
       } else {
-        setParametrosDetail((await res.json()).map(item => ({ cod_parametro: item.cod_parametro, nombre: item.parametro.nombre, descripcion: item.parametro.descripcion })));
+        setParametrosDetail((await res.json()).map(item => ({ cod_parametro: item.cod_parametro, nombre: item.parametro.nombre, descripcion: item.parametro.descripcion, orden_imprime: item.orden_imprime })));
       }
     } catch (error) {
       toast.error('Sesión caducada. Por favor, inicia sesión nuevamente.');
@@ -219,6 +219,10 @@ function ParametrosProceso() {
       name: "descripcion",
       label: "Descripción"
     },
+    {
+      name: "orden_imprime",
+      label: "Orden"
+    },
   ]
 
   const handleDeleteRows = rowsDeleted => {
@@ -256,9 +260,37 @@ function ParametrosProceso() {
     return true;
   }
 
+  const handleClickDetail = (rowData) => {
+    const codParametro = rowData[0];
+    const orden_imprime = parseInt(window.prompt(`Ingresa el orden de impresión para el parámetro ${codParametro}:`));
+    if (isNaN(orden_imprime)) {
+      toast.error("Orden de impresión inválido");
+      return;
+    }
+    fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos/${codProceso}/parametros/${codParametro}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + jwt
+      },
+      body: JSON.stringify({
+        orden_imprime
+      })
+    }).then(res => {
+      if (!res.ok)
+        return res.json();
+      toast.success('Actualización exitosa')
+      setCodParametro(codParametro)
+    }).then(res => {
+      const { mensaje } = res;
+      toast.error(mensaje)
+    });
+  }
+
   const optionsDetail = {
     responsive: 'standard',
     selectableRows: 'single',
+    onRowClick: handleClickDetail,
     onRowsDelete: handleDeleteRows,
     textLabels: {
       body: {
@@ -358,7 +390,7 @@ function ParametrosProceso() {
   const handleAdd = async (rowData, rowMeta) => {
     const codParametro = rowData[0];
     const orden_imprime = parseInt(window.prompt(`Ingresa el orden de impresión para el parámetro ${codParametro}:`));
-    if (isNaN(orden_imprime)){
+    if (isNaN(orden_imprime)) {
       toast.error("Orden de impresión inválido");
       return;
     }
@@ -432,7 +464,6 @@ function ParametrosProceso() {
         titleAria: "Mostrar/Ocultar columnas de tabla"
       },
     }
-
   }
 
   return (
@@ -477,7 +508,7 @@ function ParametrosProceso() {
         <Box sx={{ flex: 1 }}>
           <ThemeProvider theme={getMuiTheme()}>
             <MUIDataTable
-              title="Parámetros por Proceso"
+              title={`Parámetros del Proceso ${codProceso ?? ''}`}
               data={parametrosDetail}
               columns={columnsDetail}
               options={optionsDetail}
