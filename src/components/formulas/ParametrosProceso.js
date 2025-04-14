@@ -135,10 +135,6 @@ function ParametrosProceso() {
     }
   }, [codProceso, codParametro])
 
-  const handleRowClickMaster = (rowData, rowMeta) => {
-    setCodProceso(rowData[0]);
-  }
-
   const renderText = (value) => {
     const progress = parseInt(value);
     const text = progress ? "Activo" : "Inactivo";
@@ -148,185 +144,6 @@ function ParametrosProceso() {
       </div>
     );
   };
-
-  const columns = [
-    {
-      name: "cod_proceso",
-      label: "Código"
-    },
-    {
-      name: "nombre",
-      label: "Nombre"
-    },
-    {
-      name: "audit_fecha_ing",
-      label: "Fecha creación"
-    },
-    {
-      name: "estado",
-      label: "Estado",
-      options: {
-        customBodyRender: (value) => renderText(value),
-      },
-    },
-  ]
-
-  const optionsMaster = {
-    responsive: 'standard',
-    selectableRows: 'none',
-    onRowClick: handleRowClickMaster,
-    textLabels: {
-      body: {
-        noMatch: "Lo siento, no se encontraron registros",
-        toolTip: "Ordenar",
-        columnHeaderTooltip: column => `Ordenar por ${column.label}`
-      },
-      pagination: {
-        next: "Siguiente",
-        previous: "Anterior",
-        rowsPerPage: "Filas por página:",
-        displayRows: "de"
-      },
-      toolbar: {
-        search: "Buscar",
-        downloadCsv: "Descargar CSV",
-        print: "Imprimir",
-        viewColumns: "Ver columnas",
-        filterTable: "Filtrar tabla"
-      },
-      filter: {
-        all: "Todos",
-        title: "FILTROS",
-        reset: "REINICIAR"
-      },
-      viewColumns: {
-        title: "Mostrar columnas",
-        titleAria: "Mostrar/Ocultar columnas de tabla"
-      },
-    }
-  }
-
-  const columnsDetail = [
-    {
-      name: "cod_parametro",
-      label: "Código"
-    },
-    {
-      name: "nombre",
-      label: "Nombre",
-    },
-    {
-      name: "descripcion",
-      label: "Descripción"
-    },
-    {
-      name: "orden_imprime",
-      label: "Orden"
-    },
-  ]
-
-  const handleDeleteRows = rowsDeleted => {
-    if (!window.confirm('¿Está seguro de eliminar el parámetro?')) {
-      return false;
-    }
-    const { data: deletedData } = rowsDeleted;
-    const deletedRowIndex = deletedData[0].index;
-    const deletedRowValue = parametrosDetail[deletedRowIndex];
-    const newParametros = parametrosDetail.filter((_, index) => index !== deletedRowIndex);
-    setParametrosDetail(newParametros);
-    fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos/${codProceso}/parametros/${deletedRowValue.cod_parametro}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + jwt
-      },
-    })
-      .then(response => {
-        if (!response.ok) {
-          setCodParametro('')
-          return response.json();
-        }
-        toast.success('¡Elemento eliminado exitosamente!');
-      })
-      .then(data => {
-        if (data) {
-          toast.error(data.mensaje);
-        }
-      })
-      .catch(error => {
-        console.error(error);
-        toast.error('Ocurrió un error en la llamada a la API');
-      })
-    return true;
-  }
-
-  const handleClickDetail = (rowData) => {
-    const codParametro = rowData[0];
-    const orden_imprime = parseInt(window.prompt(`Ingresa el orden de impresión para el parámetro ${codParametro}:`));
-    if (isNaN(orden_imprime)) {
-      toast.error("Orden de impresión inválido");
-      return;
-    }
-    fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos/${codProceso}/parametros/${codParametro}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + jwt
-      },
-      body: JSON.stringify({
-        orden_imprime
-      })
-    }).then(res => {
-      if (!res.ok)
-        return res.json();
-      toast.success('Actualización exitosa')
-      setCodParametro(codParametro)
-    }).then(res => {
-      const { mensaje } = res;
-      toast.error(mensaje)
-    });
-  }
-
-  const optionsDetail = {
-    responsive: 'standard',
-    selectableRows: 'single',
-    onRowClick: handleClickDetail,
-    onRowsDelete: handleDeleteRows,
-    textLabels: {
-      body: {
-        noMatch: "Lo siento, no se encontraron registros",
-        toolTip: "Ordenar",
-        columnHeaderTooltip: column => `Ordenar por ${column.label}`
-      },
-      pagination: {
-        next: "Siguiente",
-        previous: "Anterior",
-        rowsPerPage: "Filas por página:",
-        displayRows: "de"
-      },
-      toolbar: {
-        search: "Buscar",
-        downloadCsv: "Descargar CSV",
-        print: "Imprimir",
-        viewColumns: "Ver columnas",
-        filterTable: "Filtrar tabla"
-      },
-      filter: {
-        all: "Todos",
-        title: "FILTROS",
-        reset: "REINICIAR"
-      },
-      viewColumns: {
-        title: "Mostrar columnas",
-        titleAria: "Mostrar/Ocultar columnas de tabla"
-      },
-      selectedRows: {
-        text: "fila(s) seleccionada(s)",
-        delete: "Borrar",
-        deleteAria: "Borrar fila seleccionada"
-      }
-    }
-  }
 
   const getMuiTheme = () =>
     createTheme({
@@ -379,6 +196,72 @@ function ParametrosProceso() {
       }
     });
 
+  const handleDeleteRows = rowsDeleted => {
+    if (!window.confirm('¿Está seguro de eliminar el parámetro?')) {
+      return false;
+    }
+    const { data: deletedData } = rowsDeleted;
+    const deletedRowIndex = deletedData[0].index;
+    const deletedRowValue = parametrosDetail[deletedRowIndex];
+    const newParametros = parametrosDetail.filter((_, index) => index !== deletedRowIndex);
+    setParametrosDetail(newParametros);
+    fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos/${codProceso}/parametros/${deletedRowValue.cod_parametro}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + jwt
+      },
+    })
+      .then(response => {
+        if (!response.ok) {
+          setCodParametro('')
+          return response.json();
+        }
+        toast.success('¡Elemento eliminado exitosamente!');
+      })
+      .then(data => {
+        if (data) {
+          toast.error(data.mensaje);
+        }
+      })
+      .catch(error => {
+        console.error(error);
+        toast.error('Ocurrió un error en la llamada a la API');
+      })
+    return true;
+  }
+
+  const handleClickMaster = (rowData, rowMeta) => {
+    setCodProceso(rowData[0]);
+  }
+
+  const handleClickDetail = (rowData) => {
+    const codParametro = rowData[0];
+    const orden_imprime = parseInt(window.prompt(`Ingresa el orden de impresión para el parámetro ${codParametro}:`));
+    if (isNaN(orden_imprime)) {
+      toast.error("Orden de impresión inválido");
+      return;
+    }
+    fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos/${codProceso}/parametros/${codParametro}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + jwt
+      },
+      body: JSON.stringify({
+        orden_imprime
+      })
+    }).then(res => {
+      if (!res.ok)
+        return res.json();
+      toast.success('Actualización exitosa')
+      setCodParametro(codParametro)
+    }).then(res => {
+      const { mensaje } = res;
+      toast.error(mensaje)
+    });
+  }
+
   const handleClickOpenAdd = () => {
     setOpenAdd(true);
   };
@@ -411,6 +294,123 @@ function ParametrosProceso() {
       setCodParametro(codParametro)
     } else {
       toast.error(mensaje)
+    }
+  }
+
+  const columnsMaster = [
+    {
+      name: "cod_proceso",
+      label: "Código"
+    },
+    {
+      name: "nombre",
+      label: "Nombre"
+    },
+    {
+      name: "audit_fecha_ing",
+      label: "Fecha creación"
+    },
+    {
+      name: "estado",
+      label: "Estado",
+      options: {
+        customBodyRender: (value) => renderText(value),
+      },
+    },
+  ]
+
+  const optionsMaster = {
+    responsive: 'standard',
+    selectableRows: 'none',
+    onRowClick: handleClickMaster,
+    textLabels: {
+      body: {
+        noMatch: "Lo siento, no se encontraron registros",
+        toolTip: "Ordenar",
+        columnHeaderTooltip: column => `Ordenar por ${column.label}`
+      },
+      pagination: {
+        next: "Siguiente",
+        previous: "Anterior",
+        rowsPerPage: "Filas por página:",
+        displayRows: "de"
+      },
+      toolbar: {
+        search: "Buscar",
+        downloadCsv: "Descargar CSV",
+        print: "Imprimir",
+        viewColumns: "Ver columnas",
+        filterTable: "Filtrar tabla"
+      },
+      filter: {
+        all: "Todos",
+        title: "FILTROS",
+        reset: "REINICIAR"
+      },
+      viewColumns: {
+        title: "Mostrar columnas",
+        titleAria: "Mostrar/Ocultar columnas de tabla"
+      },
+    }
+  }
+
+  const columnsDetail = [
+    {
+      name: "cod_parametro",
+      label: "Código"
+    },
+    {
+      name: "nombre",
+      label: "Nombre",
+    },
+    {
+      name: "descripcion",
+      label: "Descripción"
+    },
+    {
+      name: "orden_imprime",
+      label: "Orden"
+    },
+  ]
+
+  const optionsDetail = {
+    responsive: 'standard',
+    selectableRows: 'single',
+    onRowClick: handleClickDetail,
+    onRowsDelete: handleDeleteRows,
+    textLabels: {
+      body: {
+        noMatch: "Lo siento, no se encontraron registros",
+        toolTip: "Ordenar",
+        columnHeaderTooltip: column => `Ordenar por ${column.label}`
+      },
+      pagination: {
+        next: "Siguiente",
+        previous: "Anterior",
+        rowsPerPage: "Filas por página:",
+        displayRows: "de"
+      },
+      toolbar: {
+        search: "Buscar",
+        downloadCsv: "Descargar CSV",
+        print: "Imprimir",
+        viewColumns: "Ver columnas",
+        filterTable: "Filtrar tabla"
+      },
+      filter: {
+        all: "Todos",
+        title: "FILTROS",
+        reset: "REINICIAR"
+      },
+      viewColumns: {
+        title: "Mostrar columnas",
+        titleAria: "Mostrar/Ocultar columnas de tabla"
+      },
+      selectedRows: {
+        text: "fila(s) seleccionada(s)",
+        delete: "Borrar",
+        deleteAria: "Borrar fila seleccionada"
+      }
     }
   }
 
@@ -500,7 +500,7 @@ function ParametrosProceso() {
             <MUIDataTable
               title={"Procesos"}
               data={procesos}
-              columns={columns}
+              columns={columnsMaster}
               options={optionsMaster}
             />
           </ThemeProvider>
