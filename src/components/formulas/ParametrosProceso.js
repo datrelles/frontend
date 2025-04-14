@@ -8,7 +8,9 @@ import AddIcon from '@material-ui/icons/Add';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
-import { FormControlLabel, Checkbox } from '@mui/material';
+import { FormControlLabel, Checkbox, IconButton, Tooltip } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CalculateIcon from '@mui/icons-material/Calculate';
 import { useAuthContext } from "../../context/authContext";
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
@@ -194,41 +196,6 @@ function ParametrosProceso() {
     return text;
   };
 
-  const handleDeleteRows = rowsDeleted => {
-    if (!window.confirm('¿Está seguro de eliminar el parámetro?')) {
-      return false;
-    }
-    const { data: deletedData } = rowsDeleted;
-    const deletedRowIndex = deletedData[0].index;
-    const deletedRowValue = parametrosDetail[deletedRowIndex];
-    const newParametros = parametrosDetail.filter((_, index) => index !== deletedRowIndex);
-    setParametrosDetail(newParametros);
-    fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos/${codProceso}/parametros/${deletedRowValue.cod_parametro}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + jwt
-      },
-    })
-      .then(response => {
-        if (!response.ok) {
-          setCodParametro('');
-          return response.json();
-        }
-        toast.success('¡Elemento eliminado exitosamente!');
-      })
-      .then(data => {
-        if (data) {
-          toast.error(data.mensaje);
-        }
-      })
-      .catch(error => {
-        console.error(error);
-        toast.error('Ocurrió un error en la llamada a la API');
-      })
-    return true;
-  }
-
   const handleClickMaster = (rowData, rowMeta) => {
     setCodProceso(rowData[0]);
   }
@@ -302,7 +269,50 @@ function ParametrosProceso() {
       const { mensaje } = res;
       toast.error(mensaje);
     });
+  };
+
+  const handleDeleteRows = (selectedRows, setSelectedRows) => {
+    if (!window.confirm('¿Está seguro de eliminar el parámetro?')) {
+      return false;
+    }
+    const { data: deletedData } = selectedRows;
+    const deletedRowIndex = deletedData[0].index;
+    const deletedRowValue = parametrosDetail[deletedRowIndex];
+    const newParametros = parametrosDetail.filter((_, index) => index !== deletedRowIndex);
+    setParametrosDetail(newParametros);
+    fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos/${codProceso}/parametros/${deletedRowValue.cod_parametro}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + jwt
+      },
+    })
+      .then(response => {
+        if (!response.ok) {
+          setCodParametro('');
+          return response.json();
+        }
+        toast.success('¡Elemento eliminado exitosamente!');
+        setSelectedRows([]);
+      })
+      .then(data => {
+        if (data) {
+          toast.error(data.mensaje);
+        }
+      })
+      .catch(error => {
+        console.error(error);
+        toast.error('Ocurrió un error en la llamada a la API');
+      })
+    return true;
   }
+
+  const handleCustomAction = (selectedRows, displayData) => {
+    const indiceSeleccionado = selectedRows.data[0].index;
+    const codParametro = displayData[indiceSeleccionado].data[0];
+    // navigate('/factores-calculo', { state: { codProceso, codParametro } });
+    navigate(`/factores-calculo?proceso=${codProceso}&parametro=${codParametro}`);
+  };
 
   const columnsMaster = [
     {
@@ -324,7 +334,7 @@ function ParametrosProceso() {
         customBodyRender: (value) => renderText(value),
       },
     },
-  ]
+  ];
 
   const optionsMaster = {
     responsive: 'standard',
@@ -359,7 +369,7 @@ function ParametrosProceso() {
         titleAria: "Mostrar/Ocultar columnas de tabla"
       },
     }
-  }
+  };
 
   const columnsDetail = [
     {
@@ -385,13 +395,28 @@ function ParametrosProceso() {
         customBodyRender: (value) => renderText(value),
       },
     },
-  ]
+  ];
+
+  const CustomSelectToolbar = (selectedRows, displayData, setSelectedRows) => {
+    return (<>
+      <Tooltip title="Factores de cálculo">
+        <IconButton onClick={() => handleCustomAction(selectedRows, displayData)}>
+          <CalculateIcon />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="Eliminar">
+        <IconButton onClick={() => handleDeleteRows(selectedRows, setSelectedRows)}>
+          <DeleteIcon />
+        </IconButton>
+      </Tooltip>
+    </>);
+  };
 
   const optionsDetail = {
     responsive: 'standard',
     selectableRows: 'single',
     onRowClick: handleClickOpenUpdate,
-    onRowsDelete: handleDeleteRows,
+    customToolbarSelect: CustomSelectToolbar,
     textLabels: {
       body: {
         noMatch: "Lo siento, no se encontraron registros",
@@ -420,11 +445,11 @@ function ParametrosProceso() {
         title: "Mostrar columnas",
         titleAria: "Mostrar/Ocultar columnas de tabla"
       },
-      selectedRows: {
-        text: "fila(s) seleccionada(s)",
-        delete: "Borrar",
-        deleteAria: "Borrar fila seleccionada"
-      }
+      // selectedRows: {
+      //   text: "fila(s) seleccionada(s)",
+      //   delete: "Borrar",
+      //   deleteAria: "Borrar fila seleccionada"
+      // }
     }
   }
 
