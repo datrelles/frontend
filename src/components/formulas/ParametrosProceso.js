@@ -27,8 +27,13 @@ function ParametrosProceso() {
   const [parametrosDetail, setParametrosDetail] = useState([])
   const [menus, setMenus] = useState([])
   const [openAdd, setOpenAdd] = useState(false);
+  const [openUpdate, setOpenUpdate] = useState(false);
   const [codProceso, setCodProceso] = useState('');
   const [codParametro, setCodParametro] = useState('');
+  const [nombreParametro, setNombreParametro] = useState('');
+  const [descripcionParametro, setDescripcionParametro] = useState('');
+  const [ordenParametro, setOrdenParametro] = useState(0);
+  const [estadoParametro, setEstadoParametro] = useState(false);
 
   const navigate = useNavigate();
 
@@ -48,7 +53,7 @@ function ParametrosProceso() {
         }
       } else {
         const data = await res.json();
-        setProcesos(data)
+        setProcesos(data);
       }
     } catch (error) {
       toast.error('Sesión caducada. Por favor, inicia sesión nuevamente.');
@@ -64,14 +69,13 @@ function ParametrosProceso() {
             'Authorization': 'Bearer ' + jwt
           }
         });
-
       if (!res.ok) {
         if (res.status === 401) {
           toast.error('Sesión caducada.');
         }
       } else {
         const data = await res.json();
-        setMenus(data)
+        setMenus(data);
       }
     } catch (error) {
     }
@@ -86,14 +90,13 @@ function ParametrosProceso() {
             'Authorization': 'Bearer ' + jwt
           }
         });
-
       if (!res.ok) {
         if (res.status === 401) {
           toast.error('Sesión caducada.');
         }
       } else {
         const data = await res.json();
-        setParametros(data)
+        setParametros(data);
       }
     } catch (error) {
       toast.error('Sesión caducada. Por favor, inicia sesión nuevamente.');
@@ -109,13 +112,12 @@ function ParametrosProceso() {
             'Authorization': 'Bearer ' + jwt
           }
         });
-
       if (!res.ok) {
         if (res.status === 401) {
           toast.error('Sesión caducada.');
         }
       } else {
-        setParametrosDetail((await res.json()).map(item => ({ cod_parametro: item.cod_parametro, nombre: item.parametro.nombre, descripcion: item.parametro.descripcion, orden_imprime: item.orden_imprime })));
+        setParametrosDetail((await res.json()).map(item => ({ cod_parametro: item.cod_parametro, nombre: item.parametro.nombre, descripcion: item.parametro.descripcion, orden_imprime: item.orden_imprime, estado: item.estado })));
       }
     } catch (error) {
       toast.error('Sesión caducada. Por favor, inicia sesión nuevamente.');
@@ -133,17 +135,7 @@ function ParametrosProceso() {
     if (codProceso) {
       getParametrosDetail();
     }
-  }, [codProceso, codParametro])
-
-  const renderText = (value) => {
-    const progress = parseInt(value);
-    const text = progress ? "Activo" : "Inactivo";
-    return (
-      <div>
-        <span>{text}</span>
-      </div>
-    );
-  };
+  }, [codProceso, codParametro]);
 
   const getMuiTheme = () =>
     createTheme({
@@ -196,6 +188,12 @@ function ParametrosProceso() {
       }
     });
 
+  const renderText = (value) => {
+    const progress = parseInt(value);
+    const text = progress ? "Activo" : "Inactivo";
+    return text;
+  };
+
   const handleDeleteRows = rowsDeleted => {
     if (!window.confirm('¿Está seguro de eliminar el parámetro?')) {
       return false;
@@ -214,7 +212,7 @@ function ParametrosProceso() {
     })
       .then(response => {
         if (!response.ok) {
-          setCodParametro('')
+          setCodParametro('');
           return response.json();
         }
         toast.success('¡Elemento eliminado exitosamente!');
@@ -233,33 +231,6 @@ function ParametrosProceso() {
 
   const handleClickMaster = (rowData, rowMeta) => {
     setCodProceso(rowData[0]);
-  }
-
-  const handleClickDetail = (rowData) => {
-    const codParametro = rowData[0];
-    const orden_imprime = parseInt(window.prompt(`Ingresa el orden de impresión para el parámetro ${codParametro}:`));
-    if (isNaN(orden_imprime)) {
-      toast.error("Orden de impresión inválido");
-      return;
-    }
-    fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos/${codProceso}/parametros/${codParametro}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + jwt
-      },
-      body: JSON.stringify({
-        orden_imprime
-      })
-    }).then(res => {
-      if (!res.ok)
-        return res.json();
-      toast.success('Actualización exitosa')
-      setCodParametro(codParametro)
-    }).then(res => {
-      const { mensaje } = res;
-      toast.error(mensaje)
-    });
   }
 
   const handleClickOpenAdd = () => {
@@ -289,12 +260,48 @@ function ParametrosProceso() {
     });
     const { mensaje } = await res.json();
     if (res.ok) {
-      toast.success(mensaje)
-      setOpenAdd(false)
-      setCodParametro(codParametro)
+      toast.success(mensaje);
+      setOpenAdd(false);
+      setCodParametro(codParametro);
     } else {
-      toast.error(mensaje)
+      toast.error(mensaje);
     }
+  }
+
+  const handleClickOpenUpdate = (rowData) => {
+    setCodParametro(rowData[0]);
+    setNombreParametro(rowData[1]);
+    setDescripcionParametro(rowData[2] || "N/A");
+    setOrdenParametro(rowData[3]);
+    setEstadoParametro(rowData[4] === "Activo");
+    setOpenUpdate(true);
+  };
+
+  const handleClickCloseUpdate = () => {
+    setOpenUpdate(false);
+  };
+
+  const handleUpdate = () => {
+    fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos/${codProceso}/parametros/${codParametro}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + jwt
+      },
+      body: JSON.stringify({
+        orden_imprime: ordenParametro,
+        estado: estadoParametro
+      })
+    }).then(res => {
+      if (!res.ok)
+        return res.json();
+      setCodParametro('');
+      setOpenUpdate(false);
+      toast.success('Actualización exitosa');
+    }).then(res => {
+      const { mensaje } = res;
+      toast.error(mensaje);
+    });
   }
 
   const columnsMaster = [
@@ -371,12 +378,19 @@ function ParametrosProceso() {
       name: "orden_imprime",
       label: "Orden"
     },
+    {
+      name: "estado",
+      label: "Estado",
+      options: {
+        customBodyRender: (value) => renderText(value),
+      },
+    },
   ]
 
   const optionsDetail = {
     responsive: 'standard',
     selectableRows: 'single',
-    onRowClick: handleClickDetail,
+    onRowClick: handleClickOpenUpdate,
     onRowsDelete: handleDeleteRows,
     textLabels: {
       body: {
@@ -483,17 +497,16 @@ function ParametrosProceso() {
           <Button onClick={() => { navigate('/dashboard') }}>Módulos</Button>
         </ButtonGroup>
       </Box>
-      {codProceso && (
-        <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
-          <button
-            className="btn btn-primary btn-block"
-            type="button"
-            style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
-            onClick={handleClickOpenAdd}>
-            <AddIcon /> Agregar parámetro a {codProceso}
-          </button>
-        </div>
-      )}
+      <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
+        <button
+          disabled={!codProceso}
+          className="btn btn-primary btn-block"
+          type="button"
+          style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
+          onClick={handleClickOpenAdd}>
+          <AddIcon /> Agregar parámetro a {codProceso}
+        </button>
+      </div>
       <Box sx={{ display: "flex", gap: 4 }}>
         <Box sx={{ flex: 1 }}>
           <ThemeProvider theme={getMuiTheme()}>
@@ -532,6 +545,78 @@ function ParametrosProceso() {
         <DialogActions>
           <Button onClick={handleClickCloseAdd} color="primary">
             Cancelar
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={openUpdate} onClose={handleClickCloseUpdate}>
+        <DialogTitle>Modificar Parámetro {codParametro} Del Proceso {codProceso}</DialogTitle>
+        <DialogContent>
+          <ThemeProvider theme={getMuiTheme()}>
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <TextField
+                  disabled
+                  margin="dense"
+                  id="cod_parametro"
+                  label="Código"
+                  type="text"
+                  fullWidth
+                  value={codParametro}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  disabled
+                  margin="dense"
+                  id="nombre"
+                  label="Nombre"
+                  type="text"
+                  fullWidth
+                  value={nombreParametro}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  disabled
+                  margin="dense"
+                  id="descripcion"
+                  label="Descripción"
+                  type="text"
+                  fullWidth
+                  value={descripcionParametro}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  margin="dense"
+                  id="orden"
+                  label="Orden"
+                  type="number"
+                  fullWidth
+                  value={ordenParametro}
+                  onChange={(e) => setOrdenParametro(e.target.value)}
+                />
+              </Grid>
+            </Grid>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
+              <FormControlLabel control={
+                <Checkbox
+                  label="Estado"
+                  checked={estadoParametro}
+                  onChange={(e) => setEstadoParametro(e.target.checked)}
+                />
+              }
+                label="Activo"
+              />
+            </div>
+          </ThemeProvider>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClickCloseUpdate} color="primary">
+            Cancelar
+          </Button>
+          <Button onClick={handleUpdate} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }}>
+            Actualizar
           </Button>
         </DialogActions>
       </Dialog>
