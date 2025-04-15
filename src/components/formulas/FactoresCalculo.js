@@ -16,7 +16,8 @@ import {
     MenuItem,
     FormControl,
     InputLabel,
-    Grid
+    Grid,
+    Typography
 } from '@mui/material';
 
 const tiposOperadores = new Map([
@@ -153,10 +154,43 @@ function FactoresCalculo() {
             setValorFijo('');
             setCodParametroOperador('');
             setNombreParametroOperador('');
-            setNuevoFactor(codProceso, codParametro, orden);
+            getFactores();
+            //aqui se deberia setear el nuevo factor para que usando el efecto se actualice
+            //setNuevoFactor(codProceso, codParametro, orden);
         } else {
             toast.error(mensaje)
         }
+    }
+
+    const handleDeleteFactor = (orden) => {
+        if (!window.confirm('¿Estás seguro de eliminar el factor?')) {
+            return;
+        }
+        fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos/${codProceso}/parametros/${codParametro}/factores/${orden}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + jwt
+            },
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json();
+                }
+                toast.success('¡Elemento eliminado exitosamente!');
+                //aqui deberia cambiar el codigo del parametro actual, 
+                // poner una d como prefijo asumiendo que recien se ingreso y se quiere eliminar
+                getFactores();
+            })
+            .then(data => {
+                if (data) {
+                    toast.error(data.mensaje);
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                toast.error('Ocurrió un error en la llamada a la API');
+            });
     }
 
     useEffect(() => {
@@ -166,9 +200,10 @@ function FactoresCalculo() {
             getFactores();
     }, []);
 
-    useEffect(() => {
-        getFactores();
-    }, [nuevoFactor]);
+    //SE DEBE ACTIVAR EL EFECTO PARA CUIANDO SE CREA O QUITA UN FACTOR
+    // useEffect(() => {
+    //     getFactores();
+    // }, [nuevoFactor]);
 
     return (
         <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
@@ -187,6 +222,14 @@ function FactoresCalculo() {
                     <Button onClick={() => { navigate('/dashboard') }}>Módulos</Button>
                 </ButtonGroup>
             </Box>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+                Factores de cálculo del proceso {codProceso} y del parámetro {codParametro}
+            </Typography>
+            {factores.length === 0 && (
+                <Typography variant="body1" sx={{ mb: 2 }}>
+                    Aún no se han registrado factores de cálculo
+                </Typography>
+            )}
             <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
                 <button
                     className="btn btn-primary btn-block"
@@ -196,25 +239,28 @@ function FactoresCalculo() {
                     <AddIcon /> Nuevo
                 </button>
             </div>
-            <Grid container spacing={2}>
+            <List sx={{mt: 2}} disablePadding>
                 {factores.map((item, index) => (
-                    <Grid item xs={12}>
-                        <List disablePadding>
-                            <ListItem sx={{ width: '100%' }} key={item.orden}>
-                                <Grid item xs={3}>
-                                    <TextField
-                                        disabled
-                                        label="Orden"
-                                        value={item.orden}
-                                        fullWidth
-                                    />
-                                </Grid>
-                                <Grid item xs={3}>
+                    <ListItem sx={{ width: '100%' }}>
+                        <Grid container spacing={2}>
+                            <Grid item xs={3}>
+                                <TextField
+                                    disabled
+                                    label="Orden"
+                                    value={item.orden}
+                                    fullWidth
+                                />
+                            </Grid>
+                            <Grid item xs={3}>
+                                <FormControl fullWidth variant="outlined">
+                                    <InputLabel id="l_tipo_operador">Tipo operador</InputLabel>
                                     <Select
+                                        labelId="l_tipo_operador"
+                                        label="Tipo operador"
                                         disabled
+                                        id="tipo_operador"
                                         style={{ width: "100%" }}
                                         value={item.tipo_operador}
-                                        label="Tipo operador"
                                     >
                                         {Array.from(tiposOperadores).map(([clave, valor]) => (
                                             <MenuItem key={clave} value={clave}>
@@ -222,24 +268,31 @@ function FactoresCalculo() {
                                             </MenuItem>
                                         ))}
                                     </Select>
-                                </Grid>
-                                <Grid item xs={1}>
-                                    <Select
-                                        disabled
-                                        id="operador"
-                                        style={{ width: "100%" }}
-                                        value={item.operador}
-                                        label="Operador"
-                                    >
-                                        <MenuItem selected key={0} value="Seleccione">Seleccione</MenuItem>
-                                        {operadores.map((tipo) => (
-                                            <MenuItem key={tipo} value={tipo}>
-                                                {tipo}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </Grid>
-                                <Grid item xs={2}>
+                                </FormControl>
+                            </Grid>
+                            <Grid item xs={1}>
+                                {item.operador && (
+                                    <FormControl fullWidth variant="outlined" disabled>
+                                        <InputLabel id="l_operador">Operador</InputLabel>
+                                        <Select
+                                            labelId="l_operador"
+                                            label="Operador"
+                                            id="operador"
+                                            style={{ width: "100%" }}
+                                            value={item.operador}
+                                        >
+                                            <MenuItem selected key={0} value="Seleccione">Seleccione</MenuItem>
+                                            {operadores.map((tipo) => (
+                                                <MenuItem key={tipo} value={tipo}>
+                                                    {tipo}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                )}
+                            </Grid>
+                            <Grid item xs={2}>
+                                {item.valor_fijo && (
                                     <TextField
                                         disabled
                                         id="valor_fijo"
@@ -248,8 +301,10 @@ function FactoresCalculo() {
                                         fullWidth
                                         value={item.valor_fijo}
                                     />
-                                </Grid>
-                                <Grid item xs={3}>
+                                )}
+                            </Grid>
+                            <Grid item xs={2}>
+                                {item.cod_parametro_operador && (
                                     <TextField
                                         disabled
                                         id="cod_parametro_operador"
@@ -258,96 +313,120 @@ function FactoresCalculo() {
                                         fullWidth
                                         value={item.cod_parametro_operador}
                                     />
+                                )}
+                            </Grid>
+                            {factores.length === index + 1 && (
+                                <Grid item xs={1}>
+                                    <Button onClick={() => { handleDeleteFactor(item.orden) }} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }}>
+                                        Quitar
+                                    </Button>
                                 </Grid>
-                            </ListItem>
-                        </List>
-                    </Grid>
+                            )}
+                        </Grid>
+                    </ListItem>
                 ))}
-            </Grid>
-            {addFactor && (<>
-                <Grid container spacing={2}>
-                    <Grid item xs={3}>
-                        <TextField
-                            disabled
-                            label="Orden"
-                            value={orden}
-                            onChange={(e) => { setOrden(e.target.value) }}
-                            fullWidth
-                        />
-                    </Grid>
-                    <Grid item xs={3}>
-                        <Select
-                            style={{ width: "100%" }}
-                            value={tipoOperador}
-                            label="Tipo operador"
-                            onChange={(e) => { const nuevoTipo = e.target.value; checkTipoOperador(tiposOperadores.get(nuevoTipo)); setTipoOperador(nuevoTipo); }}
-                        >
-                            <MenuItem selected key={0} value="Seleccione">Seleccione</MenuItem>
-                            {Array.from(tiposOperadores).map(([clave, valor]) => (
-                                <MenuItem key={clave} value={clave}>
-                                    {valor}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </Grid>
-                    <Grid item xs={1}>
-                        <Select
-                            disabled={tiposOperadores.get(tipoOperador) !== tiposOperadores.get('OPE')}
-                            id="operador"
-                            style={{ width: "100%" }}
-                            value={operador}
-                            label="Operador"
-                            onChange={(e) => { setOperador(e.target.value); }}
-                        >
-                            <MenuItem selected key={0} value="Seleccione">Seleccione</MenuItem>
-                            {operadores.map((tipo) => (
-                                <MenuItem key={tipo} value={tipo}>
-                                    {tipo}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </Grid>
-                    <Grid item xs={2}>
-                        <TextField
-                            disabled={tiposOperadores.get(tipoOperador) !== tiposOperadores.get('VAL')}
-                            id="valor_fijo"
-                            label="Valor fijo"
-                            type="text"
-                            fullWidth
-                            value={valorFijo}
-                            onChange={(e => { setValorFijo(e.target.value) })}
-                        />
-                    </Grid>
-                    <Grid item xs={1}>
-                        <TextField
-                            disabled={tiposOperadores.get(tipoOperador) !== tiposOperadores.get('PAR')}
-                            id="cod_parametro_operador"
-                            label="Parámetro"
-                            type="text"
-                            fullWidth
-                            value={codParametroOperador}
-                            onChange={(e => { setCodParametroOperador(e.target.value) })}
-                        />
-                    </Grid>
-                    <Grid item xs={2}>
-                        <TextField
-                            disabled
-                            id="nombre_parametro_operador"
-                            label="Nombre del parámetro"
-                            type="text"
-                            fullWidth
-                            value={nombreParametroOperador}
-                            onChange={(e => { setNombreParametroOperador(e.target.value) })}
-                        />
-                    </Grid>
-                </Grid>
-                <Button onClick={handleAddFactor} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }}>
-                    Agregar
-                </Button>
-                <Button onClick={() => setAddFactor(false)} color="primary">
-                    Cancelar
-                </Button>
-            </>)}
+                {addFactor && (<>
+                    <ListItem sx={{ width: '100%' }}>
+                        <Grid container spacing={2}>
+                            <Grid item xs={3}>
+                                <TextField
+                                    disabled
+                                    label="Orden"
+                                    value={orden}
+                                    onChange={(e) => { setOrden(e.target.value) }}
+                                    fullWidth
+                                />
+                            </Grid>
+                            <Grid item xs={3}>
+                                <FormControl fullWidth variant="outlined">
+                                    <InputLabel id="l_tipo_operador">Tipo operador</InputLabel>
+                                    <Select
+                                        labelId="l_tipo_operador"
+                                        label="Tipo operador"
+                                        id="tipo_operador"
+                                        style={{ width: "100%" }}
+                                        value={tipoOperador}
+                                        onChange={(e) => { const nuevoTipo = e.target.value; checkTipoOperador(tiposOperadores.get(nuevoTipo)); setTipoOperador(nuevoTipo); }}
+                                    >
+                                        <MenuItem selected key={0} value="Seleccione">Seleccione</MenuItem>
+                                        {Array.from(tiposOperadores).map(([clave, valor]) => (
+                                            <MenuItem key={clave} value={clave}>
+                                                {valor}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                            <Grid item xs={1}>
+                                <FormControl fullWidth variant="outlined">
+                                    <InputLabel id="l_operador">Operador</InputLabel>
+                                    <Select
+                                        labelId="l_operador"
+                                        label="Operador"
+                                        id="operador"
+                                        disabled={tiposOperadores.get(tipoOperador) !== tiposOperadores.get('OPE')}
+                                        style={{ width: "100%" }}
+                                        value={operador}
+                                        onChange={(e) => { setOperador(e.target.value); }}
+                                    >
+                                        <MenuItem selected key={0} value="Seleccione">Seleccione</MenuItem>
+                                        {operadores.map((tipo) => (
+                                            <MenuItem key={tipo} value={tipo}>
+                                                {tipo}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                            <Grid item xs={2}>
+                                <TextField
+                                    disabled={tiposOperadores.get(tipoOperador) !== tiposOperadores.get('VAL')}
+                                    id="valor_fijo"
+                                    label="Valor fijo"
+                                    type="text"
+                                    fullWidth
+                                    value={valorFijo}
+                                    onChange={(e => { setValorFijo(e.target.value) })}
+                                />
+                            </Grid>
+                            <Grid item xs={1}>
+                                <TextField
+                                    disabled={tiposOperadores.get(tipoOperador) !== tiposOperadores.get('PAR')}
+                                    id="cod_parametro_operador"
+                                    label="Parámetro"
+                                    type="text"
+                                    fullWidth
+                                    value={codParametroOperador}
+                                    onChange={(e => { setCodParametroOperador(e.target.value) })}
+                                />
+                            </Grid>
+                            <Grid item xs={2}>
+                                <TextField
+                                    disabled
+                                    id="nombre_parametro_operador"
+                                    label="Nombre del parámetro"
+                                    type="text"
+                                    fullWidth
+                                    value={nombreParametroOperador}
+                                    onChange={(e => { setNombreParametroOperador(e.target.value) })}
+                                />
+                            </Grid>
+                        </Grid>
+                    </ListItem>
+                    <ListItem sx={{ width: '100%' }}>
+                        <Grid container spacing={2}>
+                            <Grid item xs={12}>
+                                <Button onClick={handleAddFactor} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }}>
+                                    Agregar
+                                </Button>
+                                <Button onClick={() => setAddFactor(false)} color="primary">
+                                    Cancelar
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </ListItem>
+                </>)}
+            </List>
         </div>
     );
 }
