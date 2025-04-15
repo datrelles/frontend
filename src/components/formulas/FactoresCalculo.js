@@ -260,15 +260,6 @@ function FactoresCalculo() {
                     Aún no se han registrado factores de cálculo
                 </Typography>
             )}
-            <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
-                <button
-                    className="btn btn-primary btn-block"
-                    type="button"
-                    style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
-                    onClick={() => setAddFactor(true)}>
-                    <AddIcon /> Nuevo
-                </button>
-            </div>
             <List sx={{ mt: 2 }} disablePadding>
                 {factores.map((item, index) => (
                     <ListItem sx={{ width: '100%' }} key={item.orden}>
@@ -453,17 +444,29 @@ function FactoresCalculo() {
                     <ListItem sx={{ width: '100%' }}>
                         <Grid container spacing={2}>
                             <Grid item xs={12}>
-                                <Button onClick={handleAddFactor} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }}>
-                                    Agregar
-                                </Button>
-                                <Button onClick={() => setAddFactor(false)} color="primary">
-                                    Cancelar
-                                </Button>
+                                <Box display="flex" justifyContent="center">
+                                    <Button onClick={handleAddFactor} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }}>
+                                        Agregar
+                                    </Button>
+                                    <Button onClick={() => setAddFactor(false)} color="primary">
+                                        Cancelar
+                                    </Button>
+                                </Box>
                             </Grid>
                         </Grid>
                     </ListItem>
                 </>)}
             </List>
+            {!addFactor && (
+                <Box display="flex" justifyContent="center">
+                    <Button
+                        style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }}
+                        sx={{ mt: 2 }}
+                        onClick={() => setAddFactor(true)}>
+                        <AddIcon /> Nuevo
+                    </Button>
+                </Box>
+            )}
         </div>
     );
 }
