@@ -19,11 +19,11 @@ import {
     Grid
 } from '@mui/material';
 
-const tiposOperadores = {
-    PAR: "PARÁMETRO",
-    VAL: "VALOR FIJO",
-    OPE: "OPERADOR",
-}
+const tiposOperadores = new Map([
+    ['PAR', 'PARÁMETRO'],
+    ['VAL', 'VALOR FIJO'],
+    ['OPE', 'OPERADOR']
+])
 
 const operadores = [
     "+",
@@ -50,6 +50,7 @@ function FactoresCalculo() {
     const [valorFijo, setValorFijo] = useState('');
     const [codParametroOperador, setCodParametroOperador] = useState('');
     const [nombreParametroOperador, setNombreParametroOperador] = useState('');
+    const [nuevoFactor, setNuevoFactor] = useState('');
 
     const getMenus = async () => {
         try {
@@ -92,6 +93,7 @@ function FactoresCalculo() {
             } else {
                 const data = await res.json();
                 setFactores(data);
+                setOrden(data ? data.length + 1 : 0);
             }
         } catch (error) {
             console.log(error);
@@ -101,16 +103,16 @@ function FactoresCalculo() {
 
     const checkTipoOperador = (tipo) => {
         switch (tipo) {
-            case Object.keys(tiposOperadores)[0]:
+            case tiposOperadores.get('PAR'):
                 setValorFijo('');
                 setOperador('Seleccione');
                 break;
-            case Object.keys(tiposOperadores)[1]:
+            case tiposOperadores.get('VAL'):
                 setCodParametroOperador('');
                 setNombreParametroOperador('');
                 setOperador('Seleccione');
                 break;
-            case Object.keys(tiposOperadores)[2]:
+            case tiposOperadores.get('OPE'):
                 setCodParametroOperador('');
                 setNombreParametroOperador('');
                 setValorFijo('');
@@ -151,6 +153,7 @@ function FactoresCalculo() {
             setValorFijo('');
             setCodParametroOperador('');
             setNombreParametroOperador('');
+            setNuevoFactor(codProceso, codParametro, orden);
         } else {
             toast.error(mensaje)
         }
@@ -162,6 +165,10 @@ function FactoresCalculo() {
         if (codProceso && codParametro)
             getFactores();
     }, []);
+
+    useEffect(() => {
+        getFactores();
+    }, [nuevoFactor]);
 
     return (
         <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
@@ -189,38 +196,79 @@ function FactoresCalculo() {
                     <AddIcon /> Nuevo
                 </button>
             </div>
-            <List>
+            <Grid container spacing={2}>
                 {factores.map((item, index) => (
-                    <ListItem key={item.orden}>
-                        <Box display="flex" gap={2} flexWrap="wrap" width="100%">
-                            <TextField
-                                label="Orden"
-                                value={item.orden}
-                                onChange={() => { }}
-                                fullWidth
-                            />
-                            <FormControl fullWidth>
-                                <InputLabel>Tipo operador</InputLabel>
-                                <Select
-                                    value={item.tipo_operador}
-                                    label="Tipo operador"
-                                    onChange={() => { }}
-                                >
-                                    {Object.entries(tiposOperadores).map(([clave, valor]) => (
-                                        <MenuItem disabled key={clave} value={clave}>
-                                            {valor}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        </Box>
-                    </ListItem>
+                    <Grid item xs={12}>
+                        <List disablePadding>
+                            <ListItem sx={{ width: '100%' }} key={item.orden}>
+                                <Grid item xs={3}>
+                                    <TextField
+                                        disabled
+                                        label="Orden"
+                                        value={item.orden}
+                                        fullWidth
+                                    />
+                                </Grid>
+                                <Grid item xs={3}>
+                                    <Select
+                                        disabled
+                                        style={{ width: "100%" }}
+                                        value={item.tipo_operador}
+                                        label="Tipo operador"
+                                    >
+                                        {Array.from(tiposOperadores).map(([clave, valor]) => (
+                                            <MenuItem key={clave} value={clave}>
+                                                {valor}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </Grid>
+                                <Grid item xs={1}>
+                                    <Select
+                                        disabled
+                                        id="operador"
+                                        style={{ width: "100%" }}
+                                        value={item.operador}
+                                        label="Operador"
+                                    >
+                                        <MenuItem selected key={0} value="Seleccione">Seleccione</MenuItem>
+                                        {operadores.map((tipo) => (
+                                            <MenuItem key={tipo} value={tipo}>
+                                                {tipo}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </Grid>
+                                <Grid item xs={2}>
+                                    <TextField
+                                        disabled
+                                        id="valor_fijo"
+                                        label="Valor fijo"
+                                        type="text"
+                                        fullWidth
+                                        value={item.valor_fijo}
+                                    />
+                                </Grid>
+                                <Grid item xs={3}>
+                                    <TextField
+                                        disabled
+                                        id="cod_parametro_operador"
+                                        label="Parámetro"
+                                        type="text"
+                                        fullWidth
+                                        value={item.cod_parametro_operador}
+                                    />
+                                </Grid>
+                            </ListItem>
+                        </List>
+                    </Grid>
                 ))}
-            </List>
+            </Grid>
             {addFactor && (<>
                 <Grid container spacing={2}>
                     <Grid item xs={3}>
                         <TextField
+                            disabled
                             label="Orden"
                             value={orden}
                             onChange={(e) => { setOrden(e.target.value) }}
@@ -232,10 +280,10 @@ function FactoresCalculo() {
                             style={{ width: "100%" }}
                             value={tipoOperador}
                             label="Tipo operador"
-                            onChange={(e) => { const nuevoTipo = e.target.value; checkTipoOperador(nuevoTipo); setTipoOperador(nuevoTipo); }}
+                            onChange={(e) => { const nuevoTipo = e.target.value; checkTipoOperador(tiposOperadores.get(nuevoTipo)); setTipoOperador(nuevoTipo); }}
                         >
                             <MenuItem selected key={0} value="Seleccione">Seleccione</MenuItem>
-                            {Object.entries(tiposOperadores).map(([clave, valor]) => (
+                            {Array.from(tiposOperadores).map(([clave, valor]) => (
                                 <MenuItem key={clave} value={clave}>
                                     {valor}
                                 </MenuItem>
@@ -244,7 +292,7 @@ function FactoresCalculo() {
                     </Grid>
                     <Grid item xs={1}>
                         <Select
-                            disabled={tipoOperador !== Object.keys(tiposOperadores)[0]}
+                            disabled={tiposOperadores.get(tipoOperador) !== tiposOperadores.get('OPE')}
                             id="operador"
                             style={{ width: "100%" }}
                             value={operador}
@@ -261,7 +309,7 @@ function FactoresCalculo() {
                     </Grid>
                     <Grid item xs={2}>
                         <TextField
-                            disabled={tipoOperador !== Object.keys(tiposOperadores)[1]}
+                            disabled={tiposOperadores.get(tipoOperador) !== tiposOperadores.get('VAL')}
                             id="valor_fijo"
                             label="Valor fijo"
                             type="text"
@@ -272,7 +320,7 @@ function FactoresCalculo() {
                     </Grid>
                     <Grid item xs={1}>
                         <TextField
-                            disabled={tipoOperador !== Object.keys(tiposOperadores)[2]}
+                            disabled={tiposOperadores.get(tipoOperador) !== tiposOperadores.get('PAR')}
                             id="cod_parametro_operador"
                             label="Parámetro"
                             type="text"
