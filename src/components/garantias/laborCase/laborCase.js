@@ -129,6 +129,17 @@ export const OpagoManager = () => {
         customBodyRender: (val) => (val ? Number(val).toFixed(2) : '0.00'),
       },
     },
+
+    {
+      name: 'fecha_pag',
+      label: 'Fecha Pago',
+      options: {
+        customBodyRender: (value) => {
+          if (!value) return '';
+          return moment(value).format('YYYY-MM-DD');
+        },
+      },
+    },
     {
       name: 'saldo',
       label: 'Saldo',

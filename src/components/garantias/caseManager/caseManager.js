@@ -40,7 +40,8 @@ import {
   deletePostventasObs,
   getCasoPostventa,
   updateNumeroGuia,
-  getClienteDataForId
+  getClienteDataForId,
+  getNombreProductoByMotor
 } from '../../../services/api'
 
 import { ProgressBar } from './progressLine'
@@ -85,6 +86,7 @@ export const CaseManager = () => {
   const [numeroGuia, setNumeroGuia] = useState('');
   // Estado para saber si el cliente existe
   const [clientExists, setClientExists] = useState(null);
+  const [nombreProducto, setNombreProducto] = useState('');
 
   const listaProblemas = {
     46: "MOTOR",
@@ -394,6 +396,25 @@ export const CaseManager = () => {
     };
     fetchCliente();
   }, [dataCasoPostventaEdit, jwt, enterpriseShineray]);
+
+
+  useEffect(() => {
+    const fetchNombreProducto = async () => {
+      if (dataCasoPostventaEdit?.cod_motor) {
+        try {
+          const response = await getNombreProductoByMotor(jwt, dataCasoPostventaEdit.cod_motor);
+          setNombreProducto(response.nombre || 'No encontrado');
+        } catch (error) {
+          console.error('Error al obtener el nombre del producto:', error);
+          setNombreProducto('Error al obtener el producto');
+        }
+      } else {
+        setNombreProducto('');
+      }
+    };
+
+    fetchNombreProducto();
+  }, [dataCasoPostventaEdit?.cod_motor, jwt]);
 
 
   // SUBCASOS
@@ -1049,6 +1070,16 @@ export const CaseManager = () => {
                 <TextField
                   label="cod motor"
                   value={dataCasoPostventaEdit.cod_motor || ''}
+                  fullWidth
+                  margin="dense"
+                  InputProps={{ readOnly: true }}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Modelo"
+                  value={nombreProducto}
                   fullWidth
                   margin="dense"
                   InputProps={{ readOnly: true }}
