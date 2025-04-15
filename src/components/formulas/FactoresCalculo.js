@@ -17,7 +17,8 @@ import {
     FormControl,
     InputLabel,
     Grid,
-    Typography
+    Typography,
+    Autocomplete
 } from '@mui/material';
 
 const tiposOperadores = new Map([
@@ -41,6 +42,7 @@ function FactoresCalculo() {
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const [menus, setMenus] = useState([]);
     const [factores, setFactores] = useState([]);
+    const [parametros, setParametros] = useState([]);
     const queryParams = new URLSearchParams(location.search);
     const codProceso = queryParams.get('proceso');
     const codParametro = queryParams.get('parametro');
@@ -50,8 +52,6 @@ function FactoresCalculo() {
     const [operador, setOperador] = useState('');
     const [valorFijo, setValorFijo] = useState('');
     const [codParametroOperador, setCodParametroOperador] = useState('');
-    const [nombreParametroOperador, setNombreParametroOperador] = useState('');
-    const [nuevoFactor, setNuevoFactor] = useState('');
 
     const getMenus = async () => {
         try {
@@ -102,6 +102,43 @@ function FactoresCalculo() {
         }
     }
 
+    const getParametros = () => {
+        fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos/${codProceso}/parametros`,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + jwt
+                }
+            })
+            .then((res) => {
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        toast.error('Sesión caducada.');
+                        return;
+                    }
+                }
+                try {
+                    return res.json();
+                } catch (err) {
+                    return { mensaje: 'Error en la llamada a la API' }
+                }
+            })
+            .then(data => {
+                if (data) {
+                    const { mensaje } = data;
+                    if (mensaje) {
+                        toast.error(mensaje);
+                    } else {
+                        setParametros(data);
+                    }
+                }
+            })
+            .catch(err => {
+                console.log(err);
+                toast.error('Error en la llamada a la API');
+            });
+    }
+
     const checkTipoOperador = (tipo) => {
         switch (tipo) {
             case tiposOperadores.get('PAR'):
@@ -110,12 +147,10 @@ function FactoresCalculo() {
                 break;
             case tiposOperadores.get('VAL'):
                 setCodParametroOperador('');
-                setNombreParametroOperador('');
                 setOperador('Seleccione');
                 break;
             case tiposOperadores.get('OPE'):
                 setCodParametroOperador('');
-                setNombreParametroOperador('');
                 setValorFijo('');
                 break;
             default:
@@ -153,10 +188,7 @@ function FactoresCalculo() {
             setOperador('Seleccione');
             setValorFijo('');
             setCodParametroOperador('');
-            setNombreParametroOperador('');
             getFactores();
-            //aqui se deberia setear el nuevo factor para que usando el efecto se actualice
-            //setNuevoFactor(codProceso, codParametro, orden);
         } else {
             toast.error(mensaje)
         }
@@ -173,14 +205,16 @@ function FactoresCalculo() {
                 'Authorization': 'Bearer ' + jwt
             },
         })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json();
+            .then(res => {
+                if (!res.ok) {
+                    if (res.status === 401)
+                        toast.error('Sesión caducada.');
+                    else
+                        return res.json();
+                } else {
+                    toast.success('¡Elemento eliminado exitosamente!');
+                    getFactores();
                 }
-                toast.success('¡Elemento eliminado exitosamente!');
-                //aqui deberia cambiar el codigo del parametro actual, 
-                // poner una d como prefijo asumiendo que recien se ingreso y se quiere eliminar
-                getFactores();
             })
             .then(data => {
                 if (data) {
@@ -198,12 +232,8 @@ function FactoresCalculo() {
         getMenus();
         if (codProceso && codParametro)
             getFactores();
+        getParametros();
     }, []);
-
-    //SE DEBE ACTIVAR EL EFECTO PARA CUIANDO SE CREA O QUITA UN FACTOR
-    // useEffect(() => {
-    //     getFactores();
-    // }, [nuevoFactor]);
 
     return (
         <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
@@ -239,9 +269,9 @@ function FactoresCalculo() {
                     <AddIcon /> Nuevo
                 </button>
             </div>
-            <List sx={{mt: 2}} disablePadding>
+            <List sx={{ mt: 2 }} disablePadding>
                 {factores.map((item, index) => (
-                    <ListItem sx={{ width: '100%' }}>
+                    <ListItem sx={{ width: '100%' }} key={item.orden}>
                         <Grid container spacing={2}>
                             <Grid item xs={3}>
                                 <TextField
@@ -311,7 +341,7 @@ function FactoresCalculo() {
                                         label="Parámetro"
                                         type="text"
                                         fullWidth
-                                        value={item.cod_parametro_operador}
+                                        value={parametros.find(p => p.cod_parametro === item.cod_parametro_operador).parametro.nombre}
                                     />
                                 )}
                             </Grid>
@@ -389,26 +419,33 @@ function FactoresCalculo() {
                                     onChange={(e => { setValorFijo(e.target.value) })}
                                 />
                             </Grid>
-                            <Grid item xs={1}>
-                                <TextField
+                            <Grid item xs={3}>
+                                <Autocomplete
                                     disabled={tiposOperadores.get(tipoOperador) !== tiposOperadores.get('PAR')}
-                                    id="cod_parametro_operador"
-                                    label="Parámetro"
-                                    type="text"
+                                    id="Parámetro"
+                                    options={parametros.map((p) => p.parametro.nombre)}
+                                    onChange={(e, value) => {
+                                        if (value) {
+                                            const parametro = parametros.find(p => p.parametro.nombre === value);
+                                            setCodParametroOperador(parametro.cod_parametro);
+                                        } else {
+                                            setCodParametroOperador('');
+                                        }
+                                    }}
                                     fullWidth
-                                    value={codParametroOperador}
-                                    onChange={(e => { setCodParametroOperador(e.target.value) })}
-                                />
-                            </Grid>
-                            <Grid item xs={2}>
-                                <TextField
-                                    disabled
-                                    id="nombre_parametro_operador"
-                                    label="Nombre del parámetro"
-                                    type="text"
-                                    fullWidth
-                                    value={nombreParametroOperador}
-                                    onChange={(e => { setNombreParametroOperador(e.target.value) })}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            required
+                                            label="Parámetro"
+                                            type="text"
+                                            value={codParametroOperador}
+                                            className="form-control"
+                                            InputProps={{
+                                                ...params.InputProps,
+                                            }}
+                                        />
+                                    )}
                                 />
                             </Grid>
                         </Grid>
