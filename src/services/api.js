@@ -1005,7 +1005,22 @@ export const updateNumeroGuia = async (jwt, { empresa, cod_comprobante, numero_g
   }
 }
 
-//PARTS UPDATE YEAR---------------------------------------
+export const getNombreProductoByMotor = async (jwt, codMotor) => {
+  try {
+    const response = await axios.get(`${API}/warranty/get_nombre_producto_by_motor?cod_motor=${codMotor}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error obteniendo el nombre del producto por código de motor:", error);
+    throw error;
+  }
+};
+
+
+//PARTS UPDATE YEAR---------------------------------------///////////////////
 
 export const getDataDespiece = async (jwt, codeEnterprise) => {
   try {

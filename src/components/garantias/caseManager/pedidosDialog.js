@@ -156,28 +156,37 @@ export const PedidoDialog = ({
 
     const loadExistingProducts = async (codComprobante_) => {
         try {
-            const data = await getCasosProductosByArgs(jwt, codComprobante_)
-            const rows = data.map((item) => ({
-                secuencia: item.secuencia,
-                cod_pedido: item.cod_pedido, // Desde BD
-                cod_producto: item.cod_producto,
-                productoInfo: { COD_PRODUCTO: item.cod_producto, NOMBRE: '(Desde BD)' },
-                existencia: 0,
-                lote: item.cod_comprobante_lote || null,
-                lotesDisponibles: [],
-                existenciaLote: 0,
-                cantidad: item.cantidad,
-                precio: item.precio,
-                selectedAgency: item.agencia || null,
-                readOnly: true
-            }))
-            setTableRows(rows)
+            const data = await getCasosProductosByArgs(jwt, codComprobante_);
+            const rows = data.map((item) => {
+                // Buscar el producto en productsList
+                const productInfo = productsList.find(
+                    (product) => product.COD_PRODUCTO === item.cod_producto
+                );
+    
+                return {
+                    secuencia: item.secuencia,
+                    cod_pedido: item.cod_pedido, // Desde BD
+                    cod_producto: item.cod_producto,
+                    productoInfo: {
+                        COD_PRODUCTO: item.cod_producto,
+                        NOMBRE: productInfo ? productInfo.NOMBRE : 'No encontrado',
+                    },
+                    existencia: 0,
+                    lote: item.cod_comprobante_lote || null,
+                    lotesDisponibles: [],
+                    existenciaLote: 0,
+                    cantidad: item.cantidad,
+                    precio: item.precio,
+                    selectedAgency: item.agencia || null,
+                    readOnly: true,
+                };
+            });
+            setTableRows(rows);
         } catch (error) {
-            console.log('Error al cargar casos_productos:', error)
-            setTableRows([])
+            console.log('Error al cargar casos_productos:', error);
+            setTableRows([]);
         }
-    }
-
+    };
     const loadAllProducts = async () => {
         try {
             const data = await getProductosWithDespiece(jwt, enterpriseShineray, 'S')
