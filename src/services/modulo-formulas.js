@@ -33,6 +33,42 @@ export const getMenus = errorHandler(async function getMenus(jwt, user, enterpri
         })).data;
 });
 
+export const getProcesos = errorHandler(async function getProcesos(jwt, enterprise) {
+    return (await axios.get(`${API}/${enterprise}/procesos`, {
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jwt}`,
+        },
+    })).data;
+});
+
+export const addProceso = errorHandler(async function addProceso(jwt, enterprise, data) {
+    return (await axios.post(`${API}/${enterprise}/procesos`, data, {
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jwt}`,
+        },
+    })).data;
+})
+
+export const updateProceso = errorHandler(async function updateProceso(jwt, enterprise, proceso, data) {
+    return (await axios.put(`${API}/${enterprise}/procesos/${proceso}`, data, {
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jwt}`,
+        },
+    })).data;
+});
+
+export const deleteProceso = errorHandler(async function deleteProceso(jwt, enterprise, proceso) {
+    return (await axios.delete(`${API}/${enterprise}/procesos/${proceso}`, {
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jwt}`,
+        },
+    })).data;
+});
+
 export const getFactores = errorHandler(async function getFactores(jwt, enterprise, proceso, parametro) {
     return (await axios.get(`${API}/${enterprise}/procesos/${proceso}/parametros/${parametro}/factores`, {
         headers: {
@@ -67,4 +103,4 @@ export const deleteFactor = errorHandler(async function deleteFactor(jwt, enterp
             Authorization: `Bearer ${jwt}`,
         },
     })).data;
-})
+});

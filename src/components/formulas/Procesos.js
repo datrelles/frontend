@@ -8,7 +8,7 @@ import AddIcon from '@material-ui/icons/Add';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
-import {FormControlLabel, Checkbox} from '@mui/material';
+import { FormControlLabel, Checkbox } from '@mui/material';
 import { useAuthContext } from "../../context/authContext";
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
@@ -16,9 +16,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
-
-
-const API = process.env.REACT_APP_API;
+import * as Service from "../../services/modulo-formulas";
 
 function Procesos() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
@@ -32,57 +30,96 @@ function Procesos() {
 
   const navigate = useNavigate();
 
-  const getProcesos = async () => {
-    try {
-      const res = await fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + jwt
-          }
-        });
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          toast.error('Sesión caducada.');
-        }
-      } else {
-        const data = await res.json();
-        setProcesos(data)
-      }
-    } catch (error) {
-      toast.error('Sesión caducada. Por favor, inicia sesión nuevamente.');
-    }
-  }
-
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + jwt
-          }
-        });
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          toast.error('Sesión caducada.');
-        }
-      } else {
-        const data = await res.json();
-        setMenus(data)
-        console.log(data)
-      }
-    } catch (error) {
+      setMenus(await Service.getMenus(jwt, userShineray, enterpriseShineray, systemShineray));
+    } catch (err) {
+      toast.error(err.message);
     }
   }
 
-  useEffect(() => {
-    document.title = 'Procesos';
-    getProcesos();
-    getMenus();
-  }, [openNew, openUpdate])
+  const getProcesos = async () => {
+    try {
+      setProcesos(await Service.getProcesos(jwt, enterpriseShineray));
+    } catch (err) {
+      toast.error(err.message);
+    }
+  }
+
+  const handleCreate = (e) => {
+    e.preventDefault();
+    Service.addProceso(jwt, enterpriseShineray, {
+      cod_proceso: codProceso,
+      nombre
+    })
+      .then(res => {
+        toast.success(res.mensaje);
+        setOpenNew(false);
+        setCodProceso('');
+        setNombre('');
+        setEstado(true);
+      })
+      .catch(err => {
+        toast.error(err.message);
+      });
+  }
+
+  const handleUpdate = (e) => {
+    e.preventDefault();
+    Service.updateProceso(jwt, enterpriseShineray, codProceso, {
+      nombre,
+      estado
+    })
+      .then(_ => {
+        toast.success('Actualización exitosa');
+        setOpenUpdate(false);
+        setCodProceso('');
+        setNombre('');
+        setEstado(true);
+      })
+      .catch(err => {
+        toast.error(err.message);
+      });
+  }
+
+  const handleDeleteProceso = (rowsDeleted) => {
+    if (!window.confirm('¿Estás seguro de eliminar el proceso?')) {
+      return false;
+    }
+    const { data: deletedData } = rowsDeleted;
+    const deletedRowIndex = deletedData[0].index;
+    const deletedRowValue = procesos[deletedRowIndex];
+    const newProcesos = procesos.filter((proceso, index) => index !== deletedRowIndex);
+    setProcesos(newProcesos);
+    Service.deleteProceso(jwt, enterpriseShineray, deletedRowValue.cod_proceso)
+      .then(_ => {
+        toast.success('Eliminación exitosa');
+      })
+      .catch(err => {
+        toast.error(err.message);
+        getProcesos();
+      });
+    return true;
+  }
+
+  const handleClickOpenNew = () => {
+    setOpenNew(true);
+    setCodProceso('')
+    setNombre('')
+    setEstado(true)
+  };
+
+  const handleClickCloseNew = () => {
+    setOpenNew(false);
+  };
+
+  const handleClickOpenUpdate = () => {
+    setOpenUpdate(true);
+  };
+
+  const handleClickCloseUpdate = () => {
+    setOpenUpdate(false);
+  };
 
   const handleRowClick = (rowData, rowMeta) => {
     const row = procesos.filter(item => item.cod_proceso === rowData[0])[0];
@@ -92,40 +129,11 @@ function Procesos() {
     handleClickOpenUpdate();
   }
 
-  const handleDeleteRows = rowsDeleted => {
-    if (!window.confirm('¿Está seguro de eliminar el proceso?')) {
-      return false;
-    }
-    const { data: deletedData } = rowsDeleted;
-    const deletedRowIndex = deletedData[0].index;
-    const deletedRowValue = procesos[deletedRowIndex];
-    const newProcesos = procesos.filter((proceso, index) => index !== deletedRowIndex);
-    setProcesos(newProcesos);
-    fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos/${deletedRowValue.cod_proceso}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + jwt
-      },
-    })
-      .then(response => {
-        if (!response.ok) {
-          getProcesos();
-          return response.json();
-        }
-        toast.success('¡Elemento eliminado exitosamente!');
-      })
-      .then(data => {
-        if (data) {
-          toast.error(data.mensaje);
-        }
-      })
-      .catch(error => {
-        console.error(error);
-        toast.error('Ocurrió un error en la llamada a la API');
-      })
-    return true;
-  };
+  useEffect(() => {
+    document.title = 'Procesos';
+    getProcesos();
+    getMenus();
+  }, [openNew, openUpdate])
 
   const renderText = (value) => {
     const progress = parseInt(value);
@@ -163,7 +171,7 @@ function Procesos() {
     responsive: 'standard',
     selectableRows: 'single',
     onRowClick: handleRowClick,
-    onRowsDelete: handleDeleteRows,
+    onRowsDelete: handleDeleteProceso,
     textLabels: {
       body: {
         noMatch: "Lo siento, no se encontraron registros",
@@ -251,76 +259,6 @@ function Procesos() {
         }
       }
     });
-
-  const handleClickOpenNew = () => {
-    setOpenNew(true);
-    setCodProceso('')
-    setNombre('')
-    setEstado(true)
-  };
-
-  const handleClickCloseNew = () => {
-    setOpenNew(false);
-  };
-
-  const handleClickOpenUpdate = () => {
-    setOpenUpdate(true);
-  };
-
-  const handleClickCloseUpdate = () => {
-    setOpenUpdate(false);
-  };
-
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    const res = await fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + jwt
-      },
-      body: JSON.stringify({
-        empresa: enterpriseShineray,
-        cod_proceso: codProceso,
-        nombre
-      })
-    });
-    const { mensaje } = await res.json();
-    if(res.ok){
-      toast.success(mensaje)
-      setOpenNew(false)
-      setCodProceso('')
-      setNombre('')
-      setEstado(true)
-    }else{
-      toast.error(mensaje)
-    }
-  }
-
-  const handleUpdate = async (e)=>{
-    e.preventDefault();
-    const res = await fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos/${codProceso}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + jwt
-      },
-      body: JSON.stringify({
-        nombre,
-        estado
-      })
-    })
-    if (res.ok) {
-      toast.success('Actualización exitosa')
-      setOpenUpdate(false)
-      setCodProceso('')
-      setNombre('')
-      setEstado(true)
-    } else {
-      const { mensaje } = await res.json();
-      toast.error(mensaje)
-    }
-  }
 
   return (
     <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
@@ -423,18 +361,17 @@ function Procesos() {
             </Grid>
           </Grid>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
-          <FormControlLabel control={
-            <Checkbox 
-            label="Estado"
-            checked={estado}
-            onChange={(e) => {
-              setEstado(e.target.checked)
-            }}
+            <FormControlLabel control={
+              <Checkbox
+                label="Estado"
+                checked={estado}
+                onChange={(e) => {
+                  setEstado(e.target.checked)
+                }}
+              />
+            }
+              label="Activo"
             />
-          }
-          label="Activo"
-          />
-            
           </div>
         </DialogContent>
         <DialogActions>
