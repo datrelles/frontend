@@ -227,6 +227,17 @@ function FactoresCalculo() {
             });
     }
 
+    const nuevoCheck = (clave) => {
+        if (!factores || factores.length === 0) {
+            return clave === 'OPE'
+        }
+        const ultimoTipo = factores[factores.length - 1].tipo_operador;
+        if (ultimoTipo === 'PAR' || ultimoTipo === 'VAL')
+            return clave !== 'OPE';
+        else
+            return clave === 'OPE';
+    }
+
     useEffect(() => {
         document.title = 'Factores de cálculo';
         getMenus();
@@ -371,7 +382,9 @@ function FactoresCalculo() {
                                     >
                                         <MenuItem selected key={0} value="Seleccione">Seleccione</MenuItem>
                                         {Array.from(tiposOperadores).map(([clave, valor]) => (
-                                            <MenuItem key={clave} value={clave}>
+                                            <MenuItem disabled={nuevoCheck(clave)}
+                                                key={clave}
+                                                value={clave}>
                                                 {valor}
                                             </MenuItem>
                                         ))}
