@@ -20,6 +20,7 @@ import {
     Typography,
     Autocomplete
 } from '@mui/material';
+import * as Service from "../../services/modulo-formulas";
 
 const tiposOperadores = new Map([
     ['PAR', 'PARÁMETRO'],
@@ -33,8 +34,6 @@ const operadores = [
     "*",
     "/"
 ]
-
-const API = process.env.REACT_APP_API;
 
 function FactoresCalculo() {
     const location = useLocation();
@@ -55,88 +54,70 @@ function FactoresCalculo() {
 
     const getMenus = async () => {
         try {
-            const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + jwt
-                    }
-                });
-
-            if (!res.ok) {
-                if (res.status === 401) {
-                    toast.error('Sesión caducada.');
-                }
-            } else {
-                const data = await res.json();
-                setMenus(data)
-                console.log(data)
-            }
-        } catch (error) {
-            console.log(error);
-            toast.error('Sesión caducada. Por favor, inicia sesión nuevamente.');
+            setMenus(await Service.getMenus(jwt, userShineray, enterpriseShineray, systemShineray));
+        } catch (err) {
+            toast.error(err.message);
         }
     }
 
     const getFactores = async () => {
         try {
-            const res = await fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos/${codProceso}/parametros/${codParametro}/factores`,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + jwt
-                    }
-                });
-            if (!res.ok) {
-                if (res.status === 401) {
-                    toast.error('Sesión caducada.');
-                }
-            } else {
-                const data = await res.json();
-                setFactores(data);
-                setOrden(data ? data.length + 1 : 0);
-            }
-        } catch (error) {
-            console.log(error);
-            toast.error('Sesión caducada. Por favor, inicia sesión nuevamente.');
+            setFactores(await Service.getFactores(jwt, enterpriseShineray, codProceso, codParametro));
+        } catch (err) {
+            toast.error(err.message);
         }
     }
 
-    const getParametros = () => {
-        fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos/${codProceso}/parametros`,
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + jwt
-                }
-            })
-            .then((res) => {
-                if (!res.ok) {
-                    if (res.status === 401) {
-                        toast.error('Sesión caducada.');
-                        return;
-                    }
-                }
-                try {
-                    return res.json();
-                } catch (err) {
-                    return { mensaje: 'Error en la llamada a la API' }
-                }
-            })
-            .then(data => {
-                if (data) {
-                    const { mensaje } = data;
-                    if (mensaje) {
-                        toast.error(mensaje);
-                    } else {
-                        setParametros(data);
-                    }
-                }
-            })
-            .catch(err => {
-                console.log(err);
-                toast.error('Error en la llamada a la API');
-            });
+    const getParametros = async () => {
+        try {
+            setParametros(await Service.getParametros(jwt, enterpriseShineray, codProceso));
+        } catch (err) {
+            toast.error(err.message);
+        }
+    }
+
+    const handleAddFactor = async (e) => {
+        e.preventDefault();
+        try {
+            toast.success((await Service.addFactor(jwt, enterpriseShineray, codProceso, codParametro, {
+                orden,
+                tipo_operador: tipoOperador,
+                operador,
+                valor_fijo: valorFijo,
+                cod_parametro_operador: codParametroOperador
+            })).mensaje);
+            setTipoOperador('Seleccione');
+            setOperador('Seleccione');
+            setValorFijo('');
+            setCodParametroOperador('');
+            getFactores();
+        } catch (err) {
+            toast.error(err.message);
+        }
+    }
+
+    const handleDeleteFactor = async (orden) => {
+        if (!window.confirm('¿Estás seguro de eliminar el factor?')) {
+            return;
+        }
+        try {
+            await Service.deleteFactor(jwt, enterpriseShineray, codProceso, codParametro, orden);
+            toast.success('¡Elemento eliminado exitosamente!');
+            getFactores();
+        } catch (err) {
+            toast.error(err.message);
+        }
+    }
+
+    const checkUltimoTipoOperador = (clave) => {
+        if (!factores || factores.length === 0) {
+            return clave === 'OPE'
+        }
+        const ultimoTipo = factores[factores.length - 1].tipo_operador;
+        if (ultimoTipo === 'PAR' || ultimoTipo === 'VAL')
+            return clave !== 'OPE';
+        else
+            return clave === 'OPE';
     }
 
     const checkTipoOperador = (tipo) => {
@@ -158,93 +139,18 @@ function FactoresCalculo() {
         }
     }
 
-    const handleAddFactor = async (e) => {
-        e.preventDefault();
-        const res = await fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos/${codProceso}/parametros/${codParametro}/factores`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + jwt
-            },
-            body: JSON.stringify({
-                orden,
-                tipo_operador: tipoOperador,
-                operador,
-                valor_fijo: valorFijo,
-                cod_parametro_operador: codParametroOperador
-            })
-        });
-        if (!res.ok) {
-            if (res.status === 401) {
-                toast.error('Sesión caducada.');
-                return;
-            }
-        }
-        const { mensaje } = await res.json();
-        if (res.ok) {
-            toast.success(mensaje)
-            setOrden('');
-            setTipoOperador('Seleccione');
-            setOperador('Seleccione');
-            setValorFijo('');
-            setCodParametroOperador('');
-            getFactores();
-        } else {
-            toast.error(mensaje)
-        }
-    }
-
-    const handleDeleteFactor = (orden) => {
-        if (!window.confirm('¿Estás seguro de eliminar el factor?')) {
-            return;
-        }
-        fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos/${codProceso}/parametros/${codParametro}/factores/${orden}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + jwt
-            },
-        })
-            .then(res => {
-                if (!res.ok) {
-                    if (res.status === 401)
-                        toast.error('Sesión caducada.');
-                    else
-                        return res.json();
-                } else {
-                    toast.success('¡Elemento eliminado exitosamente!');
-                    getFactores();
-                }
-            })
-            .then(data => {
-                if (data) {
-                    toast.error(data.mensaje);
-                }
-            })
-            .catch(error => {
-                console.error(error);
-                toast.error('Ocurrió un error en la llamada a la API');
-            });
-    }
-
-    const nuevoCheck = (clave) => {
-        if (!factores || factores.length === 0) {
-            return clave === 'OPE'
-        }
-        const ultimoTipo = factores[factores.length - 1].tipo_operador;
-        if (ultimoTipo === 'PAR' || ultimoTipo === 'VAL')
-            return clave !== 'OPE';
-        else
-            return clave === 'OPE';
-    }
-
     useEffect(() => {
         document.title = 'Factores de cálculo';
         getMenus();
-        if (codProceso && codParametro)
+        if (codProceso && codParametro) {
             getFactores();
-        getParametros();
+            getParametros();
+        }
     }, []);
+
+    useEffect(() => {
+        setOrden(factores.length + 1);
+    }, [factores]);
 
     return (
         <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
@@ -365,7 +271,6 @@ function FactoresCalculo() {
                                     disabled
                                     label="Orden"
                                     value={orden}
-                                    onChange={(e) => { setOrden(e.target.value) }}
                                     fullWidth
                                 />
                             </Grid>
@@ -382,7 +287,7 @@ function FactoresCalculo() {
                                     >
                                         <MenuItem selected key={0} value="Seleccione">Seleccione</MenuItem>
                                         {Array.from(tiposOperadores).map(([clave, valor]) => (
-                                            <MenuItem disabled={nuevoCheck(clave)}
+                                            <MenuItem disabled={checkUltimoTipoOperador(clave)}
                                                 key={clave}
                                                 value={clave}>
                                                 {valor}
