@@ -2,7 +2,7 @@ import Navbar0 from "../Navbar0";
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
 import MUIDataTable from "mui-datatables";
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import AddIcon from '@material-ui/icons/Add';
 import Button from '@mui/material/Button';
@@ -47,7 +47,7 @@ function Procesos() {
       nombre
     })
       .then(res => {
-        toast.success(res.mensaje);
+        toast.success(res);
         setOpenNew(false);
         setCodProceso('');
         setNombre('');
@@ -71,7 +71,7 @@ function Procesos() {
       estado
     })
       .then(res => {
-        toast.success(res.mensaje);
+        toast.success(res);
         setOpenUpdate(false);
         setCodProceso('');
         setNombre('');
@@ -90,7 +90,7 @@ function Procesos() {
     const newProcesos = procesos.filter((proceso, index) => index !== deletedRowIndex);
     setProcesos(newProcesos);
     APIService.deleteProceso(deletedRowValue.cod_proceso)
-      .then(res => toast.success(res.mensaje))
+      .then(res => toast.success(res))
       .catch(err => {
         toast.error(err.message);
         getProcesos();

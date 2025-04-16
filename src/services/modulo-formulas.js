@@ -39,7 +39,7 @@ export default class API {
                         if (res.config.method === 'delete') {
                             mensaje = 'Eliminación exitosa';
                         }
-                        res.data = { mensaje };
+                        res.data = mensaje;
                     }
                 }
                 return res.data;
@@ -65,6 +65,10 @@ export default class API {
 
     addProceso = this.#errorHandler(async (data) => {
         return await axios.post(`${this.#URL}/procesos`, data, this.#headers);
+    });
+
+    getProceso = this.#errorHandler(async (proceso) => {
+        return await axios.get(`${this.#URL}/procesos/${proceso}`, this.#headers);
     });
 
     getProcesos = this.#errorHandler(async () => {
@@ -97,6 +101,10 @@ export default class API {
 
     addParametro = this.#errorHandler(async (data) => {
         return await axios.post(`${this.#URL}/parametros`, data, this.#headers);
+    });
+
+    getParametro = this.#errorHandler(async (parametro) => {
+        return await axios.get(`${this.#URL}/parametros/${parametro}`, this.#headers);
     });
 
     getParametros = this.#errorHandler(async () => {

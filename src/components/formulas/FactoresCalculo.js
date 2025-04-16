@@ -79,7 +79,7 @@ function FactoresCalculo() {
             cod_parametro_operador: codParametroOperador
         })
             .then(res => {
-                toast.success(res.mensaje);
+                toast.success(res);
                 setTipoOperador('Seleccione');
                 setOperador('Seleccione');
                 setValorFijo('');
@@ -103,7 +103,7 @@ function FactoresCalculo() {
         }
         APIService.deleteFactor(codProceso, codParametro, orden)
             .then(res => {
-                toast.success(res.mensaje);
+                toast.success(res);
                 getFactores();
             })
             .catch(err => toast.error(err.message));

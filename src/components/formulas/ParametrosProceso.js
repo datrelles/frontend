@@ -74,7 +74,7 @@ function ParametrosProceso() {
       orden_imprime
     })
       .then(res => {
-        toast.success(res.mensaje);
+        toast.success(res);
         setOpenAdd(false);
         setCodParametro(codParametro);
       })
@@ -97,7 +97,7 @@ function ParametrosProceso() {
       estado: estadoParametro
     })
       .then(res => {
-        toast.success(res.mensaje);
+        toast.success(res);
         setCodParametro('');
         setOpenUpdate(false);
       })
@@ -115,7 +115,7 @@ function ParametrosProceso() {
     setParametrosDetail(newParametros);
     APIService.deleteParametroPorProceso(codProceso, deletedRowValue.cod_parametro)
       .then(res => {
-        toast.success(res.mensaje);
+        toast.success(res);
         setSelectedRows([]);
       })
       .catch(err => {
