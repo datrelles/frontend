@@ -69,8 +69,8 @@ function Procesos() {
       nombre,
       estado
     })
-      .then(_ => {
-        toast.success('Actualización exitosa');
+      .then(res => {
+        toast.success(res.mensaje);
         setOpenUpdate(false);
         setCodProceso('');
         setNombre('');
@@ -89,7 +89,7 @@ function Procesos() {
     const newProcesos = procesos.filter((proceso, index) => index !== deletedRowIndex);
     setProcesos(newProcesos);
     APIService.deleteProceso(deletedRowValue.cod_proceso)
-      .then(_ => toast.success('Eliminación exitosa'))
+      .then(res => toast.success(res.mensaje))
       .catch(err => {
         toast.error(err.message);
         getProcesos();

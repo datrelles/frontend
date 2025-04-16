@@ -78,8 +78,8 @@ function Formulas() {
       observaciones: observaciones,
       definicion
     })
-      .then(_ => {
-        toast.success('Actualización exitosa');
+      .then(res => {
+        toast.success(res.mensaje);
         setOpenUpdate(false);
         setCodFormula('');
         setNombre('');
@@ -100,7 +100,7 @@ function Formulas() {
     const newFormulas = formulas.filter((_, index) => index !== deletedRowIndex);
     setFormulas(newFormulas);
     APIService.deleteFormula(deletedRowValue.cod_formula)
-      .then(_ => toast.success('Eliminación exitosa'))
+      .then(res => toast.success(res.mensaje))
       .catch(err => {
         toast.error(err.message);
         getFormulas();

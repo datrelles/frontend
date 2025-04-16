@@ -74,8 +74,8 @@ function Parametros() {
       descripcion,
       estado,
     })
-      .then(_ => {
-        toast.success('Actualización exitosa');
+      .then(res => {
+        toast.success(res.mensaje);
         setOpenUpdate(false);
         setCodParametro('');
         setNombre('');
@@ -95,7 +95,7 @@ function Parametros() {
     const newParametros = parametros.filter((_, index) => index !== deletedRowIndex);
     setParametros(newParametros);
     APIService.deleteParametro(deletedRowValue.cod_parametro)
-      .then(_ => toast.success('Eliminación exitosa'))
+      .then(res => toast.success(res.mensaje))
       .catch(err => {
         toast.error(err.message);
         getParametros();

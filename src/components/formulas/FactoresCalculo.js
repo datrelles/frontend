@@ -102,8 +102,8 @@ function FactoresCalculo() {
             return;
         }
         APIService.deleteFactor(codProceso, codParametro, orden)
-            .then(_ => {
-                toast.success('Eliminación exitosa');
+            .then(res => {
+                toast.success(res.mensaje);
                 getFactores();
             })
             .catch(err => toast.error(err.message));
