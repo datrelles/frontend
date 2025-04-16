@@ -39,13 +39,15 @@ function FactoresCalculo() {
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const APIService = new API(jwt, userShineray, enterpriseShineray, systemShineray);
     const location = useLocation();
-    const navigate = useNavigate();
-    const [menus, setMenus] = useState([]);
-    const [factores, setFactores] = useState([]);
-    const [parametros, setParametros] = useState([]);
     const queryParams = new URLSearchParams(location.search);
     const codProceso = queryParams.get('proceso');
     const codParametro = queryParams.get('parametro');
+    const navigate = useNavigate();
+    const [menus, setMenus] = useState([]);
+    const [proceso, setProceso] = useState({});
+    const [parametro, setParametro] = useState({});
+    const [factores, setFactores] = useState([]);
+    const [parametros, setParametros] = useState([]);
     const [addFactor, setAddFactor] = useState(false);
     const [orden, setOrden] = useState(1);
     const [tipoOperador, setTipoOperador] = useState('Seleccione');
@@ -56,6 +58,22 @@ function FactoresCalculo() {
     const getMenus = async () => {
         try {
             setMenus(await APIService.getMenus());
+        } catch (err) {
+            toast.error(err.message);
+        }
+    }
+
+    const getProceso = async () => {
+        try {
+            setProceso(await APIService.getProceso(codProceso));
+        } catch (err) {
+            toast.error(err.message);
+        }
+    }
+
+    const getParametro = async () => {
+        try {
+            setParametro(await APIService.getParametro(codParametro));
         } catch (err) {
             toast.error(err.message);
         }
@@ -143,6 +161,8 @@ function FactoresCalculo() {
         document.title = 'Factores de cálculo';
         getMenus();
         if (codProceso && codParametro) {
+            getProceso();
+            getParametro();
             getFactores();
             getParametrosPorProceso();
         }
@@ -170,7 +190,7 @@ function FactoresCalculo() {
                 </ButtonGroup>
             </Box>
             <Typography variant="h6" sx={{ mb: 2 }}>
-                Factores de cálculo del proceso {codProceso} y del parámetro {codParametro}
+                Factores de cálculo de {proceso.nombre} y de {parametro.nombre}
             </Typography>
             {factores.length === 0 && (
                 <Typography variant="body1" sx={{ mb: 2 }}>
