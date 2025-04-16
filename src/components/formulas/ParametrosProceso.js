@@ -83,7 +83,9 @@ function ParametrosProceso() {
 
   const getParametrosDetail = async () => {
     try {
-      setParametrosDetail(await APIService.getParametrosPorProceso(codProceso));
+      setParametrosDetail((await APIService.getParametrosPorProceso(codProceso)).map(
+        ({ parametro, ...rest }) => ({ ...rest, nombre: parametro.nombre, descripcion: parametro.descripcion }))
+      );
     } catch (err) {
       toast.error(err.message);
     }
@@ -288,11 +290,9 @@ function ParametrosProceso() {
         title: "Mostrar columnas",
         titleAria: "Mostrar/Ocultar columnas de tabla"
       },
-      // selectedRows: {
-      //   text: "fila(s) seleccionada(s)",
-      //   delete: "Borrar",
-      //   deleteAria: "Borrar fila seleccionada"
-      // }
+      selectedRows: {
+        text: "fila(s) seleccionada(s)",
+      }
     }
   };
 
