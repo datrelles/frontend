@@ -2,7 +2,7 @@ import Navbar0 from "../Navbar0";
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
 import MUIDataTable from "mui-datatables";
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import AddIcon from '@material-ui/icons/Add';
 import Button from '@mui/material/Button';
@@ -19,6 +19,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import API from "../../services/modulo-formulas";
+import { createMuiTheme, formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
 
 function ParametrosProceso() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
@@ -168,63 +169,6 @@ function ParametrosProceso() {
     </>);
   };
 
-  const renderText = (value) => {
-    const progress = parseInt(value);
-    const text = progress ? "Activo" : "Inactivo";
-    return text;
-  };
-
-  const getMuiTheme = () =>
-    createTheme({
-      components: {
-        MuiTableCell: {
-          styleOverrides: {
-            root: {
-              paddingLeft: '3px', // Relleno a la izquierda
-              paddingRight: '3px',
-              paddingTop: '0px', // Ajusta el valor en el encabezado si es necesario
-              paddingBottom: '0px',
-              backgroundColor: '#00000',
-              whiteSpace: 'nowrap',
-              flex: 1,
-              borderBottom: '1px solid #ddd',
-              borderRight: '1px solid #ddd',
-              fontSize: '14px'
-            },
-            head: {
-              backgroundColor: 'firebrick', // Color de fondo para las celdas de encabezado
-              color: '#ffffff', // Color de texto para las celdas de encabezado
-              fontWeight: 'bold', // Añadimos negrita para resaltar el encabezado
-              paddingLeft: '0px',
-              paddingRight: '0px',
-              fontSize: '12px'
-            },
-          }
-        },
-        MuiTable: {
-          styleOverrides: {
-            root: {
-              borderCollapse: 'collapse', // Fusionamos los bordes de las celdas
-            },
-          },
-        },
-        MuiTableHead: {
-          styleOverrides: {
-            root: {
-              borderBottom: '5px solid #ddd', // Línea inferior más gruesa para el encabezado
-            },
-          },
-        },
-        MuiToolbar: {
-          styleOverrides: {
-            regular: {
-              minHeight: '10px',
-            }
-          }
-        }
-      }
-    });
-
   const columnsMaster = [
     {
       name: "cod_proceso",
@@ -236,13 +180,16 @@ function ParametrosProceso() {
     },
     {
       name: "audit_fecha_ing",
-      label: "Fecha creación"
+      label: "Fecha creación",
+      options: {
+        customBodyRender: (value) => formatearFecha(value),
+      },
     },
     {
       name: "estado",
       label: "Estado",
       options: {
-        customBodyRender: (value) => renderText(value),
+        customBodyRender: (value) => formatearEstado(value),
       },
     },
   ];
@@ -303,7 +250,7 @@ function ParametrosProceso() {
       name: "estado",
       label: "Estado",
       options: {
-        customBodyRender: (value) => renderText(value),
+        customBodyRender: (value) => formatearEstado(value),
       },
     },
   ];
@@ -366,7 +313,7 @@ function ParametrosProceso() {
       name: "estado",
       label: "Estado",
       options: {
-        customBodyRender: (value) => renderText(value),
+        customBodyRender: (value) => formatearEstado(value),
       },
     },
   ];
@@ -443,7 +390,7 @@ function ParametrosProceso() {
       </div>
       <Box sx={{ display: "flex", gap: 4 }}>
         <Box sx={{ flex: 1 }}>
-          <ThemeProvider theme={getMuiTheme()}>
+          <ThemeProvider theme={createMuiTheme()}>
             <MUIDataTable
               title={"Procesos"}
               data={procesos}
@@ -453,7 +400,7 @@ function ParametrosProceso() {
           </ThemeProvider>
         </Box>
         <Box sx={{ flex: 1 }}>
-          <ThemeProvider theme={getMuiTheme()}>
+          <ThemeProvider theme={createMuiTheme()}>
             <MUIDataTable
               title={`Parámetros del Proceso ${codProceso ?? ''}`}
               data={parametrosDetail}
@@ -467,7 +414,7 @@ function ParametrosProceso() {
       <Dialog open={openAdd} onClose={handleClickCloseAdd}>
         <DialogTitle>Agregar Parámetro</DialogTitle>
         <DialogContent>
-          <ThemeProvider theme={getMuiTheme()}>
+          <ThemeProvider theme={createMuiTheme()}>
             <MUIDataTable
               title={"Parámetros"}
               data={parametros.filter(p => !parametrosDetail.some(pd => pd.cod_parametro === p.cod_parametro))}
@@ -485,7 +432,7 @@ function ParametrosProceso() {
       <Dialog open={openUpdate} onClose={handleClickCloseUpdate}>
         <DialogTitle>Modificar Parámetro {codParametro} Del Proceso {codProceso}</DialogTitle>
         <DialogContent>
-          <ThemeProvider theme={getMuiTheme()}>
+          <ThemeProvider theme={createMuiTheme()}>
             <Grid container spacing={2}>
               <Grid item xs={6}>
                 <TextField

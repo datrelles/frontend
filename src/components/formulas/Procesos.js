@@ -17,6 +17,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import API from "../../services/modulo-formulas";
+import { createMuiTheme, formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
 
 function Procesos() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
@@ -124,67 +125,6 @@ function Procesos() {
     handleClickOpenUpdate();
   };
 
-  const renderText = (value) => {
-    const progress = parseInt(value);
-    const text = progress ? "Activo" : "Inactivo";
-    return (
-      <div>
-        <span>{text}</span>
-      </div>
-    );
-  };
-
-  const getMuiTheme = () =>
-    createTheme({
-      components: {
-        MuiTableCell: {
-          styleOverrides: {
-            root: {
-              paddingLeft: '3px', // Relleno a la izquierda
-              paddingRight: '3px',
-              paddingTop: '0px', // Ajusta el valor en el encabezado si es necesario
-              paddingBottom: '0px',
-              backgroundColor: '#00000',
-              whiteSpace: 'nowrap',
-              flex: 1,
-              borderBottom: '1px solid #ddd',
-              borderRight: '1px solid #ddd',
-              fontSize: '14px'
-            },
-            head: {
-              backgroundColor: 'firebrick', // Color de fondo para las celdas de encabezado
-              color: '#ffffff', // Color de texto para las celdas de encabezado
-              fontWeight: 'bold', // Añadimos negrita para resaltar el encabezado
-              paddingLeft: '0px',
-              paddingRight: '0px',
-              fontSize: '12px'
-            },
-          }
-        },
-        MuiTable: {
-          styleOverrides: {
-            root: {
-              borderCollapse: 'collapse', // Fusionamos los bordes de las celdas
-            },
-          },
-        },
-        MuiTableHead: {
-          styleOverrides: {
-            root: {
-              borderBottom: '5px solid #ddd', // Línea inferior más gruesa para el encabezado
-            },
-          },
-        },
-        MuiToolbar: {
-          styleOverrides: {
-            regular: {
-              minHeight: '10px',
-            }
-          }
-        }
-      }
-    });
-
   const columns = [
     {
       name: "cod_proceso",
@@ -196,13 +136,16 @@ function Procesos() {
     },
     {
       name: "audit_fecha_ing",
-      label: "Fecha creación"
+      label: "Fecha creación",
+      options: {
+        customBodyRender: (value) => formatearFecha(value),
+      },
     },
     {
       name: "estado",
       label: "Estado",
       options: {
-        customBodyRender: (value) => renderText(value),
+        customBodyRender: (value) => formatearEstado(value),
       },
     },
   ];
@@ -280,7 +223,7 @@ function Procesos() {
           <AddIcon /> Nuevo
         </button>
       </div>
-      <ThemeProvider theme={getMuiTheme()}>
+      <ThemeProvider theme={createMuiTheme()}>
         <MUIDataTable
           title={"Procesos"}
           data={procesos}
