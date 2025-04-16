@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
-import { toast } from 'react-toastify'
-import { saveNewDataClient } from '../../../services/api'  
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { toast } from 'react-toastify';
+import { saveNewDataClient } from '../../../services/api';
 
 export const DialogAddClient = ({
   open,
@@ -9,6 +9,7 @@ export const DialogAddClient = ({
   jwt,
   enterprise,
   onClientCreated, // callback que se llama cuando se crea exitosamente el cliente
+  initialData = {} // Datos iniciales opcionales: { id, nombre, apellidos, direccion, celular }
 }) => {
   // Estado local para el formulario
   const [formData, setFormData] = useState({
@@ -20,43 +21,54 @@ export const DialogAddClient = ({
     direccion: '',
     celular: '',
     empresa: enterprise // se asume que viene por props
-  })
+  });
+
+  // Efecto para cargar datos iniciales si están disponibles
+  useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      setFormData((prev) => ({
+        ...prev,
+        ...initialData // Sobrescribe los valores con los datos iniciales proporcionados
+      }));
+    }
+  }, [initialData]);
 
   // Manejo de cambios en el formulario
   const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSave = async () => {
     try {
-      // Llamamos a la API 
-      const resp = await saveNewDataClient(jwt, formData)
-      toast.success("Cliente creado exitosamente.")
-      onClose()
-      onClientCreated(formData.id) // Notificamos al padre que se creó el cliente con este ID
+      // Llamamos a la API
+      const resp = await saveNewDataClient(jwt, formData);
+      toast.success('Cliente creado exitosamente.');
+      onClose();
+      onClientCreated(formData.id); // Notificamos al padre que se creó el cliente con este ID
     } catch (err) {
-      console.error(err)
-      toast.error("Error al crear cliente.")
+      console.error(err);
+      toast.error('Error al crear cliente.');
     }
-  }
+  };
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Crear Nuevo Cliente</DialogTitle>
+      <DialogTitle>{initialData?.id ? 'Editar Cliente' : 'Crear Nuevo Cliente'}</DialogTitle>
       <DialogContent>
-        <TextField 
-          label="Identificación" 
+        <TextField
+          label="Identificación"
           name="id"
           value={formData.id}
           onChange={handleChange}
           fullWidth
           margin="dense"
+          disabled={!!initialData?.id} // Si ya hay un ID, no se puede editar
         />
         <FormControl fullWidth margin="dense">
           <InputLabel>Tipo ID</InputLabel>
-          <Select 
-            label="Tipo ID" 
+          <Select
+            label="Tipo ID"
             name="type_id"
             value={formData.type_id}
             onChange={handleChange}
@@ -66,15 +78,15 @@ export const DialogAddClient = ({
             <MenuItem value={3}>Pasaporte</MenuItem>
           </Select>
         </FormControl>
-        <TextField 
-          label="Nombre" 
+        <TextField
+          label="Nombre"
           name="nombre"
           value={formData.nombre}
           onChange={handleChange}
           fullWidth
           margin="dense"
         />
-        <TextField 
+        <TextField
           label="Apellidos"
           name="apellidos"
           value={formData.apellidos}
@@ -82,7 +94,7 @@ export const DialogAddClient = ({
           fullWidth
           margin="dense"
         />
-        <TextField 
+        <TextField
           label="Dirección"
           name="direccion"
           value={formData.direccion}
@@ -90,7 +102,7 @@ export const DialogAddClient = ({
           fullWidth
           margin="dense"
         />
-        <TextField 
+        <TextField
           label="Celular"
           name="celular"
           value={formData.celular}
@@ -98,21 +110,15 @@ export const DialogAddClient = ({
           fullWidth
           margin="dense"
         />
-        {/* Si deseas mostrar "empresa" también:
-        <TextField 
-          label="Empresa"
-          name="empresa"
-          value={formData.empresa}
-          onChange={handleChange}
-          fullWidth
-          margin="dense"
-        />
-        */}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} color="error">Cancelar</Button>
-        <Button onClick={handleSave} color="primary" variant="contained">Guardar</Button>
+        <Button onClick={onClose} color="error">
+          Cancelar
+        </Button>
+        <Button onClick={handleSave} color="primary" variant="contained">
+          Guardar
+        </Button>
       </DialogActions>
     </Dialog>
-  )
-}
+  );
+};

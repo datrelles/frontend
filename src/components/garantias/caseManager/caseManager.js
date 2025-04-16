@@ -41,7 +41,8 @@ import {
   getCasoPostventa,
   updateNumeroGuia,
   getClienteDataForId,
-  getNombreProductoByMotor
+  getNombreProductoByMotor,
+  getClienteDataForIdEspecificClienteShibot
 } from '../../../services/api'
 
 import { ProgressBar } from './progressLine'
@@ -49,7 +50,7 @@ import LoadingCircle from '../../contabilidad/loader'
 
 // Import your new API calls:
 import { cierrePrevio, cerrarCaso } from '../../../services/api'
-
+import { DialogAddClient } from '../openCase/DialogAddClient';
 export const CaseManager = () => {
   const [menus, setMenus] = useState([]);
   const { jwt, userShineray, enterpriseShineray } = useAuthContext()
@@ -87,6 +88,10 @@ export const CaseManager = () => {
   // Estado para saber si el cliente existe
   const [clientExists, setClientExists] = useState(null);
   const [nombreProducto, setNombreProducto] = useState('');
+
+  const [openAddClient, setOpenAddClient] = useState(false); // Controla la apertura del diálogo
+  const [identificacionClienteAux, setIdentificacionClienteAux] = useState(''); // Identificación temporal
+
 
   const listaProblemas = {
     46: "MOTOR",
@@ -180,6 +185,20 @@ export const CaseManager = () => {
         ),
       },
     },
+
+    {
+      name: "nombre_cliente",
+      label: "Cliente",
+      options: {
+        customBodyRender: (value) => (
+          <div style={{ textAlign: "left" }}>
+            {value}
+          </div>
+        ),
+      },
+    },
+
+
     {
       name: "taller",
       label: "Taller",
@@ -385,7 +404,7 @@ export const CaseManager = () => {
       if (dataCasoPostventaEdit && dataCasoPostventaEdit.identificacion_cliente) {
         try {
           // Se usa el endpoint importado getClienteDataForId (parámetros: jwt, codCliente, enterprise)
-          await getClienteDataForId(jwt, dataCasoPostventaEdit.identificacion_cliente, enterpriseShineray);
+          await getClienteDataForIdEspecificClienteShibot(jwt, dataCasoPostventaEdit.identificacion_cliente, enterpriseShineray);
           setClientExists(true);
         } catch (error) {
           setClientExists(false);
@@ -778,7 +797,18 @@ export const CaseManager = () => {
       console.error(error);
     }
   };
-
+  const handleClientCreated = async (newId) => {
+    setOpenAddClient(false); // Cierra el diálogo
+    try {
+      const dataCliente = await getClienteDataForIdEspecificClienteShibot(jwt, newId, enterpriseShineray);
+      setIdentificacionClienteAux(dataCliente.cod_cliente);
+      toast.success('Cliente creado y cargado con éxito.');
+      setClientExists(true);
+    } catch (error) {
+      console.error(error);
+      toast.error('Error al cargar el cliente recién creado.');
+    }
+  };
   // -----------------------------------------
   // RENDER
   // -----------------------------------------
@@ -1184,23 +1214,49 @@ export const CaseManager = () => {
 
               <Grid item xs={12} sm={6}>
                 <TextField
-                  label="identificacion cliente"
-                  value={dataCasoPostventaEdit.identificacion_cliente || ''}
+                  label="Identificación Cliente"
+                  value={dataCasoPostventaEdit?.identificacion_cliente || identificacionClienteAux}
+                  onChange={(e) => setIdentificacionClienteAux(e.target.value)}
+                  onBlur={async () => {
+                    if (!identificacionClienteAux) return;
+                    try {
+                      const dataCliente = await getClienteDataForIdEspecificClienteShibot(jwt, identificacionClienteAux, enterpriseShineray);
+                      setClientExists(true);
+                      toast.success('Cliente encontrado.');
+                    } catch (error) {
+                      setClientExists(false);
+                      toast.info('Cliente no encontrado. Por favor, regístrelo.');
+                    }
+                  }}
                   fullWidth
                   margin="dense"
                   InputProps={{
-                    readOnly: true,
-                    // Muestra el ícono si ya se realizó la consulta:
+                    readOnly: false,
                     endAdornment: (
                       <InputAdornment position="end">
-                        {clientExists === null ? null
-                          : clientExists ? <CheckCircleIcon style={{ color: 'green' }} />
-                            : <CancelIcon style={{ color: 'red' }} />}
+                        {clientExists === null ? null : clientExists ? (
+                          <CheckCircleIcon style={{ color: 'green' }} />
+                        ) : (
+                          <CancelIcon style={{ color: 'red' }} />
+                        )}
                       </InputAdornment>
-                    )
+                    ),
                   }}
                 />
               </Grid>
+
+              {!clientExists && (
+                <Grid item xs={12} sm={6}>
+                  <Button
+                    variant="contained"
+                    
+                    onClick={() => setOpenAddClient(true)}
+                    style={{ marginTop: '16px' ,backgroundColor: 'firebrick' }}
+                  >
+                    Agregar Cliente
+                  </Button>
+                </Grid>
+              )}
               <Grid item xs={12} sm={6}>
                 <TextField
                   label="kilometraje"
@@ -1419,6 +1475,18 @@ export const CaseManager = () => {
         handleGenerarPedido={handleGenerarPedido}
         handleGenerarPedidoTodos={handleGenerarPedidoTodos}
         dataCasoPostventaEdit={dataCasoPostventaEdit}
+      />
+      <DialogAddClient
+        open={openAddClient}
+        onClose={() => setOpenAddClient(false)}
+        jwt={jwt}
+        enterprise={enterpriseShineray}
+        onClientCreated={handleClientCreated}
+        initialData={{
+          id: dataCasoPostventaEdit?.identificacion_cliente || '',
+          nombre: dataCasoPostventaEdit?.nombre_cliente || '',
+          apellidos: '', // Si tienes un campo para apellidos, puedes agregarlo aquí
+        }}
       />
 
       {/* LOADING SPINNER */}
