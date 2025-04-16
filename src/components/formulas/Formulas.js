@@ -16,15 +16,13 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
-import * as Service from "../../services/modulo-formulas";
-
-
-const API = process.env.REACT_APP_API;
+import API from "../../services/modulo-formulas";
 
 function Formulas() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
-  const [formulas, setFormulas] = useState([])
-  const [menus, setMenus] = useState([])
+  const APIService = new API(jwt, userShineray, enterpriseShineray, systemShineray);
+  const [formulas, setFormulas] = useState([]);
+  const [menus, setMenus] = useState([]);
   const [openNew, setOpenNew] = useState(false);
   const [openUpdate, setOpenUpdate] = useState(false);
   const [codFormula, setCodFormula] = useState('');
@@ -37,74 +35,15 @@ function Formulas() {
 
   const getMenus = async () => {
     try {
-      setMenus(await Service.getMenus(jwt, userShineray, enterpriseShineray, systemShineray));
+      setMenus(await APIService.getMenus());
     } catch (err) {
       toast.error(err.message);
     }
-  }
-
-  const getFormulas = async () => {
-    try {
-      setFormulas(await Service.getFormulas(jwt, enterpriseShineray));
-    } catch (err) {
-      toast.error(err.message);
-    }
-  }
-
-  const handleRowClick = (rowData, rowMeta) => {
-    const row = formulas.filter(item => item.cod_formula === rowData[0])[0];
-    setCodFormula(row.cod_formula)
-    setNombre(row.nombre)
-    setEstado(row.estado === 1)
-    setDefinicion(row.definicion)
-    setObservaciones(row.observaciones ?? '')
-    handleClickOpenUpdate();
-  }
-
-  const handleDeleteRows = rowsDeleted => {
-    if (!window.confirm('¿Estás seguro de eliminar la fórmula?')) {
-      return false;
-    }
-    const { data: deletedData } = rowsDeleted;
-    const deletedRowIndex = deletedData[0].index;
-    const deletedRowValue = formulas[deletedRowIndex];
-    const newFormulas = formulas.filter((_, index) => index !== deletedRowIndex);
-    setFormulas(newFormulas);
-    Service.deleteFormula(jwt, enterpriseShineray, deletedRowValue.cod_formula)
-      .then(_ => {
-        toast.success('Eliminación exitosa');
-      })
-      .catch(err => {
-        toast.error(err.message);
-        getFormulas();
-      });
-    return true;
-  };
-
-  const handleClickOpenNew = () => {
-    setOpenNew(true);
-    setCodFormula('')
-    setNombre('')
-    setObservaciones('')
-    setEstado(true)
-    setDefinicion('')
-  };
-
-  const handleClickCloseNew = () => {
-    setOpenNew(false);
-  };
-
-  const handleClickOpenUpdate = () => {
-    setOpenUpdate(true);
-  };
-
-  const handleClickCloseUpdate = () => {
-    setOpenUpdate(false);
   };
 
   const handleCreate = (e) => {
     e.preventDefault();
-    Service.addFormula(jwt, enterpriseShineray, {
+    APIService.addFormula({
       empresa: enterpriseShineray,
       cod_formula: codFormula,
       nombre,
@@ -120,14 +59,20 @@ function Formulas() {
         setEstado(true);
         setDefinicion('');
       })
-      .catch(err => {
-        toast.error(err.mensaje);
-      });
-  }
+      .catch(err => toast.error(err.mensaje));
+  };
 
-  const handleUpdate = async (e) => {
+  const getFormulas = async () => {
+    try {
+      setFormulas(await APIService.getFormulas());
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleUpdate = (e) => {
     e.preventDefault();
-    Service.updateFormula(jwt, enterpriseShineray, codFormula, {
+    APIService.updateFormula(codFormula, {
       nombre,
       estado,
       observaciones: observaciones,
@@ -142,10 +87,67 @@ function Formulas() {
         setEstado(true);
         setDefinicion('');
       })
+      .catch(err => toast.error(err.mensaje));
+  };
+
+  const handleDelete = rowsDeleted => {
+    if (!window.confirm('¿Estás seguro de eliminar la fórmula?')) {
+      return false;
+    }
+    const { data: deletedData } = rowsDeleted;
+    const deletedRowIndex = deletedData[0].index;
+    const deletedRowValue = formulas[deletedRowIndex];
+    const newFormulas = formulas.filter((_, index) => index !== deletedRowIndex);
+    setFormulas(newFormulas);
+    APIService.deleteFormula(deletedRowValue.cod_formula)
+      .then(_ => toast.success('Eliminación exitosa'))
       .catch(err => {
-        toast.error(err.mensaje);
+        toast.error(err.message);
+        getFormulas();
       });
-  }
+    return true;
+  };
+
+  const handleRowClick = (rowData, rowMeta) => {
+    const row = formulas.filter(item => item.cod_formula === rowData[0])[0];
+    setCodFormula(row.cod_formula);
+    setNombre(row.nombre);
+    setEstado(row.estado === 1);
+    setDefinicion(row.definicion);
+    setObservaciones(row.observaciones ?? '');
+    handleClickOpenUpdate();
+  };
+
+  const handleClickOpenNew = () => {
+    setOpenNew(true);
+    setCodFormula('');
+    setNombre('');
+    setObservaciones('');
+    setEstado(true);
+    setDefinicion('');
+  };
+
+  const handleClickCloseNew = () => {
+    setOpenNew(false);
+  };
+
+  const handleClickOpenUpdate = () => {
+    setOpenUpdate(true);
+  };
+
+  const handleClickCloseUpdate = () => {
+    setOpenUpdate(false);
+  };
+
+  const renderText = (value) => {
+    const progress = parseInt(value);
+    const text = progress ? "Activa" : "Inactiva";
+    return (
+      <div>
+        <span>{text}</span>
+      </div>
+    );
+  };
 
   const getMuiTheme = () =>
     createTheme({
@@ -198,16 +200,6 @@ function Formulas() {
       }
     });
 
-  const renderText = (value) => {
-    const progress = parseInt(value);
-    const text = progress ? "Activa" : "Inactiva";
-    return (
-      <div>
-        <span>{text}</span>
-      </div>
-    );
-  };
-
   const columns = [
     {
       name: "cod_formula",
@@ -236,13 +228,13 @@ function Formulas() {
       name: "audit_fecha_ing",
       label: "Fecha creación"
     },
-  ]
+  ];
 
   const options = {
     responsive: 'standard',
     selectableRows: 'single',
     onRowClick: handleRowClick,
-    onRowsDelete: handleDeleteRows,
+    onRowsDelete: handleDelete,
     textLabels: {
       body: {
         noMatch: "Lo siento, no se encontraron registros",
@@ -278,13 +270,13 @@ function Formulas() {
       }
     }
 
-  }
+  };
 
   useEffect(() => {
     document.title = 'Fórmulas';
     getFormulas();
     getMenus();
-  }, [openNew, openUpdate])
+  }, [openNew, openUpdate]);
 
   return (
     <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
@@ -455,7 +447,7 @@ function Formulas() {
         </DialogActions>
       </Dialog>
     </div>
-  )
+  );
 }
 
-export default Formulas
+export default Formulas;

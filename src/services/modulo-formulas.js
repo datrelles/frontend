@@ -1,142 +1,130 @@
 import axios from 'axios';
 
-const BASE_API = process.env.REACT_APP_API;
-const API = `${BASE_API}/modulo-formulas/empresas`;
+export default class API {
+    #BASE_URL;
+    #URL;
+    #jwt;
+    #user;
+    #enterprise;
+    #system;
 
-const errorHandler = (fn) => {
-    return async (...args) => {
-        try {
-            return await fn(...args);
-        } catch (err) {
-            console.log(`Error en fn ${fn.name}`);
-            let mensaje = `Ocurrió un error en la llamada a la API: ${fn.name}`;
-            if (err.response) {
-                const { response: { status, data } } = err;
-                if (status === 401) {
-                    mensaje = "Sesión caducada. Por favor, inicia sesión nuevamente.";
-                } else if (data.mensaje) {
-                    ({ mensaje } = data);
-                }
-            }
-            throw new Error(mensaje);
-        }
+    constructor(jwt, user, enterprise, system) {
+        this.#jwt = jwt;
+        this.#user = user;
+        this.#enterprise = enterprise;
+        this.#system = system;
+        this.#BASE_URL = process.env.REACT_APP_API;
+        this.#URL = `${this.#BASE_URL}/modulo-formulas/empresas/${this.#enterprise}`;
     }
-}
 
-export const getMenus = errorHandler(async function getMenus(jwt, user, enterprise, system) {
-    return (await axios.get(`${BASE_API}/menus/${user}/${enterprise}/${system}`,
-        {
+    get #headers() {
+        return {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + jwt
+                'Authorization': 'Bearer ' + this.#jwt
             }
-        })).data;
-});
+        }
+    }
 
-export const addProceso = errorHandler(async function addProceso(jwt, enterprise, data) {
-    return (await axios.post(`${API}/${enterprise}/procesos`, data, {
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jwt}`,
-        },
-    })).data;
-});
+    #errorHandler(fn) {
+        return async (...args) => {
+            try {
+                return await fn(...args);
+            } catch (err) {
+                console.log(`Error en ${err.config.url}`);
+                let mensaje = "Ocurrió un error en la llamada a la API";
+                if (err.response) {
+                    const { response: { status, data } } = err;
+                    if (status === 401) {
+                        mensaje = "Sesión caducada. Por favor, inicia sesión nuevamente.";
+                    } else if (data.mensaje) {
+                        ({ mensaje } = data);
+                    }
+                }
+                throw new Error(mensaje);
+            }
+        }
+    }
 
-export const getProcesos = errorHandler(async function getProcesos(jwt, enterprise) {
-    return (await axios.get(`${API}/${enterprise}/procesos`, {
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jwt}`,
-        },
-    })).data;
-});
+    getMenus = this.#errorHandler(async () => {
+        return (await axios.get(`${this.#BASE_URL}/menus/${this.#user}/${this.#enterprise}/${this.#system}`, this.#headers)).data;
+    });
 
-export const updateProceso = errorHandler(async function updateProceso(jwt, enterprise, proceso, data) {
-    return (await axios.put(`${API}/${enterprise}/procesos/${proceso}`, data, {
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jwt}`,
-        },
-    })).data;
-});
+    addProceso = this.#errorHandler(async (data) => {
+        return (await axios.post(`${this.#URL}/procesos`, data, this.#headers)).data;
+    });
 
-export const deleteProceso = errorHandler(async function deleteProceso(jwt, enterprise, proceso) {
-    return (await axios.delete(`${API}/${enterprise}/procesos/${proceso}`, {
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jwt}`,
-        },
-    })).data;
-});
+    getProcesos = this.#errorHandler(async () => {
+        return (await axios.get(`${this.#URL}/procesos`, this.#headers)).data;
+    });
 
-export const addFormula = errorHandler(async function addFormula(jwt, enterprise, data) {
-    return (await axios.post(`${API}/${enterprise}/formulas`, data, {
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jwt}`,
-        },
-    })).data;
-});
+    updateProceso = this.#errorHandler(async (proceso, data) => {
+        return (await axios.put(`${this.#URL}/procesos/${proceso}`, data, this.#headers)).data;
+    });
 
-export const getFormulas = errorHandler(async function getFormulas(jwt, enterprise) {
-    return (await axios.get(`${API}/${enterprise}/formulas`, {
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jwt}`,
-        },
-    })).data;
-});
+    deleteProceso = this.#errorHandler(async (proceso) => {
+        return (await axios.delete(`${this.#URL}/procesos/${proceso}`, this.#headers)).data;
+    });
 
-export const updateFormula = errorHandler(async function updateFormula(jwt, enterprise, formula, data) {
-    return (await axios.put(`${API}/${enterprise}/formulas/${formula}`, data, {
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jwt}`,
-        },
-    })).data;
-});
+    addFormula = this.#errorHandler(async (data) => {
+        return (await axios.post(`${this.#URL}/formulas`, data, this.#headers)).data;
+    });
 
-export const deleteFormula = errorHandler(async function deleteFormula(jwt, enterprise, formula) {
-    return (await axios.delete(`${API}/${enterprise}/formulas/${formula}`, {
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jwt}`,
-        },
-    })).data;
-});
+    getFormulas = this.#errorHandler(async () => {
+        return (await axios.get(`${this.#URL}/formulas`, this.#headers)).data;
+    });
 
-export const getParametrosPorProceso = errorHandler(async function getParametrosPorProceso(jwt, enterprise, proceso) {
-    return (await axios.get(`${API}/${enterprise}/procesos/${proceso}/parametros`, {
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jwt}`,
-        },
-    })).data;
-});
+    updateFormula = this.#errorHandler(async (formula, data) => {
+        return (await axios.put(`${this.#URL}/formulas/${formula}`, data, this.#headers)).data;
+    });
 
-export const addFactor = errorHandler(async function addFactor(jwt, enterprise, proceso, parametro, data) {
-    return (await axios.post(`${API}/${enterprise}/procesos/${proceso}/parametros/${parametro}/factores`, data, {
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jwt}`,
-        },
-    })).data;
-});
+    deleteFormula = this.#errorHandler(async (formula) => {
+        return (await axios.delete(`${this.#URL}/formulas/${formula}`, this.#headers)).data;
+    });
 
-export const getFactores = errorHandler(async function getFactores(jwt, enterprise, proceso, parametro) {
-    return (await axios.get(`${API}/${enterprise}/procesos/${proceso}/parametros/${parametro}/factores`, {
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jwt}`,
-        },
-    })).data;
-});
+    addParametro = this.#errorHandler(async (data) => {
+        return (await axios.post(`${this.#URL}/parametros`, data, this.#headers)).data;
+    });
 
-export const deleteFactor = errorHandler(async function deleteFactor(jwt, enterprise, proceso, parametro, orden) {
-    return (await axios.delete(`${API}/${enterprise}/procesos/${proceso}/parametros/${parametro}/factores/${orden}`, {
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jwt}`,
-        },
-    })).data;
-});
+    getParametros = this.#errorHandler(async () => {
+        return (await axios.get(`${this.#URL}/parametros`, this.#headers)).data;
+    });
+
+    updateParametro = this.#errorHandler(async (parametro, data) => {
+        return (await axios.put(`${this.#URL}/parametros/${parametro}`, data, this.#headers)).data;
+    });
+
+    deleteParametro = this.#errorHandler(async (parametro) => {
+        return (await axios.delete(`${this.#URL}/parametros/${parametro}`, this.#headers)).data;
+    });
+
+    addParametroPorProceso = this.#errorHandler(async (proceso, parametro, data) => {
+        return (await axios.post(`${this.#URL}/procesos/${proceso}/parametros/${parametro}`, data, this.#headers)).data;
+    });
+
+    getParametrosPorProceso = this.#errorHandler(async (proceso) => {
+        return (await axios.get(`${this.#URL}/procesos/${proceso}/parametros`, this.#headers)).data;
+    });
+
+    updateParametroPorProceso = this.#errorHandler(async (proceso, parametro, data) => {
+        return (await axios.put(`${this.#URL}/procesos/${proceso}/parametros/${parametro}`, data, this.#headers)).data;
+    });
+
+    deleteParametroPorProceso = this.#errorHandler(async (proceso, parametro) => {
+        return (await axios.delete(`${this.#URL}/procesos/${proceso}/parametros/${parametro}`, this.#headers)).data;
+    });
+
+    addFactor = this.#errorHandler(async (proceso, parametro, data) => {
+        return (await axios.post(`${this.#URL}/procesos/${proceso}/parametros/${parametro}/factores`, data, this.#headers)).data;
+    });
+
+    getFactores = this.#errorHandler(async (proceso, parametro) => {
+        return (await axios.get(`${this.#URL}/procesos/${proceso}/parametros/${parametro}/factores`, this.#headers)).data;
+    });
+
+    deleteFactor = this.#errorHandler(async (proceso, parametro, orden) => {
+        return (await axios.delete(`${this.#URL}/procesos/${proceso}/parametros/${parametro}/factores/${orden}`, this.#headers)).data;
+    });
+
+
+}

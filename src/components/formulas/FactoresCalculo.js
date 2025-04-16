@@ -20,25 +20,26 @@ import {
     Typography,
     Autocomplete
 } from '@mui/material';
-import * as Service from "../../services/modulo-formulas";
+import API from "../../services/modulo-formulas";
 
 const tiposOperadores = new Map([
     ['PAR', 'PARÁMETRO'],
     ['VAL', 'VALOR FIJO'],
     ['OPE', 'OPERADOR']
-])
+]);
 
 const operadores = [
     "+",
     "-",
     "*",
     "/"
-]
+];
 
 function FactoresCalculo() {
+    const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
+    const APIService = new API(jwt, userShineray, enterpriseShineray, systemShineray);
     const location = useLocation();
     const navigate = useNavigate();
-    const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const [menus, setMenus] = useState([]);
     const [factores, setFactores] = useState([]);
     const [parametros, setParametros] = useState([]);
@@ -54,15 +55,7 @@ function FactoresCalculo() {
 
     const getMenus = async () => {
         try {
-            setMenus(await Service.getMenus(jwt, userShineray, enterpriseShineray, systemShineray));
-        } catch (err) {
-            toast.error(err.message);
-        }
-    }
-
-    const getFactores = async () => {
-        try {
-            setFactores(await Service.getFactores(jwt, enterpriseShineray, codProceso, codParametro));
+            setMenus(await APIService.getMenus());
         } catch (err) {
             toast.error(err.message);
         }
@@ -70,43 +63,50 @@ function FactoresCalculo() {
 
     const getParametrosPorProceso = async () => {
         try {
-            setParametros(await Service.getParametrosPorProceso(jwt, enterpriseShineray, codProceso));
+            setParametros(await APIService.getParametrosPorProceso(codProceso));
         } catch (err) {
             toast.error(err.message);
         }
     }
 
-    const handleAddFactor = async (e) => {
+    const handleAddFactor = (e) => {
         e.preventDefault();
+        APIService.addFactor(codProceso, codParametro, {
+            orden,
+            tipo_operador: tipoOperador,
+            operador,
+            valor_fijo: valorFijo,
+            cod_parametro_operador: codParametroOperador
+        })
+            .then(res => {
+                toast.success(res.mensaje);
+                setTipoOperador('Seleccione');
+                setOperador('Seleccione');
+                setValorFijo('');
+                setCodParametroOperador('');
+                getFactores();
+            })
+            .catch(err => toast.error(err.message));
+    }
+
+    const getFactores = async () => {
         try {
-            toast.success((await Service.addFactor(jwt, enterpriseShineray, codProceso, codParametro, {
-                orden,
-                tipo_operador: tipoOperador,
-                operador,
-                valor_fijo: valorFijo,
-                cod_parametro_operador: codParametroOperador
-            })).mensaje);
-            setTipoOperador('Seleccione');
-            setOperador('Seleccione');
-            setValorFijo('');
-            setCodParametroOperador('');
-            getFactores();
+            setFactores(await APIService.getFactores(codProceso, codParametro));
         } catch (err) {
             toast.error(err.message);
         }
     }
 
-    const handleDeleteFactor = async (orden) => {
+    const handleDeleteFactor = (orden) => {
         if (!window.confirm('¿Estás seguro de eliminar el factor?')) {
             return;
         }
-        try {
-            await Service.deleteFactor(jwt, enterpriseShineray, codProceso, codParametro, orden);
-            toast.success('¡Elemento eliminado exitosamente!');
-            getFactores();
-        } catch (err) {
-            toast.error(err.message);
-        }
+        APIService.deleteFactor(codProceso, codParametro, orden)
+            .then(_ => {
+                toast.success('Eliminación exitosa');
+                getFactores();
+            })
+            .catch(err => toast.error(err.message));
     }
 
     const checkUltimoTipoOperador = (clave) => {
@@ -389,4 +389,4 @@ function FactoresCalculo() {
     );
 }
 
-export default FactoresCalculo
+export default FactoresCalculo;

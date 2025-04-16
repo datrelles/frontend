@@ -18,16 +18,15 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
-
-
-const API = process.env.REACT_APP_API;
+import API from "../../services/modulo-formulas";
 
 function ParametrosProceso() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
-  const [procesos, setProcesos] = useState([])
-  const [parametros, setParametros] = useState([])
-  const [parametrosDetail, setParametrosDetail] = useState([])
-  const [menus, setMenus] = useState([])
+  const APIService = new API(jwt, userShineray, enterpriseShineray, systemShineray);
+  const [procesos, setProcesos] = useState([]);
+  const [parametros, setParametros] = useState([]);
+  const [parametrosDetail, setParametrosDetail] = useState([]);
+  const [menus, setMenus] = useState([]);
   const [openAdd, setOpenAdd] = useState(false);
   const [openUpdate, setOpenUpdate] = useState(false);
   const [codProceso, setCodProceso] = useState('');
@@ -39,105 +38,141 @@ function ParametrosProceso() {
 
   const navigate = useNavigate();
 
-  const getProcesos = async () => {
-    try {
-      const res = await fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + jwt
-          }
-        });
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          toast.error('Sesión caducada.');
-        }
-      } else {
-        const data = await res.json();
-        setProcesos(data);
-      }
-    } catch (error) {
-      toast.error('Sesión caducada. Por favor, inicia sesión nuevamente.');
-    }
-  }
-
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + jwt
-          }
-        });
-      if (!res.ok) {
-        if (res.status === 401) {
-          toast.error('Sesión caducada.');
-        }
-      } else {
-        const data = await res.json();
-        setMenus(data);
-      }
-    } catch (error) {
+      setMenus(await APIService.getMenus());
+    } catch (err) {
+      toast.error(err.message);
     }
-  }
+  };
+
+  const getProcesos = async () => {
+    try {
+      setProcesos(await APIService.getProcesos());
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
 
   const getParametros = async () => {
     try {
-      const res = await fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/parametros`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + jwt
-          }
-        });
-      if (!res.ok) {
-        if (res.status === 401) {
-          toast.error('Sesión caducada.');
-        }
-      } else {
-        const data = await res.json();
-        setParametros(data);
-      }
-    } catch (error) {
-      toast.error('Sesión caducada. Por favor, inicia sesión nuevamente.');
+      setParametros(await APIService.getParametros());
+    } catch (err) {
+      toast.error(err.message);
     }
-  }
+  };
+
+  const handleAdd = (rowData, rowMeta) => {
+    const codParametro = rowData[0];
+    const orden_imprime = parseInt(window.prompt(`Ingresa el orden de impresión para el parámetro ${codParametro}:`));
+    if (isNaN(orden_imprime)) {
+      toast.error("Orden de impresión inválido");
+      return;
+    }
+    APIService.addParametroPorProceso(codProceso, codParametro, {
+      orden_imprime
+    })
+      .then(res => {
+        toast.success(res.mensaje);
+        setOpenAdd(false);
+        setCodParametro(codParametro);
+      })
+      .catch(err => toast.error(err.message));
+  };
 
   const getParametrosDetail = async () => {
     try {
-      const res = await fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos/${codProceso}/parametros`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + jwt
-          }
-        });
-      if (!res.ok) {
-        if (res.status === 401) {
-          toast.error('Sesión caducada.');
-        }
-      } else {
-        setParametrosDetail((await res.json()).map(item => ({ cod_parametro: item.cod_parametro, nombre: item.parametro.nombre, descripcion: item.parametro.descripcion, orden_imprime: item.orden_imprime, estado: item.estado })));
-      }
-    } catch (error) {
-      toast.error('Sesión caducada. Por favor, inicia sesión nuevamente.');
+      setParametrosDetail(await APIService.getParametrosPorProceso(codProceso));
+    } catch (err) {
+      toast.error(err.message);
     }
-  }
+  };
 
-  useEffect(() => {
-    document.title = 'Parametros por Proceso';
-    getProcesos();
-    getParametros();
-    getMenus();
-  }, []);
+  const handleUpdate = () => {
+    APIService.updateParametroPorProceso(codProceso, codParametro, {
+      orden_imprime: ordenParametro,
+      estado: estadoParametro
+    })
+      .then(_ => {
+        toast.success('Actualización exitosa');
+        setCodParametro('');
+        setOpenUpdate(false);
+      })
+      .catch(err => toast.error(err.message));
+  };
 
-  useEffect(() => {
-    if (codProceso) {
-      getParametrosDetail();
+  const handleDelete = (selectedRows, setSelectedRows) => {
+    if (!window.confirm('¿Estás seguro de eliminar el parámetro?')) {
+      return false;
     }
-  }, [codProceso, codParametro]);
+    const { data: deletedData } = selectedRows;
+    const deletedRowIndex = deletedData[0].index;
+    const deletedRowValue = parametrosDetail[deletedRowIndex];
+    const newParametros = parametrosDetail.filter((_, index) => index !== deletedRowIndex);
+    setParametrosDetail(newParametros);
+    APIService.deleteParametroPorProceso(codProceso, deletedRowValue.cod_parametro)
+      .then(_ => {
+        toast.success('Eliminación exitosa');
+        setSelectedRows([]);
+      })
+      .catch(err => {
+        toast.error(err.message);
+        setCodParametro('');
+      });
+    return true;
+  };
+
+  const handleClickMaster = (rowData, rowMeta) => {
+    setCodProceso(rowData[0]);
+  };
+
+  const handleClickOpenAdd = () => {
+    setOpenAdd(true);
+  };
+
+  const handleClickCloseAdd = () => {
+    setOpenAdd(false);
+  };
+
+  const handleClickOpenUpdate = (rowData) => {
+    setCodParametro(rowData[0]);
+    setNombreParametro(rowData[1]);
+    setDescripcionParametro(rowData[2] || "N/A");
+    setOrdenParametro(rowData[3]);
+    setEstadoParametro(rowData[4] === "Activo");
+    setOpenUpdate(true);
+  };
+
+  const handleClickCloseUpdate = () => {
+    setOpenUpdate(false);
+  };
+
+  const handleCustomAction = (selectedRows, displayData) => {
+    const indiceSeleccionado = selectedRows.data[0].index;
+    const codParametro = displayData[indiceSeleccionado].data[0];
+    navigate(`/factores-calculo?proceso=${codProceso}&parametro=${codParametro}`);
+  };
+
+  const CustomSelectToolbar = (selectedRows, displayData, setSelectedRows) => {
+    return (<>
+      <Tooltip title="Factores de cálculo">
+        <IconButton onClick={() => handleCustomAction(selectedRows, displayData)}>
+          <CalculateIcon />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="Eliminar">
+        <IconButton onClick={() => handleDelete(selectedRows, setSelectedRows)}>
+          <DeleteIcon />
+        </IconButton>
+      </Tooltip>
+    </>);
+  };
+
+  const renderText = (value) => {
+    const progress = parseInt(value);
+    const text = progress ? "Activo" : "Inactivo";
+    return text;
+  };
 
   const getMuiTheme = () =>
     createTheme({
@@ -189,130 +224,6 @@ function ParametrosProceso() {
         }
       }
     });
-
-  const renderText = (value) => {
-    const progress = parseInt(value);
-    const text = progress ? "Activo" : "Inactivo";
-    return text;
-  };
-
-  const handleClickMaster = (rowData, rowMeta) => {
-    setCodProceso(rowData[0]);
-  }
-
-  const handleClickOpenAdd = () => {
-    setOpenAdd(true);
-  };
-
-  const handleClickCloseAdd = () => {
-    setOpenAdd(false);
-  };
-
-  const handleAdd = async (rowData, rowMeta) => {
-    const codParametro = rowData[0];
-    const orden_imprime = parseInt(window.prompt(`Ingresa el orden de impresión para el parámetro ${codParametro}:`));
-    if (isNaN(orden_imprime)) {
-      toast.error("Orden de impresión inválido");
-      return;
-    }
-    const res = await fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos/${codProceso}/parametros/${codParametro}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + jwt
-      },
-      body: JSON.stringify({
-        orden_imprime
-      })
-    });
-    const { mensaje } = await res.json();
-    if (res.ok) {
-      toast.success(mensaje);
-      setOpenAdd(false);
-      setCodParametro(codParametro);
-    } else {
-      toast.error(mensaje);
-    }
-  }
-
-  const handleClickOpenUpdate = (rowData) => {
-    setCodParametro(rowData[0]);
-    setNombreParametro(rowData[1]);
-    setDescripcionParametro(rowData[2] || "N/A");
-    setOrdenParametro(rowData[3]);
-    setEstadoParametro(rowData[4] === "Activo");
-    setOpenUpdate(true);
-  };
-
-  const handleClickCloseUpdate = () => {
-    setOpenUpdate(false);
-  };
-
-  const handleUpdate = () => {
-    fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos/${codProceso}/parametros/${codParametro}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + jwt
-      },
-      body: JSON.stringify({
-        orden_imprime: ordenParametro,
-        estado: estadoParametro
-      })
-    }).then(res => {
-      if (!res.ok)
-        return res.json();
-      setCodParametro('');
-      setOpenUpdate(false);
-      toast.success('Actualización exitosa');
-    }).then(res => {
-      const { mensaje } = res;
-      toast.error(mensaje);
-    });
-  };
-
-  const handleDeleteRows = (selectedRows, setSelectedRows) => {
-    if (!window.confirm('¿Está seguro de eliminar el parámetro?')) {
-      return false;
-    }
-    const { data: deletedData } = selectedRows;
-    const deletedRowIndex = deletedData[0].index;
-    const deletedRowValue = parametrosDetail[deletedRowIndex];
-    const newParametros = parametrosDetail.filter((_, index) => index !== deletedRowIndex);
-    setParametrosDetail(newParametros);
-    fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/procesos/${codProceso}/parametros/${deletedRowValue.cod_parametro}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + jwt
-      },
-    })
-      .then(response => {
-        if (!response.ok) {
-          setCodParametro('');
-          return response.json();
-        }
-        toast.success('¡Elemento eliminado exitosamente!');
-        setSelectedRows([]);
-      })
-      .then(data => {
-        if (data) {
-          toast.error(data.mensaje);
-        }
-      })
-      .catch(error => {
-        console.error(error);
-        toast.error('Ocurrió un error en la llamada a la API');
-      })
-    return true;
-  }
-
-  const handleCustomAction = (selectedRows, displayData) => {
-    const indiceSeleccionado = selectedRows.data[0].index;
-    const codParametro = displayData[indiceSeleccionado].data[0];
-    // navigate('/factores-calculo', { state: { codProceso, codParametro } });
-    navigate(`/factores-calculo?proceso=${codProceso}&parametro=${codParametro}`);
-  };
 
   const columnsMaster = [
     {
@@ -397,21 +308,6 @@ function ParametrosProceso() {
     },
   ];
 
-  const CustomSelectToolbar = (selectedRows, displayData, setSelectedRows) => {
-    return (<>
-      <Tooltip title="Factores de cálculo">
-        <IconButton onClick={() => handleCustomAction(selectedRows, displayData)}>
-          <CalculateIcon />
-        </IconButton>
-      </Tooltip>
-      <Tooltip title="Eliminar">
-        <IconButton onClick={() => handleDeleteRows(selectedRows, setSelectedRows)}>
-          <DeleteIcon />
-        </IconButton>
-      </Tooltip>
-    </>);
-  };
-
   const optionsDetail = {
     responsive: 'standard',
     selectableRows: 'single',
@@ -451,7 +347,7 @@ function ParametrosProceso() {
       //   deleteAria: "Borrar fila seleccionada"
       // }
     }
-  }
+  };
 
   const columnsParametros = [
     {
@@ -473,7 +369,7 @@ function ParametrosProceso() {
         customBodyRender: (value) => renderText(value),
       },
     },
-  ]
+  ];
 
   const optionsParametros = {
     responsive: 'standard',
@@ -503,7 +399,20 @@ function ParametrosProceso() {
         titleAria: "Mostrar/Ocultar columnas de tabla"
       },
     }
-  }
+  };
+
+  useEffect(() => {
+    document.title = 'Parametros por Proceso';
+    getProcesos();
+    getParametros();
+    getMenus();
+  }, []);
+
+  useEffect(() => {
+    if (codProceso) {
+      getParametrosDetail();
+    }
+  }, [codProceso, codParametro]);
 
   return (
     <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
@@ -646,7 +555,7 @@ function ParametrosProceso() {
         </DialogActions>
       </Dialog>
     </div>
-  )
+  );
 }
 
-export default ParametrosProceso
+export default ParametrosProceso;

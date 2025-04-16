@@ -8,7 +8,7 @@ import AddIcon from '@material-ui/icons/Add';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
-import {FormControlLabel, Checkbox} from '@mui/material';
+import { FormControlLabel, Checkbox } from '@mui/material';
 import { useAuthContext } from "../../context/authContext";
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
@@ -16,14 +16,13 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
-
-
-const API = process.env.REACT_APP_API;
+import API from "../../services/modulo-formulas";
 
 function Parametros() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
-  const [parametros, setParametros] = useState([])
-  const [menus, setMenus] = useState([])
+  const APIService = new API(jwt, userShineray, enterpriseShineray, systemShineray);
+  const [parametros, setParametros] = useState([]);
+  const [menus, setMenus] = useState([]);
   const [openNew, setOpenNew] = useState(false);
   const [openUpdate, setOpenUpdate] = useState(false);
   const [codParametro, setCodParametro] = useState('');
@@ -33,69 +32,61 @@ function Parametros() {
 
   const navigate = useNavigate();
 
-  const getParametros = async () => {
-    try {
-      const res = await fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/parametros`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + jwt
-          }
-        });
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          toast.error('Sesión caducada.');
-        }
-      } else {
-        const data = await res.json();
-        setParametros(data)
-      }
-    } catch (error) {
-      toast.error('Sesión caducada. Por favor, inicia sesión nuevamente.');
-    }
-  }
-
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + jwt
-          }
-        });
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          toast.error('Sesión caducada.');
-        }
-      } else {
-        const data = await res.json();
-        setMenus(data)
-        console.log(data)
-      }
-    } catch (error) {
+      setMenus(await APIService.getMenus());
+    } catch (err) {
+      toast.error(err.message);
     }
-  }
+  };
 
-  useEffect(() => {
-    document.title = 'Parámetros';
-    getParametros();
-    getMenus();
-  }, [openNew, openUpdate])
+  const handleCreate = (e) => {
+    e.preventDefault();
+    APIService.addParametro({
+      empresa: enterpriseShineray,
+      cod_parametro: codParametro,
+      nombre,
+      descripcion,
+    })
+      .then(res => {
+        toast.success(res.mensaje);
+        setOpenNew(false);
+        setCodParametro('');
+        setNombre('');
+        setDescripcion('');
+        setEstado(true);
+      })
+      .catch(err => toast.error(err.message));
+  };
 
-  const handleRowClick = (rowData, rowMeta) => {
-    const row = parametros.filter(item => item.cod_parametro === rowData[0])[0];
-    setCodParametro(row.cod_parametro)
-    setNombre(row.nombre)
-    setDescripcion(row.descripcion ?? '')
-    setEstado(row.estado === 1)
-    handleClickOpenUpdate();
-  }
+  const getParametros = async () => {
+    try {
+      setParametros(await APIService.getParametros());
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
 
-  const handleDeleteRows = rowsDeleted => {
-    if (!window.confirm('¿Está seguro de eliminar el parámetro?')) {
+  const handleUpdate = (e) => {
+    e.preventDefault();
+    APIService.updateParametro(codParametro, {
+      nombre,
+      descripcion,
+      estado,
+    })
+      .then(_ => {
+        toast.success('Actualización exitosa');
+        setOpenUpdate(false);
+        setCodParametro('');
+        setNombre('');
+        setDescripcion('');
+        setEstado(true);
+      })
+      .catch(err => toast.error(err.message));
+  };
+
+  const handleDelete = rowsDeleted => {
+    if (!window.confirm('¿Estás seguro de eliminar el parámetro?')) {
       return false;
     }
     const { data: deletedData } = rowsDeleted;
@@ -103,30 +94,42 @@ function Parametros() {
     const deletedRowValue = parametros[deletedRowIndex];
     const newParametros = parametros.filter((_, index) => index !== deletedRowIndex);
     setParametros(newParametros);
-    fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/parametros/${deletedRowValue.cod_parametro}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + jwt
-      },
-    })
-      .then(response => {
-        if (!response.ok) {
-          getParametros();
-          return response.json();
-        }
-        toast.success('¡Elemento eliminado exitosamente!');
-      })
-      .then(data => {
-        if (data) {
-          toast.error(data.mensaje);
-        }
-      })
-      .catch(error => {
-        console.error(error);
-        toast.error('Ocurrió un error en la llamada a la API');
-      })
+    APIService.deleteParametro(deletedRowValue.cod_parametro)
+      .then(_ => toast.success('Eliminación exitosa'))
+      .catch(err => {
+        toast.error(err.message);
+        getParametros();
+      });
     return true;
+  };
+
+  const handleRowClick = (rowData, rowMeta) => {
+    const row = parametros.filter(item => item.cod_parametro === rowData[0])[0];
+    setCodParametro(row.cod_parametro);
+    setNombre(row.nombre);
+    setDescripcion(row.descripcion ?? '');
+    setEstado(row.estado === 1);
+    handleClickOpenUpdate();
+  };
+
+  const handleClickOpenNew = () => {
+    setOpenNew(true);
+    setCodParametro('');
+    setNombre('');
+    setDescripcion('');
+    setEstado(true);
+  };
+
+  const handleClickCloseNew = () => {
+    setOpenNew(false);
+  };
+
+  const handleClickOpenUpdate = () => {
+    setOpenUpdate(true);
+  };
+
+  const handleClickCloseUpdate = () => {
+    setOpenUpdate(false);
   };
 
   const renderText = (value) => {
@@ -138,74 +141,6 @@ function Parametros() {
       </div>
     );
   };
-
-  const columns = [
-    {
-      name: "cod_parametro",
-      label: "Código"
-    },
-    {
-      name: "nombre",
-      label: "Nombre"
-    },
-    {
-      name: "descripcion",
-      label: "Descripción"
-    },
-    {
-      name: "estado",
-      label: "Estado",
-      options: {
-        customBodyRender: (value) => renderText(value),
-      },
-    },
-    {
-      name: "audit_fecha_ing",
-      label: "Fecha creación"
-    },
-  ]
-
-  const options = {
-    responsive: 'standard',
-    selectableRows: 'single',
-    onRowClick: handleRowClick,
-    onRowsDelete: handleDeleteRows,
-    textLabels: {
-      body: {
-        noMatch: "Lo siento, no se encontraron registros",
-        toolTip: "Ordenar",
-        columnHeaderTooltip: column => `Ordenar por ${column.label}`
-      },
-      pagination: {
-        next: "Siguiente",
-        previous: "Anterior",
-        rowsPerPage: "Filas por página:",
-        displayRows: "de"
-      },
-      toolbar: {
-        search: "Buscar",
-        downloadCsv: "Descargar CSV",
-        print: "Imprimir",
-        viewColumns: "Ver columnas",
-        filterTable: "Filtrar tabla"
-      },
-      filter: {
-        all: "Todos",
-        title: "FILTROS",
-        reset: "REINICIAR"
-      },
-      viewColumns: {
-        title: "Mostrar columnas",
-        titleAria: "Mostrar/Ocultar columnas de tabla"
-      },
-      selectedRows: {
-        text: "fila(s) seleccionada(s)",
-        delete: "Borrar",
-        deleteAria: "Borrar fila seleccionada"
-      }
-    }
-
-  }
 
   const getMuiTheme = () =>
     createTheme({
@@ -258,80 +193,78 @@ function Parametros() {
       }
     });
 
-  const handleClickOpenNew = () => {
-    setOpenNew(true);
-    setCodParametro('')
-    setNombre('')
-    setDescripcion('')
-    setEstado(true)
-  };
-
-  const handleClickCloseNew = () => {
-    setOpenNew(false);
-  };
-
-  const handleClickOpenUpdate = () => {
-    setOpenUpdate(true);
-  };
-
-  const handleClickCloseUpdate = () => {
-    setOpenUpdate(false);
-  };
-
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    const res = await fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/parametros`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + jwt
+  const columns = [
+    {
+      name: "cod_parametro",
+      label: "Código"
+    },
+    {
+      name: "nombre",
+      label: "Nombre"
+    },
+    {
+      name: "descripcion",
+      label: "Descripción"
+    },
+    {
+      name: "estado",
+      label: "Estado",
+      options: {
+        customBodyRender: (value) => renderText(value),
       },
-      body: JSON.stringify({
-        empresa: enterpriseShineray,
-        cod_parametro: codParametro,
-        nombre,
-        descripcion,
-      })
-    });
-    const { mensaje } = await res.json();
-    if(res.ok){
-      toast.success(mensaje)
-      setOpenNew(false)
-      setCodParametro('')
-      setNombre('')
-      setDescripcion('')
-      setEstado(true)
-    }else{
-      toast.error(mensaje)
-    }
-  }
+    },
+    {
+      name: "audit_fecha_ing",
+      label: "Fecha creación"
+    },
+  ];
 
-  const handleUpdate = async (e)=>{
-    e.preventDefault();
-    const res = await fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/parametros/${codParametro}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + jwt
+  const options = {
+    responsive: 'standard',
+    selectableRows: 'single',
+    onRowClick: handleRowClick,
+    onRowsDelete: handleDelete,
+    textLabels: {
+      body: {
+        noMatch: "Lo siento, no se encontraron registros",
+        toolTip: "Ordenar",
+        columnHeaderTooltip: column => `Ordenar por ${column.label}`
       },
-      body: JSON.stringify({
-        nombre,
-        descripcion,
-        estado,
-      })
-    })
-    if (res.ok) {
-      toast.success('Actualización exitosa')
-      setOpenUpdate(false)
-      setCodParametro('')
-      setNombre('')
-      setDescripcion('')
-      setEstado(true)
-    } else {
-      const { mensaje } = await res.json();
-      toast.error(mensaje)
+      pagination: {
+        next: "Siguiente",
+        previous: "Anterior",
+        rowsPerPage: "Filas por página:",
+        displayRows: "de"
+      },
+      toolbar: {
+        search: "Buscar",
+        downloadCsv: "Descargar CSV",
+        print: "Imprimir",
+        viewColumns: "Ver columnas",
+        filterTable: "Filtrar tabla"
+      },
+      filter: {
+        all: "Todos",
+        title: "FILTROS",
+        reset: "REINICIAR"
+      },
+      viewColumns: {
+        title: "Mostrar columnas",
+        titleAria: "Mostrar/Ocultar columnas de tabla"
+      },
+      selectedRows: {
+        text: "fila(s) seleccionada(s)",
+        delete: "Borrar",
+        deleteAria: "Borrar fila seleccionada"
+      }
     }
-  }
+  };
+
+  useEffect(() => {
+    document.title = 'Parámetros';
+    getParametros();
+    getMenus();
+  }, [openNew, openUpdate]);
 
   return (
     <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
@@ -455,18 +388,18 @@ function Parametros() {
             </Grid>
           </Grid>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
-          <FormControlLabel control={
-            <Checkbox 
-            label="Estado"
-            checked={estado}
-            onChange={(e) => {
-              setEstado(e.target.checked)
-            }}
+            <FormControlLabel control={
+              <Checkbox
+                label="Estado"
+                checked={estado}
+                onChange={(e) => {
+                  setEstado(e.target.checked)
+                }}
+              />
+            }
+              label="Activo"
             />
-          }
-          label="Activo"
-          />
-            
+
           </div>
         </DialogContent>
         <DialogActions>
@@ -479,7 +412,7 @@ function Parametros() {
         </DialogActions>
       </Dialog>
     </div>
-  )
+  );
 }
 
-export default Parametros
+export default Parametros;

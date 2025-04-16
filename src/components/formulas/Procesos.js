@@ -16,10 +16,11 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
-import * as Service from "../../services/modulo-formulas";
+import API from "../../services/modulo-formulas";
 
 function Procesos() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
+  const APIService = new API(jwt, userShineray, enterpriseShineray, systemShineray);
   const [procesos, setProcesos] = useState([])
   const [menus, setMenus] = useState([])
   const [openNew, setOpenNew] = useState(false);
@@ -32,23 +33,15 @@ function Procesos() {
 
   const getMenus = async () => {
     try {
-      setMenus(await Service.getMenus(jwt, userShineray, enterpriseShineray, systemShineray));
+      setMenus(await APIService.getMenus());
     } catch (err) {
       toast.error(err.message);
     }
-  }
-
-  const getProcesos = async () => {
-    try {
-      setProcesos(await Service.getProcesos(jwt, enterpriseShineray));
-    } catch (err) {
-      toast.error(err.message);
-    }
-  }
+  };
 
   const handleCreate = (e) => {
     e.preventDefault();
-    Service.addProceso(jwt, enterpriseShineray, {
+    APIService.addProceso({
       cod_proceso: codProceso,
       nombre
     })
@@ -59,14 +52,20 @@ function Procesos() {
         setNombre('');
         setEstado(true);
       })
-      .catch(err => {
-        toast.error(err.message);
-      });
-  }
+      .catch(err => toast.error(err.message));
+  };
+
+  const getProcesos = async () => {
+    try {
+      setProcesos(await APIService.getProcesos());
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
 
   const handleUpdate = (e) => {
     e.preventDefault();
-    Service.updateProceso(jwt, enterpriseShineray, codProceso, {
+    APIService.updateProceso(codProceso, {
       nombre,
       estado
     })
@@ -77,12 +76,10 @@ function Procesos() {
         setNombre('');
         setEstado(true);
       })
-      .catch(err => {
-        toast.error(err.message);
-      });
-  }
+      .catch(err => toast.error(err.message));
+  };
 
-  const handleDeleteProceso = (rowsDeleted) => {
+  const handleDelete = (rowsDeleted) => {
     if (!window.confirm('¿Estás seguro de eliminar el proceso?')) {
       return false;
     }
@@ -91,22 +88,20 @@ function Procesos() {
     const deletedRowValue = procesos[deletedRowIndex];
     const newProcesos = procesos.filter((proceso, index) => index !== deletedRowIndex);
     setProcesos(newProcesos);
-    Service.deleteProceso(jwt, enterpriseShineray, deletedRowValue.cod_proceso)
-      .then(_ => {
-        toast.success('Eliminación exitosa');
-      })
+    APIService.deleteProceso(deletedRowValue.cod_proceso)
+      .then(_ => toast.success('Eliminación exitosa'))
       .catch(err => {
         toast.error(err.message);
         getProcesos();
       });
     return true;
-  }
+  };
 
   const handleClickOpenNew = () => {
     setOpenNew(true);
-    setCodProceso('')
-    setNombre('')
-    setEstado(true)
+    setCodProceso('');
+    setNombre('');
+    setEstado(true);
   };
 
   const handleClickCloseNew = () => {
@@ -123,11 +118,11 @@ function Procesos() {
 
   const handleRowClick = (rowData, rowMeta) => {
     const row = procesos.filter(item => item.cod_proceso === rowData[0])[0];
-    setCodProceso(row.cod_proceso)
-    setNombre(row.nombre)
-    setEstado(row.estado === 1)
+    setCodProceso(row.cod_proceso);
+    setNombre(row.nombre);
+    setEstado(row.estado === 1);
     handleClickOpenUpdate();
-  }
+  };
 
   const renderText = (value) => {
     const progress = parseInt(value);
@@ -210,13 +205,13 @@ function Procesos() {
         customBodyRender: (value) => renderText(value),
       },
     },
-  ]
+  ];
 
   const options = {
     responsive: 'standard',
     selectableRows: 'single',
     onRowClick: handleRowClick,
-    onRowsDelete: handleDeleteProceso,
+    onRowsDelete: handleDelete,
     textLabels: {
       body: {
         noMatch: "Lo siento, no se encontraron registros",
@@ -251,14 +246,13 @@ function Procesos() {
         deleteAria: "Borrar fila seleccionada"
       }
     }
-
-  }
+  };
 
   useEffect(() => {
     document.title = 'Procesos';
     getProcesos();
     getMenus();
-  }, [openNew, openUpdate])
+  }, [openNew, openUpdate]);
 
   return (
     <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
@@ -384,7 +378,7 @@ function Procesos() {
         </DialogActions>
       </Dialog>
     </div>
-  )
+  );
 }
 
-export default Procesos
+export default Procesos;
