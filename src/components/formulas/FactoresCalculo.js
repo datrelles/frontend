@@ -68,9 +68,9 @@ function FactoresCalculo() {
         }
     }
 
-    const getParametros = async () => {
+    const getParametrosPorProceso = async () => {
         try {
-            setParametros(await Service.getParametros(jwt, enterpriseShineray, codProceso));
+            setParametros(await Service.getParametrosPorProceso(jwt, enterpriseShineray, codProceso));
         } catch (err) {
             toast.error(err.message);
         }
@@ -144,7 +144,7 @@ function FactoresCalculo() {
         getMenus();
         if (codProceso && codParametro) {
             getFactores();
-            getParametros();
+            getParametrosPorProceso();
         }
     }, []);
 

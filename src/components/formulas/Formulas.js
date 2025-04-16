@@ -8,7 +8,7 @@ import AddIcon from '@material-ui/icons/Add';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
-import {FormControlLabel, Checkbox} from '@mui/material';
+import { FormControlLabel, Checkbox } from '@mui/material';
 import { useAuthContext } from "../../context/authContext";
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
@@ -16,6 +16,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
+import * as Service from "../../services/modulo-formulas";
 
 
 const API = process.env.REACT_APP_API;
@@ -34,57 +35,21 @@ function Formulas() {
 
   const navigate = useNavigate();
 
-  const getFormulas = async () => {
-    try {
-      const res = await fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/formulas`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + jwt
-          }
-        });
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          toast.error('Sesión caducada.');
-        }
-      } else {
-        const data = await res.json();
-        setFormulas(data)
-      }
-    } catch (error) {
-      toast.error('Sesión caducada. Por favor, inicia sesión nuevamente.');
-    }
-  }
-
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + jwt
-          }
-        });
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          toast.error('Sesión caducada.');
-        }
-      } else {
-        const data = await res.json();
-        setMenus(data)
-        console.log(data)
-      }
-    } catch (error) {
+      setMenus(await Service.getMenus(jwt, userShineray, enterpriseShineray, systemShineray));
+    } catch (err) {
+      toast.error(err.message);
     }
   }
 
-  useEffect(() => {
-    document.title = 'Fórmulas';
-    getFormulas();
-    getMenus();
-  }, [openNew, openUpdate])
+  const getFormulas = async () => {
+    try {
+      setFormulas(await Service.getFormulas(jwt, enterpriseShineray));
+    } catch (err) {
+      toast.error(err.message);
+    }
+  }
 
   const handleRowClick = (rowData, rowMeta) => {
     const row = formulas.filter(item => item.cod_formula === rowData[0])[0];
@@ -97,7 +62,7 @@ function Formulas() {
   }
 
   const handleDeleteRows = rowsDeleted => {
-    if (!window.confirm('¿Está seguro de eliminar la fórmula?')) {
+    if (!window.confirm('¿Estás seguro de eliminar la fórmula?')) {
       return false;
     }
     const { data: deletedData } = rowsDeleted;
@@ -105,31 +70,133 @@ function Formulas() {
     const deletedRowValue = formulas[deletedRowIndex];
     const newFormulas = formulas.filter((_, index) => index !== deletedRowIndex);
     setFormulas(newFormulas);
-    fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/formulas/${deletedRowValue.cod_formula}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + jwt
-      },
-    })
-      .then(response => {
-        if (!response.ok) {
-          getFormulas();
-          return response.json();
-        }
-        toast.success('¡Elemento eliminado exitosamente!');
+    Service.deleteFormula(jwt, enterpriseShineray, deletedRowValue.cod_formula)
+      .then(_ => {
+        toast.success('Eliminación exitosa');
       })
-      .then(data => {
-        if (data) {
-          toast.error(data.mensaje);
-        }
-      })
-      .catch(error => {
-        console.error(error);
-        toast.error('Ocurrió un error en la llamada a la API');
-      })
+      .catch(err => {
+        toast.error(err.message);
+        getFormulas();
+      });
     return true;
   };
+
+  const handleClickOpenNew = () => {
+    setOpenNew(true);
+    setCodFormula('')
+    setNombre('')
+    setObservaciones('')
+    setEstado(true)
+    setDefinicion('')
+  };
+
+  const handleClickCloseNew = () => {
+    setOpenNew(false);
+  };
+
+  const handleClickOpenUpdate = () => {
+    setOpenUpdate(true);
+  };
+
+  const handleClickCloseUpdate = () => {
+    setOpenUpdate(false);
+  };
+
+  const handleCreate = (e) => {
+    e.preventDefault();
+    Service.addFormula(jwt, enterpriseShineray, {
+      empresa: enterpriseShineray,
+      cod_formula: codFormula,
+      nombre,
+      observaciones,
+      definicion
+    })
+      .then(res => {
+        toast.success(res.mensaje);
+        setOpenNew(false);
+        setCodFormula('');
+        setNombre('');
+        setObservaciones('');
+        setEstado(true);
+        setDefinicion('');
+      })
+      .catch(err => {
+        toast.error(err.mensaje);
+      });
+  }
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    Service.updateFormula(jwt, enterpriseShineray, codFormula, {
+      nombre,
+      estado,
+      observaciones: observaciones,
+      definicion
+    })
+      .then(_ => {
+        toast.success('Actualización exitosa');
+        setOpenUpdate(false);
+        setCodFormula('');
+        setNombre('');
+        setObservaciones('');
+        setEstado(true);
+        setDefinicion('');
+      })
+      .catch(err => {
+        toast.error(err.mensaje);
+      });
+  }
+
+  const getMuiTheme = () =>
+    createTheme({
+      components: {
+        MuiTableCell: {
+          styleOverrides: {
+            root: {
+              paddingLeft: '3px', // Relleno a la izquierda
+              paddingRight: '3px',
+              paddingTop: '0px', // Ajusta el valor en el encabezado si es necesario
+              paddingBottom: '0px',
+              backgroundColor: '#00000',
+              whiteSpace: 'nowrap',
+              flex: 1,
+              borderBottom: '1px solid #ddd',
+              borderRight: '1px solid #ddd',
+              fontSize: '14px'
+            },
+            head: {
+              backgroundColor: 'firebrick', // Color de fondo para las celdas de encabezado
+              color: '#ffffff', // Color de texto para las celdas de encabezado
+              fontWeight: 'bold', // Añadimos negrita para resaltar el encabezado
+              paddingLeft: '0px',
+              paddingRight: '0px',
+              fontSize: '12px'
+            },
+          }
+        },
+        MuiTable: {
+          styleOverrides: {
+            root: {
+              borderCollapse: 'collapse', // Fusionamos los bordes de las celdas
+            },
+          },
+        },
+        MuiTableHead: {
+          styleOverrides: {
+            root: {
+              borderBottom: '5px solid #ddd', // Línea inferior más gruesa para el encabezado
+            },
+          },
+        },
+        MuiToolbar: {
+          styleOverrides: {
+            regular: {
+              minHeight: '10px',
+            }
+          }
+        }
+      }
+    });
 
   const renderText = (value) => {
     const progress = parseInt(value);
@@ -213,136 +280,11 @@ function Formulas() {
 
   }
 
-  const getMuiTheme = () =>
-    createTheme({
-      components: {
-        MuiTableCell: {
-          styleOverrides: {
-            root: {
-              paddingLeft: '3px', // Relleno a la izquierda
-              paddingRight: '3px',
-              paddingTop: '0px', // Ajusta el valor en el encabezado si es necesario
-              paddingBottom: '0px',
-              backgroundColor: '#00000',
-              whiteSpace: 'nowrap',
-              flex: 1,
-              borderBottom: '1px solid #ddd',
-              borderRight: '1px solid #ddd',
-              fontSize: '14px'
-            },
-            head: {
-              backgroundColor: 'firebrick', // Color de fondo para las celdas de encabezado
-              color: '#ffffff', // Color de texto para las celdas de encabezado
-              fontWeight: 'bold', // Añadimos negrita para resaltar el encabezado
-              paddingLeft: '0px',
-              paddingRight: '0px',
-              fontSize: '12px'
-            },
-          }
-        },
-        MuiTable: {
-          styleOverrides: {
-            root: {
-              borderCollapse: 'collapse', // Fusionamos los bordes de las celdas
-            },
-          },
-        },
-        MuiTableHead: {
-          styleOverrides: {
-            root: {
-              borderBottom: '5px solid #ddd', // Línea inferior más gruesa para el encabezado
-            },
-          },
-        },
-        MuiToolbar: {
-          styleOverrides: {
-            regular: {
-              minHeight: '10px',
-            }
-          }
-        }
-      }
-    });
-
-  const handleClickOpenNew = () => {
-    setOpenNew(true);
-    setCodFormula('')
-    setNombre('')
-    setObservaciones('')
-    setEstado(true)
-    setDefinicion('')
-  };
-
-  const handleClickCloseNew = () => {
-    setOpenNew(false);
-  };
-
-  const handleClickOpenUpdate = () => {
-    setOpenUpdate(true);
-  };
-
-  const handleClickCloseUpdate = () => {
-    setOpenUpdate(false);
-  };
-
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    const res = await fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/formulas`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + jwt
-      },
-      body: JSON.stringify({
-        empresa: enterpriseShineray,
-        cod_formula: codFormula,
-        nombre,
-        observaciones,
-        definicion
-      })
-    });
-    const { mensaje } = await res.json();
-    if(res.ok){
-      toast.success(mensaje)
-      setOpenNew(false)
-      setCodFormula('')
-      setNombre('')
-      setObservaciones('')
-      setEstado(true)
-      setDefinicion('')
-    }else{
-      toast.error(mensaje)
-    }
-  }
-
-  const handleUpdate = async (e)=>{
-    e.preventDefault();
-    const res = await fetch(`${API}/modulo-formulas/empresas/${enterpriseShineray}/formulas/${codFormula}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + jwt
-      },
-      body: JSON.stringify({
-        nombre,
-        estado,
-        observaciones: observaciones,
-        definicion
-      })
-    })
-    if (res.ok) {
-      toast.success('Actualización exitosa')
-      setOpenUpdate(false)
-      setCodFormula('')
-      setNombre('')
-      setObservaciones('')
-      setEstado(true)
-      setDefinicion('')
-    } else {
-      const { mensaje } = await res.json();
-      toast.error(mensaje)
-    }
-  }
+  useEffect(() => {
+    document.title = 'Fórmulas';
+    getFormulas();
+    getMenus();
+  }, [openNew, openUpdate])
 
   return (
     <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
@@ -489,18 +431,18 @@ function Formulas() {
             </Grid>
           </Grid>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
-          <FormControlLabel control={
-            <Checkbox 
-            label="Estado"
-            checked={estado}
-            onChange={(e) => {
-              setEstado(e.target.checked)
-            }}
+            <FormControlLabel control={
+              <Checkbox
+                label="Estado"
+                checked={estado}
+                onChange={(e) => {
+                  setEstado(e.target.checked)
+                }}
+              />
+            }
+              label="Activo"
             />
-          }
-          label="Activo"
-          />
-            
+
           </div>
         </DialogContent>
         <DialogActions>

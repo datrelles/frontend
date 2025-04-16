@@ -129,12 +129,6 @@ function Procesos() {
     handleClickOpenUpdate();
   }
 
-  useEffect(() => {
-    document.title = 'Procesos';
-    getProcesos();
-    getMenus();
-  }, [openNew, openUpdate])
-
   const renderText = (value) => {
     const progress = parseInt(value);
     const text = progress ? "Activo" : "Inactivo";
@@ -144,6 +138,57 @@ function Procesos() {
       </div>
     );
   };
+
+  const getMuiTheme = () =>
+    createTheme({
+      components: {
+        MuiTableCell: {
+          styleOverrides: {
+            root: {
+              paddingLeft: '3px', // Relleno a la izquierda
+              paddingRight: '3px',
+              paddingTop: '0px', // Ajusta el valor en el encabezado si es necesario
+              paddingBottom: '0px',
+              backgroundColor: '#00000',
+              whiteSpace: 'nowrap',
+              flex: 1,
+              borderBottom: '1px solid #ddd',
+              borderRight: '1px solid #ddd',
+              fontSize: '14px'
+            },
+            head: {
+              backgroundColor: 'firebrick', // Color de fondo para las celdas de encabezado
+              color: '#ffffff', // Color de texto para las celdas de encabezado
+              fontWeight: 'bold', // Añadimos negrita para resaltar el encabezado
+              paddingLeft: '0px',
+              paddingRight: '0px',
+              fontSize: '12px'
+            },
+          }
+        },
+        MuiTable: {
+          styleOverrides: {
+            root: {
+              borderCollapse: 'collapse', // Fusionamos los bordes de las celdas
+            },
+          },
+        },
+        MuiTableHead: {
+          styleOverrides: {
+            root: {
+              borderBottom: '5px solid #ddd', // Línea inferior más gruesa para el encabezado
+            },
+          },
+        },
+        MuiToolbar: {
+          styleOverrides: {
+            regular: {
+              minHeight: '10px',
+            }
+          }
+        }
+      }
+    });
 
   const columns = [
     {
@@ -209,56 +254,11 @@ function Procesos() {
 
   }
 
-  const getMuiTheme = () =>
-    createTheme({
-      components: {
-        MuiTableCell: {
-          styleOverrides: {
-            root: {
-              paddingLeft: '3px', // Relleno a la izquierda
-              paddingRight: '3px',
-              paddingTop: '0px', // Ajusta el valor en el encabezado si es necesario
-              paddingBottom: '0px',
-              backgroundColor: '#00000',
-              whiteSpace: 'nowrap',
-              flex: 1,
-              borderBottom: '1px solid #ddd',
-              borderRight: '1px solid #ddd',
-              fontSize: '14px'
-            },
-            head: {
-              backgroundColor: 'firebrick', // Color de fondo para las celdas de encabezado
-              color: '#ffffff', // Color de texto para las celdas de encabezado
-              fontWeight: 'bold', // Añadimos negrita para resaltar el encabezado
-              paddingLeft: '0px',
-              paddingRight: '0px',
-              fontSize: '12px'
-            },
-          }
-        },
-        MuiTable: {
-          styleOverrides: {
-            root: {
-              borderCollapse: 'collapse', // Fusionamos los bordes de las celdas
-            },
-          },
-        },
-        MuiTableHead: {
-          styleOverrides: {
-            root: {
-              borderBottom: '5px solid #ddd', // Línea inferior más gruesa para el encabezado
-            },
-          },
-        },
-        MuiToolbar: {
-          styleOverrides: {
-            regular: {
-              minHeight: '10px',
-            }
-          }
-        }
-      }
-    });
+  useEffect(() => {
+    document.title = 'Procesos';
+    getProcesos();
+    getMenus();
+  }, [openNew, openUpdate])
 
   return (
     <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>

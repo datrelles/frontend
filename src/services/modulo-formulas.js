@@ -33,6 +33,15 @@ export const getMenus = errorHandler(async function getMenus(jwt, user, enterpri
         })).data;
 });
 
+export const addProceso = errorHandler(async function addProceso(jwt, enterprise, data) {
+    return (await axios.post(`${API}/${enterprise}/procesos`, data, {
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jwt}`,
+        },
+    })).data;
+});
+
 export const getProcesos = errorHandler(async function getProcesos(jwt, enterprise) {
     return (await axios.get(`${API}/${enterprise}/procesos`, {
         headers: {
@@ -41,15 +50,6 @@ export const getProcesos = errorHandler(async function getProcesos(jwt, enterpri
         },
     })).data;
 });
-
-export const addProceso = errorHandler(async function addProceso(jwt, enterprise, data) {
-    return (await axios.post(`${API}/${enterprise}/procesos`, data, {
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jwt}`,
-        },
-    })).data;
-})
 
 export const updateProceso = errorHandler(async function updateProceso(jwt, enterprise, proceso, data) {
     return (await axios.put(`${API}/${enterprise}/procesos/${proceso}`, data, {
@@ -69,8 +69,8 @@ export const deleteProceso = errorHandler(async function deleteProceso(jwt, ente
     })).data;
 });
 
-export const getFactores = errorHandler(async function getFactores(jwt, enterprise, proceso, parametro) {
-    return (await axios.get(`${API}/${enterprise}/procesos/${proceso}/parametros/${parametro}/factores`, {
+export const addFormula = errorHandler(async function addFormula(jwt, enterprise, data) {
+    return (await axios.post(`${API}/${enterprise}/formulas`, data, {
         headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${jwt}`,
@@ -78,7 +78,34 @@ export const getFactores = errorHandler(async function getFactores(jwt, enterpri
     })).data;
 });
 
-export const getParametros = errorHandler(async function getParametros(jwt, enterprise, proceso) {
+export const getFormulas = errorHandler(async function getFormulas(jwt, enterprise) {
+    return (await axios.get(`${API}/${enterprise}/formulas`, {
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jwt}`,
+        },
+    })).data;
+});
+
+export const updateFormula = errorHandler(async function updateFormula(jwt, enterprise, formula, data) {
+    return (await axios.put(`${API}/${enterprise}/formulas/${formula}`, data, {
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jwt}`,
+        },
+    })).data;
+});
+
+export const deleteFormula = errorHandler(async function deleteFormula(jwt, enterprise, formula) {
+    return (await axios.delete(`${API}/${enterprise}/formulas/${formula}`, {
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jwt}`,
+        },
+    })).data;
+});
+
+export const getParametrosPorProceso = errorHandler(async function getParametrosPorProceso(jwt, enterprise, proceso) {
     return (await axios.get(`${API}/${enterprise}/procesos/${proceso}/parametros`, {
         headers: {
             'Content-Type': 'application/json',
@@ -89,6 +116,15 @@ export const getParametros = errorHandler(async function getParametros(jwt, ente
 
 export const addFactor = errorHandler(async function addFactor(jwt, enterprise, proceso, parametro, data) {
     return (await axios.post(`${API}/${enterprise}/procesos/${proceso}/parametros/${parametro}/factores`, data, {
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jwt}`,
+        },
+    })).data;
+});
+
+export const getFactores = errorHandler(async function getFactores(jwt, enterprise, proceso, parametro) {
+    return (await axios.get(`${API}/${enterprise}/procesos/${proceso}/parametros/${parametro}/factores`, {
         headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${jwt}`,
