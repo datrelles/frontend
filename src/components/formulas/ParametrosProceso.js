@@ -372,19 +372,6 @@ export default function ParametrosProceso() {
     },
   };
 
-  useEffect(() => {
-    document.title = "Parametros por Proceso";
-    getProcesos();
-    getParametros();
-    getMenus();
-  }, []);
-
-  useEffect(() => {
-    if (codProceso) {
-      getParametrosDetail();
-    }
-  }, [codProceso, codParametro]);
-
   const addContent = (
     <Tabla
       title="Parámetros"
@@ -465,6 +452,19 @@ export default function ParametrosProceso() {
       </div>
     </>
   );
+
+  useEffect(() => {
+    document.title = "Parametros por Proceso";
+    getProcesos();
+    getParametros();
+    getMenus();
+  }, []);
+
+  useEffect(() => {
+    if (codProceso) {
+      getParametrosDetail();
+    }
+  }, [codProceso, codParametro]);
 
   return (
     <div

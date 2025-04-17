@@ -189,12 +189,6 @@ export default function Procesos() {
     },
   };
 
-  useEffect(() => {
-    document.title = "Procesos";
-    getProcesos();
-    getMenus();
-  }, [openCreate, openUpdate]);
-
   const createContent = (
     <Grid container spacing={2}>
       <Grid item xs={6}>
@@ -272,6 +266,12 @@ export default function Procesos() {
       </div>
     </>
   );
+
+  useEffect(() => {
+    document.title = "Procesos";
+    getProcesos();
+    getMenus();
+  }, [openCreate, openUpdate]);
 
   return (
     <div

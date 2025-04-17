@@ -212,12 +212,6 @@ export default function Formulas() {
     },
   };
 
-  useEffect(() => {
-    document.title = "Fórmulas";
-    getFormulas();
-    getMenus();
-  }, [openCreate, openUpdate]);
-
   const createContent = (
     <Grid container spacing={2}>
       <Grid item xs={6}>
@@ -339,6 +333,12 @@ export default function Formulas() {
       </div>
     </>
   );
+
+  useEffect(() => {
+    document.title = "Fórmulas";
+    getFormulas();
+    getMenus();
+  }, [openCreate, openUpdate]);
 
   return (
     <div

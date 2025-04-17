@@ -203,12 +203,6 @@ export default function Parametros() {
     },
   };
 
-  useEffect(() => {
-    document.title = "Parámetros";
-    getParametros();
-    getMenus();
-  }, [openCreate, openUpdate]);
-
   const createContent = (
     <Grid container spacing={2}>
       <Grid item xs={6}>
@@ -307,6 +301,12 @@ export default function Parametros() {
       </div>
     </>
   );
+
+  useEffect(() => {
+    document.title = "Parámetros";
+    getParametros();
+    getMenus();
+  }, [openCreate, openUpdate]);
 
   return (
     <div
