@@ -1,13 +1,7 @@
-import Navbar0 from "../Navbar0";
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
-import MUIDataTable from "mui-datatables";
-import { ThemeProvider } from '@mui/material/styles';
-import { useNavigate } from 'react-router-dom';
 import AddIcon from '@material-ui/icons/Add';
 import Button from '@mui/material/Button';
-import ButtonGroup from '@mui/material/ButtonGroup';
-import Box from '@mui/material/Box';
 import { FormControlLabel, Checkbox } from '@mui/material';
 import { useAuthContext } from "../../context/authContext";
 import Grid from '@mui/material/Grid';
@@ -17,7 +11,9 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import API from "../../services/modulo-formulas";
-import { createMuiTheme, formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
+import { formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
+import Tabla from "./common/tabla";
+import Header from './common/header';
 
 function Procesos() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
@@ -29,8 +25,6 @@ function Procesos() {
   const [codProceso, setCodProceso] = useState('');
   const [nombre, setNombre] = useState('');
   const [estado, setEstado] = useState(true);
-
-  const navigate = useNavigate();
 
   const getMenus = async () => {
     try {
@@ -135,17 +129,17 @@ function Procesos() {
       label: "Nombre"
     },
     {
-      name: "audit_fecha_ing",
-      label: "Fecha creación",
-      options: {
-        customBodyRender: (value) => formatearFecha(value),
-      },
-    },
-    {
       name: "estado",
       label: "Estado",
       options: {
         customBodyRender: (value) => formatearEstado(value),
+      },
+    },
+    {
+      name: "audit_fecha_ing",
+      label: "Fecha creación",
+      options: {
+        customBodyRender: (value) => formatearFecha(value),
       },
     },
   ];
@@ -171,7 +165,7 @@ function Procesos() {
         search: "Buscar",
         downloadCsv: "Descargar CSV",
         print: "Imprimir",
-        viewColumns: "Ver columnas",
+        viewColumns: "Ver columns",
         filterTable: "Filtrar tabla"
       },
       filter: {
@@ -180,8 +174,8 @@ function Procesos() {
         reset: "REINICIAR"
       },
       viewColumns: {
-        title: "Mostrar columnas",
-        titleAria: "Mostrar/Ocultar columnas de tabla"
+        title: "Mostrar columns",
+        titleAria: "Mostrar/Ocultar columns de tabla"
       },
       selectedRows: {
         text: "fila(s) seleccionada(s)",
@@ -199,21 +193,7 @@ function Procesos() {
 
   return (
     <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
-      <Navbar0 menus={menus} />
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'right',
-          '& > *': {
-            m: 1,
-          },
-        }}
-      >
-        <ButtonGroup variant="text" aria-label="text button group" >
-          <Button onClick={() => { navigate('/dashboard') }}>Módulos</Button>
-        </ButtonGroup>
-      </Box>
+      <Header menus={menus} />
       <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
         <button
           className="btn btn-primary btn-block"
@@ -223,14 +203,7 @@ function Procesos() {
           <AddIcon /> Nuevo
         </button>
       </div>
-      <ThemeProvider theme={createMuiTheme()}>
-        <MUIDataTable
-          title={"Procesos"}
-          data={procesos}
-          columns={columns}
-          options={options}
-        />
-      </ThemeProvider>
+      <Tabla title="Procesos" data={procesos} columns={columns} options={options} />
       <Dialog open={openNew} onClose={handleClickCloseNew}>
         <DialogTitle>Registrar Proceso</DialogTitle>
         <DialogContent>

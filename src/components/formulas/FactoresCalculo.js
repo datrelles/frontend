@@ -1,11 +1,9 @@
-import Navbar0 from "../Navbar0";
 import React, { useState, useEffect } from "react";
 import { useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from "../../context/authContext";
 import { toast } from 'react-toastify';
 import Box from '@mui/material/Box';
-import ButtonGroup from '@mui/material/ButtonGroup';
 import Button from '@mui/material/Button';
 import AddIcon from '@material-ui/icons/Add';
 import {
@@ -21,6 +19,7 @@ import {
     Autocomplete
 } from '@mui/material';
 import API from "../../services/modulo-formulas";
+import Header from "./common/header";
 
 const tiposOperadores = new Map([
     ['PAR', 'PARÁMETRO'],
@@ -174,21 +173,7 @@ function FactoresCalculo() {
 
     return (
         <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
-            <Navbar0 menus={menus} />
-            <Box
-                sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'right',
-                    '& > *': {
-                        m: 1,
-                    },
-                }}
-            >
-                <ButtonGroup variant="text" aria-label="text button group" >
-                    <Button onClick={() => { navigate('/dashboard') }}>Módulos</Button>
-                </ButtonGroup>
-            </Box>
+            <Header menus={menus} />
             <Typography variant="h6" sx={{ mb: 2 }}>
                 Factores de cálculo de {proceso.nombre} y de {parametro.nombre}
             </Typography>

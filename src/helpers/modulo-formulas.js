@@ -10,11 +10,11 @@ export function formatearFecha(fecha) {
     return `${day}/${month}/${year} ${hour}:${minute}`;
 }
 
-export function formatearEstado(estado, genero = 'o') {
+export function formatearEstado(estado, terminacion = 'o') {
     try {
-        return parseInt(estado) ? `Activ${genero}` : `Inactiv${genero}`;
+        return parseInt(estado) ? `Activ${terminacion}` : `Inactiv${terminacion}`;
     } catch (_) {
-        return `Inactiv${genero}`;
+        return `Inactiv${terminacion}`;
     }
 }
 
