@@ -121,6 +121,7 @@ export default function ParametrosProceso() {
     const { data: deletedData } = selectedRows;
     const deletedRowIndex = deletedData[0].index;
     const deletedRowValue = parametrosDetail[deletedRowIndex];
+    setCodParametro(deletedRowValue.cod_parametro);
     const newParametros = parametrosDetail.filter(
       (_, index) => index !== deletedRowIndex
     );
