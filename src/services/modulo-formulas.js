@@ -213,4 +213,45 @@ export default class API {
       this.#headers
     );
   });
+
+  createFuncion = this.#errorHandler(async (modulo, data) => {
+    return await axios.post(
+      `${this.#URL}/modulos/${modulo}/funciones`,
+      data,
+      this.#headers
+    );
+  });
+
+  getFuncion = this.#errorHandler(async (modulo, funcion) => {
+    return await axios.get(
+      `${this.#URL}/modulos/${modulo}/funciones/${funcion}`,
+      this.#headers
+    );
+  });
+
+  getFunciones = this.#errorHandler(async (modulo) => {
+    return await axios.get(
+      `${this.#URL}/modulos/${modulo}/funciones`,
+      this.#headers
+    );
+  });
+
+  updateFuncion = this.#errorHandler(async (modulo, funcion, data) => {
+    return await axios.put(
+      `${this.#URL}/modulos/${modulo}/funciones/${funcion}`,
+      data,
+      this.#headers
+    );
+  });
+
+  deleteFuncion = this.#errorHandler(async (modulo, funcion) => {
+    return await axios.delete(
+      `${this.#URL}/modulos/${modulo}/funciones/${funcion}`,
+      this.#headers
+    );
+  });
+
+  getModulos = this.#errorHandler(async () => {
+    return await axios.get(`${this.#URL}/modulos`, this.#headers);
+  });
 }

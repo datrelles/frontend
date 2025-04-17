@@ -74,6 +74,7 @@ import Formulas from "./components/formulas/Formulas";
 import Parametros from "./components/formulas/Parametros";
 import ParametrosProceso from "./components/formulas/ParametrosProceso";
 import FactoresCalculo from "./components/formulas/FactoresCalculo";
+import Funciones from "./components/formulas/Funciones";
 
 ///SellManagerB2B
 const API = process.env.REACT_APP_API;
@@ -210,6 +211,7 @@ function App() {
                 <Route exact path="/parametros" element={<Protected isLoggedIn={authorizedSystems.includes('ADM')}><Parametros /></Protected>}></Route>
                 <Route exact path="/parametros-x-proceso" element={<Protected isLoggedIn={authorizedSystems.includes('ADM')}><ParametrosProceso /></Protected>}></Route>
                 <Route exact path="/factores-calculo" element={<Protected isLoggedIn={authorizedSystems.includes('ADM')}><FactoresCalculo /></Protected>}></Route>
+                <Route exact path="/funciones" element={<Protected isLoggedIn={authorizedSystems.includes('ADM')}><Funciones /></Protected>}></Route>
                 <Route exact path="/settings" element={<Settings />}></Route>
               </Routes>
             </>
