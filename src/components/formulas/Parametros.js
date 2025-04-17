@@ -1,26 +1,32 @@
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 import React, { useState, useEffect } from "react";
-import { FormControlLabel, Checkbox } from '@mui/material';
+import { FormControlLabel, Checkbox } from "@mui/material";
 import { useAuthContext } from "../../context/authContext";
-import Grid from '@mui/material/Grid';
-import TextField from '@mui/material/TextField';
+import Grid from "@mui/material/Grid";
+import TextField from "@mui/material/TextField";
 import API from "../../services/modulo-formulas";
 import { formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
 import Header from "./common/Header";
-import BtnNuevo from './common/BtnNuevo';
-import Tabla from './common/Tabla';
-import CustomDialog from './common/CustomDialog';
+import BtnNuevo from "./common/BtnNuevo";
+import Tabla from "./common/Tabla";
+import CustomDialog from "./common/CustomDialog";
 
 export default function Parametros() {
-  const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
-  const APIService = new API(jwt, userShineray, enterpriseShineray, systemShineray);
+  const { jwt, userShineray, enterpriseShineray, systemShineray } =
+    useAuthContext();
+  const APIService = new API(
+    jwt,
+    userShineray,
+    enterpriseShineray,
+    systemShineray
+  );
   const [parametros, setParametros] = useState([]);
   const [menus, setMenus] = useState([]);
   const [openCreate, setOpenCreate] = useState(false);
   const [openUpdate, setOpenUpdate] = useState(false);
-  const [codParametro, setCodParametro] = useState('');
-  const [nombre, setNombre] = useState('');
-  const [descripcion, setDescripcion] = useState('');
+  const [codParametro, setCodParametro] = useState("");
+  const [nombre, setNombre] = useState("");
+  const [descripcion, setDescripcion] = useState("");
   const [estado, setEstado] = useState(true);
 
   const getMenus = async () => {
@@ -39,15 +45,15 @@ export default function Parametros() {
       nombre,
       descripcion,
     })
-      .then(res => {
+      .then((res) => {
         toast.success(res);
         setOpenCreate(false);
-        setCodParametro('');
-        setNombre('');
-        setDescripcion('');
+        setCodParametro("");
+        setNombre("");
+        setDescripcion("");
         setEstado(true);
       })
-      .catch(err => toast.error(err.message));
+      .catch((err) => toast.error(err.message));
   };
 
   const getParametros = async () => {
@@ -65,29 +71,31 @@ export default function Parametros() {
       descripcion,
       estado,
     })
-      .then(res => {
+      .then((res) => {
         toast.success(res);
         setOpenUpdate(false);
-        setCodParametro('');
-        setNombre('');
-        setDescripcion('');
+        setCodParametro("");
+        setNombre("");
+        setDescripcion("");
         setEstado(true);
       })
-      .catch(err => toast.error(err.message));
+      .catch((err) => toast.error(err.message));
   };
 
-  const handleDelete = rowsDeleted => {
-    if (!window.confirm('¿Estás seguro de eliminar el parámetro?')) {
+  const handleDelete = (rowsDeleted) => {
+    if (!window.confirm("¿Estás seguro de eliminar el parámetro?")) {
       return false;
     }
     const { data: deletedData } = rowsDeleted;
     const deletedRowIndex = deletedData[0].index;
     const deletedRowValue = parametros[deletedRowIndex];
-    const newParametros = parametros.filter((_, index) => index !== deletedRowIndex);
+    const newParametros = parametros.filter(
+      (_, index) => index !== deletedRowIndex
+    );
     setParametros(newParametros);
     APIService.deleteParametro(deletedRowValue.cod_parametro)
-      .then(res => toast.success(res))
-      .catch(err => {
+      .then((res) => toast.success(res))
+      .catch((err) => {
         toast.error(err.message);
         getParametros();
       });
@@ -95,19 +103,21 @@ export default function Parametros() {
   };
 
   const handleRowClick = (rowData, rowMeta) => {
-    const row = parametros.filter(item => item.cod_parametro === rowData[0])[0];
+    const row = parametros.filter(
+      (item) => item.cod_parametro === rowData[0]
+    )[0];
     setCodParametro(row.cod_parametro);
     setNombre(row.nombre);
-    setDescripcion(row.descripcion ?? '');
+    setDescripcion(row.descripcion ?? "");
     setEstado(row.estado === 1);
     handleClickOpenUpdate();
   };
 
   const handleClickOpenCreate = () => {
     setOpenCreate(true);
-    setCodParametro('');
-    setNombre('');
-    setDescripcion('');
+    setCodParametro("");
+    setNombre("");
+    setDescripcion("");
     setEstado(true);
   };
 
@@ -126,15 +136,15 @@ export default function Parametros() {
   const columns = [
     {
       name: "cod_parametro",
-      label: "Código"
+      label: "Código",
     },
     {
       name: "nombre",
-      label: "Nombre"
+      label: "Nombre",
     },
     {
       name: "descripcion",
-      label: "Descripción"
+      label: "Descripción",
     },
     {
       name: "estado",
@@ -153,48 +163,48 @@ export default function Parametros() {
   ];
 
   const options = {
-    responsive: 'standard',
-    selectableRows: 'single',
+    responsive: "standard",
+    selectableRows: "single",
     onRowClick: handleRowClick,
     onRowsDelete: handleDelete,
     textLabels: {
       body: {
         noMatch: "Lo siento, no se encontraron registros",
         toolTip: "Ordenar",
-        columnHeaderTooltip: column => `Ordenar por ${column.label}`
+        columnHeaderTooltip: (column) => `Ordenar por ${column.label}`,
       },
       pagination: {
         next: "Siguiente",
         previous: "Anterior",
         rowsPerPage: "Filas por página:",
-        displayRows: "de"
+        displayRows: "de",
       },
       toolbar: {
         search: "Buscar",
         downloadCsv: "Descargar CSV",
         print: "Imprimir",
         viewColumns: "Ver columnas",
-        filterTable: "Filtrar tabla"
+        filterTable: "Filtrar tabla",
       },
       filter: {
         all: "Todos",
         title: "FILTROS",
-        reset: "REINICIAR"
+        reset: "REINICIAR",
       },
       viewColumns: {
         title: "Mostrar columnas",
-        titleAria: "Mostrar/Ocultar columnas de tabla"
+        titleAria: "Mostrar/Ocultar columnas de tabla",
       },
       selectedRows: {
         text: "fila(s) seleccionada(s)",
         delete: "Borrar",
-        deleteAria: "Borrar fila seleccionada"
-      }
-    }
+        deleteAria: "Borrar fila seleccionada",
+      },
+    },
   };
 
   useEffect(() => {
-    document.title = 'Parámetros';
+    document.title = "Parámetros";
     getParametros();
     getMenus();
   }, [openCreate, openUpdate]);
@@ -210,7 +220,7 @@ export default function Parametros() {
           placeholder="PARAM###"
           fullWidth
           value={codParametro}
-          onChange={(e => setCodParametro(e.target.value))}
+          onChange={(e) => setCodParametro(e.target.value)}
         />
       </Grid>
       <Grid item xs={6}>
@@ -221,7 +231,7 @@ export default function Parametros() {
           type="text"
           fullWidth
           value={nombre}
-          onChange={(e => setNombre(e.target.value))}
+          onChange={(e) => setNombre(e.target.value)}
         />
       </Grid>
       <Grid item xs={12}>
@@ -232,7 +242,7 @@ export default function Parametros() {
           type="text"
           fullWidth
           value={descripcion}
-          onChange={(e => setDescripcion(e.target.value))}
+          onChange={(e) => setDescripcion(e.target.value)}
         />
       </Grid>
     </Grid>
@@ -260,7 +270,7 @@ export default function Parametros() {
             type="text"
             fullWidth
             value={nombre}
-            onChange={(e => setNombre(e.target.value))}
+            onChange={(e) => setNombre(e.target.value)}
           />
         </Grid>
         <Grid item xs={12}>
@@ -271,34 +281,68 @@ export default function Parametros() {
             type="text"
             fullWidth
             value={descripcion}
-            onChange={(e => setDescripcion(e.target.value))}
+            onChange={(e) => setDescripcion(e.target.value)}
           />
         </Grid>
       </Grid>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
-        <FormControlLabel control={
-          <Checkbox
-            label="Estado"
-            checked={estado}
-            onChange={(e) => {
-              setEstado(e.target.checked)
-            }}
-          />
-        }
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <FormControlLabel
+          control={
+            <Checkbox
+              label="Estado"
+              checked={estado}
+              onChange={(e) => {
+                setEstado(e.target.checked);
+              }}
+            />
+          }
           label="Activo"
         />
-
       </div>
     </>
   );
 
   return (
-    <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
+    <div
+      style={{
+        marginTop: "150px",
+        top: 0,
+        left: 0,
+        width: "100%",
+        zIndex: 1000,
+      }}
+    >
       <Header menus={menus} />
       <BtnNuevo onClick={handleClickOpenCreate} />
-      <Tabla title="Parámetros" data={parametros} columns={columns} options={options} />
-      <CustomDialog titulo="Registrar Parámetro" contenido={createContent} open={openCreate} handleClose={handleClickCloseCreate} handleCancel={handleClickCloseCreate} handleConfirm={handleCreate} />
-      <CustomDialog titulo="Actualizar Parámetro" contenido={updateContent} open={openUpdate} handleClose={handleClickCloseUpdate} handleCancel={handleClickCloseUpdate} handleConfirm={handleUpdate} confirmText='Actualizar' />
+      <Tabla
+        title="Parámetros"
+        data={parametros}
+        columns={columns}
+        options={options}
+      />
+      <CustomDialog
+        titulo="Registrar Parámetro"
+        contenido={createContent}
+        open={openCreate}
+        handleClose={handleClickCloseCreate}
+        handleCancel={handleClickCloseCreate}
+        handleConfirm={handleCreate}
+      />
+      <CustomDialog
+        titulo="Actualizar Parámetro"
+        contenido={updateContent}
+        open={openUpdate}
+        handleClose={handleClickCloseUpdate}
+        handleCancel={handleClickCloseUpdate}
+        handleConfirm={handleUpdate}
+        confirmText="Actualizar"
+      />
     </div>
   );
 }

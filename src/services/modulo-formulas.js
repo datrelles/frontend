@@ -1,155 +1,216 @@
-import axios from 'axios';
+import axios from "axios";
 
 export default class API {
-    #BASE_URL;
-    #URL;
-    #jwt;
-    #user;
-    #enterprise;
-    #system;
+  #BASE_URL;
+  #URL;
+  #jwt;
+  #user;
+  #enterprise;
+  #system;
 
-    constructor(jwt, user, enterprise, system) {
-        this.#jwt = jwt;
-        this.#user = user;
-        this.#enterprise = enterprise;
-        this.#system = system;
-        this.#BASE_URL = process.env.REACT_APP_API;
-        this.#URL = `${this.#BASE_URL}/modulo-formulas/empresas/${this.#enterprise}`;
-    }
+  constructor(jwt, user, enterprise, system) {
+    this.#jwt = jwt;
+    this.#user = user;
+    this.#enterprise = enterprise;
+    this.#system = system;
+    this.#BASE_URL = process.env.REACT_APP_API;
+    this.#URL = `${this.#BASE_URL}/modulo-formulas/empresas/${
+      this.#enterprise
+    }`;
+  }
 
-    get #headers() {
-        return {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + this.#jwt
+  get #headers() {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + this.#jwt,
+      },
+    };
+  }
+
+  #errorHandler(fn) {
+    return async (...args) => {
+      try {
+        const res = await fn(...args);
+        if (!res.data) {
+          if (res.status === 204) {
+            let mensaje;
+            if (res.config.method === "put" || res.config.method === "patch") {
+              mensaje = "Actualización exitosa";
             }
-        }
-    }
-
-    #errorHandler(fn) {
-        return async (...args) => {
-            try {
-                const res = await fn(...args);
-                if (!res.data) {
-                    if (res.status === 204) {
-                        let mensaje;
-                        if (res.config.method === 'put' || res.config.method === 'patch') {
-                            mensaje = 'Actualización exitosa';
-                        }
-                        if (res.config.method === 'delete') {
-                            mensaje = 'Eliminación exitosa';
-                        }
-                        res.data = mensaje;
-                    }
-                } else {
-                    if (res.config.method !== 'get') {
-                        res.data = res.data.mensaje;
-                    }
-                }
-                return res.data;
-            } catch (err) {
-                console.log(`Error en ${err.config.url}`);
-                let mensaje = "Ocurrió un error en la llamada a la API";
-                if (err.response) {
-                    const { response: { status, data } } = err;
-                    if (status === 401) {
-                        mensaje = "Sesión caducada. Por favor, inicia sesión nuevamente.";
-                    } else if (data.mensaje) {
-                        ({ mensaje } = data);
-                    }
-                }
-                throw new Error(mensaje);
+            if (res.config.method === "delete") {
+              mensaje = "Eliminación exitosa";
             }
+            res.data = mensaje;
+          }
+        } else {
+          if (res.config.method !== "get") {
+            res.data = res.data.mensaje;
+          }
         }
+        return res.data;
+      } catch (err) {
+        console.log(`Error en ${err.config.url}`);
+        let mensaje = "Ocurrió un error en la llamada a la API";
+        if (err.response) {
+          const {
+            response: { status, data },
+          } = err;
+          if (status === 401) {
+            mensaje = "Sesión caducada. Por favor, inicia sesión nuevamente.";
+          } else if (data.mensaje) {
+            ({ mensaje } = data);
+          }
+        }
+        throw new Error(mensaje);
+      }
+    };
+  }
+
+  getMenus = this.#errorHandler(async () => {
+    return await axios.get(
+      `${this.#BASE_URL}/menus/${this.#user}/${this.#enterprise}/${
+        this.#system
+      }`,
+      this.#headers
+    );
+  });
+
+  createProceso = this.#errorHandler(async (data) => {
+    return await axios.post(`${this.#URL}/procesos`, data, this.#headers);
+  });
+
+  getProceso = this.#errorHandler(async (proceso) => {
+    return await axios.get(`${this.#URL}/procesos/${proceso}`, this.#headers);
+  });
+
+  getProcesos = this.#errorHandler(async () => {
+    return await axios.get(`${this.#URL}/procesos`, this.#headers);
+  });
+
+  updateProceso = this.#errorHandler(async (proceso, data) => {
+    return await axios.put(
+      `${this.#URL}/procesos/${proceso}`,
+      data,
+      this.#headers
+    );
+  });
+
+  deleteProceso = this.#errorHandler(async (proceso) => {
+    return await axios.delete(
+      `${this.#URL}/procesos/${proceso}`,
+      this.#headers
+    );
+  });
+
+  createFormula = this.#errorHandler(async (data) => {
+    return await axios.post(`${this.#URL}/formulas`, data, this.#headers);
+  });
+
+  getFormulas = this.#errorHandler(async () => {
+    return await axios.get(`${this.#URL}/formulas`, this.#headers);
+  });
+
+  updateFormula = this.#errorHandler(async (formula, data) => {
+    return await axios.put(
+      `${this.#URL}/formulas/${formula}`,
+      data,
+      this.#headers
+    );
+  });
+
+  deleteFormula = this.#errorHandler(async (formula) => {
+    return await axios.delete(
+      `${this.#URL}/formulas/${formula}`,
+      this.#headers
+    );
+  });
+
+  createParametro = this.#errorHandler(async (data) => {
+    return await axios.post(`${this.#URL}/parametros`, data, this.#headers);
+  });
+
+  getParametro = this.#errorHandler(async (parametro) => {
+    return await axios.get(
+      `${this.#URL}/parametros/${parametro}`,
+      this.#headers
+    );
+  });
+
+  getParametros = this.#errorHandler(async () => {
+    return await axios.get(`${this.#URL}/parametros`, this.#headers);
+  });
+
+  updateParametro = this.#errorHandler(async (parametro, data) => {
+    return await axios.put(
+      `${this.#URL}/parametros/${parametro}`,
+      data,
+      this.#headers
+    );
+  });
+
+  deleteParametro = this.#errorHandler(async (parametro) => {
+    return await axios.delete(
+      `${this.#URL}/parametros/${parametro}`,
+      this.#headers
+    );
+  });
+
+  addParametroPorProceso = this.#errorHandler(
+    async (proceso, parametro, data) => {
+      return await axios.post(
+        `${this.#URL}/procesos/${proceso}/parametros/${parametro}`,
+        data,
+        this.#headers
+      );
     }
+  );
 
-    getMenus = this.#errorHandler(async () => {
-        return await axios.get(`${this.#BASE_URL}/menus/${this.#user}/${this.#enterprise}/${this.#system}`, this.#headers);
-    });
+  getParametrosPorProceso = this.#errorHandler(async (proceso) => {
+    return await axios.get(
+      `${this.#URL}/procesos/${proceso}/parametros`,
+      this.#headers
+    );
+  });
 
-    createProceso = this.#errorHandler(async (data) => {
-        return await axios.post(`${this.#URL}/procesos`, data, this.#headers);
-    });
+  updateParametroPorProceso = this.#errorHandler(
+    async (proceso, parametro, data) => {
+      return await axios.put(
+        `${this.#URL}/procesos/${proceso}/parametros/${parametro}`,
+        data,
+        this.#headers
+      );
+    }
+  );
 
-    getProceso = this.#errorHandler(async (proceso) => {
-        return await axios.get(`${this.#URL}/procesos/${proceso}`, this.#headers);
-    });
+  deleteParametroPorProceso = this.#errorHandler(async (proceso, parametro) => {
+    return await axios.delete(
+      `${this.#URL}/procesos/${proceso}/parametros/${parametro}`,
+      this.#headers
+    );
+  });
 
-    getProcesos = this.#errorHandler(async () => {
-        return await axios.get(`${this.#URL}/procesos`, this.#headers);
-    });
+  createFactor = this.#errorHandler(async (proceso, parametro, data) => {
+    return await axios.post(
+      `${this.#URL}/procesos/${proceso}/parametros/${parametro}/factores`,
+      data,
+      this.#headers
+    );
+  });
 
-    updateProceso = this.#errorHandler(async (proceso, data) => {
-        return await axios.put(`${this.#URL}/procesos/${proceso}`, data, this.#headers);
-    });
+  getFactores = this.#errorHandler(async (proceso, parametro) => {
+    return await axios.get(
+      `${this.#URL}/procesos/${proceso}/parametros/${parametro}/factores`,
+      this.#headers
+    );
+  });
 
-    deleteProceso = this.#errorHandler(async (proceso) => {
-        return await axios.delete(`${this.#URL}/procesos/${proceso}`, this.#headers);
-    });
-
-    createFormula = this.#errorHandler(async (data) => {
-        return await axios.post(`${this.#URL}/formulas`, data, this.#headers);
-    });
-
-    getFormulas = this.#errorHandler(async () => {
-        return await axios.get(`${this.#URL}/formulas`, this.#headers);
-    });
-
-    updateFormula = this.#errorHandler(async (formula, data) => {
-        return await axios.put(`${this.#URL}/formulas/${formula}`, data, this.#headers);
-    });
-
-    deleteFormula = this.#errorHandler(async (formula) => {
-        return await axios.delete(`${this.#URL}/formulas/${formula}`, this.#headers);
-    });
-
-    createParametro = this.#errorHandler(async (data) => {
-        return await axios.post(`${this.#URL}/parametros`, data, this.#headers);
-    });
-
-    getParametro = this.#errorHandler(async (parametro) => {
-        return await axios.get(`${this.#URL}/parametros/${parametro}`, this.#headers);
-    });
-
-    getParametros = this.#errorHandler(async () => {
-        return await axios.get(`${this.#URL}/parametros`, this.#headers);
-    });
-
-    updateParametro = this.#errorHandler(async (parametro, data) => {
-        return await axios.put(`${this.#URL}/parametros/${parametro}`, data, this.#headers);
-    });
-
-    deleteParametro = this.#errorHandler(async (parametro) => {
-        return await axios.delete(`${this.#URL}/parametros/${parametro}`, this.#headers);
-    });
-
-    addParametroPorProceso = this.#errorHandler(async (proceso, parametro, data) => {
-        return await axios.post(`${this.#URL}/procesos/${proceso}/parametros/${parametro}`, data, this.#headers);
-    });
-
-    getParametrosPorProceso = this.#errorHandler(async (proceso) => {
-        return await axios.get(`${this.#URL}/procesos/${proceso}/parametros`, this.#headers);
-    });
-
-    updateParametroPorProceso = this.#errorHandler(async (proceso, parametro, data) => {
-        return await axios.put(`${this.#URL}/procesos/${proceso}/parametros/${parametro}`, data, this.#headers);
-    });
-
-    deleteParametroPorProceso = this.#errorHandler(async (proceso, parametro) => {
-        return await axios.delete(`${this.#URL}/procesos/${proceso}/parametros/${parametro}`, this.#headers);
-    });
-
-    createFactor = this.#errorHandler(async (proceso, parametro, data) => {
-        return await axios.post(`${this.#URL}/procesos/${proceso}/parametros/${parametro}/factores`, data, this.#headers);
-    });
-
-    getFactores = this.#errorHandler(async (proceso, parametro) => {
-        return await axios.get(`${this.#URL}/procesos/${proceso}/parametros/${parametro}/factores`, this.#headers);
-    });
-
-    deleteFactor = this.#errorHandler(async (proceso, parametro, orden) => {
-        return await axios.delete(`${this.#URL}/procesos/${proceso}/parametros/${parametro}/factores/${orden}`, this.#headers);
-    });
-
-
+  deleteFactor = this.#errorHandler(async (proceso, parametro, orden) => {
+    return await axios.delete(
+      `${
+        this.#URL
+      }/procesos/${proceso}/parametros/${parametro}/factores/${orden}`,
+      this.#headers
+    );
+  });
 }

@@ -1,33 +1,39 @@
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 import React, { useState, useEffect } from "react";
-import { useNavigate } from 'react-router-dom';
-import Box from '@mui/material/Box';
-import { FormControlLabel, Checkbox, IconButton, Tooltip } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import CalculateIcon from '@mui/icons-material/Calculate';
+import { useNavigate } from "react-router-dom";
+import Box from "@mui/material/Box";
+import { FormControlLabel, Checkbox, IconButton, Tooltip } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import CalculateIcon from "@mui/icons-material/Calculate";
 import { useAuthContext } from "../../context/authContext";
-import Grid from '@mui/material/Grid';
-import TextField from '@mui/material/TextField';
+import Grid from "@mui/material/Grid";
+import TextField from "@mui/material/TextField";
 import API from "../../services/modulo-formulas";
 import { formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
 import Header from "./common/Header";
-import BtnNuevo from './common/BtnNuevo';
-import Tabla from './common/Tabla';
-import CustomDialog from './common/CustomDialog';
+import BtnNuevo from "./common/BtnNuevo";
+import Tabla from "./common/Tabla";
+import CustomDialog from "./common/CustomDialog";
 
 export default function ParametrosProceso() {
-  const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
-  const APIService = new API(jwt, userShineray, enterpriseShineray, systemShineray);
+  const { jwt, userShineray, enterpriseShineray, systemShineray } =
+    useAuthContext();
+  const APIService = new API(
+    jwt,
+    userShineray,
+    enterpriseShineray,
+    systemShineray
+  );
   const [procesos, setProcesos] = useState([]);
   const [parametros, setParametros] = useState([]);
   const [parametrosDetail, setParametrosDetail] = useState([]);
   const [menus, setMenus] = useState([]);
   const [openAdd, setOpenAdd] = useState(false);
   const [openUpdate, setOpenUpdate] = useState(false);
-  const [codProceso, setCodProceso] = useState('');
-  const [codParametro, setCodParametro] = useState('');
-  const [nombreParametro, setNombreParametro] = useState('');
-  const [descripcionParametro, setDescripcionParametro] = useState('');
+  const [codProceso, setCodProceso] = useState("");
+  const [codParametro, setCodParametro] = useState("");
+  const [nombreParametro, setNombreParametro] = useState("");
+  const [descripcionParametro, setDescripcionParametro] = useState("");
   const [ordenParametro, setOrdenParametro] = useState(0);
   const [estadoParametro, setEstadoParametro] = useState(false);
 
@@ -59,26 +65,36 @@ export default function ParametrosProceso() {
 
   const handleAdd = (rowData, rowMeta) => {
     const codParametro = rowData[0];
-    const orden_imprime = parseInt(window.prompt(`Ingresa el orden de impresión para el parámetro ${codParametro}:`));
+    const orden_imprime = parseInt(
+      window.prompt(
+        `Ingresa el orden de impresión para el parámetro ${codParametro}:`
+      )
+    );
     if (isNaN(orden_imprime)) {
       toast.error("Orden de impresión inválido");
       return;
     }
     APIService.addParametroPorProceso(codProceso, codParametro, {
-      orden_imprime
+      orden_imprime,
     })
-      .then(res => {
+      .then((res) => {
         toast.success(res);
         setOpenAdd(false);
         setCodParametro(codParametro);
       })
-      .catch(err => toast.error(err.message));
+      .catch((err) => toast.error(err.message));
   };
 
   const getParametrosDetail = async () => {
     try {
-      setParametrosDetail((await APIService.getParametrosPorProceso(codProceso)).map(
-        ({ parametro, ...rest }) => ({ ...rest, nombre: parametro.nombre, descripcion: parametro.descripcion }))
+      setParametrosDetail(
+        (await APIService.getParametrosPorProceso(codProceso)).map(
+          ({ parametro, ...rest }) => ({
+            ...rest,
+            nombre: parametro.nombre,
+            descripcion: parametro.descripcion,
+          })
+        )
       );
     } catch (err) {
       toast.error(err.message);
@@ -88,33 +104,38 @@ export default function ParametrosProceso() {
   const handleUpdate = () => {
     APIService.updateParametroPorProceso(codProceso, codParametro, {
       orden_imprime: ordenParametro,
-      estado: estadoParametro
+      estado: estadoParametro,
     })
-      .then(res => {
+      .then((res) => {
         toast.success(res);
-        setCodParametro('');
+        setCodParametro("");
         setOpenUpdate(false);
       })
-      .catch(err => toast.error(err.message));
+      .catch((err) => toast.error(err.message));
   };
 
   const handleDelete = (selectedRows, setSelectedRows) => {
-    if (!window.confirm('¿Estás seguro de eliminar el parámetro?')) {
+    if (!window.confirm("¿Estás seguro de eliminar el parámetro?")) {
       return false;
     }
     const { data: deletedData } = selectedRows;
     const deletedRowIndex = deletedData[0].index;
     const deletedRowValue = parametrosDetail[deletedRowIndex];
-    const newParametros = parametrosDetail.filter((_, index) => index !== deletedRowIndex);
+    const newParametros = parametrosDetail.filter(
+      (_, index) => index !== deletedRowIndex
+    );
     setParametrosDetail(newParametros);
-    APIService.deleteParametroPorProceso(codProceso, deletedRowValue.cod_parametro)
-      .then(res => {
+    APIService.deleteParametroPorProceso(
+      codProceso,
+      deletedRowValue.cod_parametro
+    )
+      .then((res) => {
         toast.success(res);
         setSelectedRows([]);
       })
-      .catch(err => {
+      .catch((err) => {
         toast.error(err.message);
-        setCodParametro('');
+        setCodParametro("");
       });
     return true;
   };
@@ -147,32 +168,40 @@ export default function ParametrosProceso() {
   const handleCustomAction = (selectedRows, displayData) => {
     const indiceSeleccionado = selectedRows.data[0].index;
     const codParametro = displayData[indiceSeleccionado].data[0];
-    navigate(`/factores-calculo?proceso=${codProceso}&parametro=${codParametro}`);
+    navigate(
+      `/factores-calculo?proceso=${codProceso}&parametro=${codParametro}`
+    );
   };
 
   const CustomSelectToolbar = (selectedRows, displayData, setSelectedRows) => {
-    return (<>
-      <Tooltip title="Factores de cálculo">
-        <IconButton onClick={() => handleCustomAction(selectedRows, displayData)}>
-          <CalculateIcon />
-        </IconButton>
-      </Tooltip>
-      <Tooltip title="Eliminar">
-        <IconButton onClick={() => handleDelete(selectedRows, setSelectedRows)}>
-          <DeleteIcon />
-        </IconButton>
-      </Tooltip>
-    </>);
+    return (
+      <>
+        <Tooltip title="Factores de cálculo">
+          <IconButton
+            onClick={() => handleCustomAction(selectedRows, displayData)}
+          >
+            <CalculateIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Eliminar">
+          <IconButton
+            onClick={() => handleDelete(selectedRows, setSelectedRows)}
+          >
+            <DeleteIcon />
+          </IconButton>
+        </Tooltip>
+      </>
+    );
   };
 
   const columnsMaster = [
     {
       name: "cod_proceso",
-      label: "Código"
+      label: "Código",
     },
     {
       name: "nombre",
-      label: "Nombre"
+      label: "Nombre",
     },
     {
       name: "audit_fecha_ing",
@@ -191,44 +220,44 @@ export default function ParametrosProceso() {
   ];
 
   const optionsMaster = {
-    responsive: 'standard',
-    selectableRows: 'none',
+    responsive: "standard",
+    selectableRows: "none",
     onRowClick: handleClickMaster,
     textLabels: {
       body: {
         noMatch: "Lo siento, no se encontraron registros",
         toolTip: "Ordenar",
-        columnHeaderTooltip: column => `Ordenar por ${column.label}`
+        columnHeaderTooltip: (column) => `Ordenar por ${column.label}`,
       },
       pagination: {
         next: "Siguiente",
         previous: "Anterior",
         rowsPerPage: "Filas por página:",
-        displayRows: "de"
+        displayRows: "de",
       },
       toolbar: {
         search: "Buscar",
         downloadCsv: "Descargar CSV",
         print: "Imprimir",
         viewColumns: "Ver columnas",
-        filterTable: "Filtrar tabla"
+        filterTable: "Filtrar tabla",
       },
       filter: {
         all: "Todos",
         title: "FILTROS",
-        reset: "REINICIAR"
+        reset: "REINICIAR",
       },
       viewColumns: {
         title: "Mostrar columnas",
-        titleAria: "Mostrar/Ocultar columnas de tabla"
+        titleAria: "Mostrar/Ocultar columnas de tabla",
       },
-    }
+    },
   };
 
   const columnsDetail = [
     {
       name: "cod_parametro",
-      label: "Código"
+      label: "Código",
     },
     {
       name: "nombre",
@@ -236,11 +265,11 @@ export default function ParametrosProceso() {
     },
     {
       name: "descripcion",
-      label: "Descripción"
+      label: "Descripción",
     },
     {
       name: "orden_imprime",
-      label: "Orden"
+      label: "Orden",
     },
     {
       name: "estado",
@@ -252,56 +281,56 @@ export default function ParametrosProceso() {
   ];
 
   const optionsDetail = {
-    responsive: 'standard',
-    selectableRows: 'single',
+    responsive: "standard",
+    selectableRows: "single",
     onRowClick: handleClickOpenUpdate,
     customToolbarSelect: CustomSelectToolbar,
     textLabels: {
       body: {
         noMatch: "Lo siento, no se encontraron registros",
         toolTip: "Ordenar",
-        columnHeaderTooltip: column => `Ordenar por ${column.label}`
+        columnHeaderTooltip: (column) => `Ordenar por ${column.label}`,
       },
       pagination: {
         next: "Siguiente",
         previous: "Anterior",
         rowsPerPage: "Filas por página:",
-        displayRows: "de"
+        displayRows: "de",
       },
       toolbar: {
         search: "Buscar",
         downloadCsv: "Descargar CSV",
         print: "Imprimir",
         viewColumns: "Ver columnas",
-        filterTable: "Filtrar tabla"
+        filterTable: "Filtrar tabla",
       },
       filter: {
         all: "Todos",
         title: "FILTROS",
-        reset: "REINICIAR"
+        reset: "REINICIAR",
       },
       viewColumns: {
         title: "Mostrar columnas",
-        titleAria: "Mostrar/Ocultar columnas de tabla"
+        titleAria: "Mostrar/Ocultar columnas de tabla",
       },
       selectedRows: {
         text: "fila(s) seleccionada(s)",
-      }
-    }
+      },
+    },
   };
 
   const columnsParametros = [
     {
       name: "cod_parametro",
-      label: "Código"
+      label: "Código",
     },
     {
       name: "nombre",
-      label: "Nombre"
+      label: "Nombre",
     },
     {
       name: "descripcion",
-      label: "Descripción"
+      label: "Descripción",
     },
     {
       name: "estado",
@@ -313,8 +342,8 @@ export default function ParametrosProceso() {
   ];
 
   const optionsParametros = {
-    responsive: 'standard',
-    selectableRows: 'none',
+    responsive: "standard",
+    selectableRows: "none",
     onRowClick: handleAdd,
     filter: false,
     pagination: false,
@@ -324,26 +353,26 @@ export default function ParametrosProceso() {
       body: {
         noMatch: "Lo siento, no se encontraron registros",
         toolTip: "Ordenar",
-        columnHeaderTooltip: column => `Ordenar por ${column.label}`
+        columnHeaderTooltip: (column) => `Ordenar por ${column.label}`,
       },
       toolbar: {
         search: "Buscar",
-        filterTable: "Filtrar tabla"
+        filterTable: "Filtrar tabla",
       },
       filter: {
         all: "Todos",
         title: "FILTROS",
-        reset: "REINICIAR"
+        reset: "REINICIAR",
       },
       viewColumns: {
         title: "Mostrar columnas",
-        titleAria: "Mostrar/Ocultar columnas de tabla"
+        titleAria: "Mostrar/Ocultar columnas de tabla",
       },
-    }
+    },
   };
 
   useEffect(() => {
-    document.title = 'Parametros por Proceso';
+    document.title = "Parametros por Proceso";
     getProcesos();
     getParametros();
     getMenus();
@@ -355,7 +384,17 @@ export default function ParametrosProceso() {
     }
   }, [codProceso, codParametro]);
 
-  const addContent = <Tabla title="Parámetros" data={parametros.filter(p => !parametrosDetail.some(pd => pd.cod_parametro === p.cod_parametro))} columns={columnsParametros} options={optionsParametros} />;
+  const addContent = (
+    <Tabla
+      title="Parámetros"
+      data={parametros.filter(
+        (p) =>
+          !parametrosDetail.some((pd) => pd.cod_parametro === p.cod_parametro)
+      )}
+      columns={columnsParametros}
+      options={optionsParametros}
+    />
+  );
 
   const updateContent = (
     <>
@@ -405,14 +444,21 @@ export default function ParametrosProceso() {
           />
         </Grid>
       </Grid>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
-        <FormControlLabel control={
-          <Checkbox
-            label="Estado"
-            checked={estadoParametro}
-            onChange={(e) => setEstadoParametro(e.target.checked)}
-          />
-        }
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <FormControlLabel
+          control={
+            <Checkbox
+              label="Estado"
+              checked={estadoParametro}
+              onChange={(e) => setEstadoParametro(e.target.checked)}
+            />
+          }
           label="Activo"
         />
       </div>
@@ -420,19 +466,56 @@ export default function ParametrosProceso() {
   );
 
   return (
-    <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
+    <div
+      style={{
+        marginTop: "150px",
+        top: 0,
+        left: 0,
+        width: "100%",
+        zIndex: 1000,
+      }}
+    >
       <Header menus={menus} />
-      <BtnNuevo onClick={handleClickOpenAdd} disabled={!codProceso} texto={`Agregar parámetro a ${codProceso}`} />
+      <BtnNuevo
+        onClick={handleClickOpenAdd}
+        disabled={!codProceso}
+        texto={`Agregar parámetro a ${codProceso}`}
+      />
       <Box sx={{ display: "flex", gap: 4 }}>
         <Box sx={{ flex: 1 }}>
-          <Tabla title="Procesos" data={procesos} columns={columnsMaster} options={optionsMaster} />
+          <Tabla
+            title="Procesos"
+            data={procesos}
+            columns={columnsMaster}
+            options={optionsMaster}
+          />
         </Box>
         <Box sx={{ flex: 1 }}>
-          <Tabla title={`Parámetros del Proceso ${codProceso ?? ''}`} data={parametrosDetail} columns={columnsDetail} options={optionsDetail} />
+          <Tabla
+            title={`Parámetros del Proceso ${codProceso ?? ""}`}
+            data={parametrosDetail}
+            columns={columnsDetail}
+            options={optionsDetail}
+          />
         </Box>
       </Box>
-      <CustomDialog titulo="Agregar Parámetro" contenido={addContent} open={openAdd} handleClose={handleClickCloseAdd} handleCancel={handleClickCloseAdd} handleConfirm={handleAdd} />
-      <CustomDialog titulo={`Modificar Parámetro ${codParametro} Del Proceso ${codProceso}`} contenido={updateContent} open={openUpdate} handleClose={handleClickCloseUpdate} handleCancel={handleClickCloseUpdate} handleConfirm={handleUpdate} confirmText='Actualizar' />
+      <CustomDialog
+        titulo="Agregar Parámetro"
+        contenido={addContent}
+        open={openAdd}
+        handleClose={handleClickCloseAdd}
+        handleCancel={handleClickCloseAdd}
+        handleConfirm={handleAdd}
+      />
+      <CustomDialog
+        titulo={`Modificar Parámetro ${codParametro} Del Proceso ${codProceso}`}
+        contenido={updateContent}
+        open={openUpdate}
+        handleClose={handleClickCloseUpdate}
+        handleCancel={handleClickCloseUpdate}
+        handleConfirm={handleUpdate}
+        confirmText="Actualizar"
+      />
     </div>
   );
 }

@@ -1,25 +1,31 @@
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 import React, { useState, useEffect } from "react";
-import { FormControlLabel, Checkbox } from '@mui/material';
+import { FormControlLabel, Checkbox } from "@mui/material";
 import { useAuthContext } from "../../context/authContext";
-import Grid from '@mui/material/Grid';
-import TextField from '@mui/material/TextField';
+import Grid from "@mui/material/Grid";
+import TextField from "@mui/material/TextField";
 import API from "../../services/modulo-formulas";
 import { formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
-import Header from './common/Header';
-import BtnNuevo from './common/BtnNuevo';
+import Header from "./common/Header";
+import BtnNuevo from "./common/BtnNuevo";
 import Tabla from "./common/Tabla";
-import CustomDialog from './common/CustomDialog';
+import CustomDialog from "./common/CustomDialog";
 
 export default function Procesos() {
-  const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
-  const APIService = new API(jwt, userShineray, enterpriseShineray, systemShineray);
-  const [procesos, setProcesos] = useState([])
-  const [menus, setMenus] = useState([])
+  const { jwt, userShineray, enterpriseShineray, systemShineray } =
+    useAuthContext();
+  const APIService = new API(
+    jwt,
+    userShineray,
+    enterpriseShineray,
+    systemShineray
+  );
+  const [procesos, setProcesos] = useState([]);
+  const [menus, setMenus] = useState([]);
   const [openCreate, setOpenCreate] = useState(false);
   const [openUpdate, setOpenUpdate] = useState(false);
-  const [codProceso, setCodProceso] = useState('');
-  const [nombre, setNombre] = useState('');
+  const [codProceso, setCodProceso] = useState("");
+  const [nombre, setNombre] = useState("");
   const [estado, setEstado] = useState(true);
 
   const getMenus = async () => {
@@ -34,16 +40,16 @@ export default function Procesos() {
     e.preventDefault();
     APIService.createProceso({
       cod_proceso: codProceso,
-      nombre
+      nombre,
     })
-      .then(res => {
+      .then((res) => {
         toast.success(res);
         setOpenCreate(false);
-        setCodProceso('');
-        setNombre('');
+        setCodProceso("");
+        setNombre("");
         setEstado(true);
       })
-      .catch(err => toast.error(err.message));
+      .catch((err) => toast.error(err.message));
   };
 
   const getProcesos = async () => {
@@ -58,30 +64,32 @@ export default function Procesos() {
     e.preventDefault();
     APIService.updateProceso(codProceso, {
       nombre,
-      estado
+      estado,
     })
-      .then(res => {
+      .then((res) => {
         toast.success(res);
         setOpenUpdate(false);
-        setCodProceso('');
-        setNombre('');
+        setCodProceso("");
+        setNombre("");
         setEstado(true);
       })
-      .catch(err => toast.error(err.message));
+      .catch((err) => toast.error(err.message));
   };
 
   const handleDelete = (rowsDeleted) => {
-    if (!window.confirm('¿Estás seguro de eliminar el proceso?')) {
+    if (!window.confirm("¿Estás seguro de eliminar el proceso?")) {
       return false;
     }
     const { data: deletedData } = rowsDeleted;
     const deletedRowIndex = deletedData[0].index;
     const deletedRowValue = procesos[deletedRowIndex];
-    const newProcesos = procesos.filter((proceso, index) => index !== deletedRowIndex);
+    const newProcesos = procesos.filter(
+      (proceso, index) => index !== deletedRowIndex
+    );
     setProcesos(newProcesos);
     APIService.deleteProceso(deletedRowValue.cod_proceso)
-      .then(res => toast.success(res))
-      .catch(err => {
+      .then((res) => toast.success(res))
+      .catch((err) => {
         toast.error(err.message);
         getProcesos();
       });
@@ -90,8 +98,8 @@ export default function Procesos() {
 
   const handleClickOpenCreate = () => {
     setOpenCreate(true);
-    setCodProceso('');
-    setNombre('');
+    setCodProceso("");
+    setNombre("");
     setEstado(true);
   };
 
@@ -108,7 +116,7 @@ export default function Procesos() {
   };
 
   const handleRowClick = (rowData, rowMeta) => {
-    const row = procesos.filter(item => item.cod_proceso === rowData[0])[0];
+    const row = procesos.filter((item) => item.cod_proceso === rowData[0])[0];
     setCodProceso(row.cod_proceso);
     setNombre(row.nombre);
     setEstado(row.estado === 1);
@@ -118,11 +126,11 @@ export default function Procesos() {
   const columns = [
     {
       name: "cod_proceso",
-      label: "Código"
+      label: "Código",
     },
     {
       name: "nombre",
-      label: "Nombre"
+      label: "Nombre",
     },
     {
       name: "estado",
@@ -141,48 +149,48 @@ export default function Procesos() {
   ];
 
   const options = {
-    responsive: 'standard',
-    selectableRows: 'single',
+    responsive: "standard",
+    selectableRows: "single",
     onRowClick: handleRowClick,
     onRowsDelete: handleDelete,
     textLabels: {
       body: {
         noMatch: "Lo siento, no se encontraron registros",
         toolTip: "Ordenar",
-        columnHeaderTooltip: column => `Ordenar por ${column.label}`
+        columnHeaderTooltip: (column) => `Ordenar por ${column.label}`,
       },
       pagination: {
         next: "Siguiente",
         previous: "Anterior",
         rowsPerPage: "Filas por página:",
-        displayRows: "de"
+        displayRows: "de",
       },
       toolbar: {
         search: "Buscar",
         downloadCsv: "Descargar CSV",
         print: "Imprimir",
         viewColumns: "Ver columns",
-        filterTable: "Filtrar tabla"
+        filterTable: "Filtrar tabla",
       },
       filter: {
         all: "Todos",
         title: "FILTROS",
-        reset: "REINICIAR"
+        reset: "REINICIAR",
       },
       viewColumns: {
         title: "Mostrar columns",
-        titleAria: "Mostrar/Ocultar columns de tabla"
+        titleAria: "Mostrar/Ocultar columns de tabla",
       },
       selectedRows: {
         text: "fila(s) seleccionada(s)",
         delete: "Borrar",
-        deleteAria: "Borrar fila seleccionada"
-      }
-    }
+        deleteAria: "Borrar fila seleccionada",
+      },
+    },
   };
 
   useEffect(() => {
-    document.title = 'Procesos';
+    document.title = "Procesos";
     getProcesos();
     getMenus();
   }, [openCreate, openUpdate]);
@@ -198,7 +206,7 @@ export default function Procesos() {
           placeholder="PROCE###"
           fullWidth
           value={codProceso}
-          onChange={(e => setCodProceso(e.target.value))}
+          onChange={(e) => setCodProceso(e.target.value)}
         />
       </Grid>
       <Grid item xs={6}>
@@ -209,7 +217,7 @@ export default function Procesos() {
           type="text"
           fullWidth
           value={nombre}
-          onChange={(e => setNombre(e.target.value))}
+          onChange={(e) => setNombre(e.target.value)}
         />
       </Grid>
     </Grid>
@@ -238,20 +246,27 @@ export default function Procesos() {
             type="text"
             fullWidth
             value={nombre}
-            onChange={(e => setNombre(e.target.value))}
+            onChange={(e) => setNombre(e.target.value)}
           />
         </Grid>
       </Grid>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
-        <FormControlLabel control={
-          <Checkbox
-            label="Estado"
-            checked={estado}
-            onChange={(e) => {
-              setEstado(e.target.checked)
-            }}
-          />
-        }
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <FormControlLabel
+          control={
+            <Checkbox
+              label="Estado"
+              checked={estado}
+              onChange={(e) => {
+                setEstado(e.target.checked);
+              }}
+            />
+          }
           label="Activo"
         />
       </div>
@@ -259,12 +274,40 @@ export default function Procesos() {
   );
 
   return (
-    <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
+    <div
+      style={{
+        marginTop: "150px",
+        top: 0,
+        left: 0,
+        width: "100%",
+        zIndex: 1000,
+      }}
+    >
       <Header menus={menus} />
       <BtnNuevo onClick={handleClickOpenCreate} />
-      <Tabla title="Procesos" data={procesos} columns={columns} options={options} />
-      <CustomDialog titulo="Registrar Proceso" contenido={createContent} open={openCreate} handleClose={handleClickCloseCreate} handleCancel={handleClickCloseCreate} handleConfirm={handleCreate} />
-      <CustomDialog titulo="Actualizar Proceso" contenido={updateContent} open={openUpdate} handleClose={handleClickCloseUpdate} handleCancel={handleClickCloseUpdate} handleConfirm={handleUpdate} confirmText='Actualizar' />
+      <Tabla
+        title="Procesos"
+        data={procesos}
+        columns={columns}
+        options={options}
+      />
+      <CustomDialog
+        titulo="Registrar Proceso"
+        contenido={createContent}
+        open={openCreate}
+        handleClose={handleClickCloseCreate}
+        handleCancel={handleClickCloseCreate}
+        handleConfirm={handleCreate}
+      />
+      <CustomDialog
+        titulo="Actualizar Proceso"
+        contenido={updateContent}
+        open={openUpdate}
+        handleClose={handleClickCloseUpdate}
+        handleCancel={handleClickCloseUpdate}
+        handleConfirm={handleUpdate}
+        confirmText="Actualizar"
+      />
     </div>
   );
 }
