@@ -1,25 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from "../../context/authContext";
 import { toast } from 'react-toastify';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import AddIcon from '@material-ui/icons/Add';
-import {
-    List,
-    ListItem,
-    TextField,
-    Select,
-    MenuItem,
-    FormControl,
-    InputLabel,
-    Grid,
-    Typography,
-    Autocomplete
-} from '@mui/material';
+import { List, ListItem, TextField, Select, MenuItem, FormControl, InputLabel, Grid, Typography, Autocomplete } from '@mui/material';
 import API from "../../services/modulo-formulas";
 import Header from "./common/Header";
+import BtnNuevo from "./common/BtnNuevo";
 
 const tiposOperadores = new Map([
     ['PAR', 'PARÁMETRO'],
@@ -34,20 +22,19 @@ const operadores = [
     "/"
 ];
 
-function FactoresCalculo() {
+export default function FactoresCalculo() {
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const APIService = new API(jwt, userShineray, enterpriseShineray, systemShineray);
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const codProceso = queryParams.get('proceso');
     const codParametro = queryParams.get('parametro');
-    const navigate = useNavigate();
     const [menus, setMenus] = useState([]);
     const [proceso, setProceso] = useState({});
     const [parametro, setParametro] = useState({});
     const [factores, setFactores] = useState([]);
     const [parametros, setParametros] = useState([]);
-    const [addFactor, setAddFactor] = useState(false);
+    const [createFactor, setCreateFactor] = useState(false);
     const [orden, setOrden] = useState(1);
     const [tipoOperador, setTipoOperador] = useState('Seleccione');
     const [operador, setOperador] = useState('');
@@ -86,9 +73,9 @@ function FactoresCalculo() {
         }
     }
 
-    const handleAddFactor = (e) => {
+    const handleCreate = (e) => {
         e.preventDefault();
-        APIService.addFactor(codProceso, codParametro, {
+        APIService.createFactor(codProceso, codParametro, {
             orden,
             tipo_operador: tipoOperador,
             operador,
@@ -114,7 +101,7 @@ function FactoresCalculo() {
         }
     }
 
-    const handleDeleteFactor = (orden) => {
+    const handleDelete = (orden) => {
         if (!window.confirm('¿Estás seguro de eliminar el factor?')) {
             return;
         }
@@ -260,7 +247,7 @@ function FactoresCalculo() {
                             </Grid>
                             {factores.length === index + 1 && (
                                 <Grid item xs={1}>
-                                    <Button onClick={() => { handleDeleteFactor(item.orden) }} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }}>
+                                    <Button onClick={() => { handleDelete(item.orden) }} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }}>
                                         Quitar
                                     </Button>
                                 </Grid>
@@ -268,7 +255,7 @@ function FactoresCalculo() {
                         </Grid>
                     </ListItem>
                 ))}
-                {addFactor && (<>
+                {createFactor && (<>
                     <ListItem sx={{ width: '100%' }}>
                         <Grid container spacing={2}>
                             <Grid item xs={3}>
@@ -368,10 +355,10 @@ function FactoresCalculo() {
                         <Grid container spacing={2}>
                             <Grid item xs={12}>
                                 <Box display="flex" justifyContent="center">
-                                    <Button onClick={handleAddFactor} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }}>
+                                    <Button onClick={handleCreate} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }}>
                                         Agregar
                                     </Button>
-                                    <Button onClick={() => setAddFactor(false)} color="primary">
+                                    <Button onClick={() => setCreateFactor(false)} color="primary">
                                         Cancelar
                                     </Button>
                                 </Box>
@@ -380,18 +367,7 @@ function FactoresCalculo() {
                     </ListItem>
                 </>)}
             </List>
-            {!addFactor && (
-                <Box display="flex" justifyContent="center">
-                    <Button
-                        style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }}
-                        sx={{ mt: 2 }}
-                        onClick={() => setAddFactor(true)}>
-                        <AddIcon /> Nuevo
-                    </Button>
-                </Box>
-            )}
+            {!createFactor && <BtnNuevo onClick={() => setCreateFactor(true)} />}
         </div>
     );
 }
-
-export default FactoresCalculo;

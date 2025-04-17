@@ -1,7 +1,7 @@
 import Button from '@mui/material/Button';
 import AddIcon from '@material-ui/icons/Add';
 
-function BtnNuevo({ onClick, disabled = false, texto = "Nuevo" }) {
+export default function BtnNuevo({ onClick, disabled = false, texto = "Nuevo" }) {
     return (
         <Button
             disabled={disabled}
@@ -11,5 +11,3 @@ function BtnNuevo({ onClick, disabled = false, texto = "Nuevo" }) {
         </Button>
     );
 }
-
-export default BtnNuevo;

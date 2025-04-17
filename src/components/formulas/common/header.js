@@ -4,7 +4,7 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import { useNavigate } from 'react-router-dom';
 
-function Header({ menus }) {
+export default function Header({ menus }) {
     const navigate = useNavigate();
     return (
         <>
@@ -26,5 +26,3 @@ function Header({ menus }) {
         </>
     );
 }
-
-export default Header;

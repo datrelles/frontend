@@ -1,8 +1,6 @@
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
-import { ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import { FormControlLabel, Checkbox, IconButton, Tooltip } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -10,17 +8,14 @@ import CalculateIcon from '@mui/icons-material/Calculate';
 import { useAuthContext } from "../../context/authContext";
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
 import API from "../../services/modulo-formulas";
-import { createMuiTheme, formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
+import { formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
 import Header from "./common/Header";
 import BtnNuevo from './common/BtnNuevo';
 import Tabla from './common/Tabla';
+import CustomDialog from './common/CustomDialog';
 
-function ParametrosProceso() {
+export default function ParametrosProceso() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
   const APIService = new API(jwt, userShineray, enterpriseShineray, systemShineray);
   const [procesos, setProcesos] = useState([]);
@@ -360,6 +355,70 @@ function ParametrosProceso() {
     }
   }, [codProceso, codParametro]);
 
+  const addContent = <Tabla title="Parámetros" data={parametros.filter(p => !parametrosDetail.some(pd => pd.cod_parametro === p.cod_parametro))} columns={columnsParametros} options={optionsParametros} />;
+
+  const updateContent = (
+    <>
+      <Grid container spacing={2}>
+        <Grid item xs={6}>
+          <TextField
+            disabled
+            margin="dense"
+            id="cod_parametro"
+            label="Código"
+            type="text"
+            fullWidth
+            value={codParametro}
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <TextField
+            disabled
+            margin="dense"
+            id="nombre"
+            label="Nombre"
+            type="text"
+            fullWidth
+            value={nombreParametro}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            disabled
+            margin="dense"
+            id="descripcion"
+            label="Descripción"
+            type="text"
+            fullWidth
+            value={descripcionParametro}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            margin="dense"
+            id="orden"
+            label="Orden"
+            type="number"
+            fullWidth
+            value={ordenParametro}
+            onChange={(e) => setOrdenParametro(e.target.value)}
+          />
+        </Grid>
+      </Grid>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
+        <FormControlLabel control={
+          <Checkbox
+            label="Estado"
+            checked={estadoParametro}
+            onChange={(e) => setEstadoParametro(e.target.checked)}
+          />
+        }
+          label="Activo"
+        />
+      </div>
+    </>
+  );
+
   return (
     <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
       <Header menus={menus} />
@@ -372,92 +431,8 @@ function ParametrosProceso() {
           <Tabla title={`Parámetros del Proceso ${codProceso ?? ''}`} data={parametrosDetail} columns={columnsDetail} options={optionsDetail} />
         </Box>
       </Box>
-
-      <Dialog open={openAdd} onClose={handleClickCloseAdd}>
-        <DialogTitle>Agregar Parámetro</DialogTitle>
-        <DialogContent>
-        <Tabla title="Parámetros" data={parametros.filter(p => !parametrosDetail.some(pd => pd.cod_parametro === p.cod_parametro))} columns={columnsParametros} options={optionsParametros} />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClickCloseAdd} color="primary">
-            Cancelar
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={openUpdate} onClose={handleClickCloseUpdate}>
-        <DialogTitle>Modificar Parámetro {codParametro} Del Proceso {codProceso}</DialogTitle>
-        <DialogContent>
-          <ThemeProvider theme={createMuiTheme()}>
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <TextField
-                  disabled
-                  margin="dense"
-                  id="cod_parametro"
-                  label="Código"
-                  type="text"
-                  fullWidth
-                  value={codParametro}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  disabled
-                  margin="dense"
-                  id="nombre"
-                  label="Nombre"
-                  type="text"
-                  fullWidth
-                  value={nombreParametro}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  disabled
-                  margin="dense"
-                  id="descripcion"
-                  label="Descripción"
-                  type="text"
-                  fullWidth
-                  value={descripcionParametro}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  margin="dense"
-                  id="orden"
-                  label="Orden"
-                  type="number"
-                  fullWidth
-                  value={ordenParametro}
-                  onChange={(e) => setOrdenParametro(e.target.value)}
-                />
-              </Grid>
-            </Grid>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
-              <FormControlLabel control={
-                <Checkbox
-                  label="Estado"
-                  checked={estadoParametro}
-                  onChange={(e) => setEstadoParametro(e.target.checked)}
-                />
-              }
-                label="Activo"
-              />
-            </div>
-          </ThemeProvider>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClickCloseUpdate} color="primary">
-            Cancelar
-          </Button>
-          <Button onClick={handleUpdate} style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', color: 'white', height: '30px', width: '100px', borderRadius: '5px', marginRight: '15px' }}>
-            Actualizar
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <CustomDialog titulo="Agregar Parámetro" contenido={addContent} open={openAdd} handleClose={handleClickCloseAdd} handleCancel={handleClickCloseAdd} handleConfirm={handleAdd} />
+      <CustomDialog titulo={`Modificar Parámetro ${codParametro} Del Proceso ${codProceso}`} contenido={updateContent} open={openUpdate} handleClose={handleClickCloseUpdate} handleCancel={handleClickCloseUpdate} handleConfirm={handleUpdate} confirmText='Actualizar' />
     </div>
   );
 }
-
-export default ParametrosProceso;

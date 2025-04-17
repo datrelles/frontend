@@ -41,6 +41,10 @@ export default class API {
                         }
                         res.data = mensaje;
                     }
+                } else {
+                    if (res.config.method !== 'get') {
+                        res.data = res.data.mensaje;
+                    }
                 }
                 return res.data;
             } catch (err) {
@@ -63,7 +67,7 @@ export default class API {
         return await axios.get(`${this.#BASE_URL}/menus/${this.#user}/${this.#enterprise}/${this.#system}`, this.#headers);
     });
 
-    addProceso = this.#errorHandler(async (data) => {
+    createProceso = this.#errorHandler(async (data) => {
         return await axios.post(`${this.#URL}/procesos`, data, this.#headers);
     });
 
@@ -83,7 +87,7 @@ export default class API {
         return await axios.delete(`${this.#URL}/procesos/${proceso}`, this.#headers);
     });
 
-    addFormula = this.#errorHandler(async (data) => {
+    createFormula = this.#errorHandler(async (data) => {
         return await axios.post(`${this.#URL}/formulas`, data, this.#headers);
     });
 
@@ -99,7 +103,7 @@ export default class API {
         return await axios.delete(`${this.#URL}/formulas/${formula}`, this.#headers);
     });
 
-    addParametro = this.#errorHandler(async (data) => {
+    createParametro = this.#errorHandler(async (data) => {
         return await axios.post(`${this.#URL}/parametros`, data, this.#headers);
     });
 
@@ -135,7 +139,7 @@ export default class API {
         return await axios.delete(`${this.#URL}/procesos/${proceso}/parametros/${parametro}`, this.#headers);
     });
 
-    addFactor = this.#errorHandler(async (proceso, parametro, data) => {
+    createFactor = this.#errorHandler(async (proceso, parametro, data) => {
         return await axios.post(`${this.#URL}/procesos/${proceso}/parametros/${parametro}/factores`, data, this.#headers);
     });
 
