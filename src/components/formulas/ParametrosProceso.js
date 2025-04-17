@@ -1,5 +1,5 @@
 import { toast } from "react-toastify";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
 import { FormControlLabel, Checkbox, IconButton, Tooltip } from "@mui/material";
@@ -18,11 +18,9 @@ import CustomDialog from "./common/CustomDialog";
 export default function ParametrosProceso() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
     useAuthContext();
-  const APIService = new API(
-    jwt,
-    userShineray,
-    enterpriseShineray,
-    systemShineray
+  const APIService = useMemo(
+    () => new API(jwt, userShineray, enterpriseShineray, systemShineray),
+    [jwt]
   );
   const [procesos, setProcesos] = useState([]);
   const [parametros, setParametros] = useState([]);

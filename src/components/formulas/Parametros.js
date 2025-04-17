@@ -1,5 +1,5 @@
 import { toast } from "react-toastify";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { FormControlLabel, Checkbox } from "@mui/material";
 import { useAuthContext } from "../../context/authContext";
 import Grid from "@mui/material/Grid";
@@ -14,11 +14,9 @@ import CustomDialog from "./common/CustomDialog";
 export default function Parametros() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
     useAuthContext();
-  const APIService = new API(
-    jwt,
-    userShineray,
-    enterpriseShineray,
-    systemShineray
+  const APIService = useMemo(
+    () => new API(jwt, userShineray, enterpriseShineray, systemShineray),
+    [jwt]
   );
   const [parametros, setParametros] = useState([]);
   const [menus, setMenus] = useState([]);

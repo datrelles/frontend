@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuthContext } from "../../context/authContext";
 import { toast } from "react-toastify";
@@ -31,11 +31,9 @@ const operadores = ["+", "-", "*", "/"];
 export default function FactoresCalculo() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
     useAuthContext();
-  const APIService = new API(
-    jwt,
-    userShineray,
-    enterpriseShineray,
-    systemShineray
+  const APIService = useMemo(
+    () => new API(jwt, userShineray, enterpriseShineray, systemShineray),
+    [jwt]
   );
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
