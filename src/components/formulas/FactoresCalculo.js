@@ -19,7 +19,7 @@ import {
     Autocomplete
 } from '@mui/material';
 import API from "../../services/modulo-formulas";
-import Header from "./common/header";
+import Header from "./common/Header";
 
 const tiposOperadores = new Map([
     ['PAR', 'PARÁMETRO'],

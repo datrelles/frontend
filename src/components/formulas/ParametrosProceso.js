@@ -1,9 +1,7 @@
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
-import MUIDataTable from "mui-datatables";
 import { ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-import AddIcon from '@material-ui/icons/Add';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import { FormControlLabel, Checkbox, IconButton, Tooltip } from '@mui/material';
@@ -18,7 +16,9 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import API from "../../services/modulo-formulas";
 import { createMuiTheme, formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
-import Header from "./common/header";
+import Header from "./common/Header";
+import BtnNuevo from './common/BtnNuevo';
+import Tabla from './common/Tabla';
 
 function ParametrosProceso() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
@@ -363,50 +363,20 @@ function ParametrosProceso() {
   return (
     <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
       <Header menus={menus} />
-      <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
-        <button
-          disabled={!codProceso}
-          className="btn btn-primary btn-block"
-          type="button"
-          style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
-          onClick={handleClickOpenAdd}>
-          <AddIcon /> Agregar parámetro a {codProceso}
-        </button>
-      </div>
+      <BtnNuevo onClick={handleClickOpenAdd} disabled={!codProceso} texto={`Agregar parámetro a ${codProceso}`} />
       <Box sx={{ display: "flex", gap: 4 }}>
         <Box sx={{ flex: 1 }}>
-          <ThemeProvider theme={createMuiTheme()}>
-            <MUIDataTable
-              title={"Procesos"}
-              data={procesos}
-              columns={columnsMaster}
-              options={optionsMaster}
-            />
-          </ThemeProvider>
+          <Tabla title="Procesos" data={procesos} columns={columnsMaster} options={optionsMaster} />
         </Box>
         <Box sx={{ flex: 1 }}>
-          <ThemeProvider theme={createMuiTheme()}>
-            <MUIDataTable
-              title={`Parámetros del Proceso ${codProceso ?? ''}`}
-              data={parametrosDetail}
-              columns={columnsDetail}
-              options={optionsDetail}
-            />
-          </ThemeProvider>
+          <Tabla title={`Parámetros del Proceso ${codProceso ?? ''}`} data={parametrosDetail} columns={columnsDetail} options={optionsDetail} />
         </Box>
       </Box>
 
       <Dialog open={openAdd} onClose={handleClickCloseAdd}>
         <DialogTitle>Agregar Parámetro</DialogTitle>
         <DialogContent>
-          <ThemeProvider theme={createMuiTheme()}>
-            <MUIDataTable
-              title={"Parámetros"}
-              data={parametros.filter(p => !parametrosDetail.some(pd => pd.cod_parametro === p.cod_parametro))}
-              columns={columnsParametros}
-              options={optionsParametros}
-            />
-          </ThemeProvider>
+        <Tabla title="Parámetros" data={parametros.filter(p => !parametrosDetail.some(pd => pd.cod_parametro === p.cod_parametro))} columns={columnsParametros} options={optionsParametros} />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClickCloseAdd} color="primary">

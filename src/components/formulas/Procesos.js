@@ -1,6 +1,5 @@
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
-import AddIcon from '@material-ui/icons/Add';
 import Button from '@mui/material/Button';
 import { FormControlLabel, Checkbox } from '@mui/material';
 import { useAuthContext } from "../../context/authContext";
@@ -12,8 +11,9 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import API from "../../services/modulo-formulas";
 import { formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
-import Tabla from "./common/tabla";
-import Header from './common/header';
+import Header from './common/Header';
+import BtnNuevo from './common/BtnNuevo';
+import Tabla from "./common/Tabla";
 
 function Procesos() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
@@ -194,15 +194,7 @@ function Procesos() {
   return (
     <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
       <Header menus={menus} />
-      <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
-        <button
-          className="btn btn-primary btn-block"
-          type="button"
-          style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
-          onClick={handleClickOpenNew}>
-          <AddIcon /> Nuevo
-        </button>
-      </div>
+      <BtnNuevo onClick={handleClickOpenNew} />
       <Tabla title="Procesos" data={procesos} columns={columns} options={options} />
       <Dialog open={openNew} onClose={handleClickCloseNew}>
         <DialogTitle>Registrar Proceso</DialogTitle>

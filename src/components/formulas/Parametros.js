@@ -1,9 +1,6 @@
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
-import MUIDataTable from "mui-datatables";
-import { ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-import AddIcon from '@material-ui/icons/Add';
 import Button from '@mui/material/Button';
 import { FormControlLabel, Checkbox } from '@mui/material';
 import { useAuthContext } from "../../context/authContext";
@@ -14,8 +11,10 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import API from "../../services/modulo-formulas";
-import { createMuiTheme, formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
-import Header from "./common/header";
+import { formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
+import Header from "./common/Header";
+import BtnNuevo from './common/BtnNuevo';
+import Tabla from './common/Tabla';
 
 function Parametros() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
@@ -210,23 +209,8 @@ function Parametros() {
   return (
     <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
       <Header menus={menus} />
-      <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
-        <button
-          className="btn btn-primary btn-block"
-          type="button"
-          style={{ marginBottom: '10px', marginTop: '10px', backgroundColor: 'firebrick', borderRadius: '5px' }}
-          onClick={handleClickOpenNew}>
-          <AddIcon /> Nuevo
-        </button>
-      </div>
-      <ThemeProvider theme={createMuiTheme()}>
-        <MUIDataTable
-          title={"Parámetros"}
-          data={parametros}
-          columns={columns}
-          options={options}
-        />
-      </ThemeProvider>
+      <BtnNuevo onClick={handleClickOpenNew} />
+      <Tabla title="Parámetros" data={parametros} columns={columns} options={options} />
       <Dialog open={openNew} onClose={handleClickCloseNew}>
         <DialogTitle>Registrar Parámetro</DialogTitle>
         <DialogContent>
