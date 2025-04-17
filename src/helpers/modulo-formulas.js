@@ -2,11 +2,11 @@ import { createTheme } from "@mui/material/styles";
 
 export function formatearFecha(fecha) {
   const fechaF = new Date(fecha);
-  const day = String(fechaF.getDate()).padStart(2, "0");
-  const month = String(fechaF.getMonth() + 1).padStart(2, "0");
-  const year = fechaF.getFullYear();
-  const hour = String(fechaF.getHours()).padStart(2, "0");
-  const minute = String(fechaF.getMinutes()).padStart(2, "0");
+  const day = String(fechaF.getUTCDate()).padStart(2, "0");
+  const month = String(fechaF.getUTCMonth() + 1).padStart(2, "0");
+  const year = fechaF.getUTCFullYear();
+  const hour = String(fechaF.getUTCHours()).padStart(2, "0");
+  const minute = String(fechaF.getUTCMinutes()).padStart(2, "0");
   return `${day}/${month}/${year} ${hour}:${minute}`;
 }
 
