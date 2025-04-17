@@ -334,8 +334,12 @@ export default function Formulas() {
 
   useEffect(() => {
     document.title = "Fórmulas";
-    getFormulas();
     getMenus();
+    getFormulas();
+  }, []);
+
+  useEffect(() => {
+    getFormulas();
   }, [openCreate, openUpdate]);
 
   return (

@@ -267,8 +267,12 @@ export default function Procesos() {
 
   useEffect(() => {
     document.title = "Procesos";
-    getProcesos();
     getMenus();
+    getProcesos();
+  }, []);
+
+  useEffect(() => {
+    getProcesos();
   }, [openCreate, openUpdate]);
 
   return (

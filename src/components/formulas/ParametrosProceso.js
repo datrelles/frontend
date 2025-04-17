@@ -453,9 +453,9 @@ export default function ParametrosProceso() {
 
   useEffect(() => {
     document.title = "Parametros por Proceso";
+    getMenus();
     getProcesos();
     getParametros();
-    getMenus();
   }, []);
 
   useEffect(() => {

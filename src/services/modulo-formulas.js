@@ -9,7 +9,6 @@ export default class API {
   #system;
 
   constructor(jwt, user, enterprise, system) {
-    console.log('constructor API')
     this.#jwt = jwt;
     this.#user = user;
     this.#enterprise = enterprise;

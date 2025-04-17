@@ -302,8 +302,12 @@ export default function Parametros() {
 
   useEffect(() => {
     document.title = "Parámetros";
-    getParametros();
     getMenus();
+    getParametros();
+  }, []);
+
+  useEffect(() => {
+    getParametros();
   }, [openCreate, openUpdate]);
 
   return (
