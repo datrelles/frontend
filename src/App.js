@@ -70,13 +70,15 @@ import { CreditoDirectoManager } from "./components/ventas/approveCredit";
 import { SellManagerB2B } from "./components/ventas/b2bCaseManager";
 import { AdminTallerUsuarios } from "./components/garantias/adminTallerUsuarios/adminTallerUsuarios";
 import { OpagoManager } from "./components/garantias/laborCase/laborCase";
-
+import  CatChasis from "./components/marketing/catalogos/catChasis";
+import  CatDimensionesPeso from "./components/marketing/catalogos/catDimensionesPeso";
+import  CatElectronica from "./components/marketing/catalogos/catElectronica";
 ///SellManagerB2B
 const API = process.env.REACT_APP_API;
 function App() {
   const {  removeToken, setToken } = useToken();
 
-  const [authorizedSystems, setAuthorizedSystems] = useState(['IMP', 'REP', 'GAR', 'PBI','CON', 'IN', 'FIN', 'VE', 'LOG', 'RET']);
+  const [authorizedSystems, setAuthorizedSystems] = useState(['IMP', 'REP', 'GAR', 'PBI','CON', 'IN', 'FIN', 'VE', 'LOG', 'RET','MKT']);
 
 
   const {jwt, userShineray,enterpriseShineray, flag, temporalFlag, logout}=useAuthContext();
@@ -202,6 +204,9 @@ function App() {
                   <Route exact path="/transEcommerce" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><TransEcommerce/></Protected>}/>
                   <Route exact path="/approve_credit" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><CreditoDirectoManager/></Protected>}/>
                   <Route exact path="/invoice_b2b" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><SellManagerB2B/></Protected>}/>
+                  <Route exact path="/catalogo_chasis" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatChasis/></Protected>}/>
+                  <Route exact path="/catalogo_dim_peso" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatDimensionesPeso/></Protected>}/>
+                  <Route exact path="/catalogo_electronica" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatElectronica/></Protected>}/>
                   <Route exact path="/settings" element={<Settings/>}></Route>
                 </Routes>
               </>            
