@@ -76,16 +76,16 @@ export default class API {
     );
   });
 
-  createProceso = this.#errorHandler(async (data) => {
-    return await axios.post(`${this.#URL}/procesos`, data, this.#headers);
-  });
-
   getProceso = this.#errorHandler(async (proceso) => {
     return await axios.get(`${this.#URL}/procesos/${proceso}`, this.#headers);
   });
 
   getProcesos = this.#errorHandler(async () => {
     return await axios.get(`${this.#URL}/procesos`, this.#headers);
+  });
+
+  createProceso = this.#errorHandler(async (data) => {
+    return await axios.post(`${this.#URL}/procesos`, data, this.#headers);
   });
 
   updateProceso = this.#errorHandler(async (proceso, data) => {
@@ -103,12 +103,12 @@ export default class API {
     );
   });
 
-  createFormula = this.#errorHandler(async (data) => {
-    return await axios.post(`${this.#URL}/formulas`, data, this.#headers);
-  });
-
   getFormulas = this.#errorHandler(async () => {
     return await axios.get(`${this.#URL}/formulas`, this.#headers);
+  });
+
+  createFormula = this.#errorHandler(async (data) => {
+    return await axios.post(`${this.#URL}/formulas`, data, this.#headers);
   });
 
   updateFormula = this.#errorHandler(async (formula, data) => {
@@ -126,10 +126,6 @@ export default class API {
     );
   });
 
-  createParametro = this.#errorHandler(async (data) => {
-    return await axios.post(`${this.#URL}/parametros`, data, this.#headers);
-  });
-
   getParametro = this.#errorHandler(async (parametro) => {
     return await axios.get(
       `${this.#URL}/parametros/${parametro}`,
@@ -139,6 +135,10 @@ export default class API {
 
   getParametros = this.#errorHandler(async () => {
     return await axios.get(`${this.#URL}/parametros`, this.#headers);
+  });
+
+  createParametro = this.#errorHandler(async (data) => {
+    return await axios.post(`${this.#URL}/parametros`, data, this.#headers);
   });
 
   updateParametro = this.#errorHandler(async (parametro, data) => {
@@ -156,6 +156,13 @@ export default class API {
     );
   });
 
+  getParametrosPorProceso = this.#errorHandler(async (proceso) => {
+    return await axios.get(
+      `${this.#URL}/procesos/${proceso}/parametros`,
+      this.#headers
+    );
+  });
+
   addParametroPorProceso = this.#errorHandler(
     async (proceso, parametro, data) => {
       return await axios.post(
@@ -165,13 +172,6 @@ export default class API {
       );
     }
   );
-
-  getParametrosPorProceso = this.#errorHandler(async (proceso) => {
-    return await axios.get(
-      `${this.#URL}/procesos/${proceso}/parametros`,
-      this.#headers
-    );
-  });
 
   updateParametroPorProceso = this.#errorHandler(
     async (proceso, parametro, data) => {
@@ -190,17 +190,17 @@ export default class API {
     );
   });
 
-  createFactor = this.#errorHandler(async (proceso, parametro, data) => {
-    return await axios.post(
+  getFactores = this.#errorHandler(async (proceso, parametro) => {
+    return await axios.get(
       `${this.#URL}/procesos/${proceso}/parametros/${parametro}/factores`,
-      data,
       this.#headers
     );
   });
 
-  getFactores = this.#errorHandler(async (proceso, parametro) => {
-    return await axios.get(
+  createFactor = this.#errorHandler(async (proceso, parametro, data) => {
+    return await axios.post(
       `${this.#URL}/procesos/${proceso}/parametros/${parametro}/factores`,
+      data,
       this.#headers
     );
   });
@@ -221,14 +221,6 @@ export default class API {
     );
   });
 
-  createFuncion = this.#errorHandler(async (modulo, data) => {
-    return await axios.post(
-      `${this.#URL}/modulos/${modulo}/funciones`,
-      data,
-      this.#headers
-    );
-  });
-
   getFuncion = this.#errorHandler(async (modulo, funcion) => {
     return await axios.get(
       `${this.#URL}/modulos/${modulo}/funciones/${funcion}`,
@@ -236,9 +228,14 @@ export default class API {
     );
   });
 
-  getFunciones = this.#errorHandler(async (modulo) => {
-    return await axios.get(
+  getFunciones = this.#errorHandler(async () => {
+    return await axios.get(`${this.#URL}/funciones`, this.#headers);
+  });
+
+  createFuncion = this.#errorHandler(async (modulo, data) => {
+    return await axios.post(
       `${this.#URL}/modulos/${modulo}/funciones`,
+      data,
       this.#headers
     );
   });
