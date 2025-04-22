@@ -214,6 +214,13 @@ export default class API {
     );
   });
 
+  getModulos = this.#errorHandler(async () => {
+    return await axios.get(
+      `${this.#BASE_URL}/modulo-formulas/modulos`,
+      this.#headers
+    );
+  });
+
   createFuncion = this.#errorHandler(async (modulo, data) => {
     return await axios.post(
       `${this.#URL}/modulos/${modulo}/funciones`,
@@ -249,9 +256,5 @@ export default class API {
       `${this.#URL}/modulos/${modulo}/funciones/${funcion}`,
       this.#headers
     );
-  });
-
-  getModulos = this.#errorHandler(async () => {
-    return await axios.get(`${this.#URL}/modulos`, this.#headers);
   });
 }
