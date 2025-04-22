@@ -92,7 +92,8 @@ export default function Funciones() {
 
   const handleUpdate = (e) => {
     e.preventDefault();
-    APIService.updateFuncion(codModulo, codFuncion, {
+    APIService.updateFuncion(codFuncion, {
+      cod_modulo: codModulo,
       nombre,
       nombre_base_datos: nombreBD,
       estado,
@@ -124,7 +125,7 @@ export default function Funciones() {
       (_, index) => index !== deletedRowIndex
     );
     setFunciones(newFunciones);
-    APIService.deleteFuncion(codModulo, deletedRowValue.cod_funcion)
+    APIService.deleteFuncion(deletedRowValue.cod_funcion)
       .then((res) => toast.success(res))
       .catch((err) => {
         toast.error(err.message);
@@ -134,7 +135,7 @@ export default function Funciones() {
   };
 
   const handleRowClick = (rowData, rowMeta) => {
-    const row = funciones.filter((item) => item.cod_formula === rowData[0])[0];
+    const row = funciones.filter((item) => item.cod_funcion === rowData[1])[0];
     setCodFuncion(row.cod_funcion);
     setCodModulo(row.cod_modulo);
     setNombre(row.nombre);
@@ -191,7 +192,7 @@ export default function Funciones() {
       name: "estado",
       label: "Estado",
       options: {
-        customBodyRender: (value) => formatearEstado(value),
+        customBodyRender: (value) => formatearEstado(value, "a"),
       },
     },
     {
@@ -256,36 +257,59 @@ export default function Funciones() {
     },
   };
 
+  const autocomplete = (
+    <Autocomplete
+      id="Módulo"
+      options={modulos.map((m) => m.sistema)}
+      onChange={(e, value) => {
+        if (value) {
+          const modulo = modulos.find((m) => m.sistema === value);
+          setCodModulo(modulo.cod_sistema);
+        } else {
+          setCodModulo("");
+        }
+      }}
+      fullWidth
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          margin="dense"
+          required
+          label="Módulo"
+          type="text"
+          value={codModulo}
+          className="form-control"
+          InputProps={{
+            ...params.InputProps,
+          }}
+        />
+      )}
+    />
+  );
+
+  const selectRetorno = (
+    <TextField
+      required
+      select
+      label="Tipo retorno"
+      fullWidth
+      margin="dense"
+      value={retorno}
+      onChange={(e) => setRetorno(e.target.value)}
+    >
+      <MenuItem value="Seleccione">Seleccione</MenuItem>
+      {tipos_retorno.map((t) => (
+        <MenuItem key={t} value={t}>
+          {t}
+        </MenuItem>
+      ))}
+    </TextField>
+  );
+
   const createContent = (
     <Grid container spacing={2}>
       <Grid item xs={4}>
-        <Autocomplete
-          id="Módulo"
-          options={modulos.map((m) => m.sistema)}
-          onChange={(e, value) => {
-            if (value) {
-              const modulo = modulos.find((m) => m.sistema === value);
-              setCodModulo(modulo.cod_sistema);
-            } else {
-              setCodModulo("");
-            }
-          }}
-          fullWidth
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              margin="dense"
-              required
-              label="Módulo"
-              type="text"
-              value={codModulo}
-              className="form-control"
-              InputProps={{
-                ...params.InputProps,
-              }}
-            />
-          )}
-        />
+        {autocomplete}
       </Grid>
       <Grid item xs={4}>
         <TextField
@@ -301,22 +325,7 @@ export default function Funciones() {
         />
       </Grid>
       <Grid item xs={4}>
-        <TextField
-          required
-          select
-          label="Tipo retorno"
-          fullWidth
-          margin="dense"
-          value={retorno}
-          onChange={(e) => setRetorno(e.target.value)}
-        >
-          <MenuItem value="Seleccione">Seleccione</MenuItem>
-          {tipos_retorno.map((t) => (
-            <MenuItem key={t} value={t}>
-              {t}
-            </MenuItem>
-          ))}
-        </TextField>
+        {selectRetorno}
       </Grid>
       <Grid item xs={6}>
         <TextField
@@ -359,7 +368,10 @@ export default function Funciones() {
   const updateContent = (
     <>
       <Grid container spacing={2}>
-        <Grid item xs={6}>
+        <Grid item xs={4}>
+          {autocomplete}
+        </Grid>
+        <Grid item xs={4}>
           <TextField
             disabled
             margin="dense"
@@ -371,8 +383,12 @@ export default function Funciones() {
             value={codFuncion}
           />
         </Grid>
+        <Grid item xs={4}>
+          {selectRetorno}
+        </Grid>
         <Grid item xs={6}>
           <TextField
+            required
             margin="dense"
             id="nombre"
             label="Nombre"
@@ -380,6 +396,18 @@ export default function Funciones() {
             fullWidth
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <TextField
+            required
+            margin="dense"
+            id="nombre_base_datos"
+            label="Nombre base de datos"
+            type="text"
+            fullWidth
+            value={nombreBD}
+            onChange={(e) => setNombreBD(e.target.value)}
           />
         </Grid>
         <Grid item xs={12}>
@@ -411,7 +439,7 @@ export default function Funciones() {
               }}
             />
           }
-          label="Activo"
+          label="Activa"
         />
       </div>
     </>

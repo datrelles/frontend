@@ -240,17 +240,17 @@ export default class API {
     );
   });
 
-  updateFuncion = this.#errorHandler(async (modulo, funcion, data) => {
+  updateFuncion = this.#errorHandler(async (funcion, data) => {
     return await axios.put(
-      `${this.#URL}/modulos/${modulo}/funciones/${funcion}`,
+      `${this.#URL}/funciones/${funcion}`,
       data,
       this.#headers
     );
   });
 
-  deleteFuncion = this.#errorHandler(async (modulo, funcion) => {
+  deleteFuncion = this.#errorHandler(async (funcion) => {
     return await axios.delete(
-      `${this.#URL}/modulos/${modulo}/funciones/${funcion}`,
+      `${this.#URL}/funciones/${funcion}`,
       this.#headers
     );
   });
