@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { makeStyles } from '@mui/styles';
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
 import Navbar0 from "../../Navbar0";
@@ -18,21 +17,14 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
+import * as XLSX from "xlsx";
 
 const API = process.env.REACT_APP_API;
-
-const useStyles = makeStyles({
-    datePickersContainer: {
-        display: 'flex',
-        gap: '15px',
-    },
-});
 
 function CatChasis() {
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
-    const classes = useStyles();
     const [arosDel, setArosDel] = useState('');
     const [arosPost, setArosPost] = useState('');
     const [neuDel, setNeuDel] = useState('');
@@ -106,13 +98,10 @@ function CatChasis() {
     };
 
     useEffect(() => {
-        const init = async () => {
+        getMenus();
+        fetchChasisData();
 
-            await getMenus();
-            await fetchChasisData();
-        };
-        init();
-    }, []);
+    }, [])
 
     const fetchChasisData = async () => {
         try {
@@ -132,6 +121,41 @@ function CatChasis() {
         } catch (error) {
             enqueueSnackbar("Error de conexión", { variant: "error" });
         }
+    };
+
+    const handleUploadExcel = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async (evt) => {
+            const data = evt.target.result;
+            const workbook = XLSX.read(data, { type: "binary" });
+            const sheetName = workbook.SheetNames[0];
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+            try {
+                const res = await fetch(`${API}/bench/insert_chasis_batch`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + jwt,
+                    },
+                    body: JSON.stringify({ chasis: rows })
+                });
+
+                const responseData = await res.json();
+                if (res.ok) {
+                    enqueueSnackbar("Carga exitosa", { variant: "success" });
+                    fetchChasisData();
+                } else {
+                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
+                }
+            } catch (error) {
+                enqueueSnackbar("Error inesperado", { variant: "error" });
+            }
+        };
+
+        reader.readAsBinaryString(file);
     };
 
     const columns = [
@@ -223,7 +247,6 @@ function CatChasis() {
                 </Box>
 
                 <Box>
-
                     <Button
                         onClick={() => {
                             setSelectedChasis(null);
@@ -239,9 +262,8 @@ function CatChasis() {
                         }}
                         style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}
                     >
-                        Insertar Chasis
+                        Insertar Nuevo
                     </Button>
-
                     <Button onClick={fetchChasisData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar Chasis</Button>
                 </Box>
 
@@ -266,6 +288,10 @@ function CatChasis() {
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                         <Button onClick={handleInsertChasis} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedChasis ? 'Actualizar' : 'Guardar'}</Button>
+                        <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
+                            Cargar Excel
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                        </Button>
                     </DialogActions>
                 </Dialog>
             </div>

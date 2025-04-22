@@ -17,31 +17,27 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
+import * as XLSX from "xlsx";
 
 const API = process.env.REACT_APP_API;
 
-function CatElectronica() {
+function CatColor() {
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
-    const [capCombustible, setCapCombustible] = useState('');
-    const [tablero, setTablero] = useState('');
-    const [lucesDelanteras, setLucesDelanteras] = useState('');
-    const [lucesPosteriores, setLucesPosteriores] = useState('');
-    const [garantia, setGarantia] = useState('');
-    const [velocidad_maxima, setVelocidadMaxima] = useState('');
+    const [nombreColor, setnombreColor] = useState('');
     const [cabeceras, setCabeceras] = useState([]);
     const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
-    const [selectedElectronica, setSelectedElectronica] = useState(null);
+    const [selectedColor, setSelectedColor] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
 
-    const handleInsertElectronica = async () => {
-        const url = selectedElectronica && selectedElectronica.codigo_electronica
-            ? `${API}/bench/update_electronica/${selectedElectronica.codigo_electronica}`
-            : `${API}/bench/insert_electronica_otros`;
+    const handleInsertColor = async () => {
+        const url = selectedColor && selectedColor.codigo_color_bench
+            ? `${API}/bench/update_color/${selectedColor.codigo_color_bench}`
+            : `${API}/bench/insert_color`;
 
-        const method = selectedElectronica && selectedElectronica.codigo_electronica ? "PUT" : "POST";
+        const method = selectedColor && selectedColor.codigo_color_bench ? "PUT" : "POST";
 
         try {
             const res = await fetch(url, {
@@ -51,19 +47,14 @@ function CatElectronica() {
                     "Authorization": "Bearer " + jwt
                 },
                 body: JSON.stringify({
-                    capacidad_combustible: capCombustible,
-                    tablero: tablero,
-                    luces_delanteras: lucesDelanteras,
-                    luces_posteriores: lucesPosteriores,
-                    garantia: garantia,
-                    velocidad_maxima: velocidad_maxima
+                    nombre_color: nombreColor
                 })
             });
 
             const data = await res.json();
             if (res.ok) {
                 enqueueSnackbar(data.message || "Operación exitosa", { variant: "success" });
-                fetchElectronicaData();
+                fetchColorData();
                 setDialogOpen(false);
             } else {
                 enqueueSnackbar(data.error || "Error al guardar", { variant: "error" });
@@ -94,13 +85,13 @@ function CatElectronica() {
 
     useEffect(() => {
         getMenus();
-        fetchElectronicaData();
+        fetchColorData();
 
     }, [])
 
-    const fetchElectronicaData = async () => {
+    const fetchColorData = async () => {
         try {
-            const res = await fetch(`${API}/bench/get_electronica`, {
+            const res = await fetch(`${API}/bench/get_color`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -109,9 +100,9 @@ function CatElectronica() {
             });
             const data = await res.json();
             if (res.ok) {
-                setCabeceras(data); // <- carga los datos en la tabla
+                setCabeceras(data);
             } else {
-                enqueueSnackbar(data.error || "Error al obtener data de electrónica", { variant: "error" });
+                enqueueSnackbar(data.error || "Error al obtener data de colores", { variant: "error" });
             }
         } catch (error) {
             enqueueSnackbar("Error de conexión", { variant: "error" });
@@ -119,13 +110,8 @@ function CatElectronica() {
     };
 
     const columns = [
-        { name: "codigo_electronica", label: "Código" },
-        { name: "capacidad_combustible", label: "Capacidad combustible" },
-        { name: "tablero", label: "Tablero" },
-        { name: "luces_delanteras", label: "Luces delanteras" },
-        { name: "luces_posteriores", label: "Luces posteriores" },
-        { name: "garantia", label: "Garantía" },
-        { name: "velocidad_maxima", label: "Velocidad maxima" },
+        { name: "codigo_color_bench", label: "Código" },
+        { name: "nombre_color", label: "Nombre color" },
         { name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
@@ -144,14 +130,44 @@ function CatElectronica() {
         }
     ];
 
+    const handleUploadExcel = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async (evt) => {
+            const data = evt.target.result;
+            const workbook = XLSX.read(data, { type: "binary" });
+            const sheetName = workbook.SheetNames[0];
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+            try {
+                const res = await fetch(`${API}/bench/insert_color_batch`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + jwt,
+                    },
+                    body: JSON.stringify({ color: rows })
+                });
+
+                const responseData = await res.json();
+                if (res.ok) {
+                    enqueueSnackbar("Carga exitosa", { variant: "success" });
+                    fetchColorData();
+                } else {
+                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
+                }
+            } catch (error) {
+                enqueueSnackbar("Error inesperado", { variant: "error" });
+            }
+        };
+
+        reader.readAsBinaryString(file);
+    };
+
     const openEditDialog = (rowData) => {
-        setSelectedElectronica(rowData);
-        setCapCombustible(rowData.capacidad_combustible || '');
-        setTablero(rowData.tablero || '');
-        setLucesDelanteras(rowData.luces_delanteras || '');
-        setLucesDelanteras(rowData.luces_posteriores || '');
-        setGarantia(rowData.garantia || '');
-        setVelocidadMaxima(rowData.velocidad_maxima || '');
+        setSelectedColor(rowData);
+        setnombreColor(rowData.nombre_color || '');
         setDialogOpen(true);
     };
 
@@ -206,13 +222,8 @@ function CatElectronica() {
 
                     <Button
                         onClick={() => {
-                            setSelectedElectronica(null);
-                            setCapCombustible('');
-                            setTablero('');
-                            setLucesDelanteras('');
-                            setLucesPosteriores('');
-                            setGarantia('');
-                            setVelocidadMaxima('');
+                            setSelectedColor(null);
+                            setnombreColor('');
                             setDialogOpen(true);
                         }}
                         style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}
@@ -220,7 +231,7 @@ function CatElectronica() {
                         Insertar Nuevo
                     </Button>
 
-                    <Button onClick={fetchElectronicaData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar Electrónica</Button>
+                    <Button onClick={fetchColorData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar Todos</Button>
                 </Box>
 
                 <ThemeProvider theme={getMuiTheme()}>
@@ -228,20 +239,19 @@ function CatElectronica() {
                 </ThemeProvider>
 
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
-                    <DialogTitle>{selectedElectronica ? 'Actualizar Chasis' : 'Nuevo Chasis'}</DialogTitle>
+                    <DialogTitle>{selectedColor ? 'Actualizar Color' : 'Nuevo Color'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Capacidad combustible" value={capCombustible} onChange={(e) => setCapCombustible(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Tablero" value={tablero} onChange={(e) => setTablero(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Luces delanteras" value={lucesDelanteras} onChange={(e) => setLucesDelanteras(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Luces posteriores" value={lucesPosteriores} onChange={(e) => setLucesPosteriores(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Garantía" value={garantia} onChange={(e) => setGarantia(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Velocidad Máxima" value={velocidad_maxima} onChange={(e) => setVelocidadMaxima(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Nombre color" value={nombreColor} onChange={(e) => setnombreColor(e.target.value)} /></Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleInsertElectronica} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedElectronica ? 'Actualizar' : 'Guardar'}</Button>
+                        <Button onClick={handleInsertColor} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedColor ? 'Actualizar' : 'Guardar'}</Button>
+                        <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
+                            Cargar Excel
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                        </Button>
                     </DialogActions>
                 </Dialog>
             </div>
@@ -252,7 +262,7 @@ function CatElectronica() {
 export default function IntegrationNotistack() {
     return (
         <SnackbarProvider maxSnack={3}>
-            <CatElectronica />
+            <CatColor/>
         </SnackbarProvider>
     );
 }

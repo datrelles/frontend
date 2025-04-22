@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { makeStyles } from '@mui/styles';
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
 import Navbar0 from "../../Navbar0";
@@ -21,23 +20,14 @@ import DialogActions from "@mui/material/DialogActions";
 
 const API = process.env.REACT_APP_API;
 
-const useStyles = makeStyles({
-    datePickersContainer: {
-        display: 'flex',
-        gap: '15px',
-    },
-});
-
 function CatDimensionesPeso() {
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
-    const classes = useStyles();
     const [alturaTotal, setAlturaTotal] = useState('');
     const [longTotal, setLongTotal] = useState('');
     const [anchoTotal, setAnchoTotal] = useState('');
     const [pesoSeco, setPesoSeco] = useState('');
-
     const [cabeceras, setCabeceras] = useState([]);
     const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
@@ -98,16 +88,11 @@ function CatDimensionesPeso() {
         }
     };
 
-
-
     useEffect(() => {
-        const init = async () => {
+        getMenus();
+        fetchDimensionesData();
 
-            await getMenus();
-            await fetchDimensionesData();
-        };
-        init();
-    }, []);
+    }, [])
 
     const fetchDimensionesData = async () => {
         try {
@@ -208,9 +193,7 @@ function CatDimensionesPeso() {
                         <Button onClick={() => navigate(-1)}>Catálogos</Button>
                     </ButtonGroup>
                 </Box>
-
                 <Box>
-
                     <Button
                         onClick={() => {
                             setSelectedDimensiones(null);
@@ -222,9 +205,8 @@ function CatDimensionesPeso() {
                         }}
                         style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}
                     >
-                        Insertar Chasis
+                        Insertar Nuevo
                     </Button>
-
                     <Button onClick={fetchDimensionesData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar Dimensiones</Button>
                 </Box>
 

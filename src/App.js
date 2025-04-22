@@ -73,6 +73,8 @@ import { OpagoManager } from "./components/garantias/laborCase/laborCase";
 import  CatChasis from "./components/marketing/catalogos/catChasis";
 import  CatDimensionesPeso from "./components/marketing/catalogos/catDimensionesPeso";
 import  CatElectronica from "./components/marketing/catalogos/catElectronica";
+import  CatMotor from "./components/marketing/catalogos/catMotor";
+import  CatColor from "./components/marketing/catalogos/catColor";
 ///SellManagerB2B
 const API = process.env.REACT_APP_API;
 function App() {
@@ -207,6 +209,8 @@ function App() {
                   <Route exact path="/catalogo_chasis" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatChasis/></Protected>}/>
                   <Route exact path="/catalogo_dim_peso" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatDimensionesPeso/></Protected>}/>
                   <Route exact path="/catalogo_electronica" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatElectronica/></Protected>}/>
+                  <Route exact path="/catalogo_motor" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatMotor/></Protected>}/>
+                  <Route exact path="/catalogo_color" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatColor/></Protected>}/>
                   <Route exact path="/settings" element={<Settings/>}></Route>
                 </Routes>
               </>            
