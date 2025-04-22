@@ -21,21 +21,23 @@ export default function CustomDialog({
         <Button onClick={handleCancel} color="primary">
           Cancelar
         </Button>
-        <Button
-          onClick={handleConfirm}
-          style={{
-            marginBottom: "10px",
-            marginTop: "10px",
-            backgroundColor: "firebrick",
-            color: "white",
-            height: "30px",
-            width: "100px",
-            borderRadius: "5px",
-            marginRight: "15px",
-          }}
-        >
-          {confirmText}
-        </Button>
+        {handleConfirm && (
+          <Button
+            onClick={handleConfirm}
+            style={{
+              marginBottom: "10px",
+              marginTop: "10px",
+              backgroundColor: "firebrick",
+              color: "white",
+              height: "30px",
+              width: "100px",
+              borderRadius: "5px",
+              marginRight: "15px",
+            }}
+          >
+            {confirmText}
+          </Button>
+        )}
       </DialogActions>
     </Dialog>
   );

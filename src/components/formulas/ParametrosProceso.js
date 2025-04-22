@@ -504,7 +504,6 @@ export default function ParametrosProceso() {
         open={openAdd}
         handleClose={handleClickCloseAdd}
         handleCancel={handleClickCloseAdd}
-        handleConfirm={handleAdd}
       />
       <CustomDialog
         titulo={`Modificar Parámetro ${codParametro} Del Proceso ${codProceso}`}
