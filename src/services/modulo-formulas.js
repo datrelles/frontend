@@ -232,9 +232,9 @@ export default class API {
     return await axios.get(`${this.#URL}/funciones`, this.#headers);
   });
 
-  createFuncion = this.#errorHandler(async (modulo, data) => {
+  createFuncion = this.#errorHandler(async (data) => {
     return await axios.post(
-      `${this.#URL}/modulos/${modulo}/funciones`,
+      `${this.#URL}/funciones`,
       data,
       this.#headers
     );

@@ -40,7 +40,6 @@ export default function Funciones() {
   const [estado, setEstado] = useState(true);
   const [observaciones, setObservaciones] = useState("");
   const [retorno, setRetorno] = useState("Seleccione");
-  const [tipo, setTipo] = useState("");
 
   const getMenus = async () => {
     try {
@@ -79,9 +78,8 @@ export default function Funciones() {
         setEstado(true);
         setObservaciones("");
         setRetorno("Seleccione");
-        setTipo("");
       })
-      .catch((err) => toast.error(err.mensaje));
+      .catch((err) => toast.error(err.message));
   };
 
   const getFunciones = async () => {
@@ -111,9 +109,8 @@ export default function Funciones() {
         setEstado(true);
         setObservaciones("");
         setRetorno("");
-        setTipo("");
       })
-      .catch((err) => toast.error(err.mensaje));
+      .catch((err) => toast.error(err.message));
   };
 
   const handleDelete = (rowsDeleted) => {
@@ -145,7 +142,6 @@ export default function Funciones() {
     setEstado(row.estado === 1);
     setObservaciones(row.observaciones ?? "");
     setRetorno(row.tipo_retorno);
-    setTipo(row.tipo_objeto);
     handleClickOpenUpdate();
   };
 
@@ -158,7 +154,6 @@ export default function Funciones() {
     setEstado(true);
     setObservaciones("");
     setRetorno("Seleccione");
-    setTipo("");
   };
 
   const handleClickCloseCreate = () => {
@@ -266,11 +261,11 @@ export default function Funciones() {
       <Grid item xs={4}>
         <Autocomplete
           id="Módulo"
-          options={modulos}
+          options={modulos.map((m) => m.sistema)}
           onChange={(e, value) => {
             if (value) {
-              const modulo = modulos.find((m) => m.nombre === value);
-              setCodModulo(modulo.cod_modulo);
+              const modulo = modulos.find((m) => m.sistema === value);
+              setCodModulo(modulo.cod_sistema);
             } else {
               setCodModulo("");
             }
@@ -294,6 +289,7 @@ export default function Funciones() {
       </Grid>
       <Grid item xs={4}>
         <TextField
+          required
           margin="dense"
           id="cod_funcion"
           label="Código"
@@ -306,6 +302,7 @@ export default function Funciones() {
       </Grid>
       <Grid item xs={4}>
         <TextField
+          required
           select
           label="Tipo retorno"
           fullWidth
@@ -323,6 +320,7 @@ export default function Funciones() {
       </Grid>
       <Grid item xs={6}>
         <TextField
+          required
           margin="dense"
           id="nombre"
           label="Nombre"
@@ -334,6 +332,7 @@ export default function Funciones() {
       </Grid>
       <Grid item xs={6}>
         <TextField
+          required
           margin="dense"
           id="nombre_base_datos"
           label="Nombre base de datos"
