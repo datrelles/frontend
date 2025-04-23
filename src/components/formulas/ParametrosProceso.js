@@ -2,18 +2,23 @@ import { toast } from "react-toastify";
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
-import { FormControlLabel, Checkbox, IconButton, Tooltip } from "@mui/material";
+import { IconButton, Tooltip } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CalculateIcon from "@mui/icons-material/Calculate";
 import { useAuthContext } from "../../context/authContext";
-import Grid from "@mui/material/Grid";
-import TextField from "@mui/material/TextField";
 import API from "../../services/modulo-formulas";
 import { formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
 import Header from "./common/Header";
 import BtnNuevo from "./common/BtnNuevo";
 import Tabla from "./common/Tabla";
 import CustomDialog from "./common/CustomDialog";
+import {
+  createCustomComponentItem,
+  createTextFieldItem,
+} from "./common/form-generators";
+import CustomGrid from "./common/CustomGrid";
+import Check from "./common/Check";
+import MainComponent from "./common/MainComponent";
 
 export default function ParametrosProceso() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
@@ -370,6 +375,28 @@ export default function ParametrosProceso() {
     },
   };
 
+  const checkboxEstado = (
+    <Check
+      label="Activo"
+      checked={estadoParametro}
+      setChecked={setEstadoParametro}
+    />
+  );
+
+  const updateContentItems = [
+    createTextFieldItem(6, "cod_parametro", "Código", codParametro),
+    createTextFieldItem(6, "nombre", "Nombre", nombreParametro),
+    createTextFieldItem(12, "descripcion", "Descripción", descripcionParametro),
+    createTextFieldItem(
+      12,
+      "orden",
+      "Orden",
+      ordenParametro,
+      setOrdenParametro
+    ),
+    createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
+  ];
+
   const addContent = (
     <Tabla
       title="Parámetros"
@@ -382,73 +409,59 @@ export default function ParametrosProceso() {
     />
   );
 
-  const updateContent = (
-    <>
-      <Grid container spacing={2}>
-        <Grid item xs={6}>
-          <TextField
-            disabled
-            margin="dense"
-            id="cod_parametro"
-            label="Código"
-            type="text"
-            fullWidth
-            value={codParametro}
-          />
-        </Grid>
-        <Grid item xs={6}>
-          <TextField
-            disabled
-            margin="dense"
-            id="nombre"
-            label="Nombre"
-            type="text"
-            fullWidth
-            value={nombreParametro}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            disabled
-            margin="dense"
-            id="descripcion"
-            label="Descripción"
-            type="text"
-            fullWidth
-            value={descripcionParametro}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            margin="dense"
-            id="orden"
-            label="Orden"
-            type="number"
-            fullWidth
-            value={ordenParametro}
-            onChange={(e) => setOrdenParametro(e.target.value)}
-          />
-        </Grid>
-      </Grid>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <FormControlLabel
-          control={
-            <Checkbox
-              label="Estado"
-              checked={estadoParametro}
-              onChange={(e) => setEstadoParametro(e.target.checked)}
-            />
-          }
-          label="Activo"
+  const updateContent = <CustomGrid items={updateContentItems} />;
+
+  const header = <Header menus={menus} />;
+
+  const btnNuevo = (
+    <BtnNuevo
+      onClick={handleClickOpenAdd}
+      disabled={!codProceso}
+      texto={`Agregar parámetro a ${codProceso}`}
+    />
+  );
+
+  const boxWithTables = (
+    <Box sx={{ display: "flex", gap: 4 }}>
+      <Box sx={{ flex: 1 }}>
+        <Tabla
+          title="Procesos"
+          data={procesos}
+          columns={columnsMaster}
+          options={optionsMaster}
         />
-      </div>
-    </>
+      </Box>
+      <Box sx={{ flex: 1 }}>
+        <Tabla
+          title={`Parámetros del Proceso ${codProceso ?? ""}`}
+          data={parametrosDetail}
+          columns={columnsDetail}
+          options={optionsDetail}
+        />
+      </Box>
+    </Box>
+  );
+
+  const addDialog = (
+    <CustomDialog
+      titulo="Agregar Parámetro"
+      contenido={addContent}
+      open={openAdd}
+      handleClose={handleClickCloseAdd}
+      handleCancel={handleClickCloseAdd}
+    />
+  );
+
+  const updateDialog = (
+    <CustomDialog
+      titulo={`Modificar Parámetro ${codParametro} Del Proceso ${codProceso}`}
+      contenido={updateContent}
+      open={openUpdate}
+      handleClose={handleClickCloseUpdate}
+      handleCancel={handleClickCloseUpdate}
+      handleConfirm={handleUpdate}
+      confirmText="Actualizar"
+    />
   );
 
   useEffect(() => {
@@ -465,55 +478,8 @@ export default function ParametrosProceso() {
   }, [codProceso, codParametro]);
 
   return (
-    <div
-      style={{
-        marginTop: "150px",
-        top: 0,
-        left: 0,
-        width: "100%",
-        zIndex: 1000,
-      }}
-    >
-      <Header menus={menus} />
-      <BtnNuevo
-        onClick={handleClickOpenAdd}
-        disabled={!codProceso}
-        texto={`Agregar parámetro a ${codProceso}`}
-      />
-      <Box sx={{ display: "flex", gap: 4 }}>
-        <Box sx={{ flex: 1 }}>
-          <Tabla
-            title="Procesos"
-            data={procesos}
-            columns={columnsMaster}
-            options={optionsMaster}
-          />
-        </Box>
-        <Box sx={{ flex: 1 }}>
-          <Tabla
-            title={`Parámetros del Proceso ${codProceso ?? ""}`}
-            data={parametrosDetail}
-            columns={columnsDetail}
-            options={optionsDetail}
-          />
-        </Box>
-      </Box>
-      <CustomDialog
-        titulo="Agregar Parámetro"
-        contenido={addContent}
-        open={openAdd}
-        handleClose={handleClickCloseAdd}
-        handleCancel={handleClickCloseAdd}
-      />
-      <CustomDialog
-        titulo={`Modificar Parámetro ${codParametro} Del Proceso ${codProceso}`}
-        contenido={updateContent}
-        open={openUpdate}
-        handleClose={handleClickCloseUpdate}
-        handleCancel={handleClickCloseUpdate}
-        handleConfirm={handleUpdate}
-        confirmText="Actualizar"
-      />
-    </div>
+    <MainComponent
+      components={[header, btnNuevo, boxWithTables, addDialog, updateDialog]}
+    />
   );
 }
