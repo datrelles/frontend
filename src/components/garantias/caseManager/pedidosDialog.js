@@ -618,7 +618,7 @@ export const PedidoDialog = ({
         )
     }
 
-    // Dentro de PedidoDialog, antes del return:
+    // Dentro de PedidoDialog, antes del return 0:
     const resetProductDialog = () => {
         radarStopRef.current = false;
         radarAbortRef.current = false; //
