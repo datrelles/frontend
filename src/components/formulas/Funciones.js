@@ -1,14 +1,6 @@
 import { toast } from "react-toastify";
 import { useState, useEffect, useMemo } from "react";
-import {
-  FormControlLabel,
-  Checkbox,
-  InputLabel,
-  FormControl,
-  Select,
-  MenuItem,
-  Autocomplete,
-} from "@mui/material";
+import { FormControlLabel, Checkbox } from "@mui/material";
 import { useAuthContext } from "../../context/authContext";
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
@@ -18,6 +10,8 @@ import Header from "./common/Header";
 import Tabla from "./common/Tabla";
 import BtnNuevo from "./common/BtnNuevo";
 import CustomDialog from "./common/CustomDialog";
+import AutocompleteObject from "./common/AutocompleteObjects";
+import Select from "./common/Select";
 
 const tipos_retorno = ["NUMBER", "VARCHAR2"];
 const shapeModulo = {
@@ -261,58 +255,31 @@ export default function Funciones() {
     },
   };
 
-  const autocomplete = (
-    <Autocomplete
+  const autocompleteModulos = (
+    <AutocompleteObject
       id="Módulo"
-      options={modulo.cod_sistema ? modulos : [shapeModulo, ...modulos]}
-      getOptionLabel={(option) => option.sistema}
       value={modulo}
-      onChange={(e, value) => {
-        setModulo(value ?? shapeModulo);
-      }}
-      isOptionEqualToValue={(option, value) =>
-        option.cod_sistema === value?.cod_sistema
-      }
-      fullWidth
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          margin="dense"
-          required
-          label="Módulo"
-          type="text"
-          className="form-control"
-          InputProps={{
-            ...params.InputProps,
-          }}
-        />
-      )}
+      valueId="cod_sistema"
+      shape={shapeModulo}
+      options={modulos}
+      optionLabel="sistema"
+      setValue={setModulo}
     />
   );
 
   const selectRetorno = (
-    <TextField
-      required
-      select
+    <Select
       label="Tipo retorno"
-      fullWidth
-      margin="dense"
       value={retorno}
-      onChange={(e) => setRetorno(e.target.value)}
-    >
-      <MenuItem value="Seleccione">Seleccione</MenuItem>
-      {tipos_retorno.map((t) => (
-        <MenuItem key={t} value={t}>
-          {t}
-        </MenuItem>
-      ))}
-    </TextField>
+      setValue={setRetorno}
+      options={tipos_retorno}
+    />
   );
 
   const createContent = (
     <Grid container spacing={2}>
       <Grid item xs={4}>
-        {autocomplete}
+        {autocompleteModulos}
       </Grid>
       <Grid item xs={4}>
         <TextField
@@ -372,7 +339,7 @@ export default function Funciones() {
     <>
       <Grid container spacing={2}>
         <Grid item xs={4}>
-          {autocomplete}
+          {autocompleteModulos}
         </Grid>
         <Grid item xs={4}>
           <TextField
