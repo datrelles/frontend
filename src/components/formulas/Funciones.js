@@ -1,6 +1,5 @@
 import { toast } from "react-toastify";
 import { useState, useEffect, useMemo } from "react";
-import { FormControlLabel, Checkbox } from "@mui/material";
 import { useAuthContext } from "../../context/authContext";
 import API from "../../services/modulo-formulas";
 import { formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
@@ -11,10 +10,12 @@ import CustomDialog from "./common/CustomDialog";
 import AutocompleteObject from "./common/AutocompleteObjects";
 import Select from "./common/Select";
 import CustomGrid from "./common/CustomGrid";
+import Check from "./common/Check";
 import {
   createCustomComponentItem,
   createTextFieldItem,
 } from "./common/form-generators";
+import MainComponent from "./common/MainComponent";
 
 const tipos_retorno = ["NUMBER", "VARCHAR2"];
 const shapeModulo = {
@@ -279,6 +280,10 @@ export default function Funciones() {
     />
   );
 
+  const checkboxEstado = (
+    <Check label="Activa" checked={estado} setChecked={setEstado} />
+  );
+
   const createContentItems = [
     createCustomComponentItem(4, "autocompleteModulos", autocompleteModulos),
     createTextFieldItem(
@@ -329,35 +334,12 @@ export default function Funciones() {
       setObservaciones,
       false
     ),
+    createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
   ];
 
   const createContent = <CustomGrid items={createContentItems} />;
 
-  const updateContent = (
-    <>
-      <CustomGrid items={updateContentItems} />
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <FormControlLabel
-          control={
-            <Checkbox
-              label="Estado"
-              checked={estado}
-              onChange={(e) => {
-                setEstado(e.target.checked);
-              }}
-            />
-          }
-          label="Activa"
-        />
-      </div>
-    </>
-  );
+  const updateContent = <CustomGrid items={updateContentItems} />;
 
   useEffect(() => {
     document.title = "Funciones";
@@ -370,41 +352,41 @@ export default function Funciones() {
     getFunciones();
   }, [openCreate, openUpdate]);
 
+  const header = <Header menus={menus} />;
+  const btnNuevo = <BtnNuevo onClick={handleClickOpenCreate} />;
+  const tabla = (
+    <Tabla
+      title="Funciones"
+      data={funciones}
+      columns={columns}
+      options={options}
+    />
+  );
+  const createDialog = (
+    <CustomDialog
+      titulo="Registrar Función"
+      contenido={createContent}
+      open={openCreate}
+      handleClose={handleClickCloseCreate}
+      handleCancel={handleClickCloseCreate}
+      handleConfirm={handleCreate}
+    />
+  );
+  const updateDialog = (
+    <CustomDialog
+      titulo="Actualizar Función"
+      contenido={updateContent}
+      open={openUpdate}
+      handleClose={handleClickCloseUpdate}
+      handleCancel={handleClickCloseUpdate}
+      handleConfirm={handleUpdate}
+      confirmText="Actualizar"
+    />
+  );
+
   return (
-    <div
-      style={{
-        marginTop: "150px",
-        top: 0,
-        left: 0,
-        width: "100%",
-        zIndex: 1000,
-      }}
-    >
-      <Header menus={menus} />
-      <BtnNuevo onClick={handleClickOpenCreate} />
-      <Tabla
-        title="Funciones"
-        data={funciones}
-        columns={columns}
-        options={options}
-      />
-      <CustomDialog
-        titulo="Registrar Función"
-        contenido={createContent}
-        open={openCreate}
-        handleClose={handleClickCloseCreate}
-        handleCancel={handleClickCloseCreate}
-        handleConfirm={handleCreate}
-      />
-      <CustomDialog
-        titulo="Actualizar Función"
-        contenido={updateContent}
-        open={openUpdate}
-        handleClose={handleClickCloseUpdate}
-        handleCancel={handleClickCloseUpdate}
-        handleConfirm={handleUpdate}
-        confirmText="Actualizar"
-      />
-    </div>
+    <MainComponent
+      components={[header, btnNuevo, tabla, createDialog, updateDialog]}
+    />
   );
 }
