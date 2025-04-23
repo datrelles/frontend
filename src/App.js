@@ -69,12 +69,12 @@ import { ParametrizacionModelosDespieceAnio } from "./components/inventario/upda
 import { CreditoDirectoManager } from "./components/ventas/approveCredit";
 import { SellManagerB2B } from "./components/ventas/b2bCaseManager";
 import { AdminTallerUsuarios } from "./components/garantias/adminTallerUsuarios/adminTallerUsuarios";
-import Procesos from "./components/formulas/Procesos";
-import Formulas from "./components/formulas/Formulas";
-import Parametros from "./components/formulas/Parametros";
-import ParametrosProceso from "./components/formulas/ParametrosProceso";
-import FactoresCalculo from "./components/formulas/FactoresCalculo";
-import Funciones from "./components/formulas/Funciones";
+import Procesos from "./components/formulas/procesos";
+import Formulas from "./components/formulas/formulas";
+import Parametros from "./components/formulas/parametros";
+import ParametrosProceso from "./components/formulas/parametros-proceso";
+import FactoresCalculo from "./components/formulas/factores-calculo";
+import Funciones from "./components/formulas/funciones";
 
 ///SellManagerB2B
 const API = process.env.REACT_APP_API;

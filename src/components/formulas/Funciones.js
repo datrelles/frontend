@@ -3,19 +3,19 @@ import { useState, useEffect, useMemo } from "react";
 import { useAuthContext } from "../../context/authContext";
 import API from "../../services/modulo-formulas";
 import { formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
-import Header from "./common/Header";
-import Tabla from "./common/Tabla";
-import BtnNuevo from "./common/BtnNuevo";
-import CustomDialog from "./common/CustomDialog";
-import AutocompleteObject from "./common/AutocompleteObjects";
-import Select from "./common/Select";
-import CustomGrid from "./common/CustomGrid";
-import Check from "./common/Check";
+import Header from "./common/header";
+import Tabla from "./common/tabla";
+import BtnNuevo from "./common/btn-nuevo";
+import CustomDialog from "./common/custom-dialog";
+import AutocompleteObject from "./common/autocomplete-objects";
+import Select from "./common/select";
+import CustomGrid from "./common/custom-grid";
+import Check from "./common/check";
 import {
   createCustomComponentItem,
   createTextFieldItem,
 } from "./common/form-generators";
-import MainComponent from "./common/MainComponent";
+import MainComponent from "./common/main-component";
 
 const tipos_retorno = ["NUMBER", "VARCHAR2"];
 const shapeModulo = {

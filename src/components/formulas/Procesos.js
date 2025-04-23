@@ -3,17 +3,17 @@ import { useState, useEffect, useMemo } from "react";
 import { useAuthContext } from "../../context/authContext";
 import API from "../../services/modulo-formulas";
 import { formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
-import Header from "./common/Header";
-import BtnNuevo from "./common/BtnNuevo";
-import Tabla from "./common/Tabla";
-import CustomDialog from "./common/CustomDialog";
+import Header from "./common/header";
+import BtnNuevo from "./common/btn-nuevo";
+import Tabla from "./common/tabla";
+import CustomDialog from "./common/custom-dialog";
 import {
   createCustomComponentItem,
   createTextFieldItem,
 } from "./common/form-generators";
-import CustomGrid from "./common/CustomGrid";
-import Check from "./common/Check";
-import MainComponent from "./common/MainComponent";
+import CustomGrid from "./common/custom-grid";
+import Check from "./common/check";
+import MainComponent from "./common/main-component";
 
 export default function Procesos() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
