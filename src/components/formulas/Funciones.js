@@ -2,8 +2,6 @@ import { toast } from "react-toastify";
 import { useState, useEffect, useMemo } from "react";
 import { FormControlLabel, Checkbox } from "@mui/material";
 import { useAuthContext } from "../../context/authContext";
-import Grid from "@mui/material/Grid";
-import TextField from "@mui/material/TextField";
 import API from "../../services/modulo-formulas";
 import { formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
 import Header from "./common/Header";
@@ -12,6 +10,11 @@ import BtnNuevo from "./common/BtnNuevo";
 import CustomDialog from "./common/CustomDialog";
 import AutocompleteObject from "./common/AutocompleteObjects";
 import Select from "./common/Select";
+import CustomGrid from "./common/CustomGrid";
+import {
+  createCustomComponentItem,
+  createTextFieldItem,
+} from "./common/form-generators";
 
 const tipos_retorno = ["NUMBER", "VARCHAR2"];
 const shapeModulo = {
@@ -276,122 +279,63 @@ export default function Funciones() {
     />
   );
 
-  const createContent = (
-    <Grid container spacing={2}>
-      <Grid item xs={4}>
-        {autocompleteModulos}
-      </Grid>
-      <Grid item xs={4}>
-        <TextField
-          required
-          margin="dense"
-          id="cod_funcion"
-          label="Código"
-          type="text"
-          placeholder="FUNC###"
-          fullWidth
-          value={codFuncion}
-          onChange={(e) => setCodFuncion(e.target.value)}
-        />
-      </Grid>
-      <Grid item xs={4}>
-        {selectRetorno}
-      </Grid>
-      <Grid item xs={6}>
-        <TextField
-          required
-          margin="dense"
-          id="nombre"
-          label="Nombre"
-          type="text"
-          fullWidth
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-        />
-      </Grid>
-      <Grid item xs={6}>
-        <TextField
-          required
-          margin="dense"
-          id="nombre_base_datos"
-          label="Nombre base de datos"
-          type="text"
-          fullWidth
-          value={nombreBD}
-          onChange={(e) => setNombreBD(e.target.value)}
-        />
-      </Grid>
-      <Grid item xs={12}>
-        <TextField
-          margin="dense"
-          id="observaciones"
-          label="Observaciones"
-          type="text"
-          fullWidth
-          value={observaciones}
-          onChange={(e) => setObservaciones(e.target.value)}
-        />
-      </Grid>
-    </Grid>
-  );
+  const createContentItems = [
+    createCustomComponentItem(4, "autocompleteModulos", autocompleteModulos),
+    createTextFieldItem(
+      4,
+      "cod_funcion",
+      "Código",
+      codFuncion,
+      setCodFuncion,
+      true,
+      "FUNC###"
+    ),
+    createCustomComponentItem(4, "selectRetorno", selectRetorno),
+    createTextFieldItem(6, "nombre", "Nombre", nombre, setNombre),
+    createTextFieldItem(
+      6,
+      "nombre_base_datos",
+      "Nombre base de datos",
+      nombreBD,
+      setNombreBD
+    ),
+    createTextFieldItem(
+      12,
+      "observaciones",
+      "Observaciones",
+      observaciones,
+      setObservaciones,
+      false
+    ),
+  ];
+
+  const updateContentItems = [
+    createCustomComponentItem(4, "autocompleteModulos", autocompleteModulos),
+    createTextFieldItem(4, "cod_funcion", "Código", codFuncion),
+    createCustomComponentItem(4, "selectRetorno", selectRetorno),
+    createTextFieldItem(6, "nombre", "Nombre", nombre, setNombre),
+    createTextFieldItem(
+      6,
+      "nombre_base_datos",
+      "Nombre base de datos",
+      nombreBD,
+      setNombreBD
+    ),
+    createTextFieldItem(
+      12,
+      "observaciones",
+      "Observaciones",
+      observaciones,
+      setObservaciones,
+      false
+    ),
+  ];
+
+  const createContent = <CustomGrid items={createContentItems} />;
 
   const updateContent = (
     <>
-      <Grid container spacing={2}>
-        <Grid item xs={4}>
-          {autocompleteModulos}
-        </Grid>
-        <Grid item xs={4}>
-          <TextField
-            disabled
-            margin="dense"
-            id="cod_formula"
-            label="Código"
-            type="text"
-            placeholder="FORMU###"
-            fullWidth
-            value={codFuncion}
-          />
-        </Grid>
-        <Grid item xs={4}>
-          {selectRetorno}
-        </Grid>
-        <Grid item xs={6}>
-          <TextField
-            required
-            margin="dense"
-            id="nombre"
-            label="Nombre"
-            type="text"
-            fullWidth
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={6}>
-          <TextField
-            required
-            margin="dense"
-            id="nombre_base_datos"
-            label="Nombre base de datos"
-            type="text"
-            fullWidth
-            value={nombreBD}
-            onChange={(e) => setNombreBD(e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            margin="dense"
-            id="observaciones"
-            label="Observaciones"
-            type="text"
-            fullWidth
-            value={observaciones}
-            onChange={(e) => setObservaciones(e.target.value)}
-          />
-        </Grid>
-      </Grid>
+      <CustomGrid items={updateContentItems} />
       <div
         style={{
           display: "flex",
