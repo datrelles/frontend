@@ -1,15 +1,19 @@
 import { toast } from "react-toastify";
 import { useState, useEffect, useMemo } from "react";
-import { FormControlLabel, Checkbox } from "@mui/material";
 import { useAuthContext } from "../../context/authContext";
-import Grid from "@mui/material/Grid";
-import TextField from "@mui/material/TextField";
 import API from "../../services/modulo-formulas";
 import { formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
 import Header from "./common/Header";
 import BtnNuevo from "./common/BtnNuevo";
 import Tabla from "./common/Tabla";
 import CustomDialog from "./common/CustomDialog";
+import Check from "./common/Check";
+import CustomGrid from "./common/CustomGrid";
+import {
+  createCustomComponentItem,
+  createTextFieldItem,
+} from "./common/form-generators";
+import MainComponent from "./common/MainComponent";
 
 export default function Parametros() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
@@ -201,103 +205,83 @@ export default function Parametros() {
     },
   };
 
-  const createContent = (
-    <Grid container spacing={2}>
-      <Grid item xs={6}>
-        <TextField
-          margin="dense"
-          id="cod_parametro"
-          label="Código"
-          type="text"
-          placeholder="PARAM###"
-          fullWidth
-          value={codParametro}
-          onChange={(e) => setCodParametro(e.target.value)}
-        />
-      </Grid>
-      <Grid item xs={6}>
-        <TextField
-          margin="dense"
-          id="nombre"
-          label="Nombre"
-          type="text"
-          fullWidth
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-        />
-      </Grid>
-      <Grid item xs={12}>
-        <TextField
-          margin="dense"
-          id="descripcion"
-          label="Descripción"
-          type="text"
-          fullWidth
-          value={descripcion}
-          onChange={(e) => setDescripcion(e.target.value)}
-        />
-      </Grid>
-    </Grid>
+  const checkboxEstado = (
+    <Check label="Activo" checked={estado} setChecked={setEstado} />
   );
 
-  const updateContent = (
-    <>
-      <Grid container spacing={2}>
-        <Grid item xs={6}>
-          <TextField
-            disabled
-            margin="dense"
-            id="cod_parametro"
-            label="Código"
-            type="text"
-            fullWidth
-            value={codParametro}
-          />
-        </Grid>
-        <Grid item xs={6}>
-          <TextField
-            margin="dense"
-            id="nombre"
-            label="Nombre"
-            type="text"
-            fullWidth
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            margin="dense"
-            id="descripcion"
-            label="Descripción"
-            type="text"
-            fullWidth
-            value={descripcion}
-            onChange={(e) => setDescripcion(e.target.value)}
-          />
-        </Grid>
-      </Grid>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <FormControlLabel
-          control={
-            <Checkbox
-              label="Estado"
-              checked={estado}
-              onChange={(e) => {
-                setEstado(e.target.checked);
-              }}
-            />
-          }
-          label="Activo"
-        />
-      </div>
-    </>
+  const createContentItems = [
+    createTextFieldItem(
+      6,
+      "cod_parametro",
+      "Código",
+      codParametro,
+      setCodParametro,
+      true,
+      "PARAM###"
+    ),
+    createTextFieldItem(6, "nombre", "Nombre", nombre, setNombre),
+    createTextFieldItem(
+      12,
+      "descripcion",
+      "Descripción",
+      descripcion,
+      setDescripcion,
+      false
+    ),
+  ];
+
+  const updateContentItems = [
+    createTextFieldItem(6, "cod_parametro", "Código", codParametro),
+    createTextFieldItem(6, "nombre", "Nombre", nombre, setNombre),
+    createTextFieldItem(
+      12,
+      "descripcion",
+      "Descripción",
+      descripcion,
+      setDescripcion,
+      false
+    ),
+    createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
+  ];
+
+  const createContent = <CustomGrid items={createContentItems} />;
+
+  const updateContent = <CustomGrid items={updateContentItems} />;
+
+  const header = <Header menus={menus} />;
+
+  const btnNuevo = <BtnNuevo onClick={handleClickOpenCreate} />;
+
+  const tabla = (
+    <Tabla
+      title="Parámetros"
+      data={parametros}
+      columns={columns}
+      options={options}
+    />
+  );
+
+  const createDialog = (
+    <CustomDialog
+      titulo="Registrar Parámetro"
+      contenido={createContent}
+      open={openCreate}
+      handleClose={handleClickCloseCreate}
+      handleCancel={handleClickCloseCreate}
+      handleConfirm={handleCreate}
+    />
+  );
+
+  const updateDialog = (
+    <CustomDialog
+      titulo="Actualizar Parámetro"
+      contenido={updateContent}
+      open={openUpdate}
+      handleClose={handleClickCloseUpdate}
+      handleCancel={handleClickCloseUpdate}
+      handleConfirm={handleUpdate}
+      confirmText="Actualizar"
+    />
   );
 
   useEffect(() => {
@@ -311,40 +295,8 @@ export default function Parametros() {
   }, [openCreate, openUpdate]);
 
   return (
-    <div
-      style={{
-        marginTop: "150px",
-        top: 0,
-        left: 0,
-        width: "100%",
-        zIndex: 1000,
-      }}
-    >
-      <Header menus={menus} />
-      <BtnNuevo onClick={handleClickOpenCreate} />
-      <Tabla
-        title="Parámetros"
-        data={parametros}
-        columns={columns}
-        options={options}
-      />
-      <CustomDialog
-        titulo="Registrar Parámetro"
-        contenido={createContent}
-        open={openCreate}
-        handleClose={handleClickCloseCreate}
-        handleCancel={handleClickCloseCreate}
-        handleConfirm={handleCreate}
-      />
-      <CustomDialog
-        titulo="Actualizar Parámetro"
-        contenido={updateContent}
-        open={openUpdate}
-        handleClose={handleClickCloseUpdate}
-        handleCancel={handleClickCloseUpdate}
-        handleConfirm={handleUpdate}
-        confirmText="Actualizar"
-      />
-    </div>
+    <MainComponent
+      components={[header, btnNuevo, tabla, createDialog, updateDialog]}
+    />
   );
 }
