@@ -20,6 +20,10 @@ import BtnNuevo from "./common/BtnNuevo";
 import CustomDialog from "./common/CustomDialog";
 
 const tipos_retorno = ["NUMBER", "VARCHAR2"];
+const shapeModulo = {
+  cod_sistema: "",
+  sistema: "Seleccione",
+};
 
 export default function Funciones() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
@@ -34,7 +38,7 @@ export default function Funciones() {
   const [openCreate, setOpenCreate] = useState(false);
   const [openUpdate, setOpenUpdate] = useState(false);
   const [codFuncion, setCodFuncion] = useState("");
-  const [codModulo, setCodModulo] = useState("");
+  const [modulo, setModulo] = useState(shapeModulo);
   const [nombre, setNombre] = useState("");
   const [nombreBD, setNombreBD] = useState("");
   const [estado, setEstado] = useState(true);
@@ -62,7 +66,7 @@ export default function Funciones() {
     APIService.createFuncion({
       empresa: enterpriseShineray,
       cod_funcion: codFuncion,
-      cod_modulo: codModulo,
+      cod_modulo: modulo.cod_sistema,
       nombre,
       nombre_base_datos: nombreBD,
       observaciones,
@@ -72,7 +76,7 @@ export default function Funciones() {
         toast.success(res);
         setOpenCreate(false);
         setCodFuncion("");
-        setCodModulo("");
+        setModulo(shapeModulo);
         setNombre("");
         setNombreBD("");
         setEstado(true);
@@ -93,7 +97,7 @@ export default function Funciones() {
   const handleUpdate = (e) => {
     e.preventDefault();
     APIService.updateFuncion(codFuncion, {
-      cod_modulo: codModulo,
+      cod_modulo: modulo.cod_sistema,
       nombre,
       nombre_base_datos: nombreBD,
       estado,
@@ -104,7 +108,7 @@ export default function Funciones() {
         toast.success(res);
         setOpenUpdate(false);
         setCodFuncion("");
-        setCodModulo("");
+        setModulo(shapeModulo);
         setNombre("");
         setNombreBD("");
         setEstado(true);
@@ -137,7 +141,7 @@ export default function Funciones() {
   const handleRowClick = (rowData, rowMeta) => {
     const row = funciones.filter((item) => item.cod_funcion === rowData[1])[0];
     setCodFuncion(row.cod_funcion);
-    setCodModulo(row.cod_modulo);
+    setModulo(modulos.find((m) => m.cod_sistema === row.cod_modulo));
     setNombre(row.nombre);
     setNombreBD(row.nombre_base_datos);
     setEstado(row.estado === 1);
@@ -149,7 +153,7 @@ export default function Funciones() {
   const handleClickOpenCreate = () => {
     setOpenCreate(true);
     setCodFuncion("");
-    setCodModulo("");
+    setModulo(shapeModulo);
     setNombre("");
     setNombreBD("");
     setEstado(true);
@@ -260,15 +264,15 @@ export default function Funciones() {
   const autocomplete = (
     <Autocomplete
       id="Módulo"
-      options={modulos.map((m) => m.sistema)}
+      options={modulo.cod_sistema ? modulos : [shapeModulo, ...modulos]}
+      getOptionLabel={(option) => option.sistema}
+      value={modulo}
       onChange={(e, value) => {
-        if (value) {
-          const modulo = modulos.find((m) => m.sistema === value);
-          setCodModulo(modulo.cod_sistema);
-        } else {
-          setCodModulo("");
-        }
+        setModulo(value ?? shapeModulo);
       }}
+      isOptionEqualToValue={(option, value) =>
+        option.cod_sistema === value?.cod_sistema
+      }
       fullWidth
       renderInput={(params) => (
         <TextField
@@ -277,7 +281,6 @@ export default function Funciones() {
           required
           label="Módulo"
           type="text"
-          value={codModulo}
           className="form-control"
           InputProps={{
             ...params.InputProps,
