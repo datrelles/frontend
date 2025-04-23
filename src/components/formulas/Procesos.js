@@ -1,15 +1,19 @@
 import { toast } from "react-toastify";
 import { useState, useEffect, useMemo } from "react";
-import { FormControlLabel, Checkbox } from "@mui/material";
 import { useAuthContext } from "../../context/authContext";
-import Grid from "@mui/material/Grid";
-import TextField from "@mui/material/TextField";
 import API from "../../services/modulo-formulas";
 import { formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
 import Header from "./common/Header";
 import BtnNuevo from "./common/BtnNuevo";
 import Tabla from "./common/Tabla";
 import CustomDialog from "./common/CustomDialog";
+import {
+  createCustomComponentItem,
+  createTextFieldItem,
+} from "./common/form-generators";
+import CustomGrid from "./common/CustomGrid";
+import Check from "./common/Check";
+import MainComponent from "./common/MainComponent";
 
 export default function Procesos() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
@@ -187,83 +191,32 @@ export default function Procesos() {
     },
   };
 
-  const createContent = (
-    <Grid container spacing={2}>
-      <Grid item xs={6}>
-        <TextField
-          margin="dense"
-          id="cod_proceso"
-          label="Código"
-          type="text"
-          placeholder="PROCE###"
-          fullWidth
-          value={codProceso}
-          onChange={(e) => setCodProceso(e.target.value)}
-        />
-      </Grid>
-      <Grid item xs={6}>
-        <TextField
-          margin="dense"
-          id="nombre"
-          label="Nombre"
-          type="text"
-          fullWidth
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-        />
-      </Grid>
-    </Grid>
+  const createContentItems = [
+    createTextFieldItem(
+      6,
+      "cod_proceso",
+      "Código",
+      codProceso,
+      setCodProceso,
+      true,
+      "PROCE###"
+    ),
+    createTextFieldItem(6, "nombre", "Nombre", nombre, setNombre),
+  ];
+
+  const checkboxEstado = (
+    <Check label="Activo" checked={estado} setChecked={setEstado} />
   );
 
-  const updateContent = (
-    <>
-      <Grid container spacing={2}>
-        <Grid item xs={6}>
-          <TextField
-            disabled
-            margin="dense"
-            id="cod_proceso"
-            label="Código"
-            type="text"
-            placeholder="COD###"
-            fullWidth
-            value={codProceso}
-          />
-        </Grid>
-        <Grid item xs={6}>
-          <TextField
-            margin="dense"
-            id="nombre"
-            label="Nombre"
-            type="text"
-            fullWidth
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-          />
-        </Grid>
-      </Grid>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <FormControlLabel
-          control={
-            <Checkbox
-              label="Estado"
-              checked={estado}
-              onChange={(e) => {
-                setEstado(e.target.checked);
-              }}
-            />
-          }
-          label="Activo"
-        />
-      </div>
-    </>
-  );
+  const updateContentItems = [
+    createTextFieldItem(6, "cod_proceso", "Código", codProceso),
+    createTextFieldItem(6, "nombre", "Nombre", nombre, setNombre),
+    createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
+  ];
+
+  const createContent = <CustomGrid items={createContentItems} />;
+
+  const updateContent = <CustomGrid items={updateContentItems} />;
 
   useEffect(() => {
     document.title = "Procesos";
@@ -275,41 +228,41 @@ export default function Procesos() {
     getProcesos();
   }, [openCreate, openUpdate]);
 
+  const header = <Header menus={menus} />;
+  const btnNuevo = <BtnNuevo onClick={handleClickOpenCreate} />;
+  const tabla = (
+    <Tabla
+      title="Procesos"
+      data={procesos}
+      columns={columns}
+      options={options}
+    />
+  );
+  const createDialog = (
+    <CustomDialog
+      titulo="Registrar Proceso"
+      contenido={createContent}
+      open={openCreate}
+      handleClose={handleClickCloseCreate}
+      handleCancel={handleClickCloseCreate}
+      handleConfirm={handleCreate}
+    />
+  );
+  const updateDialog = (
+    <CustomDialog
+      titulo="Actualizar Proceso"
+      contenido={updateContent}
+      open={openUpdate}
+      handleClose={handleClickCloseUpdate}
+      handleCancel={handleClickCloseUpdate}
+      handleConfirm={handleUpdate}
+      confirmText="Actualizar"
+    />
+  );
+
   return (
-    <div
-      style={{
-        marginTop: "150px",
-        top: 0,
-        left: 0,
-        width: "100%",
-        zIndex: 1000,
-      }}
-    >
-      <Header menus={menus} />
-      <BtnNuevo onClick={handleClickOpenCreate} />
-      <Tabla
-        title="Procesos"
-        data={procesos}
-        columns={columns}
-        options={options}
-      />
-      <CustomDialog
-        titulo="Registrar Proceso"
-        contenido={createContent}
-        open={openCreate}
-        handleClose={handleClickCloseCreate}
-        handleCancel={handleClickCloseCreate}
-        handleConfirm={handleCreate}
-      />
-      <CustomDialog
-        titulo="Actualizar Proceso"
-        contenido={updateContent}
-        open={openUpdate}
-        handleClose={handleClickCloseUpdate}
-        handleCancel={handleClickCloseUpdate}
-        handleConfirm={handleUpdate}
-        confirmText="Actualizar"
-      />
-    </div>
+    <MainComponent
+      components={[header, btnNuevo, tabla, createDialog, updateDialog]}
+    />
   );
 }
