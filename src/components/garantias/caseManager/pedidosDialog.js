@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
     Dialog,
     DialogTitle,
@@ -46,7 +46,8 @@ const filterOptions = createFilterOptions({
 export const PedidoDialog = ({
     openPedido,
     handleClosePedido,
-    dataCasoPostventaEdit
+    dataCasoPostventaEdit,
+    modeloMot
 }) => {
     const { jwt, enterpriseShineray, userShineray } = useAuthContext()
 
@@ -93,10 +94,28 @@ export const PedidoDialog = ({
     const [openConfirm, setOpenConfirm] = useState(false)
     const [obsText, setObsText] = useState('')
 
+
+    const [stockStatus, setStockStatus] = useState({})  // { [COD_PRODUCTO]: 'idle'|'loading'|'ok'|'none' }
+    const radarStopRef = useRef(false)
+    const currentResultsRef = useRef(new Set())   // ⬅️ IDs que siguen en pantalla
+
+
+
+    /*  Reinicia el radar cada vez que se abre el diálogo de productos.  */
+    useEffect(() => {
+        if (openProductDialog) {
+            radarStopRef.current = false
+            setStockStatus({})
+        }
+
+    }, [openProductDialog])
+
+
+
     // --- Carga inicial de datos ---
     useEffect(() => {
         if (!openPedido) return
-
+        loadAllProducts()
         if (dataCasoPostventaEdit) {
             setClientName(dataCasoPostventaEdit.nombre_cliente || '')
             setIdentificationNumber(dataCasoPostventaEdit.identificacion_cliente || '')
@@ -120,9 +139,40 @@ export const PedidoDialog = ({
             fetchPolicy()
             fetchAgencies()
             loadExistingProducts(codComprobante)
-            loadAllProducts()
+
         }
     }, [openPedido, dataCasoPostventaEdit])
+
+    useEffect(() => {
+        if (openPedido && dataCasoPostventaEdit && productsList.length > 0) {
+            loadExistingProducts(codComprobante);
+        }
+    }, [openPedido, dataCasoPostventaEdit, productsList]);
+
+
+    const filtroProductos = productsList
+        .filter((p) => {
+            radarStopRef.current = true;
+            const { codigo, nombre } = productSearch
+
+            if (!codigo.trim() && !nombre.trim()) return false   // no se muestra nada sin texto
+
+            const codeMatch = codigo.trim().length >= 1
+                ? p.COD_PRODUCTO.toLowerCase().includes(codigo.toLowerCase()) : true
+
+            const nameMatch = nombre.trim().length >= 1
+                ? p.NOMBRE.toLowerCase().includes(nombre.toLowerCase()) : true
+
+            radarStopRef.current = false
+
+            return codeMatch && nameMatch
+        })
+        .slice(0, 15)
+
+
+    useEffect(() => {
+        currentResultsRef.current = new Set(filtroProductos.map(p => p.COD_PRODUCTO))
+    }, [filtroProductos])
 
     const fetchAgencies = async () => {
         try {
@@ -162,14 +212,14 @@ export const PedidoDialog = ({
                 const productInfo = productsList.find(
                     (product) => product.COD_PRODUCTO === item.cod_producto
                 );
-    
+
                 return {
                     secuencia: item.secuencia,
                     cod_pedido: item.cod_pedido, // Desde BD
                     cod_producto: item.cod_producto,
                     productoInfo: {
                         COD_PRODUCTO: item.cod_producto,
-                        NOMBRE: productInfo ? productInfo.NOMBRE : 'No encontrado',
+                        NOMBRE: productInfo ? productInfo.NOMBRE : 'Cargando..',
                     },
                     existencia: 0,
                     lote: item.cod_comprobante_lote || null,
@@ -201,6 +251,7 @@ export const PedidoDialog = ({
     // Al seleccionar un producto, se carga la lista de agencias con existencia
     // Función para cargar las agencias con existencia para el producto seleccionado
     const handleSelectProduct = async (prod) => {
+        radarStopRef.current = true
         setLoadingAgenciesForProduct(true)
         setSelectedProductForDialog(prod)
         const agenciasConExistencia = []
@@ -366,23 +417,23 @@ export const PedidoDialog = ({
 
     const handleDeleteRow = async (rowIndex) => {
         try {
-          const row = tableRows[rowIndex]
+            const row = tableRows[rowIndex]
 
-          // Llamar a deleteCasosProductos solo si el registro existe en la BD
-          // y no tiene cod_pedido (nulo o vacío)
-          if (row.secuencia > 0 && (!row.cod_pedido || row.cod_pedido.trim() === '')) {
-            await deleteCasosProductos(jwt, codComprobante, row.secuencia)
-            console.log(`Registro (secuencia=${row.secuencia}) eliminado en la BD`)
-          }
+            // Llamar a deleteCasosProductos solo si el registro existe en la BD
+            // y no tiene cod_pedido (nulo o vacío)
+            if (row.secuencia > 0 && (!row.cod_pedido || row.cod_pedido.trim() === '')) {
+                await deleteCasosProductos(jwt, codComprobante, row.secuencia)
+                console.log(`Registro (secuencia=${row.secuencia}) eliminado en la BD`)
+            }
 
-          // Eliminar siempre la fila a nivel local (estado)
-          const newRows = [...tableRows]
-          newRows.splice(rowIndex, 1)
-          setTableRows(newRows)
+            // Eliminar siempre la fila a nivel local (estado)
+            const newRows = [...tableRows]
+            newRows.splice(rowIndex, 1)
+            setTableRows(newRows)
 
         } catch (error) {
-          console.error('Error al eliminar casos_productos:', error)
-          alert('No se pudo eliminar el registro en la BD.')
+            console.error('Error al eliminar casos_productos:', error)
+            alert('No se pudo eliminar el registro en la BD.')
         }
     }
 
@@ -488,6 +539,86 @@ export const PedidoDialog = ({
             handleClosePedido()
         }
     }
+
+    const radarExistencia = async (prod) => {
+        // si ya no aparece en la pantalla, no hagas nada
+        if (!currentResultsRef.current.has(prod.COD_PRODUCTO)) return
+
+        if (stockStatus[prod.COD_PRODUCTO] || radarStopRef.current) return
+
+        setStockStatus((p) => ({ ...p, [prod.COD_PRODUCTO]: 'loading' }))
+
+        const checks = agencies.map((a) =>
+            getExistenceByAgency(jwt, enterpriseShineray, a.COD_AGENCIA, prod.COD_PRODUCTO)
+                .then((r) => r.existencia_lote > 0)
+                .catch(() => false)
+        )
+
+        let tieneStock = false
+        for (const p of checks) {
+            // aborta si el usuario cambió la búsqueda y el producto ya no está
+            if (!currentResultsRef.current.has(prod.COD_PRODUCTO) || radarStopRef.current) return
+            try {
+                if (await p) { tieneStock = true; break }
+            } catch (_) { }
+        }
+
+        // antes de setState verifica otra vez que siga visible
+        if (currentResultsRef.current.has(prod.COD_PRODUCTO) && !radarStopRef.current) {
+            setStockStatus((prev) => ({
+                ...prev,
+                [prod.COD_PRODUCTO]: tieneStock ? 'ok' : 'none'
+            }))
+        }
+    }
+
+
+
+    const ProductoItem = ({ prod }) => {
+        const status = stockStatus[prod.COD_PRODUCTO]
+
+        return (
+            <Paper
+                key={prod.COD_PRODUCTO}
+                style={{
+                    padding: 10,
+                    marginBottom: 5,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginLeft: '16px'
+
+                }}
+            >
+                <div
+                    style={{ flex: 1, cursor: 'pointer' }}
+                    onClick={() => handleSelectProduct(prod)}
+                >
+                    {`${prod.COD_PRODUCTO} - ${prod.NOMBRE}`}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {status === 'loading' && <CircularProgress size={18} />}
+                    {status === 'ok' && <CheckCircleIcon color="success" fontSize="small" />}
+                    {status === 'none' && <CancelIcon color="error" fontSize="small" />}
+                </div>
+            </Paper>
+        )
+    }
+
+
+    // Dentro de PedidoDialog, antes del return:
+    const resetProductDialog = () => {
+        radarStopRef.current = false;
+        setSelectedProductForDialog(null);
+        setAgenciesForProduct([]);
+        setSelectedAgencyForProduct(null);
+        setLotesForProduct([]);
+        setSelectedLote(null);
+        setAvailableUnits(0);
+        setSelectedQuantity(1);
+    };
+
+
 
     return (
         <div>
@@ -717,11 +848,19 @@ export const PedidoDialog = ({
                     setSelectedLote(null)
                     setAvailableUnits(0)
                     setSelectedQuantity(1)
-                    setProductSearch({ codigo: '', nombre: '' })
                     setOpenProductDialog(false)
                 }}
             >
-                <DialogTitle>Seleccionar Producto</DialogTitle>
+                <DialogTitle disableTypography>
+                    <Typography variant="h6" component="div">
+                        Seleccionar Producto
+                    </Typography>
+
+                    {/*  Subtítulo */}
+                    <Typography variant="subtitle2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                        {modeloMot}
+                    </Typography>
+                </DialogTitle>
                 <DialogContent dividers style={{ position: 'relative' }}>
                     {selectedProductForDialog === null ? (
                         // Vista de búsqueda: se filtra con "LIKE %texto%" si hay al menos 3 caracteres
@@ -750,33 +889,30 @@ export const PedidoDialog = ({
                                     }
                                 />
                             </Grid>
+                            {filtroProductos.length > 0 && (
+                                <Button
+                                    variant="outlined"
+                                    style={{
+                                        marginBottom: '10px',
+                                        marginTop: '10px',
+                                        backgroundColor: 'firebrick',
+                                        color: 'white',
+                                        height: '30px',
+                                        width: '100px',
+                                        borderRadius: '5px',
+                                        marginLeft: '16px'
+                                    }}
+                                    onClick={() => {
+                                        filtroProductos.forEach(radarExistencia)
+                                    }}
+                                >
+                                    Existencia
+                                </Button>
+                            )}
                             <div style={{ marginTop: 10 }}>
-                                {productsList
-                                    .filter(p => {
-                                        let codeMatch = true
-                                        if (productSearch.codigo.trim().length >= 3) {
-                                            codeMatch = p.COD_PRODUCTO.toLowerCase().includes(
-                                                productSearch.codigo.toLowerCase()
-                                            )
-                                        }
-                                        let nameMatch = true
-                                        if (productSearch.nombre.trim().length >= 3) {
-                                            nameMatch = p.NOMBRE.toLowerCase().includes(
-                                                productSearch.nombre.toLowerCase()
-                                            )
-                                        }
-                                        return codeMatch && nameMatch
-                                    })
-                                    .slice(0, 10)
-                                    .map(prod => (
-                                        <Paper
-                                            key={prod.COD_PRODUCTO}
-                                            style={{ padding: 10, marginBottom: 5, cursor: 'pointer' }}
-                                            onClick={() => handleSelectProduct(prod)}
-                                        >
-                                            {prod.COD_PRODUCTO} - {prod.NOMBRE}
-                                        </Paper>
-                                    ))}
+                                {filtroProductos.map((prod) => (
+                                    <ProductoItem key={prod.COD_PRODUCTO} prod={prod} />
+                                ))}
                             </div>
                         </Grid>
                     ) : (
@@ -864,18 +1000,7 @@ export const PedidoDialog = ({
                 <DialogActions>
                     {selectedProductForDialog !== null ? (
                         <>
-                            <Button
-                                onClick={() => {
-                                    // Volver a la búsqueda: reiniciar estados del formulario
-                                    setSelectedProductForDialog(null)
-                                    setAgenciesForProduct([])
-                                    setSelectedAgencyForProduct(null)
-                                    setLotesForProduct([])
-                                    setSelectedLote(null)
-                                    setAvailableUnits(0)
-                                    setSelectedQuantity(1)
-                                }}
-                            >
+                            <Button onClick={resetProductDialog}>
                                 Volver
                             </Button>
                             <Button
@@ -888,7 +1013,10 @@ export const PedidoDialog = ({
                             </Button>
                         </>
                     ) : (
-                        <Button onClick={() => setOpenProductDialog(false)}>Cancelar</Button>
+                        <Button onClick={() => {
+                            resetProductDialog()
+                            setOpenProductDialog(false)
+                        }}>Cancelar</Button>
                     )}
                 </DialogActions>
             </Dialog>

@@ -1475,6 +1475,7 @@ export const CaseManager = () => {
         handleGenerarPedido={handleGenerarPedido}
         handleGenerarPedidoTodos={handleGenerarPedidoTodos}
         dataCasoPostventaEdit={dataCasoPostventaEdit}
+        modeloMot={nombreProducto}
       />
       <DialogAddClient
         open={openAddClient}
