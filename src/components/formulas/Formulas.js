@@ -1,15 +1,19 @@
 import { toast } from "react-toastify";
 import { useState, useEffect, useMemo } from "react";
-import { FormControlLabel, Checkbox } from "@mui/material";
 import { useAuthContext } from "../../context/authContext";
-import Grid from "@mui/material/Grid";
-import TextField from "@mui/material/TextField";
 import API from "../../services/modulo-formulas";
 import { formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
 import Header from "./common/Header";
 import Tabla from "./common/Tabla";
 import BtnNuevo from "./common/BtnNuevo";
 import CustomDialog from "./common/CustomDialog";
+import {
+  createCustomComponentItem,
+  createTextFieldItem,
+} from "./common/form-generators";
+import CustomGrid from "./common/CustomGrid";
+import Check from "./common/Check";
+import MainComponent from "./common/MainComponent";
 
 export default function Formulas() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
@@ -210,126 +214,95 @@ export default function Formulas() {
     },
   };
 
-  const createContent = (
-    <Grid container spacing={2}>
-      <Grid item xs={6}>
-        <TextField
-          margin="dense"
-          id="cod_formula"
-          label="Código"
-          type="text"
-          placeholder="FORMU###"
-          fullWidth
-          value={codFormula}
-          onChange={(e) => setCodFormula(e.target.value)}
-        />
-      </Grid>
-      <Grid item xs={6}>
-        <TextField
-          margin="dense"
-          id="nombre"
-          label="Nombre"
-          type="text"
-          fullWidth
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-        />
-      </Grid>
-      <Grid item xs={12}>
-        <TextField
-          margin="dense"
-          id="observaciones"
-          label="Observaciones"
-          type="text"
-          fullWidth
-          value={observaciones}
-          onChange={(e) => setObservaciones(e.target.value)}
-        />
-      </Grid>
-      <Grid item xs={12}>
-        <TextField
-          margin="dense"
-          id="definicion"
-          label="Definición"
-          type="text"
-          fullWidth
-          value={definicion}
-          onChange={(e) => setDefinicion(e.target.value)}
-        />
-      </Grid>
-    </Grid>
+  const checkboxEstado = (
+    <Check label="Activo" checked={estado} setChecked={setEstado} />
   );
 
-  const updateContent = (
-    <>
-      <Grid container spacing={2}>
-        <Grid item xs={6}>
-          <TextField
-            disabled
-            margin="dense"
-            id="cod_formula"
-            label="Código"
-            type="text"
-            placeholder="FORMU###"
-            fullWidth
-            value={codFormula}
-          />
-        </Grid>
-        <Grid item xs={6}>
-          <TextField
-            margin="dense"
-            id="nombre"
-            label="Nombre"
-            type="text"
-            fullWidth
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            margin="dense"
-            id="observaciones"
-            label="Observaciones"
-            type="text"
-            fullWidth
-            value={observaciones}
-            onChange={(e) => setObservaciones(e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            margin="dense"
-            id="definicion"
-            label="Definición"
-            type="text"
-            fullWidth
-            value={definicion}
-            onChange={(e) => setDefinicion(e.target.value)}
-          />
-        </Grid>
-      </Grid>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <FormControlLabel
-          control={
-            <Checkbox
-              label="Estado"
-              checked={estado}
-              onChange={(e) => {
-                setEstado(e.target.checked);
-              }}
-            />
-          }
-          label="Activo"
-        />
-      </div>
-    </>
+  const createContentItems = [
+    createTextFieldItem(
+      6,
+      "cod_formula",
+      "Código",
+      codFormula,
+      setCodFormula,
+      true,
+      "FORMU###"
+    ),
+    createTextFieldItem(6, "nombre", "Nombre", nombre, setNombre),
+    createTextFieldItem(
+      12,
+      "observaciones",
+      "Observaciones",
+      observaciones,
+      setObservaciones
+    ),
+    createTextFieldItem(
+      12,
+      "definicion",
+      "Definición",
+      definicion,
+      setDefinicion
+    ),
+  ];
+
+  const updateContentItems = [
+    createTextFieldItem(6, "cod_formula", "Código", codFormula),
+    createTextFieldItem(6, "nombre", "Nombre", nombre, setNombre),
+    createTextFieldItem(
+      12,
+      "observaciones",
+      "Observaciones",
+      observaciones,
+      setObservaciones
+    ),
+    createTextFieldItem(
+      12,
+      "definicion",
+      "Definición",
+      definicion,
+      setDefinicion
+    ),
+    createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
+  ];
+
+  const createContent = <CustomGrid items={createContentItems} />;
+
+  const updateContent = <CustomGrid items={updateContentItems} />;
+
+  const header = <Header menus={menus} />;
+
+  const btnNuevo = <BtnNuevo onClick={handleClickOpenCreate} />;
+
+  const tabla = (
+    <Tabla
+      title="Fórmulas"
+      data={formulas}
+      columns={columns}
+      options={options}
+    />
+  );
+
+  const createDialog = (
+    <CustomDialog
+      titulo="Registrar Fórmula"
+      contenido={createContent}
+      open={openCreate}
+      handleClose={handleClickCloseCreate}
+      handleCancel={handleClickCloseCreate}
+      handleConfirm={handleCreate}
+    />
+  );
+
+  const updateDialog = (
+    <CustomDialog
+      titulo="Actualizar Fórmula"
+      contenido={updateContent}
+      open={openUpdate}
+      handleClose={handleClickCloseUpdate}
+      handleCancel={handleClickCloseUpdate}
+      handleConfirm={handleUpdate}
+      confirmText="Actualizar"
+    />
   );
 
   useEffect(() => {
@@ -343,40 +316,8 @@ export default function Formulas() {
   }, [openCreate, openUpdate]);
 
   return (
-    <div
-      style={{
-        marginTop: "150px",
-        top: 0,
-        left: 0,
-        width: "100%",
-        zIndex: 1000,
-      }}
-    >
-      <Header menus={menus} />
-      <BtnNuevo onClick={handleClickOpenCreate} />
-      <Tabla
-        title="Fórmulas"
-        data={formulas}
-        columns={columns}
-        options={options}
-      />
-      <CustomDialog
-        titulo="Registrar Fórmula"
-        contenido={createContent}
-        open={openCreate}
-        handleClose={handleClickCloseCreate}
-        handleCancel={handleClickCloseCreate}
-        handleConfirm={handleCreate}
-      />
-      <CustomDialog
-        titulo="Actualizar Fórmula"
-        contenido={updateContent}
-        open={openUpdate}
-        handleClose={handleClickCloseUpdate}
-        handleCancel={handleClickCloseUpdate}
-        handleConfirm={handleUpdate}
-        confirmText="Actualizar"
-      />
-    </div>
+    <MainComponent
+      components={[header, btnNuevo, tabla, createDialog, updateDialog]}
+    />
   );
 }

@@ -191,6 +191,10 @@ export default function Procesos() {
     },
   };
 
+  const checkboxEstado = (
+    <Check label="Activo" checked={estado} setChecked={setEstado} />
+  );
+
   const createContentItems = [
     createTextFieldItem(
       6,
@@ -204,10 +208,6 @@ export default function Procesos() {
     createTextFieldItem(6, "nombre", "Nombre", nombre, setNombre),
   ];
 
-  const checkboxEstado = (
-    <Check label="Activo" checked={estado} setChecked={setEstado} />
-  );
-
   const updateContentItems = [
     createTextFieldItem(6, "cod_proceso", "Código", codProceso),
     createTextFieldItem(6, "nombre", "Nombre", nombre, setNombre),
@@ -218,18 +218,10 @@ export default function Procesos() {
 
   const updateContent = <CustomGrid items={updateContentItems} />;
 
-  useEffect(() => {
-    document.title = "Procesos";
-    getMenus();
-    getProcesos();
-  }, []);
-
-  useEffect(() => {
-    getProcesos();
-  }, [openCreate, openUpdate]);
-
   const header = <Header menus={menus} />;
+
   const btnNuevo = <BtnNuevo onClick={handleClickOpenCreate} />;
+
   const tabla = (
     <Tabla
       title="Procesos"
@@ -238,6 +230,7 @@ export default function Procesos() {
       options={options}
     />
   );
+
   const createDialog = (
     <CustomDialog
       titulo="Registrar Proceso"
@@ -248,6 +241,7 @@ export default function Procesos() {
       handleConfirm={handleCreate}
     />
   );
+
   const updateDialog = (
     <CustomDialog
       titulo="Actualizar Proceso"
@@ -259,6 +253,16 @@ export default function Procesos() {
       confirmText="Actualizar"
     />
   );
+
+  useEffect(() => {
+    document.title = "Procesos";
+    getMenus();
+    getProcesos();
+  }, []);
+
+  useEffect(() => {
+    getProcesos();
+  }, [openCreate, openUpdate]);
 
   return (
     <MainComponent

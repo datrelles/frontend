@@ -341,19 +341,10 @@ export default function Funciones() {
 
   const updateContent = <CustomGrid items={updateContentItems} />;
 
-  useEffect(() => {
-    document.title = "Funciones";
-    getMenus();
-    getModulos();
-    getFunciones();
-  }, []);
-
-  useEffect(() => {
-    getFunciones();
-  }, [openCreate, openUpdate]);
-
   const header = <Header menus={menus} />;
+
   const btnNuevo = <BtnNuevo onClick={handleClickOpenCreate} />;
+
   const tabla = (
     <Tabla
       title="Funciones"
@@ -362,6 +353,7 @@ export default function Funciones() {
       options={options}
     />
   );
+
   const createDialog = (
     <CustomDialog
       titulo="Registrar Función"
@@ -372,6 +364,7 @@ export default function Funciones() {
       handleConfirm={handleCreate}
     />
   );
+
   const updateDialog = (
     <CustomDialog
       titulo="Actualizar Función"
@@ -383,6 +376,17 @@ export default function Funciones() {
       confirmText="Actualizar"
     />
   );
+
+  useEffect(() => {
+    document.title = "Funciones";
+    getMenus();
+    getModulos();
+    getFunciones();
+  }, []);
+
+  useEffect(() => {
+    getFunciones();
+  }, [openCreate, openUpdate]);
 
   return (
     <MainComponent
