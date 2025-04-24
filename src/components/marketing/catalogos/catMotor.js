@@ -17,6 +17,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
+import * as XLSX from "xlsx";
 
 const API = process.env.REACT_APP_API;
 
@@ -105,6 +106,48 @@ function CatMotor() {
         } catch (err) {
             enqueueSnackbar('Error cargando motores', { variant: 'error' });
         }
+    };
+
+    const handleUploadExcel = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async (evt) => {
+            const data = evt.target.result;
+            const workbook = XLSX.read(data, { type: "binary" });
+            const sheetName = workbook.SheetNames[0];
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+            try {
+                const res = await fetch(`${API}/bench/insert_motor`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + jwt,
+                    },
+                    body: JSON.stringify(rows)
+                });
+
+                const responseData = await res.json();
+
+                if (res.ok) {
+                    enqueueSnackbar(responseData.message, { variant: "success" });
+
+                    if (responseData.omitidos > 0) {
+                        enqueueSnackbar(`${responseData.omitidos} registro(s) duplicado(s) fueron omitidos.`, { variant: "warning" });
+                    }
+
+                    fetchMotoresData(); // <-- asegúrate de tener esta función definida para recargar la tabla
+                } else {
+                    enqueueSnackbar(responseData.error || "Error al cargar registros", { variant: "error" });
+                }
+
+            } catch (error) {
+                enqueueSnackbar("Error inesperado durante la carga del archivo", { variant: "error" });
+            }
+        };
+
+        reader.readAsBinaryString(file);
     };
 
     const openEditDialog = (rowData) => {
@@ -206,7 +249,7 @@ function CatMotor() {
                 </ThemeProvider>
 
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
-                    <DialogTitle>{selectedMotor ? 'Actualizar Motor' : 'Nuevo Motor'}</DialogTitle>
+                    <DialogTitle>{selectedMotor ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
                             <Grid item xs={6}><Autocomplete
@@ -229,8 +272,10 @@ function CatMotor() {
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                         <Button onClick={handleInsertMotor} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedMotor ? 'Actualizar' : 'Guardar'}</Button>
-
-
+                        <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
+                            Cargar Excel
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                        </Button>
                     </DialogActions>
                 </Dialog>
             </div>

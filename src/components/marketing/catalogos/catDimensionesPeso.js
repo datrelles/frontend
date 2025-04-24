@@ -17,6 +17,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
+import * as XLSX from "xlsx";
 
 const API = process.env.REACT_APP_API;
 
@@ -112,6 +113,42 @@ function CatDimensionesPeso() {
         } catch (error) {
             enqueueSnackbar("Error de conexión", { variant: "error" });
         }
+    };
+
+
+    const handleUploadExcel = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async (evt) => {
+            const data = evt.target.result;
+            const workbook = XLSX.read(data, { type: "binary" });
+            const sheetName = workbook.SheetNames[0];
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+            try {
+                const res = await fetch(`${API}/bench/insert_dimension`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + jwt,
+                    },
+                    body: JSON.stringify(rows)
+                });
+
+                const responseData = await res.json();
+                if (res.ok) {
+                    enqueueSnackbar("Carga exitosa", { variant: "success" });
+                    fetchDimensionesData();
+                } else {
+                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
+                }
+            } catch (error) {
+                enqueueSnackbar("Error inesperado", { variant: "error" });
+            }
+        };
+
+        reader.readAsBinaryString(file);
     };
 
     const columns = [
@@ -215,18 +252,22 @@ function CatDimensionesPeso() {
                 </ThemeProvider>
 
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
-                    <DialogTitle>{selectedDimensiones ? 'Actualizar Chasis' : 'Nuevo Chasis'}</DialogTitle>
+                    <DialogTitle>{selectedDimensiones ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Aros Rueda Delantera" value={alturaTotal} onChange={(e) => setAlturaTotal(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Aros Rueda Posterior" value={longTotal} onChange={(e) => setLongTotal(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Neumático Delantero" value={anchoTotal} onChange={(e) => setAnchoTotal(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Neumático Trasero" value={pesoSeco} onChange={(e) => setPesoSeco(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Altura Total" value={alturaTotal} onChange={(e) => setAlturaTotal(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Longitud Total" value={longTotal} onChange={(e) => setLongTotal(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Ancho Total" value={anchoTotal} onChange={(e) => setAnchoTotal(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Peso Seco" value={pesoSeco} onChange={(e) => setPesoSeco(e.target.value)} /></Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                         <Button onClick={handleInsertDimensionesPeso} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedDimensiones ? 'Actualizar' : 'Guardar'}</Button>
+                        <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
+                            Cargar Excel
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                        </Button>
                     </DialogActions>
                 </Dialog>
             </div>

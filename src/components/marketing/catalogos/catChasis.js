@@ -134,13 +134,13 @@ function CatChasis() {
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
             try {
-                const res = await fetch(`${API}/bench/insert_chasis_batch`, {
+                const res = await fetch(`${API}/bench/insert_chasis`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         "Authorization": "Bearer " + jwt,
                     },
-                    body: JSON.stringify({ chasis: rows })
+                    body: JSON.stringify(rows)
                 });
 
                 const responseData = await res.json();
@@ -272,7 +272,7 @@ function CatChasis() {
                 </ThemeProvider>
 
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
-                    <DialogTitle>{selectedChasis ? 'Actualizar Chasis' : 'Nuevo Chasis'}</DialogTitle>
+                    <DialogTitle>{selectedChasis ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
                             <Grid item xs={6}><TextField fullWidth label="Aros Rueda Delantera" value={arosDel} onChange={(e) => setArosDel(e.target.value)} /></Grid>

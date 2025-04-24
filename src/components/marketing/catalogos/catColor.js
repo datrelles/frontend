@@ -141,13 +141,13 @@ function CatColor() {
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
             try {
-                const res = await fetch(`${API}/bench/insert_color_batch`, {
+                const res = await fetch(`${API}/bench/insert_color`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         "Authorization": "Bearer " + jwt,
                     },
-                    body: JSON.stringify({ color: rows })
+                    body: JSON.stringify(rows)
                 });
 
                 const responseData = await res.json();

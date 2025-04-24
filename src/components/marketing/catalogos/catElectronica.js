@@ -17,6 +17,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
+import * as XLSX from "xlsx";
 
 const API = process.env.REACT_APP_API;
 
@@ -144,12 +145,54 @@ function CatElectronica() {
         }
     ];
 
+    const handleUploadExcel = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async (evt) => {
+            const data = evt.target.result;
+            const workbook = XLSX.read(data, { type: "binary" });
+            const sheetName = workbook.SheetNames[0];
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+            try {
+                const res = await fetch(`${API}/bench/insert_electronica_otros`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + jwt,
+                    },
+                    body: JSON.stringify(rows)
+                });
+
+                const responseData = await res.json();
+
+                if (res.ok) {
+                    enqueueSnackbar(responseData.message, { variant: "success" });
+
+                    if (responseData.omitidos > 0) {
+                        enqueueSnackbar(`${responseData.omitidos} registro(s) duplicado(s) fueron omitidos.`, { variant: "warning" });
+                    }
+
+                    fetchElectronicaData();
+                } else {
+                    enqueueSnackbar(responseData.error || "Error al cargar registros", { variant: "error" });
+                }
+
+            } catch (error) {
+                enqueueSnackbar("Error inesperado durante la carga del archivo", { variant: "error" });
+            }
+        };
+
+        reader.readAsBinaryString(file);
+    };
+
     const openEditDialog = (rowData) => {
         setSelectedElectronica(rowData);
         setCapCombustible(rowData.capacidad_combustible || '');
         setTablero(rowData.tablero || '');
         setLucesDelanteras(rowData.luces_delanteras || '');
-        setLucesDelanteras(rowData.luces_posteriores || '');
+        setLucesPosteriores(rowData.luces_posteriores || '');
         setGarantia(rowData.garantia || '');
         setVelocidadMaxima(rowData.velocidad_maxima || '');
         setDialogOpen(true);
@@ -228,7 +271,7 @@ function CatElectronica() {
                 </ThemeProvider>
 
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
-                    <DialogTitle>{selectedElectronica ? 'Actualizar Chasis' : 'Nuevo Chasis'}</DialogTitle>
+                    <DialogTitle>{selectedElectronica ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
                             <Grid item xs={6}><TextField fullWidth label="Capacidad combustible" value={capCombustible} onChange={(e) => setCapCombustible(e.target.value)} /></Grid>
@@ -242,6 +285,10 @@ function CatElectronica() {
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                         <Button onClick={handleInsertElectronica} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedElectronica ? 'Actualizar' : 'Guardar'}</Button>
+                        <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
+                            Cargar Excel
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                        </Button>
                     </DialogActions>
                 </Dialog>
             </div>
