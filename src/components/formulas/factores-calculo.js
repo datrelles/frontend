@@ -4,7 +4,7 @@ import { useAuthContext } from "../../context/authContext";
 import { toast } from "react-toastify";
 import API from "../../services/modulo-formulas";
 import Header from "./common/header";
-import BtnNuevo from "./common/btn-nuevo";
+import BtnNuevo from "./common/btnAdd-nuevo";
 import {
   createEmptyItem,
   createCustomComponentItem,
@@ -15,7 +15,7 @@ import CustomSelect from "./common/custom-select";
 import AutocompleteObject from "./common/autocomplete-objects";
 import MainComponent from "./common/main-component";
 import BoxCenter from "./common/box-center";
-import BtnCancelar from "./common/btn-cancelar";
+import BtnCancelar from "./common/btnAdd-cancelar";
 import CustomTypography from "./common/custom-typography";
 
 const shapeParametroOperador = {
@@ -23,19 +23,13 @@ const shapeParametroOperador = {
   nombre: "Seleccione",
 };
 
-const tiposOperadores = new Map([
-  ["PAR", "PARÁMETRO"],
-  ["VAL", "VALOR FIJO"],
-  ["OPE", "OPERADOR"],
-]);
-
-const newTiposOperadores = [
+const tiposOperadores = [
   { value: "PAR", label: "PARÁMETRO" },
   { value: "VAL", label: "VALOR FIJO" },
   { value: "OPE", label: "OPERADOR" },
 ];
 
-const newOperadores = [
+const operadores = [
   { value: "+" },
   { value: "-" },
   { value: "*" },
@@ -155,15 +149,15 @@ export default function FactoresCalculo() {
 
   const checkTipoOperador = (tipo) => {
     switch (tipo) {
-      case newTiposOperadores.find((o) => o.value === "PAR"):
+      case tiposOperadores.find((o) => o.value === "PAR"):
         setValorFijo("");
         setOperador("Seleccione");
         break;
-      case newTiposOperadores.find((o) => o.value === "VAL"):
+      case tiposOperadores.find((o) => o.value === "VAL"):
         setParametroOperador(shapeParametroOperador);
         setOperador("Seleccione");
         break;
-      case newTiposOperadores.find((o) => o.value === "OPE"):
+      case tiposOperadores.find((o) => o.value === "OPE"):
         setParametroOperador(shapeParametroOperador);
         setValorFijo("");
         break;
@@ -181,7 +175,7 @@ export default function FactoresCalculo() {
         `select_tipo_op_${item.orden}`,
         <CustomSelect
           label="Tipo operador"
-          options={newTiposOperadores}
+          options={tiposOperadores}
           value={item.tipo_operador}
         />
       ),
@@ -191,7 +185,7 @@ export default function FactoresCalculo() {
         item.operador ? (
           <CustomSelect
             label="Operador"
-            options={newOperadores}
+            options={operadores}
             value={item.operador}
           />
         ) : (
@@ -252,7 +246,7 @@ export default function FactoresCalculo() {
         "n_f_tipo_operador",
         <CustomSelect
           label="Tipo operador"
-          options={newTiposOperadores.map((o) => ({
+          options={tiposOperadores.map((o) => ({
             ...o,
             disabled: checkUltimoTipoOperador(o.value),
           }))}
@@ -260,7 +254,7 @@ export default function FactoresCalculo() {
           onChange={(e) => {
             const nuevoTipo = e.target.value;
             checkTipoOperador(
-              newTiposOperadores.find((o) => o.value === nuevoTipo)
+              tiposOperadores.find((o) => o.value === nuevoTipo)
             );
             setTipoOperador(nuevoTipo);
           }}
@@ -271,15 +265,15 @@ export default function FactoresCalculo() {
         "n_f_operador",
         <CustomSelect
           label="Operador"
-          options={newOperadores}
+          options={operadores}
           value={operador}
           onChange={(e) => {
             setOperador(e.target.value);
           }}
           required={false}
           disabled={
-            newTiposOperadores.find((o) => o.value === tipoOperador) !==
-            newTiposOperadores.find((o) => o.value === "OPE")
+            tiposOperadores.find((o) => o.value === tipoOperador) !==
+            tiposOperadores.find((o) => o.value === "OPE")
           }
         />
       ),
@@ -291,8 +285,8 @@ export default function FactoresCalculo() {
         setValorFijo,
         false,
         "",
-        newTiposOperadores.find((o) => o.value === tipoOperador) !==
-          newTiposOperadores.find((o) => o.value === "VAL")
+        tiposOperadores.find((o) => o.value === tipoOperador) !==
+          tiposOperadores.find((o) => o.value === "VAL")
       ),
       createCustomComponentItem(
         3,
@@ -308,15 +302,15 @@ export default function FactoresCalculo() {
             setParametroOperador(value ?? shapeParametroOperador);
           }}
           disabled={
-            newTiposOperadores.find((o) => o.value === tipoOperador) !==
-            newTiposOperadores.find((o) => o.value === "PAR")
+            tiposOperadores.find((o) => o.value === tipoOperador) !==
+            tiposOperadores.find((o) => o.value === "PAR")
           }
         />
       ),
     ],
   };
 
-  const btn = (
+  const btnAdd = (
     <BoxCenter
       components={[
         <BtnNuevo onClick={handleCreate} texto="Agregar" />,
@@ -327,7 +321,7 @@ export default function FactoresCalculo() {
 
   const lastItem = {
     id: "botones",
-    grid_items: [createCustomComponentItem(12, "n_f_botones", btn)],
+    grid_items: [createCustomComponentItem(12, "n_f_botones", btnAdd)],
   };
 
   const list = (
@@ -339,9 +333,7 @@ export default function FactoresCalculo() {
     />
   );
 
-  const btnNuevo = createFactor ? (
-    <></>
-  ) : (
+  const btnNuevo = createFactor ? null : (
     <BoxCenter
       components={[<BtnNuevo onClick={() => setCreateFactor(true)} />]}
     />
