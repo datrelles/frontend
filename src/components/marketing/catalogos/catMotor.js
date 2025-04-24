@@ -48,12 +48,39 @@ function CatMotor() {
     const handleChange = (field, value) => setForm({ ...form, [field]: value });
 
     const handleInsertMotor = async () => {
-        const tipoMotor = tiposMotor.find((t) => t.nombre_tipo === form.tipo_motor_nombre);
-        if (tipoMotor) {
-            form.codigo_tipo_motor = tipoMotor.codigo_tipo_motor;
+        let tipoMotor = tiposMotor.find((t) => t.nombre_tipo.trim().toLowerCase() === form.tipo_motor_nombre.trim().toLowerCase());
+
+        // Si no existe, lo crea
+        if (!tipoMotor) {
+            try {
+                const tipoMotorRes = await fetch(`${API}/bench/insert_tipo_motor`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + jwt
+                    },
+                    body: JSON.stringify({
+                        nombre_tipo: form.tipo_motor_nombre,
+                        descripcion_tipo_motor: form.descripcion_tipo_motor || "Ingresado desde formulario"
+                    })
+                });
+
+                const tipoMotorData = await tipoMotorRes.json();
+
+                if (tipoMotorRes.ok) {
+                    form.codigo_tipo_motor = tipoMotorData.codigo_tipo_motor;
+                    // Refrescar la lista de tipos
+                    await fetchTiposMotor();
+                } else {
+                    enqueueSnackbar(tipoMotorData.error || 'Error creando tipo de motor', { variant: 'error' });
+                    return;
+                }
+            } catch (err) {
+                enqueueSnackbar('Error al crear tipo de motor', { variant: 'error' });
+                return;
+            }
         } else {
-            enqueueSnackbar('Tipo de motor no válido o no seleccionado.', { variant: 'error' });
-            return;
+            form.codigo_tipo_motor = tipoMotor.codigo_tipo_motor;
         }
 
         const isUpdate = selectedMotor && selectedMotor.codigo_motor;
@@ -125,7 +152,7 @@ function CatMotor() {
                         "Content-Type": "application/json",
                         "Authorization": "Bearer " + jwt,
                     },
-                    body: JSON.stringify(rows)
+                    body: JSON.stringify({ motor: rows })
                 });
 
                 const responseData = await res.json();
@@ -136,8 +163,7 @@ function CatMotor() {
                     if (responseData.omitidos > 0) {
                         enqueueSnackbar(`${responseData.omitidos} registro(s) duplicado(s) fueron omitidos.`, { variant: "warning" });
                     }
-
-                    fetchMotoresData(); // <-- asegúrate de tener esta función definida para recargar la tabla
+                    fetchMotoresData();
                 } else {
                     enqueueSnackbar(responseData.error || "Error al cargar registros", { variant: "error" });
                 }
@@ -259,6 +285,14 @@ function CatMotor() {
                                 onInputChange={(e, newValue) => handleChange('tipo_motor_nombre', newValue)}
                                 renderInput={(params) => <TextField {...params} label="Tipo de Motor" />}
                             /></Grid>
+                            <Grid item xs={12}>
+                                <TextField
+                                    fullWidth
+                                    label="Descripción del Tipo de Motor"
+                                    value={form.descripcion_tipo_motor || ''}
+                                    onChange={(e) => handleChange('descripcion_tipo_motor', e.target.value)}
+                                />
+                            </Grid>
                             <Grid item xs={6}><TextField fullWidth label="Nombre Motor" value={form.nombre_motor || ''} onChange={(e) => handleChange('nombre_motor', e.target.value)} /></Grid>
                             <Grid item xs={6}><TextField fullWidth label="Cilindrada" value={form.cilindrada || ''} onChange={(e) => handleChange('cilindrada', e.target.value)} /></Grid>
                             <Grid item xs={6}><TextField fullWidth label="Caballos de Fuerza" value={form.caballos_fuerza || ''} onChange={(e) => handleChange('caballos_fuerza', e.target.value)} /></Grid>

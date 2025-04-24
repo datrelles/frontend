@@ -75,6 +75,7 @@ import  CatDimensionesPeso from "./components/marketing/catalogos/catDimensiones
 import  CatElectronica from "./components/marketing/catalogos/catElectronica";
 import  CatMotor from "./components/marketing/catalogos/catMotor";
 import  CatColor from "./components/marketing/catalogos/catColor";
+import  CatImagenes from "./components/marketing/catalogos/catImagenes";
 ///SellManagerB2B
 const API = process.env.REACT_APP_API;
 function App() {
@@ -211,6 +212,7 @@ function App() {
                   <Route exact path="/catalogo_electronica" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatElectronica/></Protected>}/>
                   <Route exact path="/catalogo_motor" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatMotor/></Protected>}/>
                   <Route exact path="/catalogo_color" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatColor/></Protected>}/>
+                  <Route exact path="/catalogo_imagenes" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatImagenes/></Protected>}/>
                   <Route exact path="/settings" element={<Settings/>}></Route>
                 </Routes>
               </>            
