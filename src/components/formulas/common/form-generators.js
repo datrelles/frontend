@@ -1,3 +1,11 @@
+export function createEmptyItem(xs, id) {
+  return {
+    xs,
+    id,
+    custom_component: <></>,
+  };
+}
+
 export function createTextFieldItem(
   xs,
   id,
@@ -5,7 +13,8 @@ export function createTextFieldItem(
   value,
   setValue = null,
   required = true,
-  placeholder = ""
+  placeholder = "",
+  disabled = !setValue
 ) {
   return {
     xs,
@@ -15,6 +24,7 @@ export function createTextFieldItem(
     setValue,
     required,
     placeholder,
+    disabled,
   };
 }
 

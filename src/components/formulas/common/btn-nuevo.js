@@ -5,6 +5,7 @@ export default function BtnNuevo({
   onClick,
   disabled = false,
   texto = "Nuevo",
+  icon = true,
 }) {
   return (
     <Button
@@ -19,7 +20,7 @@ export default function BtnNuevo({
       }}
       onClick={onClick}
     >
-      <AddIcon /> {texto}
+      {icon ? <AddIcon /> : null} {texto}
     </Button>
   );
 }

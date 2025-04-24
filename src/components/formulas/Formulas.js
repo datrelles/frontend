@@ -58,7 +58,7 @@ export default function Formulas() {
         setEstado(true);
         setDefinicion("");
       })
-      .catch((err) => toast.error(err.mensaje));
+      .catch((err) => toast.error(err.message));
   };
 
   const getFormulas = async () => {
@@ -86,7 +86,7 @@ export default function Formulas() {
         setEstado(true);
         setDefinicion("");
       })
-      .catch((err) => toast.error(err.mensaje));
+      .catch((err) => toast.error(err.message));
   };
 
   const handleDelete = (rowsDeleted) => {
@@ -234,7 +234,8 @@ export default function Formulas() {
       "observaciones",
       "Observaciones",
       observaciones,
-      setObservaciones
+      setObservaciones,
+      false
     ),
     createTextFieldItem(
       12,
@@ -253,7 +254,8 @@ export default function Formulas() {
       "observaciones",
       "Observaciones",
       observaciones,
-      setObservaciones
+      setObservaciones,
+      false
     ),
     createTextFieldItem(
       12,

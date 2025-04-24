@@ -8,7 +8,7 @@ import Tabla from "./common/tabla";
 import BtnNuevo from "./common/btn-nuevo";
 import CustomDialog from "./common/custom-dialog";
 import AutocompleteObject from "./common/autocomplete-objects";
-import Select from "./common/select";
+import CustomSelect from "./common/custom-select";
 import CustomGrid from "./common/custom-grid";
 import Check from "./common/check";
 import {
@@ -17,7 +17,8 @@ import {
 } from "./common/form-generators";
 import MainComponent from "./common/main-component";
 
-const tipos_retorno = ["NUMBER", "VARCHAR2"];
+const tiposRetorno = [{ value: "NUMBER" }, { value: "VARCHAR2" }];
+const defaultRetorno = tiposRetorno[0].value;
 const shapeModulo = {
   cod_sistema: "",
   sistema: "Seleccione",
@@ -41,7 +42,7 @@ export default function Funciones() {
   const [nombreBD, setNombreBD] = useState("");
   const [estado, setEstado] = useState(true);
   const [observaciones, setObservaciones] = useState("");
-  const [retorno, setRetorno] = useState("Seleccione");
+  const [retorno, setRetorno] = useState();
 
   const getMenus = async () => {
     try {
@@ -79,7 +80,7 @@ export default function Funciones() {
         setNombreBD("");
         setEstado(true);
         setObservaciones("");
-        setRetorno("Seleccione");
+        setRetorno(defaultRetorno);
       })
       .catch((err) => toast.error(err.message));
   };
@@ -156,7 +157,7 @@ export default function Funciones() {
     setNombreBD("");
     setEstado(true);
     setObservaciones("");
-    setRetorno("Seleccione");
+    setRetorno(defaultRetorno);
   };
 
   const handleClickCloseCreate = () => {
@@ -267,16 +268,18 @@ export default function Funciones() {
       shape={shapeModulo}
       options={modulos}
       optionLabel="sistema"
-      setValue={setModulo}
+      onChange={(e, value) => {
+        setModulo(value ?? shapeModulo);
+      }}
     />
   );
 
   const selectRetorno = (
-    <Select
+    <CustomSelect
       label="Tipo retorno"
+      options={tiposRetorno}
       value={retorno}
-      setValue={setRetorno}
-      options={tipos_retorno}
+      onChange={(e) => setRetorno(e.target.value)}
     />
   );
 

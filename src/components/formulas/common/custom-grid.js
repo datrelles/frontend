@@ -9,7 +9,7 @@ export default function CustomGrid({ items }) {
           {item.custom_component || (
             <TextField
               required={item.required}
-              disabled={!item.setValue}
+              disabled={item.disabled}
               margin="dense"
               id={item.id}
               label={item.label}

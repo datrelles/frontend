@@ -7,17 +7,17 @@ export default function AutocompleteObject({
   shape,
   options,
   optionLabel,
-  setValue,
+  onChange,
+  disabled = false,
 }) {
   return (
     <Autocomplete
+      disabled={disabled}
       id={id}
       options={value[valueId] ? options : [shape, ...options]}
       getOptionLabel={(option) => option[optionLabel]}
       value={value}
-      onChange={(e, value) => {
-        setValue(value ?? shape);
-      }}
+      onChange={onChange}
       isOptionEqualToValue={(option, value) =>
         option[valueId] === value?.[valueId]
       }

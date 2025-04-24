@@ -2,23 +2,26 @@ import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuthContext } from "../../context/authContext";
 import { toast } from "react-toastify";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import {
-  List,
-  ListItem,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Grid,
-  Typography,
-  Autocomplete,
-} from "@mui/material";
 import API from "../../services/modulo-formulas";
 import Header from "./common/header";
 import BtnNuevo from "./common/btn-nuevo";
+import {
+  createEmptyItem,
+  createCustomComponentItem,
+  createTextFieldItem,
+} from "./common/form-generators";
+import CustomList from "./common/custom-list";
+import CustomSelect from "./common/custom-select";
+import AutocompleteObject from "./common/autocomplete-objects";
+import MainComponent from "./common/main-component";
+import BoxCenter from "./common/box-center";
+import BtnCancelar from "./common/btn-cancelar";
+import CustomTypography from "./common/custom-typography";
+
+const shapeParametroOperador = {
+  cod_parametro: "",
+  nombre: "Seleccione",
+};
 
 const tiposOperadores = new Map([
   ["PAR", "PARÁMETRO"],
@@ -26,7 +29,18 @@ const tiposOperadores = new Map([
   ["OPE", "OPERADOR"],
 ]);
 
-const operadores = ["+", "-", "*", "/"];
+const newTiposOperadores = [
+  { value: "PAR", label: "PARÁMETRO" },
+  { value: "VAL", label: "VALOR FIJO" },
+  { value: "OPE", label: "OPERADOR" },
+];
+
+const newOperadores = [
+  { value: "+" },
+  { value: "-" },
+  { value: "*" },
+  { value: "/" },
+];
 
 export default function FactoresCalculo() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
@@ -40,8 +54,8 @@ export default function FactoresCalculo() {
   const codProceso = queryParams.get("proceso");
   const codParametro = queryParams.get("parametro");
   const [menus, setMenus] = useState([]);
-  const [proceso, setProceso] = useState({});
-  const [parametro, setParametro] = useState({});
+  const [proceso, setProceso] = useState({ nombre: "" });
+  const [parametro, setParametro] = useState({ nombre: "" });
   const [factores, setFactores] = useState([]);
   const [parametros, setParametros] = useState([]);
   const [createFactor, setCreateFactor] = useState(false);
@@ -49,7 +63,9 @@ export default function FactoresCalculo() {
   const [tipoOperador, setTipoOperador] = useState("Seleccione");
   const [operador, setOperador] = useState("");
   const [valorFijo, setValorFijo] = useState("");
-  const [codParametroOperador, setCodParametroOperador] = useState("");
+  const [parametroOperador, setParametroOperador] = useState(
+    shapeParametroOperador
+  );
 
   const getMenus = async () => {
     try {
@@ -77,7 +93,12 @@ export default function FactoresCalculo() {
 
   const getParametrosPorProceso = async () => {
     try {
-      setParametros(await APIService.getParametrosPorProceso(codProceso));
+      setParametros(
+        (await APIService.getParametrosPorProceso(codProceso)).map((p) => ({
+          ...p,
+          nombre: p.parametro.nombre,
+        }))
+      );
     } catch (err) {
       toast.error(err.message);
     }
@@ -90,14 +111,14 @@ export default function FactoresCalculo() {
       tipo_operador: tipoOperador,
       operador,
       valor_fijo: valorFijo,
-      cod_parametro_operador: codParametroOperador,
+      cod_parametro_operador: parametroOperador.cod_parametro,
     })
       .then((res) => {
         toast.success(res);
         setTipoOperador("Seleccione");
         setOperador("Seleccione");
         setValorFijo("");
-        setCodParametroOperador("");
+        setParametroOperador(shapeParametroOperador);
         getFactores();
       })
       .catch((err) => toast.error(err.message));
@@ -134,22 +155,216 @@ export default function FactoresCalculo() {
 
   const checkTipoOperador = (tipo) => {
     switch (tipo) {
-      case tiposOperadores.get("PAR"):
+      case newTiposOperadores.find((o) => o.value === "PAR"):
         setValorFijo("");
         setOperador("Seleccione");
         break;
-      case tiposOperadores.get("VAL"):
-        setCodParametroOperador("");
+      case newTiposOperadores.find((o) => o.value === "VAL"):
+        setParametroOperador(shapeParametroOperador);
         setOperador("Seleccione");
         break;
-      case tiposOperadores.get("OPE"):
-        setCodParametroOperador("");
+      case newTiposOperadores.find((o) => o.value === "OPE"):
+        setParametroOperador(shapeParametroOperador);
         setValorFijo("");
         break;
       default:
         return;
     }
   };
+
+  const listItems = factores.map((item, index) => ({
+    id: `factor_${item.orden}`,
+    grid_items: [
+      createTextFieldItem(3, `orden_${item.orden}`, "Orden", item.orden),
+      createCustomComponentItem(
+        3,
+        `select_tipo_op_${item.orden}`,
+        <CustomSelect
+          label="Tipo operador"
+          options={newTiposOperadores}
+          value={item.tipo_operador}
+        />
+      ),
+      createCustomComponentItem(
+        1,
+        `select_operador_${item.orden}`,
+        item.operador ? (
+          <CustomSelect
+            label="Operador"
+            options={newOperadores}
+            value={item.operador}
+          />
+        ) : (
+          <></>
+        )
+      ),
+      item.valor_fijo
+        ? createTextFieldItem(
+            2,
+            `valor_fijo_${item.orden}`,
+            "Valor fijo",
+            item.valor_fijo
+          )
+        : createEmptyItem(2, `valor_fijo_${item.orden}`),
+      item.cod_parametro_operador
+        ? createTextFieldItem(
+            2,
+            `cod_parametro_operador_${item.orden}`,
+            "Parámetro",
+            parametros.find(
+              (p) => p.cod_parametro === item.cod_parametro_operador
+            )?.parametro?.nombre ?? ""
+          )
+        : createEmptyItem(2, `cod_parametro_operador_${item.orden}`),
+      createCustomComponentItem(
+        1,
+        `delete_${item.orden}`,
+        item.orden === factores.length ? (
+          <BtnNuevo
+            onClick={() => {
+              handleDelete(item.orden);
+            }}
+            texto="Quitar"
+            icon={false}
+          />
+        ) : (
+          <></>
+        )
+      ),
+    ],
+  }));
+
+  const nuevoFactorListItem = {
+    id: "nuevo_factor",
+    grid_items: [
+      createTextFieldItem(
+        3,
+        "n_f_orden",
+        "Orden",
+        orden,
+        null,
+        true,
+        null,
+        true
+      ),
+      createCustomComponentItem(
+        3,
+        "n_f_tipo_operador",
+        <CustomSelect
+          label="Tipo operador"
+          options={newTiposOperadores.map((o) => ({
+            ...o,
+            disabled: checkUltimoTipoOperador(o.value),
+          }))}
+          value={tipoOperador}
+          onChange={(e) => {
+            const nuevoTipo = e.target.value;
+            checkTipoOperador(
+              newTiposOperadores.find((o) => o.value === nuevoTipo)
+            );
+            setTipoOperador(nuevoTipo);
+          }}
+        />
+      ),
+      createCustomComponentItem(
+        1,
+        "n_f_operador",
+        <CustomSelect
+          label="Operador"
+          options={newOperadores}
+          value={operador}
+          onChange={(e) => {
+            setOperador(e.target.value);
+          }}
+          required={false}
+          disabled={
+            newTiposOperadores.find((o) => o.value === tipoOperador) !==
+            newTiposOperadores.find((o) => o.value === "OPE")
+          }
+        />
+      ),
+      createTextFieldItem(
+        2,
+        "n_f_valor_fijo",
+        "Valor fijo",
+        valorFijo,
+        setValorFijo,
+        false,
+        "",
+        newTiposOperadores.find((o) => o.value === tipoOperador) !==
+          newTiposOperadores.find((o) => o.value === "VAL")
+      ),
+      createCustomComponentItem(
+        3,
+        "n_f_parametro",
+        <AutocompleteObject
+          id="Parámetro"
+          value={parametroOperador}
+          valueId="cod_parametro"
+          shape={shapeParametroOperador}
+          options={parametros}
+          optionLabel="nombre"
+          onChange={(e, value) => {
+            setParametroOperador(value ?? shapeParametroOperador);
+          }}
+          disabled={
+            newTiposOperadores.find((o) => o.value === tipoOperador) !==
+            newTiposOperadores.find((o) => o.value === "PAR")
+          }
+        />
+      ),
+    ],
+  };
+
+  const btn = (
+    <BoxCenter
+      components={[
+        <BtnNuevo onClick={handleCreate} texto="Agregar" />,
+        <BtnCancelar onClick={() => setCreateFactor(false)} />,
+      ]}
+    />
+  );
+
+  const lastItem = {
+    id: "botones",
+    grid_items: [createCustomComponentItem(12, "n_f_botones", btn)],
+  };
+
+  const list = (
+    <CustomList
+      mt={2}
+      items={
+        createFactor ? [...listItems, nuevoFactorListItem, lastItem] : listItems
+      }
+    />
+  );
+
+  const btnNuevo = createFactor ? (
+    <></>
+  ) : (
+    <BoxCenter
+      components={[<BtnNuevo onClick={() => setCreateFactor(true)} />]}
+    />
+  );
+
+  const header = <Header menus={menus} />;
+
+  const titulo = (
+    <CustomTypography
+      variant="h6"
+      texto={`Factores de cálculo de ${proceso.nombre} y de ${parametro.nombre}`}
+    />
+  );
+
+  const texto =
+    factores.length === 0 ? (
+      <CustomTypography
+        variant="body1"
+        texto="Aún no se han registrado factores de cálculo"
+      />
+    ) : (
+      <></>
+    );
 
   useEffect(() => {
     document.title = "Factores de cálculo";
@@ -166,281 +381,5 @@ export default function FactoresCalculo() {
     setOrden(factores.length + 1);
   }, [factores]);
 
-  return (
-    <div
-      style={{
-        marginTop: "150px",
-        top: 0,
-        left: 0,
-        width: "100%",
-        zIndex: 1000,
-      }}
-    >
-      <Header menus={menus} />
-      <Typography variant="h6" sx={{ mb: 2 }}>
-        Factores de cálculo de {proceso.nombre} y de {parametro.nombre}
-      </Typography>
-      {factores.length === 0 && (
-        <Typography variant="body1" sx={{ mb: 2 }}>
-          Aún no se han registrado factores de cálculo
-        </Typography>
-      )}
-      <List sx={{ mt: 2 }} disablePadding>
-        {factores.map((item, index) => (
-          <ListItem sx={{ width: "100%" }} key={item.orden}>
-            <Grid container spacing={2}>
-              <Grid item xs={3}>
-                <TextField
-                  disabled
-                  label="Orden"
-                  value={item.orden}
-                  fullWidth
-                />
-              </Grid>
-              <Grid item xs={3}>
-                <FormControl fullWidth variant="outlined">
-                  <InputLabel id="l_tipo_operador">Tipo operador</InputLabel>
-                  <Select
-                    labelId="l_tipo_operador"
-                    label="Tipo operador"
-                    disabled
-                    id="tipo_operador"
-                    style={{ width: "100%" }}
-                    value={item.tipo_operador}
-                  >
-                    {Array.from(tiposOperadores).map(([clave, valor]) => (
-                      <MenuItem key={clave} value={clave}>
-                        {valor}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={1}>
-                {item.operador && (
-                  <FormControl fullWidth variant="outlined" disabled>
-                    <InputLabel id="l_operador">Operador</InputLabel>
-                    <Select
-                      labelId="l_operador"
-                      label="Operador"
-                      id="operador"
-                      style={{ width: "100%" }}
-                      value={item.operador}
-                    >
-                      <MenuItem selected key={0} value="Seleccione">
-                        Seleccione
-                      </MenuItem>
-                      {operadores.map((tipo) => (
-                        <MenuItem key={tipo} value={tipo}>
-                          {tipo}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                )}
-              </Grid>
-              <Grid item xs={2}>
-                {item.valor_fijo && (
-                  <TextField
-                    disabled
-                    id="valor_fijo"
-                    label="Valor fijo"
-                    type="text"
-                    fullWidth
-                    value={item.valor_fijo}
-                  />
-                )}
-              </Grid>
-              <Grid item xs={2}>
-                {item.cod_parametro_operador && (
-                  <TextField
-                    disabled
-                    id="cod_parametro_operador"
-                    label="Parámetro"
-                    type="text"
-                    fullWidth
-                    value={
-                      parametros.find(
-                        (p) => p.cod_parametro === item.cod_parametro_operador
-                      ).parametro.nombre
-                    }
-                  />
-                )}
-              </Grid>
-              {factores.length === index + 1 && (
-                <Grid item xs={1}>
-                  <Button
-                    onClick={() => {
-                      handleDelete(item.orden);
-                    }}
-                    style={{
-                      marginBottom: "10px",
-                      marginTop: "10px",
-                      backgroundColor: "firebrick",
-                      color: "white",
-                      height: "30px",
-                      width: "100px",
-                      borderRadius: "5px",
-                      marginRight: "15px",
-                    }}
-                  >
-                    Quitar
-                  </Button>
-                </Grid>
-              )}
-            </Grid>
-          </ListItem>
-        ))}
-        {createFactor && (
-          <>
-            <ListItem sx={{ width: "100%" }}>
-              <Grid container spacing={2}>
-                <Grid item xs={3}>
-                  <TextField disabled label="Orden" value={orden} fullWidth />
-                </Grid>
-                <Grid item xs={3}>
-                  <FormControl fullWidth variant="outlined">
-                    <InputLabel id="l_tipo_operador">Tipo operador</InputLabel>
-                    <Select
-                      labelId="l_tipo_operador"
-                      label="Tipo operador"
-                      id="tipo_operador"
-                      style={{ width: "100%" }}
-                      value={tipoOperador}
-                      onChange={(e) => {
-                        const nuevoTipo = e.target.value;
-                        checkTipoOperador(tiposOperadores.get(nuevoTipo));
-                        setTipoOperador(nuevoTipo);
-                      }}
-                    >
-                      <MenuItem selected key={0} value="Seleccione">
-                        Seleccione
-                      </MenuItem>
-                      {Array.from(tiposOperadores).map(([clave, valor]) => (
-                        <MenuItem
-                          disabled={checkUltimoTipoOperador(clave)}
-                          key={clave}
-                          value={clave}
-                        >
-                          {valor}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={1}>
-                  <FormControl fullWidth variant="outlined">
-                    <InputLabel id="l_operador">Operador</InputLabel>
-                    <Select
-                      labelId="l_operador"
-                      label="Operador"
-                      id="operador"
-                      disabled={
-                        tiposOperadores.get(tipoOperador) !==
-                        tiposOperadores.get("OPE")
-                      }
-                      style={{ width: "100%" }}
-                      value={operador}
-                      onChange={(e) => {
-                        setOperador(e.target.value);
-                      }}
-                    >
-                      <MenuItem selected key={0} value="Seleccione">
-                        Seleccione
-                      </MenuItem>
-                      {operadores.map((tipo) => (
-                        <MenuItem key={tipo} value={tipo}>
-                          {tipo}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={2}>
-                  <TextField
-                    disabled={
-                      tiposOperadores.get(tipoOperador) !==
-                      tiposOperadores.get("VAL")
-                    }
-                    id="valor_fijo"
-                    label="Valor fijo"
-                    type="text"
-                    fullWidth
-                    value={valorFijo}
-                    onChange={(e) => {
-                      setValorFijo(e.target.value);
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={3}>
-                  <Autocomplete
-                    disabled={
-                      tiposOperadores.get(tipoOperador) !==
-                      tiposOperadores.get("PAR")
-                    }
-                    id="Parámetro"
-                    options={parametros.map((p) => p.parametro.nombre)}
-                    onChange={(e, value) => {
-                      if (value) {
-                        const parametro = parametros.find(
-                          (p) => p.parametro.nombre === value
-                        );
-                        setCodParametroOperador(parametro.cod_parametro);
-                      } else {
-                        setCodParametroOperador("");
-                      }
-                    }}
-                    fullWidth
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        required
-                        label="Parámetro"
-                        type="text"
-                        value={codParametroOperador}
-                        className="form-control"
-                        InputProps={{
-                          ...params.InputProps,
-                        }}
-                      />
-                    )}
-                  />
-                </Grid>
-              </Grid>
-            </ListItem>
-            <ListItem sx={{ width: "100%" }}>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Box display="flex" justifyContent="center">
-                    <Button
-                      onClick={handleCreate}
-                      style={{
-                        marginBottom: "10px",
-                        marginTop: "10px",
-                        backgroundColor: "firebrick",
-                        color: "white",
-                        height: "30px",
-                        width: "100px",
-                        borderRadius: "5px",
-                        marginRight: "15px",
-                      }}
-                    >
-                      Agregar
-                    </Button>
-                    <Button
-                      onClick={() => setCreateFactor(false)}
-                      color="primary"
-                    >
-                      Cancelar
-                    </Button>
-                  </Box>
-                </Grid>
-              </Grid>
-            </ListItem>
-          </>
-        )}
-      </List>
-      {!createFactor && <BtnNuevo onClick={() => setCreateFactor(true)} />}
-    </div>
-  );
+  return <MainComponent components={[header, titulo, texto, list, btnNuevo]} />;
 }
