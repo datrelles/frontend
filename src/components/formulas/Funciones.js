@@ -19,10 +19,21 @@ import MainComponent from "./common/main-component";
 
 const tiposRetorno = [{ value: "NUMBER" }, { value: "VARCHAR2" }];
 const defaultRetorno = tiposRetorno[0].value;
+const tiposParametro = [
+  { value: "VARIABLE", label: "Variable" },
+  { value: "CARACTER", label: "Caracter" },
+  { value: "NUMERO", label: "Número" },
+];
+const defaultTipoParametro = tiposParametro[0].value;
 const shapeModulo = {
   cod_sistema: "",
   sistema: "Seleccione",
 };
+
+// const shapeFuncion = {
+//   cod_funcion: "",
+//   nombre: "",
+// };
 
 export default function Funciones() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
@@ -34,6 +45,7 @@ export default function Funciones() {
   const [menus, setMenus] = useState([]);
   const [modulos, setModulos] = useState([]);
   const [funciones, setFunciones] = useState([]);
+  const [parametros, setParametros] = useState([]);
   const [openCreate, setOpenCreate] = useState(false);
   const [openUpdate, setOpenUpdate] = useState(false);
   const [codFuncion, setCodFuncion] = useState("");
@@ -42,7 +54,14 @@ export default function Funciones() {
   const [nombreBD, setNombreBD] = useState("");
   const [estado, setEstado] = useState(true);
   const [observaciones, setObservaciones] = useState("");
-  const [retorno, setRetorno] = useState();
+  const [retorno, setRetorno] = useState(defaultRetorno);
+  const [tipoParametro, setTipoParametro] = useState(defaultTipoParametro);
+  const [secuencia, setSecuencia] = useState(1);
+  const [variable, setVariable] = useState("");
+  const [fijoCaracter, setFijoCaracter] = useState("");
+  const [fijoNumero, setFijoNumero] = useState("");
+  const [openCreateParametro, setOpenCreateParametro] = useState(false);
+  const [openUpdateParametro, setOpenUpdateParametro] = useState(false);
 
   const getMenus = async () => {
     try {
@@ -81,6 +100,28 @@ export default function Funciones() {
         setEstado(true);
         setObservaciones("");
         setRetorno(defaultRetorno);
+        setParametros([]);
+      })
+      .catch((err) => toast.error(err.message));
+  };
+
+  const handleCreateParametro = (e) => {
+    e.preventDefault();
+    APIService.createParametroFuncion(codFuncion, {
+      secuencia: parametros.length + 1,
+      tipo_parametro: tipoParametro,
+      variable,
+      fijo_caracter: fijoCaracter,
+      fijo_numero: fijoNumero,
+    })
+      .then((res) => {
+        toast.success(res);
+        setOpenCreateParametro(false);
+        getParametros(codFuncion);
+        setTipoParametro(defaultTipoParametro);
+        setVariable("");
+        setFijoCaracter("");
+        setFijoNumero("");
       })
       .catch((err) => toast.error(err.message));
   };
@@ -88,6 +129,14 @@ export default function Funciones() {
   const getFunciones = async () => {
     try {
       setFunciones(await APIService.getFunciones());
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const getParametros = async (cod_funcion) => {
+    try {
+      setParametros(await APIService.getParametrosFuncion(cod_funcion));
     } catch (err) {
       toast.error(err.message);
     }
@@ -112,7 +161,30 @@ export default function Funciones() {
         setNombreBD("");
         setEstado(true);
         setObservaciones("");
-        setRetorno("");
+        setRetorno(defaultRetorno);
+        setParametros([]);
+      })
+      .catch((err) => toast.error(err.message));
+  };
+
+  const handleUpdateParametro = (e) => {
+    e.preventDefault();
+    APIService.updateParametroFuncion(codFuncion, secuencia, {
+      tipo_parametro: tipoParametro,
+      variable,
+      fijo_caracter: fijoCaracter,
+      fijo_numero: fijoNumero,
+    })
+      .then((res) => {
+        toast.success(res);
+        setOpenUpdateParametro(false);
+        setModulo(shapeModulo);
+        setNombre("");
+        setNombreBD("");
+        setEstado(true);
+        setObservaciones("");
+        setRetorno(defaultRetorno);
+        getParametros(codFuncion);
       })
       .catch((err) => toast.error(err.message));
   };
@@ -149,6 +221,56 @@ export default function Funciones() {
     handleClickOpenUpdate();
   };
 
+  const handleRowSelectionChange = (
+    currentRowsSelected,
+    allRowsSelected,
+    rowsSelected
+  ) => {
+    if (rowsSelected.length === 0) {
+      setParametros([]);
+      return;
+    }
+    const indiceSeleccionado = rowsSelected[0];
+    const funcionSeleccionada = funciones[indiceSeleccionado];
+    if (funcionSeleccionada) {
+      setCodFuncion(funcionSeleccionada.cod_funcion);
+      getParametros(funcionSeleccionada.cod_funcion);
+    }
+  };
+
+  const handleRowClickParametro = (rowData, rowMeta) => {
+    const row = parametros.filter((item) => item.secuencia === rowData[1])[0];
+    setSecuencia(row.secuencia);
+    setTipoParametro(row.tipo_parametro);
+    setVariable(row.variable ?? "");
+    setFijoCaracter(row.fijo_caracter ?? "");
+    setFijoNumero(row.fijo_numero ?? "");
+    handleClickOpenUpdateParametro();
+  };
+
+  const handleDeleteParametro = (rowsDeleted) => {
+    if (!window.confirm("¿Estás seguro de eliminar el parámetro?")) {
+      return false;
+    }
+    const { data: deletedData } = rowsDeleted;
+    const deletedRowIndex = deletedData[0].index;
+    const deletedRowValue = parametros[deletedRowIndex];
+    const newParametros = parametros.filter(
+      (_, index) => index !== deletedRowIndex
+    );
+    setParametros(newParametros);
+    APIService.deleteParametroFuncion(
+      deletedRowValue.cod_funcion,
+      deletedRowValue.secuencia
+    )
+      .then((res) => toast.success(res))
+      .catch((err) => {
+        toast.error(err.message);
+        getParametros();
+      });
+    return true;
+  };
+
   const handleClickOpenCreate = () => {
     setOpenCreate(true);
     setCodFuncion("");
@@ -170,6 +292,44 @@ export default function Funciones() {
 
   const handleClickCloseUpdate = () => {
     setOpenUpdate(false);
+  };
+
+  const handleClickOpenCreateParametro = () => {
+    setOpenCreateParametro(true);
+  };
+
+  const handleClickCloseCreateParametro = () => {
+    setOpenCreateParametro(false);
+  };
+
+  const handleClickOpenUpdateParametro = () => {
+    setOpenUpdateParametro(true);
+  };
+
+  const handleClickCloseUpdateParametro = () => {
+    setOpenUpdateParametro(false);
+  };
+
+  const checkTipoParametro = (tipo) => {
+    switch (tipo) {
+      case tiposParametro.find((p) => p.value === "VARIABLE").value:
+        setFijoCaracter("");
+        setFijoNumero("");
+        break;
+      case tiposParametro.find((p) => p.value === "CARACTER").value:
+        setVariable("");
+        setFijoNumero("");
+        break;
+      case tiposParametro.find((p) => p.value === "NUMERO").value:
+        setVariable("");
+        setFijoCaracter("");
+        break;
+      default:
+        setVariable("");
+        setFijoCaracter("");
+        setFijoNumero("");
+        return;
+    }
   };
 
   const columns = [
@@ -222,8 +382,86 @@ export default function Funciones() {
   const options = {
     responsive: "standard",
     selectableRows: "single",
+    onRowSelectionChange: handleRowSelectionChange,
     onRowClick: handleRowClick,
     onRowsDelete: handleDelete,
+    textLabels: {
+      body: {
+        noMatch: "Lo siento, no se encontraron registros",
+        toolTip: "Ordenar",
+        columnHeaderTooltip: (column) => `Ordenar por ${column.label}`,
+      },
+      pagination: {
+        next: "Siguiente",
+        previous: "Anterior",
+        rowsPerPage: "Filas por página:",
+        displayRows: "de",
+      },
+      toolbar: {
+        search: "Buscar",
+        downloadCsv: "Descargar CSV",
+        print: "Imprimir",
+        viewColumns: "Ver columnas",
+        filterTable: "Filtrar tabla",
+      },
+      filter: {
+        all: "Todos",
+        title: "FILTROS",
+        reset: "REINICIAR",
+      },
+      viewColumns: {
+        title: "Mostrar columnas",
+        titleAria: "Mostrar/Ocultar columnas de tabla",
+      },
+      selectedRows: {
+        text: "fila(s) seleccionada(s)",
+        delete: "Borrar",
+        deleteAria: "Borrar fila seleccionada",
+      },
+    },
+  };
+
+  const columnsParametros = [
+    {
+      name: "cod_funcion",
+      options: {
+        display: "excluded",
+      },
+    },
+    {
+      name: "secuencia",
+      label: "Secuencia",
+    },
+    {
+      name: "tipo_parametro",
+      label: "Tipo parámetro",
+    },
+    {
+      name: "variable",
+      label: "Variable",
+    },
+    {
+      name: "fijo_caracter",
+      label: "Caracter",
+    },
+    {
+      name: "fijo_numero",
+      label: "Número",
+    },
+    {
+      name: "audit_fecha_ing",
+      label: "Fecha creación",
+      options: {
+        customBodyRender: (value) => formatearFecha(value),
+      },
+    },
+  ];
+
+  const optionsParametros = {
+    responsive: "standard",
+    selectableRows: "single",
+    onRowClick: handleRowClickParametro,
+    onRowsDelete: handleDeleteParametro,
     textLabels: {
       body: {
         noMatch: "Lo siento, no se encontraron registros",
@@ -283,6 +521,19 @@ export default function Funciones() {
     />
   );
 
+  const selectTipoParametro = (
+    <CustomSelect
+      label="Tipo parámetro"
+      options={tiposParametro}
+      value={tipoParametro}
+      onChange={(e) => {
+        const nuevoTipo = e.target.value ?? "";
+        checkTipoParametro(nuevoTipo);
+        setTipoParametro(nuevoTipo);
+      }}
+    />
+  );
+
   const checkboxEstado = (
     <Check label="Activa" checked={estado} setChecked={setEstado} />
   );
@@ -317,6 +568,47 @@ export default function Funciones() {
     ),
   ];
 
+  const createParametroContentItems = [
+    createTextFieldItem(4, "cod_funcion", "Código Función", codFuncion),
+    createTextFieldItem(4, "secuencia", "Secuencia", parametros.length + 1),
+    createCustomComponentItem(
+      4,
+      "selectTipoParametro",
+      selectTipoParametro,
+      setTipoParametro
+    ),
+    createTextFieldItem(
+      4,
+      "variable",
+      "Variable",
+      variable,
+      setVariable,
+      false,
+      null,
+      tiposParametro.find((p) => p.value === "VARIABLE").value !== tipoParametro
+    ),
+    createTextFieldItem(
+      4,
+      "fijo_caracter",
+      "Caracter",
+      fijoCaracter,
+      setFijoCaracter,
+      false,
+      null,
+      tiposParametro.find((p) => p.value === "CARACTER").value !== tipoParametro
+    ),
+    createTextFieldItem(
+      4,
+      "fijo_numero",
+      "Número",
+      fijoNumero,
+      setFijoNumero,
+      false,
+      null,
+      tiposParametro.find((p) => p.value === "NUMERO").value !== tipoParametro
+    ),
+  ];
+
   const updateContentItems = [
     createCustomComponentItem(4, "autocompleteModulos", autocompleteModulos),
     createTextFieldItem(4, "cod_funcion", "Código", codFuncion),
@@ -340,13 +632,62 @@ export default function Funciones() {
     createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
   ];
 
+  const updateParametroContentItems = [
+    createTextFieldItem(4, "cod_funcion", "Código Función", codFuncion),
+    createTextFieldItem(4, "secuencia", "Secuencia", secuencia),
+    createCustomComponentItem(
+      4,
+      "selectTipoParametro",
+      selectTipoParametro,
+      setTipoParametro
+    ),
+    createTextFieldItem(
+      4,
+      "variable",
+      "Variable",
+      variable,
+      setVariable,
+      false,
+      null,
+      tiposParametro.find((p) => p.value === "VARIABLE").value !== tipoParametro
+    ),
+    createTextFieldItem(
+      4,
+      "fijo_caracter",
+      "Caracter",
+      fijoCaracter,
+      setFijoCaracter,
+      false,
+      null,
+      tiposParametro.find((p) => p.value === "CARACTER").value !== tipoParametro
+    ),
+    createTextFieldItem(
+      4,
+      "fijo_numero",
+      "Número",
+      fijoNumero,
+      setFijoNumero,
+      false,
+      null,
+      tiposParametro.find((p) => p.value === "NUMERO").value !== tipoParametro
+    ),
+  ];
+
   const createContent = <CustomGrid items={createContentItems} />;
+
+  const createParametroContent = (
+    <CustomGrid items={createParametroContentItems} />
+  );
 
   const updateContent = <CustomGrid items={updateContentItems} />;
 
+  const updateParametroContent = (
+    <CustomGrid items={updateParametroContentItems} />
+  );
+
   const header = <Header menus={menus} />;
 
-  const btnNuevo = <BtnNuevo onClick={handleClickOpenCreate} />;
+  const btnNuevo = <BtnNuevo onClick={handleClickOpenCreate} texto="Nueva" />;
 
   const tabla = (
     <Tabla
@@ -354,6 +695,21 @@ export default function Funciones() {
       data={funciones}
       columns={columns}
       options={options}
+    />
+  );
+
+  const btnNuevoParametro = codFuncion ? (
+    <BtnNuevo onClick={handleClickOpenCreateParametro} />
+  ) : (
+    <></>
+  );
+
+  const tablaParametros = (
+    <Tabla
+      title="Parámetros"
+      data={parametros}
+      columns={columnsParametros}
+      options={optionsParametros}
     />
   );
 
@@ -368,6 +724,17 @@ export default function Funciones() {
     />
   );
 
+  const createParametroDialog = (
+    <CustomDialog
+      titulo="Registrar Parámetro"
+      contenido={createParametroContent}
+      open={openCreateParametro}
+      handleClose={handleClickCloseCreateParametro}
+      handleCancel={handleClickCloseCreateParametro}
+      handleConfirm={handleCreateParametro}
+    />
+  );
+
   const updateDialog = (
     <CustomDialog
       titulo="Actualizar Función"
@@ -376,6 +743,18 @@ export default function Funciones() {
       handleClose={handleClickCloseUpdate}
       handleCancel={handleClickCloseUpdate}
       handleConfirm={handleUpdate}
+      confirmText="Actualizar"
+    />
+  );
+
+  const updateParametroDialog = (
+    <CustomDialog
+      titulo="Actualizar Parámetro"
+      contenido={updateParametroContent}
+      open={openUpdateParametro}
+      handleClose={handleClickCloseUpdateParametro}
+      handleCancel={handleClickCloseUpdateParametro}
+      handleConfirm={handleUpdateParametro}
       confirmText="Actualizar"
     />
   );
@@ -393,7 +772,17 @@ export default function Funciones() {
 
   return (
     <MainComponent
-      components={[header, btnNuevo, tabla, createDialog, updateDialog]}
+      components={[
+        header,
+        btnNuevo,
+        tabla,
+        btnNuevoParametro,
+        tablaParametros,
+        createDialog,
+        updateDialog,
+        createParametroDialog,
+        updateParametroDialog,
+      ]}
     />
   );
 }

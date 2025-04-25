@@ -233,11 +233,7 @@ export default class API {
   });
 
   createFuncion = this.#errorHandler(async (data) => {
-    return await axios.post(
-      `${this.#URL}/funciones`,
-      data,
-      this.#headers
-    );
+    return await axios.post(`${this.#URL}/funciones`, data, this.#headers);
   });
 
   updateFuncion = this.#errorHandler(async (funcion, data) => {
@@ -251,6 +247,36 @@ export default class API {
   deleteFuncion = this.#errorHandler(async (funcion) => {
     return await axios.delete(
       `${this.#URL}/funciones/${funcion}`,
+      this.#headers
+    );
+  });
+
+  getParametrosFuncion = this.#errorHandler(async (funcion) => {
+    return await axios.get(
+      `${this.#URL}/funciones/${funcion}/parametros`,
+      this.#headers
+    );
+  });
+
+  createParametroFuncion = this.#errorHandler(async (funcion, data) => {
+    return await axios.post(
+      `${this.#URL}/funciones/${funcion}/parametros`,
+      data,
+      this.#headers
+    );
+  });
+
+  updateParametroFuncion = this.#errorHandler(async (funcion, secuencia, data) => {
+    return await axios.put(
+      `${this.#URL}/funciones/${funcion}/parametros/${secuencia}`,
+      data,
+      this.#headers
+    );
+  });
+
+  deleteParametroFuncion = this.#errorHandler(async (funcion, secuencia) => {
+    return await axios.delete(
+      `${this.#URL}/funciones/${funcion}/parametros/${secuencia}`,
       this.#headers
     );
   });

@@ -4,7 +4,7 @@ import { useAuthContext } from "../../context/authContext";
 import { toast } from "react-toastify";
 import API from "../../services/modulo-formulas";
 import Header from "./common/header";
-import BtnNuevo from "./common/btnAdd-nuevo";
+import BtnNuevo from "./common/btn-nuevo";
 import {
   createEmptyItem,
   createCustomComponentItem,
@@ -15,7 +15,7 @@ import CustomSelect from "./common/custom-select";
 import AutocompleteObject from "./common/autocomplete-objects";
 import MainComponent from "./common/main-component";
 import BoxCenter from "./common/box-center";
-import BtnCancelar from "./common/btnAdd-cancelar";
+import BtnCancelar from "./common/btn-cancelar";
 import CustomTypography from "./common/custom-typography";
 
 const shapeParametroOperador = {
@@ -149,19 +149,22 @@ export default function FactoresCalculo() {
 
   const checkTipoOperador = (tipo) => {
     switch (tipo) {
-      case tiposOperadores.find((o) => o.value === "PAR"):
+      case tiposOperadores.find((o) => o.value === "PAR").value:
         setValorFijo("");
         setOperador("Seleccione");
         break;
-      case tiposOperadores.find((o) => o.value === "VAL"):
+      case tiposOperadores.find((o) => o.value === "VAL").value:
         setParametroOperador(shapeParametroOperador);
         setOperador("Seleccione");
         break;
-      case tiposOperadores.find((o) => o.value === "OPE"):
+      case tiposOperadores.find((o) => o.value === "OPE").value:
         setParametroOperador(shapeParametroOperador);
         setValorFijo("");
         break;
       default:
+        setValorFijo("");
+        setOperador("Seleccione");
+        setParametroOperador(shapeParametroOperador);
         return;
     }
   };
@@ -252,10 +255,8 @@ export default function FactoresCalculo() {
           }))}
           value={tipoOperador}
           onChange={(e) => {
-            const nuevoTipo = e.target.value;
-            checkTipoOperador(
-              tiposOperadores.find((o) => o.value === nuevoTipo)
-            );
+            const nuevoTipo = e.target.value ?? "";
+            checkTipoOperador(nuevoTipo);
             setTipoOperador(nuevoTipo);
           }}
         />
@@ -333,7 +334,9 @@ export default function FactoresCalculo() {
     />
   );
 
-  const btnNuevo = createFactor ? null : (
+  const btnNuevo = createFactor ? (
+    <></>
+  ) : (
     <BoxCenter
       components={[<BtnNuevo onClick={() => setCreateFactor(true)} />]}
     />
