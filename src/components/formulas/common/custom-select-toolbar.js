@@ -1,3 +1,4 @@
+import React from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CalculateIcon from "@mui/icons-material/Calculate";
 import { IconButton, Tooltip } from "@mui/material";
@@ -19,15 +20,19 @@ function CustomIcon({ icon }) {
   }
 }
 
-function CustomIconButton({ onClick, icon }) {
-  return <IconButton onClick={onClick}>{CustomIcon({ icon })}</IconButton>;
-}
+const CustomIconButton = React.forwardRef(
+  ({ onClick, icon, ...props }, ref) => (
+    <IconButton onClick={onClick} ref={ref} {...props}>
+      <CustomIcon icon={icon} />
+    </IconButton>
+  )
+);
 
 export default function CustomSelectToolbar({ tooltips }) {
   return (
     <>
-      {tooltips.map((tooltip) => (
-        <Tooltip title={tooltip.title}>
+      {tooltips.map((tooltip, index) => (
+        <Tooltip key={`tooltip${index}`} title={tooltip.title}>
           <CustomIconButton onClick={tooltip.onClick} icon={tooltip.icon} />
         </Tooltip>
       ))}

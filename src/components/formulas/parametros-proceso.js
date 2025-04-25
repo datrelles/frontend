@@ -184,6 +184,11 @@ export default function ParametrosProceso() {
         "calculate"
       ),
       createCustomTooltip(
+        "Datos parámetro",
+        () => handleCustomAction(selectedRows, displayData),
+        "edit"
+      ),
+      createCustomTooltip(
         "Eliminar",
         () => handleDelete(selectedRows, setSelectedRows),
         "delete"
