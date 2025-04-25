@@ -98,6 +98,32 @@ function CatImagen() {
             enqueueSnackbar("Error de conexión", { variant: "error" });
         }
     };
+    const eliminarImagen = async (pathImagen) => {
+        if (!window.confirm("¿Estás seguro de que deseas eliminar esta imagen?")) return;
+
+        try {
+            const res = await fetch(`${API}/s3/eliminar-imagen`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + jwt
+                },
+                body: JSON.stringify({ path_imagen: pathImagen })
+            });
+
+            const result = await res.json();
+
+            if (res.ok) {
+                toast.success(result.message || "Imagen eliminada");
+                fetchImagenData(); // actualizar la tabla
+            } else {
+                toast.error(result.error || "Error al eliminar imagen");
+            }
+        } catch (err) {
+            console.error("Error eliminando imagen:", err);
+            toast.error("Error inesperado");
+        }
+    };
 
     const columns = [
         { name: "codigo_imagen", label: "Código" },
@@ -129,9 +155,14 @@ function CatImagen() {
                 customBodyRenderLite: (dataIndex) => {
                     const rowData = cabeceras[dataIndex];
                     return (
-                        <IconButton onClick={() => openEditDialog(rowData)}>
-                            <EditIcon />
-                        </IconButton>
+                        <>
+                            <IconButton onClick={() => openEditDialog(rowData)}>
+                                <EditIcon />
+                            </IconButton>
+                            <IconButton onClick={() => eliminarImagen(rowData.path_imagen)}>
+                                🗑️
+                            </IconButton>
+                        </>
                     );
                 }
             }
@@ -223,7 +254,7 @@ function CatImagen() {
                         </DialogActions>
                     </Dialog>
 
-                    {/* Contenido principal */}
+
                     <div style={{ marginTop: '150px', width: "100%" }}>
                         <Navbar0 menus={menus} />
                         <Box>
