@@ -30,11 +30,6 @@ const shapeModulo = {
   sistema: "Seleccione",
 };
 
-// const shapeFuncion = {
-//   cod_funcion: "",
-//   nombre: "",
-// };
-
 export default function Funciones() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
     useAuthContext();

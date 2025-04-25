@@ -35,3 +35,11 @@ export function createCustomComponentItem(xs, id, custom_component) {
     custom_component,
   };
 }
+
+export function createCustomTooltip(title, onClick, icon) {
+  return {
+    title,
+    onClick,
+    icon,
+  };
+}

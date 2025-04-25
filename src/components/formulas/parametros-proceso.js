@@ -2,9 +2,6 @@ import { toast } from "react-toastify";
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
-import { IconButton, Tooltip } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import CalculateIcon from "@mui/icons-material/Calculate";
 import { useAuthContext } from "../../context/authContext";
 import API from "../../services/modulo-formulas";
 import { formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
@@ -14,11 +11,13 @@ import Tabla from "./common/tabla";
 import CustomDialog from "./common/custom-dialog";
 import {
   createCustomComponentItem,
+  createCustomTooltip,
   createTextFieldItem,
 } from "./common/form-generators";
 import CustomGrid from "./common/custom-grid";
 import Check from "./common/check";
 import MainComponent from "./common/main-component";
+import CustomSelectToolbar from "./common/custom-select-toolbar";
 
 export default function ParametrosProceso() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
@@ -177,25 +176,20 @@ export default function ParametrosProceso() {
     );
   };
 
-  const CustomSelectToolbar = (selectedRows, displayData, setSelectedRows) => {
-    return (
-      <>
-        <Tooltip title="Factores de cálculo">
-          <IconButton
-            onClick={() => handleCustomAction(selectedRows, displayData)}
-          >
-            <CalculateIcon />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Eliminar">
-          <IconButton
-            onClick={() => handleDelete(selectedRows, setSelectedRows)}
-          >
-            <DeleteIcon />
-          </IconButton>
-        </Tooltip>
-      </>
-    );
+  const customSelectToolbar = (selectedRows, displayData, setSelectedRows) => {
+    const tooltips = [
+      createCustomTooltip(
+        "Factores de cálculo",
+        () => handleCustomAction(selectedRows, displayData),
+        "calculo"
+      ),
+      createCustomTooltip(
+        "Eliminar",
+        () => handleDelete(selectedRows, setSelectedRows),
+        "eliminar"
+      ),
+    ];
+    return <CustomSelectToolbar tooltips={tooltips} />;
   };
 
   const columnsMaster = [
@@ -288,7 +282,7 @@ export default function ParametrosProceso() {
     responsive: "standard",
     selectableRows: "single",
     onRowClick: handleClickOpenUpdate,
-    customToolbarSelect: CustomSelectToolbar,
+    customToolbarSelect: customSelectToolbar,
     textLabels: {
       body: {
         noMatch: "Lo siento, no se encontraron registros",
