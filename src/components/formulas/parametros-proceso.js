@@ -181,12 +181,12 @@ export default function ParametrosProceso() {
       createCustomTooltip(
         "Factores de cálculo",
         () => handleCustomAction(selectedRows, displayData),
-        "calculo"
+        "calculate"
       ),
       createCustomTooltip(
         "Eliminar",
         () => handleDelete(selectedRows, setSelectedRows),
-        "eliminar"
+        "delete"
       ),
     ];
     return <CustomSelectToolbar tooltips={tooltips} />;
