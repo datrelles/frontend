@@ -18,6 +18,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import * as XLSX from "xlsx";
+import ImageUploader from "../uploadImages/s3_upload";
 
 const API = process.env.REACT_APP_API;
 
@@ -26,6 +27,7 @@ function CatImagen() {
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
     const [pathImagen, setpathImagen] = useState('');
+    const [descripcionImagen, setDescripcionImagen] = useState('');
     const [cabeceras, setCabeceras] = useState([]);
     const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
@@ -50,7 +52,8 @@ function CatImagen() {
                     "Authorization": "Bearer " + jwt
                 },
                 body: JSON.stringify({
-                    path_imagen: pathImagen
+                    path_imagen: pathImagen,
+                    descripcion_imagen: descripcionImagen
                 })
             });
 
@@ -152,44 +155,11 @@ function CatImagen() {
             toast.error('Error cargando menús');
         }
     };
-    const handleUploadExcel = (e) => {
-        const file = e.target.files[0];
-        const reader = new FileReader();
-
-        reader.onload = async (evt) => {
-            const data = evt.target.result;
-            const workbook = XLSX.read(data, { type: "binary" });
-            const sheetName = workbook.SheetNames[0];
-            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-            try {
-                const res = await fetch(`${API}/bench/insert_path_imagen`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": "Bearer " + jwt,
-                    },
-                    body: JSON.stringify(rows)
-                });
-
-                const responseData = await res.json();
-                if (res.ok) {
-                    enqueueSnackbar("Carga exitosa", { variant: "success" });
-                    fetchImagenData();
-                } else {
-                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
-                }
-            } catch (error) {
-                enqueueSnackbar("Error inesperado", { variant: "error" });
-            }
-        };
-
-        reader.readAsBinaryString(file);
-    };
 
     const openEditDialog = (rowData) => {
         setSelectedImagen(rowData);
         setpathImagen(rowData.path_imagen || '');
+        setDescripcionImagen(rowData.descripcion_imagen || '');
         setDialogOpen(true);
     };
 
@@ -235,15 +205,16 @@ function CatImagen() {
                 <LoadingCircle />
             ) : (
                 <>
-                    {/* Modal para vista de imagen */}
+
                     <Dialog open={openModalImagen} onClose={() => setOpenModalImagen(false)} maxWidth="md" fullWidth>
                         <DialogTitle>Vista de Imagen</DialogTitle>
                         <DialogContent>
-                            <iframe
+                            <img
                                 src={imagenModal}
                                 title="Vista previa imagen"
-                                style={{ width: '100%', height: '80vh', border: 'none' }}
+                                style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain' }}
                             />
+
                         </DialogContent>
                         <DialogActions>
                             <Button onClick={() => setOpenModalImagen(false)} color="primary">
@@ -262,21 +233,31 @@ function CatImagen() {
                             </ButtonGroup>
                         </Box>
 
-                        <Box>
+                        <Box display="flex" alignItems="center" gap={1} mt={2}>
+                            <Box display="flex" alignItems="center">
+                                <ImageUploader
+                                    onUploadComplete={(urls) => {
+                                        console.log("URLs subidas:", urls);
+                                        setpathImagen(urls[0]);
+                                    }}
+                                />
+
+                            </Box>
                             <Button
-                                onClick={() => {
-                                    setSelectedImagen(null);
-                                    setpathImagen('');
-                                    setDialogOpen(true);
+                                onClick={fetchImagenData}
+                                style={{
+                                    backgroundColor: 'firebrick',
+                                    color: 'white',
+                                    height: '37px'
                                 }}
-                                style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}
                             >
-                                Insertar Nuevo
+                                Listar
                             </Button>
-                            <Button onClick={fetchImagenData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>
-                                Listar Todos
-                            </Button>
+
                         </Box>
+
+
+
 
                         <ThemeProvider theme={getMuiTheme()}>
                             <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
@@ -294,18 +275,24 @@ function CatImagen() {
                                             onChange={(e) => setpathImagen(e.target.value)}
                                         />
                                     </Grid>
+                                    <Grid item xs={6}>
+                                        <TextField
+                                            fullWidth
+                                            label="Descripción Imagen"
+                                            value={descripcionImagen}
+                                            onChange={(e) => setDescripcionImagen(e.target.value)}
+                                        />
+                                    </Grid>
                                 </Grid>
+
                             </DialogContent>
                             <DialogActions>
                                 <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                                 <Button onClick={handleInsertImagen} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>
                                     {selectedImagen ? 'Actualizar' : 'Guardar'}
                                 </Button>
-                                <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
-                                    Cargar Excel
-                                    <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
-                                </Button>
                             </DialogActions>
+
                         </Dialog>
                     </div>
                 </>
