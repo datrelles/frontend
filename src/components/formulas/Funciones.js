@@ -2,7 +2,10 @@ import { toast } from "react-toastify";
 import { useState, useEffect, useMemo } from "react";
 import { useAuthContext } from "../../context/authContext";
 import API from "../../services/modulo-formulas";
-import { formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
+import {
+  formatearEstado,
+  formatearFechaHora,
+} from "../../helpers/modulo-formulas";
 import Header from "./common/header";
 import Tabla from "./common/tabla";
 import BtnNuevo from "./common/btn-nuevo";
@@ -13,7 +16,6 @@ import CustomGrid from "./common/custom-grid";
 import Check from "./common/check";
 import {
   createCustomComponentItem,
-  createEmptyItem,
   createTextFieldItem,
 } from "./common/form-generators";
 import MainComponent from "./common/main-component";
@@ -368,7 +370,7 @@ export default function Funciones() {
       name: "audit_fecha_ing",
       label: "Fecha creación",
       options: {
-        customBodyRender: (value) => formatearFecha(value),
+        customBodyRender: (value) => formatearFechaHora(value),
       },
     },
   ];
@@ -446,7 +448,7 @@ export default function Funciones() {
       name: "audit_fecha_ing",
       label: "Fecha creación",
       options: {
-        customBodyRender: (value) => formatearFecha(value),
+        customBodyRender: (value) => formatearFechaHora(value),
       },
     },
   ];
@@ -581,7 +583,11 @@ export default function Funciones() {
     "fijo_numero",
     "Número",
     fijoNumero,
-    setFijoNumero
+    setFijoNumero,
+    undefined,
+    undefined,
+    undefined,
+    "number"
   );
 
   const createParametroContentItems = () => {

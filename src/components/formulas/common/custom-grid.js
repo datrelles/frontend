@@ -1,5 +1,6 @@
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
+import { formatearFechaInput } from "../../../helpers/modulo-formulas";
 
 export default function CustomGrid({ items }) {
   return (
@@ -13,13 +14,16 @@ export default function CustomGrid({ items }) {
               margin="dense"
               id={item.id}
               label={item.label}
-              type="text"
+              type={item.type}
               placeholder={item.placeholder}
               fullWidth
-              value={item.value}
-              onChange={
-                item.setValue ? (e) => item.setValue(e.target.value) : null
+              value={
+                item.type === "date"
+                  ? formatearFechaInput(item.value)
+                  : item.value
               }
+              InputLabelProps={item.type === "date" ? { shrink: true } : {}}
+              onChange={item.setValue ?? null}
             />
           )}
         </Grid>

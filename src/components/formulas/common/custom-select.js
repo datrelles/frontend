@@ -17,7 +17,7 @@ export default function CustomSelect({
       fullWidth
       margin="dense"
       value={value}
-      onChange={onChange ? onChange : null}
+      onChange={onChange ?? null}
     >
       {onChange && <MenuItem value="Seleccione">Seleccione</MenuItem>}
       {options.map((option) => (

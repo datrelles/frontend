@@ -4,7 +4,11 @@ import { useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
 import { useAuthContext } from "../../context/authContext";
 import API from "../../services/modulo-formulas";
-import { formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
+import {
+  formatearEstado,
+  formatearFechaHora,
+  formatearFechaInput,
+} from "../../helpers/modulo-formulas";
 import Header from "./common/header";
 import BtnNuevo from "./common/btn-nuevo";
 import Tabla from "./common/tabla";
@@ -227,8 +231,8 @@ export default function ParametrosProceso() {
       formulas.find((f) => f.cod_formula === formula.cod_formula) ??
         shapeFormula
     );
-    setFechaInicio(parametro.fecha_calculo_inicio);
-    setFechaFin(parametro.fecha_calculo_fin);
+    setFechaInicio(formatearFechaInput(parametro.fecha_calculo_inicio));
+    setFechaFin(formatearFechaInput(parametro.fecha_calculo_fin));
     setOpenUpdateDatos(true);
   };
 
@@ -266,7 +270,7 @@ export default function ParametrosProceso() {
       name: "audit_fecha_ing",
       label: "Fecha creación",
       options: {
-        customBodyRender: (value) => formatearFecha(value),
+        customBodyRender: (value) => formatearFechaHora(value),
       },
     },
     {
@@ -447,7 +451,11 @@ export default function ParametrosProceso() {
       "orden",
       "Orden",
       ordenParametro,
-      setOrdenParametro
+      setOrdenParametro,
+      undefined,
+      undefined,
+      undefined,
+      "number"
     ),
     createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
   ];
@@ -474,7 +482,10 @@ export default function ParametrosProceso() {
       "Fecha inicio",
       fechaInicio,
       setFechaInicio,
-      false
+      false,
+      undefined,
+      undefined,
+      "date"
     ),
     createTextFieldItem(
       6,
@@ -482,7 +493,10 @@ export default function ParametrosProceso() {
       "Fecha fin",
       fechaFin,
       setFechaFin,
-      false
+      false,
+      undefined,
+      undefined,
+      "date"
     ),
   ];
 

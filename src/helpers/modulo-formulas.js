@@ -1,13 +1,27 @@
 import { createTheme } from "@mui/material/styles";
 
-export function formatearFecha(fecha) {
-  const fechaF = new Date(fecha);
-  const day = String(fechaF.getUTCDate()).padStart(2, "0");
-  const month = String(fechaF.getUTCMonth() + 1).padStart(2, "0");
-  const year = fechaF.getUTCFullYear();
-  const hour = String(fechaF.getUTCHours()).padStart(2, "0");
-  const minute = String(fechaF.getUTCMinutes()).padStart(2, "0");
+export function formatearFechaHora(valor) {
+  let fecha = new Date(valor);
+  if (isNaN(fecha.getTime())) {
+    console.log(`Error formatearFecha: ${valor}`);
+    fecha = new Date();
+  }
+  const day = String(fecha.getUTCDate()).padStart(2, "0");
+  const month = String(fecha.getUTCMonth() + 1).padStart(2, "0");
+  const year = fecha.getUTCFullYear();
+  const hour = String(fecha.getUTCHours()).padStart(2, "0");
+  const minute = String(fecha.getUTCMinutes()).padStart(2, "0");
   return `${day}/${month}/${year} ${hour}:${minute}`;
+}
+
+export function formatearFechaInput(valor) {
+  if (!valor) return "";
+  let fecha = new Date(valor);
+  if (isNaN(fecha.getTime())) {
+    console.log(`Error formatearFechaInput: ${valor}`);
+    fecha = new Date();
+  }
+  return fecha.toISOString().split("T")[0];
 }
 
 export function formatearEstado(estado, terminacion = "o") {

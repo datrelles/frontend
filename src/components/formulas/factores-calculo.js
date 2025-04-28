@@ -172,7 +172,17 @@ export default function FactoresCalculo() {
   const listItems = factores.map((item, index) => ({
     id: `factor_${item.orden}`,
     grid_items: [
-      createTextFieldItem(3, `orden_${item.orden}`, "Orden", item.orden),
+      createTextFieldItem(
+        3,
+        `orden_${item.orden}`,
+        "Orden",
+        item.orden,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        "number"
+      ),
       createCustomComponentItem(
         3,
         `select_tipo_op_${item.orden}`,
@@ -200,7 +210,12 @@ export default function FactoresCalculo() {
             2,
             `valor_fijo_${item.orden}`,
             "Valor fijo",
-            item.valor_fijo
+            item.valor_fijo,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            "number"
           )
         : createEmptyItem(2, `valor_fijo_${item.orden}`),
       item.cod_parametro_operador
@@ -287,7 +302,8 @@ export default function FactoresCalculo() {
         false,
         "",
         tiposOperadores.find((o) => o.value === tipoOperador) !==
-          tiposOperadores.find((o) => o.value === "VAL")
+          tiposOperadores.find((o) => o.value === "VAL"),
+        "number"
       ),
       createCustomComponentItem(
         3,

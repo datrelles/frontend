@@ -14,7 +14,8 @@ export function createTextFieldItem(
   setValue = null,
   required = true,
   placeholder = "",
-  disabled = !setValue
+  disabled = !setValue,
+  type = "text"
 ) {
   return {
     xs,
@@ -25,6 +26,7 @@ export function createTextFieldItem(
     required,
     placeholder,
     disabled,
+    type,
   };
 }
 

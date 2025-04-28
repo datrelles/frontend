@@ -2,7 +2,10 @@ import { toast } from "react-toastify";
 import { useState, useEffect, useMemo } from "react";
 import { useAuthContext } from "../../context/authContext";
 import API from "../../services/modulo-formulas";
-import { formatearEstado, formatearFecha } from "../../helpers/modulo-formulas";
+import {
+  formatearEstado,
+  formatearFechaHora,
+} from "../../helpers/modulo-formulas";
 import Header from "./common/header";
 import BtnNuevo from "./common/btn-nuevo";
 import Tabla from "./common/tabla";
@@ -145,7 +148,7 @@ export default function Procesos() {
       name: "audit_fecha_ing",
       label: "Fecha creación",
       options: {
-        customBodyRender: (value) => formatearFecha(value),
+        customBodyRender: (value) => formatearFechaHora(value),
       },
     },
   ];
