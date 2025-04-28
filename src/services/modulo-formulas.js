@@ -266,13 +266,15 @@ export default class API {
     );
   });
 
-  updateParametroFuncion = this.#errorHandler(async (funcion, secuencia, data) => {
-    return await axios.put(
-      `${this.#URL}/funciones/${funcion}/parametros/${secuencia}`,
-      data,
-      this.#headers
-    );
-  });
+  updateParametroFuncion = this.#errorHandler(
+    async (funcion, secuencia, data) => {
+      return await axios.put(
+        `${this.#URL}/funciones/${funcion}/parametros/${secuencia}`,
+        data,
+        this.#headers
+      );
+    }
+  );
 
   deleteParametroFuncion = this.#errorHandler(async (funcion, secuencia) => {
     return await axios.delete(

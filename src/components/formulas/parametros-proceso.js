@@ -18,6 +18,12 @@ import CustomGrid from "./common/custom-grid";
 import Check from "./common/check";
 import MainComponent from "./common/main-component";
 import CustomSelectToolbar from "./common/custom-select-toolbar";
+import AutocompleteObject from "./common/autocomplete-objects";
+
+const shapeFormula = {
+  cod_formula: "",
+  nombre: "Seleccione",
+};
 
 export default function ParametrosProceso() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
@@ -32,6 +38,11 @@ export default function ParametrosProceso() {
   const [menus, setMenus] = useState([]);
   const [openAdd, setOpenAdd] = useState(false);
   const [openUpdate, setOpenUpdate] = useState(false);
+  const [openUpdateDatos, setOpenUpdateDatos] = useState(false);
+  const [formulas, setFormulas] = useState("");
+  const [formula, setFormula] = useState(shapeFormula);
+  const [fechaInicio, setFechaInicio] = useState("");
+  const [fechaFin, setFechaFin] = useState("");
   const [codProceso, setCodProceso] = useState("");
   const [codParametro, setCodParametro] = useState("");
   const [nombreParametro, setNombreParametro] = useState("");
@@ -60,6 +71,14 @@ export default function ParametrosProceso() {
   const getParametros = async () => {
     try {
       setParametros(await APIService.getParametros());
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const getFormulas = async () => {
+    try {
+      setFormulas(await APIService.getFormulas());
     } catch (err) {
       toast.error(err.message);
     }
@@ -116,6 +135,23 @@ export default function ParametrosProceso() {
       .catch((err) => toast.error(err.message));
   };
 
+  const handleUpdateDatos = () => {
+    APIService.updateParametroPorProceso(codProceso, codParametro, {
+      orden_imprime: parametrosDetail.find(
+        (p) => p.cod_parametro === codParametro
+      ).orden_imprime,
+      cod_formula: formula.cod_formula,
+      fecha_calculo_inicio: fechaInicio,
+      fecha_calculo_fin: fechaFin,
+    })
+      .then((res) => {
+        toast.success(res);
+        setOpenUpdateDatos(false);
+        getParametrosDetail();
+      })
+      .catch((err) => toast.error(err.message));
+  };
+
   const handleDelete = (selectedRows, setSelectedRows) => {
     if (!window.confirm("¿Estás seguro de eliminar el parámetro?")) {
       return false;
@@ -168,12 +204,32 @@ export default function ParametrosProceso() {
     setOpenUpdate(false);
   };
 
+  const handleClickCloseUpdateDatos = () => {
+    setOpenUpdateDatos(false);
+  };
+
   const handleCustomAction = (selectedRows, displayData) => {
     const indiceSeleccionado = selectedRows.data[0].index;
     const codParametro = displayData[indiceSeleccionado].data[0];
     navigate(
       `/factores-calculo?proceso=${codProceso}&parametro=${codParametro}`
     );
+  };
+
+  const handleOpenUpdateDatos = (selectedRows, displayData) => {
+    const indiceSeleccionado = selectedRows.data[0].index;
+    const codParametro = displayData[indiceSeleccionado].data[0];
+    const parametro = parametrosDetail.find(
+      (p) => p.cod_parametro === codParametro
+    );
+    setCodParametro(codParametro);
+    setFormula(
+      formulas.find((f) => f.cod_formula === formula.cod_formula) ??
+        shapeFormula
+    );
+    setFechaInicio(parametro.fecha_calculo_inicio);
+    setFechaFin(parametro.fecha_calculo_fin);
+    setOpenUpdateDatos(true);
   };
 
   const customSelectToolbar = (selectedRows, displayData, setSelectedRows) => {
@@ -185,7 +241,7 @@ export default function ParametrosProceso() {
       ),
       createCustomTooltip(
         "Datos parámetro",
-        () => handleCustomAction(selectedRows, displayData),
+        () => handleOpenUpdateDatos(selectedRows, displayData),
         "edit"
       ),
       createCustomTooltip(
@@ -396,6 +452,40 @@ export default function ParametrosProceso() {
     createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
   ];
 
+  const autocompleteFormulas = (
+    <AutocompleteObject
+      id="Fórmula"
+      value={formula}
+      valueId="cod_formula"
+      shape={shapeFormula}
+      options={formulas}
+      optionLabel="nombre"
+      onChange={(e, value) => {
+        setFormula(value ?? shapeFormula);
+      }}
+    />
+  );
+
+  const updateDatosContentItems = [
+    createCustomComponentItem(12, "formula", autocompleteFormulas),
+    createTextFieldItem(
+      6,
+      "fecha_inicio",
+      "Fecha inicio",
+      fechaInicio,
+      setFechaInicio,
+      false
+    ),
+    createTextFieldItem(
+      6,
+      "fecha_fin",
+      "Fecha fin",
+      fechaFin,
+      setFechaFin,
+      false
+    ),
+  ];
+
   const addContent = (
     <Tabla
       title="Parámetros"
@@ -409,6 +499,8 @@ export default function ParametrosProceso() {
   );
 
   const updateContent = <CustomGrid items={updateContentItems} />;
+
+  const updateDatosContent = <CustomGrid items={updateDatosContentItems} />;
 
   const header = <Header menus={menus} />;
 
@@ -463,11 +555,24 @@ export default function ParametrosProceso() {
     />
   );
 
+  const updateDatosDialog = (
+    <CustomDialog
+      titulo={`Modificar Datos de Parámetro ${codParametro}`}
+      contenido={updateDatosContent}
+      open={openUpdateDatos}
+      handleClose={handleClickCloseUpdateDatos}
+      handleCancel={handleClickCloseUpdateDatos}
+      handleConfirm={handleUpdateDatos}
+      confirmText="Actualizar"
+    />
+  );
+
   useEffect(() => {
     document.title = "Parametros por Proceso";
     getMenus();
     getProcesos();
     getParametros();
+    getFormulas();
   }, []);
 
   useEffect(() => {
@@ -478,7 +583,14 @@ export default function ParametrosProceso() {
 
   return (
     <MainComponent
-      components={[header, btnNuevo, boxWithTables, addDialog, updateDialog]}
+      components={[
+        header,
+        btnNuevo,
+        boxWithTables,
+        addDialog,
+        updateDialog,
+        updateDatosDialog,
+      ]}
     />
   );
 }
