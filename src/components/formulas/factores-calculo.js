@@ -9,6 +9,8 @@ import {
   createEmptyItem,
   createCustomComponentItem,
   createTextFieldItem,
+  createCustomListItem,
+  createDefaultSetter,
 } from "./common/form-generators";
 import CustomList from "./common/custom-list";
 import CustomSelect from "./common/custom-select";
@@ -169,9 +171,8 @@ export default function FactoresCalculo() {
     }
   };
 
-  const listItems = factores.map((item, index) => ({
-    id: `factor_${item.orden}`,
-    grid_items: [
+  const factoresListItem = factores.map((item, index) =>
+    createCustomListItem(`factor_${item.orden}`, [
       createTextFieldItem(
         3,
         `orden_${item.orden}`,
@@ -243,89 +244,77 @@ export default function FactoresCalculo() {
           <></>
         )
       ),
-    ],
-  }));
+    ])
+  );
 
-  const nuevoFactorListItem = {
-    id: "nuevo_factor",
-    grid_items: [
-      createTextFieldItem(
-        3,
-        "n_f_orden",
-        "Orden",
-        orden,
-        null,
-        true,
-        null,
-        true
-      ),
-      createCustomComponentItem(
-        3,
-        "n_f_tipo_operador",
-        <CustomSelect
-          label="Tipo operador"
-          options={tiposOperadores.map((o) => ({
-            ...o,
-            disabled: checkUltimoTipoOperador(o.value),
-          }))}
-          value={tipoOperador}
-          onChange={(e) => {
-            const nuevoTipo = e.target.value ?? "";
-            checkTipoOperador(nuevoTipo);
-            setTipoOperador(nuevoTipo);
-          }}
-        />
-      ),
-      createCustomComponentItem(
-        1,
-        "n_f_operador",
-        <CustomSelect
-          label="Operador"
-          options={operadores}
-          value={operador}
-          onChange={(e) => {
-            setOperador(e.target.value);
-          }}
-          required={false}
-          disabled={
-            tiposOperadores.find((o) => o.value === tipoOperador) !==
-            tiposOperadores.find((o) => o.value === "OPE")
-          }
-        />
-      ),
-      createTextFieldItem(
-        2,
-        "n_f_valor_fijo",
-        "Valor fijo",
-        valorFijo,
-        setValorFijo,
-        false,
-        "",
-        tiposOperadores.find((o) => o.value === tipoOperador) !==
-          tiposOperadores.find((o) => o.value === "VAL"),
-        "number"
-      ),
-      createCustomComponentItem(
-        3,
-        "n_f_parametro",
-        <AutocompleteObject
-          id="Parámetro"
-          value={parametroOperador}
-          valueId="cod_parametro"
-          shape={shapeParametroOperador}
-          options={parametros}
-          optionLabel="nombre"
-          onChange={(e, value) => {
-            setParametroOperador(value ?? shapeParametroOperador);
-          }}
-          disabled={
-            tiposOperadores.find((o) => o.value === tipoOperador) !==
-            tiposOperadores.find((o) => o.value === "PAR")
-          }
-        />
-      ),
-    ],
-  };
+  const nuevoFactorListItem = createCustomListItem("nuevo_factor", [
+    createTextFieldItem(3, "n_f_orden", "Orden", orden, null, true, null, true),
+    createCustomComponentItem(
+      3,
+      "n_f_tipo_operador",
+      <CustomSelect
+        label="Tipo operador"
+        options={tiposOperadores.map((o) => ({
+          ...o,
+          disabled: checkUltimoTipoOperador(o.value),
+        }))}
+        value={tipoOperador}
+        onChange={(e) => {
+          const nuevoTipo = e.target.value ?? "";
+          checkTipoOperador(nuevoTipo);
+          setTipoOperador(nuevoTipo);
+        }}
+      />
+    ),
+    createCustomComponentItem(
+      1,
+      "n_f_operador",
+      <CustomSelect
+        label="Operador"
+        options={operadores}
+        value={operador}
+        onChange={(e) => {
+          setOperador(e.target.value);
+        }}
+        required={false}
+        disabled={
+          tiposOperadores.find((o) => o.value === tipoOperador) !==
+          tiposOperadores.find((o) => o.value === "OPE")
+        }
+      />
+    ),
+    createTextFieldItem(
+      2,
+      "n_f_valor_fijo",
+      "Valor fijo",
+      valorFijo,
+      createDefaultSetter(setValorFijo),
+      false,
+      "",
+      tiposOperadores.find((o) => o.value === tipoOperador) !==
+        tiposOperadores.find((o) => o.value === "VAL"),
+      "number"
+    ),
+    createCustomComponentItem(
+      3,
+      "n_f_parametro",
+      <AutocompleteObject
+        id="Parámetro"
+        value={parametroOperador}
+        valueId="cod_parametro"
+        shape={shapeParametroOperador}
+        options={parametros}
+        optionLabel="nombre"
+        onChange={(e, value) => {
+          setParametroOperador(value ?? shapeParametroOperador);
+        }}
+        disabled={
+          tiposOperadores.find((o) => o.value === tipoOperador) !==
+          tiposOperadores.find((o) => o.value === "PAR")
+        }
+      />
+    ),
+  ]);
 
   const btnAdd = (
     <BoxCenter
@@ -336,27 +325,10 @@ export default function FactoresCalculo() {
     />
   );
 
-  const lastItem = {
-    id: "botones",
+  const btnAddListItem = {
+    id: "btn_add",
     grid_items: [createCustomComponentItem(12, "n_f_botones", btnAdd)],
   };
-
-  const list = (
-    <CustomList
-      mt={2}
-      items={
-        createFactor ? [...listItems, nuevoFactorListItem, lastItem] : listItems
-      }
-    />
-  );
-
-  const btnNuevo = createFactor ? (
-    <></>
-  ) : (
-    <BoxCenter
-      components={[<BtnNuevo onClick={() => setCreateFactor(true)} />]}
-    />
-  );
 
   const header = <Header menus={menus} />;
 
@@ -377,6 +349,24 @@ export default function FactoresCalculo() {
       <></>
     );
 
+  const factoresList = (
+    <CustomList
+      items={
+        createFactor
+          ? [...factoresListItem, nuevoFactorListItem, btnAddListItem]
+          : factoresListItem
+      }
+    />
+  );
+
+  const btnNuevo = createFactor ? (
+    <></>
+  ) : (
+    <BoxCenter
+      components={[<BtnNuevo onClick={() => setCreateFactor(true)} />]}
+    />
+  );
+
   useEffect(() => {
     document.title = "Factores de cálculo";
     getMenus();
@@ -392,5 +382,9 @@ export default function FactoresCalculo() {
     setOrden(factores.length + 1);
   }, [factores]);
 
-  return <MainComponent components={[header, titulo, texto, list, btnNuevo]} />;
+  return (
+    <MainComponent
+      components={[header, titulo, texto, factoresList, btnNuevo]}
+    />
+  );
 }

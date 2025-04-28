@@ -14,6 +14,7 @@ import Check from "./common/check";
 import CustomGrid from "./common/custom-grid";
 import {
   createCustomComponentItem,
+  createDefaultSetter,
   createTextFieldItem,
 } from "./common/form-generators";
 import MainComponent from "./common/main-component";
@@ -108,9 +109,7 @@ export default function Parametros() {
   };
 
   const handleRowClick = (rowData, rowMeta) => {
-    const row = parametros.filter(
-      (item) => item.cod_parametro === rowData[0]
-    )[0];
+    const row = parametros.find((item) => item.cod_parametro === rowData[0]);
     setCodParametro(row.cod_parametro);
     setNombre(row.nombre);
     setDescripcion(row.descripcion ?? "");
@@ -218,30 +217,42 @@ export default function Parametros() {
       "cod_parametro",
       "Código",
       codParametro,
-      setCodParametro,
+      createDefaultSetter(setCodParametro),
       true,
       "PARAM###"
     ),
-    createTextFieldItem(6, "nombre", "Nombre", nombre, setNombre),
+    createTextFieldItem(
+      6,
+      "nombre",
+      "Nombre",
+      nombre,
+      createDefaultSetter(setNombre)
+    ),
     createTextFieldItem(
       12,
       "descripcion",
       "Descripción",
       descripcion,
-      setDescripcion,
+      createDefaultSetter(setDescripcion),
       false
     ),
   ];
 
   const updateContentItems = [
     createTextFieldItem(6, "cod_parametro", "Código", codParametro),
-    createTextFieldItem(6, "nombre", "Nombre", nombre, setNombre),
+    createTextFieldItem(
+      6,
+      "nombre",
+      "Nombre",
+      nombre,
+      createDefaultSetter(setNombre)
+    ),
     createTextFieldItem(
       12,
       "descripcion",
       "Descripción",
       descripcion,
-      setDescripcion,
+      createDefaultSetter(setDescripcion),
       false
     ),
     createCustomComponentItem(12, "checkboxEstado", checkboxEstado),

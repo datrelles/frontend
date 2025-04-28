@@ -7,7 +7,7 @@ export default function CustomGrid({ items }) {
     <Grid container spacing={2}>
       {items.map((item) => (
         <Grid key={item.id} item xs={item.xs}>
-          {item.custom_component || (
+          {item.customComponent || (
             <TextField
               required={item.required}
               disabled={item.disabled}

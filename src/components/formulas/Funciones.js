@@ -16,6 +16,7 @@ import CustomGrid from "./common/custom-grid";
 import Check from "./common/check";
 import {
   createCustomComponentItem,
+  createDefaultSetter,
   createTextFieldItem,
 } from "./common/form-generators";
 import MainComponent from "./common/main-component";
@@ -197,7 +198,10 @@ export default function Funciones() {
     );
     setFunciones(newFunciones);
     APIService.deleteFuncion(deletedRowValue.cod_funcion)
-      .then((res) => toast.success(res))
+      .then((res) => {
+        toast.success(res);
+        setCodFuncion("");
+      })
       .catch((err) => {
         toast.error(err.message);
         getFunciones();
@@ -206,7 +210,7 @@ export default function Funciones() {
   };
 
   const handleRowClick = (rowData, rowMeta) => {
-    const row = funciones.filter((item) => item.cod_funcion === rowData[1])[0];
+    const row = funciones.find((item) => item.cod_funcion === rowData[1]);
     setCodFuncion(row.cod_funcion);
     setModulo(modulos.find((m) => m.cod_sistema === row.cod_modulo));
     setNombre(row.nombre);
@@ -224,6 +228,7 @@ export default function Funciones() {
   ) => {
     if (rowsSelected.length === 0) {
       setParametros([]);
+      setCodFuncion("");
       return;
     }
     const indiceSeleccionado = rowsSelected[0];
@@ -235,7 +240,7 @@ export default function Funciones() {
   };
 
   const handleRowClickParametro = (rowData, rowMeta) => {
-    const row = parametros.filter((item) => item.secuencia === rowData[1])[0];
+    const row = parametros.find((item) => item.secuencia === rowData[1]);
     setSecuencia(row.secuencia);
     setTipoParametro(row.tipo_parametro);
     setVariable(row.variable ?? "");
@@ -541,25 +546,31 @@ export default function Funciones() {
       "cod_funcion",
       "Código",
       codFuncion,
-      setCodFuncion,
+      createDefaultSetter(setCodFuncion),
       true,
       "FUNC###"
     ),
     createCustomComponentItem(4, "selectRetorno", selectRetorno),
-    createTextFieldItem(6, "nombre", "Nombre", nombre, setNombre),
+    createTextFieldItem(
+      6,
+      "nombre",
+      "Nombre",
+      nombre,
+      createDefaultSetter(setNombre)
+    ),
     createTextFieldItem(
       6,
       "nombre_base_datos",
       "Nombre base de datos",
       nombreBD,
-      setNombreBD
+      createDefaultSetter(setNombreBD)
     ),
     createTextFieldItem(
       12,
       "observaciones",
       "Observaciones",
       observaciones,
-      setObservaciones,
+      createDefaultSetter(setObservaciones),
       false
     ),
   ];
@@ -569,21 +580,23 @@ export default function Funciones() {
     "variable",
     "Variable",
     variable,
-    setVariable
+    createDefaultSetter(setVariable)
   );
+
   const caracterTextFieldItem = createTextFieldItem(
     12,
     "fijo_caracter",
     "Caracter",
     fijoCaracter,
-    setFijoCaracter
+    createDefaultSetter(setFijoCaracter)
   );
+
   const numeroTextFieldItem = createTextFieldItem(
     12,
     "fijo_numero",
     "Número",
     fijoNumero,
-    setFijoNumero,
+    createDefaultSetter(setFijoNumero),
     undefined,
     undefined,
     undefined,
@@ -598,7 +611,7 @@ export default function Funciones() {
         4,
         "selectTipoParametro",
         selectTipoParametro,
-        setTipoParametro
+        createDefaultSetter(setTipoParametro)
       ),
     ];
     switch (tipoParametro) {
@@ -617,20 +630,26 @@ export default function Funciones() {
     createCustomComponentItem(4, "autocompleteModulos", autocompleteModulos),
     createTextFieldItem(4, "cod_funcion", "Código", codFuncion),
     createCustomComponentItem(4, "selectRetorno", selectRetorno),
-    createTextFieldItem(6, "nombre", "Nombre", nombre, setNombre),
+    createTextFieldItem(
+      6,
+      "nombre",
+      "Nombre",
+      nombre,
+      createDefaultSetter(setNombre)
+    ),
     createTextFieldItem(
       6,
       "nombre_base_datos",
       "Nombre base de datos",
       nombreBD,
-      setNombreBD
+      createDefaultSetter(setNombreBD)
     ),
     createTextFieldItem(
       12,
       "observaciones",
       "Observaciones",
       observaciones,
-      setObservaciones,
+      createDefaultSetter(setObservaciones),
       false
     ),
     createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
@@ -644,7 +663,7 @@ export default function Funciones() {
         4,
         "selectTipoParametro",
         selectTipoParametro,
-        setTipoParametro
+        createDefaultSetter(setTipoParametro)
       ),
     ];
     switch (tipoParametro) {
@@ -692,7 +711,7 @@ export default function Funciones() {
 
   const tablaParametros = (
     <Tabla
-      title="Parámetros"
+      title={`Parámetros ${codFuncion ? `de la función ${codFuncion}` : ""}`}
       data={parametros}
       columns={columnsParametros}
       options={optionsParametros}
@@ -710,17 +729,6 @@ export default function Funciones() {
     />
   );
 
-  const createParametroDialog = (
-    <CustomDialog
-      titulo="Registrar Parámetro"
-      contenido={createParametroContent}
-      open={openCreateParametro}
-      handleClose={handleClickCloseCreateParametro}
-      handleCancel={handleClickCloseCreateParametro}
-      handleConfirm={handleCreateParametro}
-    />
-  );
-
   const updateDialog = (
     <CustomDialog
       titulo="Actualizar Función"
@@ -730,6 +738,17 @@ export default function Funciones() {
       handleCancel={handleClickCloseUpdate}
       handleConfirm={handleUpdate}
       confirmText="Actualizar"
+    />
+  );
+
+  const createParametroDialog = (
+    <CustomDialog
+      titulo="Registrar Parámetro"
+      contenido={createParametroContent}
+      open={openCreateParametro}
+      handleClose={handleClickCloseCreateParametro}
+      handleCancel={handleClickCloseCreateParametro}
+      handleConfirm={handleCreateParametro}
     />
   );
 

@@ -12,6 +12,7 @@ import Tabla from "./common/tabla";
 import CustomDialog from "./common/custom-dialog";
 import {
   createCustomComponentItem,
+  createDefaultSetter,
   createTextFieldItem,
 } from "./common/form-generators";
 import CustomGrid from "./common/custom-grid";
@@ -121,7 +122,7 @@ export default function Procesos() {
   };
 
   const handleRowClick = (rowData, rowMeta) => {
-    const row = procesos.filter((item) => item.cod_proceso === rowData[0])[0];
+    const row = procesos.find((item) => item.cod_proceso === rowData[0]);
     setCodProceso(row.cod_proceso);
     setNombre(row.nombre);
     setEstado(row.estado === 1);
@@ -204,16 +205,28 @@ export default function Procesos() {
       "cod_proceso",
       "Código",
       codProceso,
-      setCodProceso,
+      createDefaultSetter(setCodProceso),
       true,
       "PROCE###"
     ),
-    createTextFieldItem(6, "nombre", "Nombre", nombre, setNombre),
+    createTextFieldItem(
+      6,
+      "nombre",
+      "Nombre",
+      nombre,
+      createDefaultSetter(setNombre)
+    ),
   ];
 
   const updateContentItems = [
     createTextFieldItem(6, "cod_proceso", "Código", codProceso),
-    createTextFieldItem(6, "nombre", "Nombre", nombre, setNombre),
+    createTextFieldItem(
+      6,
+      "nombre",
+      "Nombre",
+      nombre,
+      createDefaultSetter(setNombre)
+    ),
     createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
   ];
 

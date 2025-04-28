@@ -2,8 +2,12 @@ export function createEmptyItem(xs, id) {
   return {
     xs,
     id,
-    custom_component: <></>,
+    customComponent: <></>,
   };
+}
+
+export function createDefaultSetter(setter) {
+  return (e) => setter(e.target.value);
 }
 
 export function createTextFieldItem(
@@ -30,11 +34,11 @@ export function createTextFieldItem(
   };
 }
 
-export function createCustomComponentItem(xs, id, custom_component) {
+export function createCustomComponentItem(xs, id, customComponent) {
   return {
     xs,
     id,
-    custom_component,
+    customComponent,
   };
 }
 
@@ -44,4 +48,8 @@ export function createCustomTooltip(title, onClick, icon) {
     onClick,
     icon,
   };
+}
+
+export function createCustomListItem(id, gridItems) {
+  return { id, gridItems };
 }

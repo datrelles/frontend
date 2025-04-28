@@ -1,7 +1,6 @@
 import { toast } from "react-toastify";
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import Box from "@mui/material/Box";
 import { useAuthContext } from "../../context/authContext";
 import API from "../../services/modulo-formulas";
 import {
@@ -16,6 +15,7 @@ import CustomDialog from "./common/custom-dialog";
 import {
   createCustomComponentItem,
   createCustomTooltip,
+  createDefaultSetter,
   createTextFieldItem,
 } from "./common/form-generators";
 import CustomGrid from "./common/custom-grid";
@@ -23,6 +23,7 @@ import Check from "./common/check";
 import MainComponent from "./common/main-component";
 import CustomSelectToolbar from "./common/custom-select-toolbar";
 import AutocompleteObject from "./common/autocomplete-objects";
+import BoxMasterDetail from "./common/box-master-detail";
 
 const shapeFormula = {
   cod_formula: "",
@@ -451,7 +452,7 @@ export default function ParametrosProceso() {
       "orden",
       "Orden",
       ordenParametro,
-      setOrdenParametro,
+      createDefaultSetter(setOrdenParametro),
       undefined,
       undefined,
       undefined,
@@ -481,7 +482,7 @@ export default function ParametrosProceso() {
       "fecha_inicio",
       "Fecha inicio",
       fechaInicio,
-      setFechaInicio,
+      createDefaultSetter(setFechaInicio),
       false,
       undefined,
       undefined,
@@ -492,7 +493,7 @@ export default function ParametrosProceso() {
       "fecha_fin",
       "Fecha fin",
       fechaFin,
-      setFechaFin,
+      createDefaultSetter(setFechaFin),
       false,
       undefined,
       undefined,
@@ -526,25 +527,25 @@ export default function ParametrosProceso() {
     />
   );
 
-  const boxWithTables = (
-    <Box sx={{ display: "flex", gap: 4 }}>
-      <Box sx={{ flex: 1 }}>
+  const boxMasterDetail = (
+    <BoxMasterDetail
+      master={
         <Tabla
           title="Procesos"
           data={procesos}
           columns={columnsMaster}
           options={optionsMaster}
         />
-      </Box>
-      <Box sx={{ flex: 1 }}>
+      }
+      detail={
         <Tabla
           title={`Parámetros del Proceso ${codProceso ?? ""}`}
           data={parametrosDetail}
           columns={columnsDetail}
           options={optionsDetail}
         />
-      </Box>
-    </Box>
+      }
+    />
   );
 
   const addDialog = (
@@ -600,7 +601,7 @@ export default function ParametrosProceso() {
       components={[
         header,
         btnNuevo,
-        boxWithTables,
+        boxMasterDetail,
         addDialog,
         updateDialog,
         updateDatosDialog,

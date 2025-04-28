@@ -12,6 +12,7 @@ import BtnNuevo from "./common/btn-nuevo";
 import CustomDialog from "./common/custom-dialog";
 import {
   createCustomComponentItem,
+  createDefaultSetter,
   createTextFieldItem,
 } from "./common/form-generators";
 import CustomGrid from "./common/custom-grid";
@@ -43,6 +44,14 @@ export default function Formulas() {
     }
   };
 
+  const getFormulas = async () => {
+    try {
+      setFormulas(await APIService.getFormulas());
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
   const handleCreate = (e) => {
     e.preventDefault();
     APIService.createFormula({
@@ -62,14 +71,6 @@ export default function Formulas() {
         setDefinicion("");
       })
       .catch((err) => toast.error(err.message));
-  };
-
-  const getFormulas = async () => {
-    try {
-      setFormulas(await APIService.getFormulas());
-    } catch (err) {
-      toast.error(err.message);
-    }
   };
 
   const handleUpdate = (e) => {
@@ -113,7 +114,7 @@ export default function Formulas() {
   };
 
   const handleRowClick = (rowData, rowMeta) => {
-    const row = formulas.filter((item) => item.cod_formula === rowData[0])[0];
+    const row = formulas.find((item) => item.cod_formula === rowData[0]);
     setCodFormula(row.cod_formula);
     setNombre(row.nombre);
     setEstado(row.estado === 1);
@@ -227,17 +228,23 @@ export default function Formulas() {
       "cod_formula",
       "Código",
       codFormula,
-      setCodFormula,
+      createDefaultSetter(setCodFormula),
       true,
       "FORMU###"
     ),
-    createTextFieldItem(6, "nombre", "Nombre", nombre, setNombre),
+    createTextFieldItem(
+      6,
+      "nombre",
+      "Nombre",
+      nombre,
+      createDefaultSetter(setNombre)
+    ),
     createTextFieldItem(
       12,
       "observaciones",
       "Observaciones",
       observaciones,
-      setObservaciones,
+      createDefaultSetter(setObservaciones),
       false
     ),
     createTextFieldItem(
@@ -245,19 +252,25 @@ export default function Formulas() {
       "definicion",
       "Definición",
       definicion,
-      setDefinicion
+      createDefaultSetter(setDefinicion)
     ),
   ];
 
   const updateContentItems = [
     createTextFieldItem(6, "cod_formula", "Código", codFormula),
-    createTextFieldItem(6, "nombre", "Nombre", nombre, setNombre),
+    createTextFieldItem(
+      6,
+      "nombre",
+      "Nombre",
+      nombre,
+      createDefaultSetter(setNombre)
+    ),
     createTextFieldItem(
       12,
       "observaciones",
       "Observaciones",
       observaciones,
-      setObservaciones,
+      createDefaultSetter(setObservaciones),
       false
     ),
     createTextFieldItem(
@@ -265,7 +278,7 @@ export default function Formulas() {
       "definicion",
       "Definición",
       definicion,
-      setDefinicion
+      createDefaultSetter(setDefinicion)
     ),
     createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
   ];
