@@ -98,6 +98,8 @@ export const PedidoDialog = ({
     const [stockStatus, setStockStatus] = useState({})  // { [COD_PRODUCTO]: 'idle'|'loading'|'ok'|'none' }
     const radarStopRef = useRef(false)
     const currentResultsRef = useRef(new Set())   // ⬅️ IDs que siguen en pantalla
+    const radarAbortRef = useRef(false);
+    
 
 
 
@@ -149,25 +151,30 @@ export const PedidoDialog = ({
         }
     }, [openPedido, dataCasoPostventaEdit, productsList]);
 
-
-    const filtroProductos = productsList
-        .filter((p) => {
-            radarStopRef.current = true;
-            const { codigo, nombre } = productSearch
-
-            if (!codigo.trim() && !nombre.trim()) return false   // no se muestra nada sin texto
-
-            const codeMatch = codigo.trim().length >= 1
-                ? p.COD_PRODUCTO.toLowerCase().includes(codigo.toLowerCase()) : true
-
-            const nameMatch = nombre.trim().length >= 1
-                ? p.NOMBRE.toLowerCase().includes(nombre.toLowerCase()) : true
-
-            radarStopRef.current = false
-
-            return codeMatch && nameMatch
-        })
-        .slice(0, 15)
+    const filtroProductos = productsList.filter((p) => {
+        radarStopRef.current = true
+        const { codigo, nombre, modelo } = productSearch
+    
+        const searchWords = (text) =>
+            text.trim().toLowerCase().split(/\s+/).filter(Boolean)
+    
+        const matchesField = (field = '', words) =>
+            words.every((w) => field.toLowerCase().includes(w))
+    
+        const matchesModelo = (modeloText = '', words) => {
+            const modelos = modeloText.toLowerCase().split('/').map(m => m.trim())
+            return words.every((w) => modelos.some(m => m.includes(w)))
+        }
+    
+        if (!codigo && !nombre && !modelo) return false
+    
+        const codeMatch = codigo ? matchesField(p.COD_PRODUCTO, searchWords(codigo)) : true
+        const nameMatch = nombre ? matchesField(p.NOMBRE, searchWords(nombre)) : true
+        const modelMatch = modelo ? matchesModelo(p.MODELO, searchWords(modelo)) : true
+    
+        radarStopRef.current = false
+        return codeMatch && nameMatch && modelMatch
+    }).slice(0, 10)
 
 
     useEffect(() => {
@@ -252,6 +259,7 @@ export const PedidoDialog = ({
     // Función para cargar las agencias con existencia para el producto seleccionado
     const handleSelectProduct = async (prod) => {
         radarStopRef.current = true
+        radarAbortRef.current = true;
         setLoadingAgenciesForProduct(true)
         setSelectedProductForDialog(prod)
         const agenciasConExistencia = []
@@ -542,41 +550,42 @@ export const PedidoDialog = ({
 
     const radarExistencia = async (prod) => {
         // si ya no aparece en la pantalla, no hagas nada
-        if (!currentResultsRef.current.has(prod.COD_PRODUCTO)) return
-
-        if (stockStatus[prod.COD_PRODUCTO] || radarStopRef.current) return
-
-        setStockStatus((p) => ({ ...p, [prod.COD_PRODUCTO]: 'loading' }))
-
-        const checks = agencies.map((a) =>
-            getExistenceByAgency(jwt, enterpriseShineray, a.COD_AGENCIA, prod.COD_PRODUCTO)
-                .then((r) => r.existencia_lote > 0)
-                .catch(() => false)
-        )
-
-        let tieneStock = false
-        for (const p of checks) {
-            // aborta si el usuario cambió la búsqueda y el producto ya no está
-            if (!currentResultsRef.current.has(prod.COD_PRODUCTO) || radarStopRef.current) return
+        if (!currentResultsRef.current.has(prod.COD_PRODUCTO)) return;
+    
+        // si ya tiene estado o el radar está detenido, salir
+        if (stockStatus[prod.COD_PRODUCTO] || radarStopRef.current) return;
+    
+        setStockStatus((p) => ({ ...p, [prod.COD_PRODUCTO]: 'loading' }));
+    
+        let tieneStock = false;
+    
+        for (const agency of agencies) {
+            // salir si ya no está en pantalla o se detuvo el radar
+            if (!currentResultsRef.current.has(prod.COD_PRODUCTO) || radarStopRef.current || radarAbortRef.current) return;
+            
             try {
-                if (await p) { tieneStock = true; break }
-            } catch (_) { }
+                const r = await getExistenceByAgency(jwt, enterpriseShineray, agency.COD_AGENCIA, prod.COD_PRODUCTO);
+                if (r.existencia_lote > 0) {
+                    tieneStock = true;
+                    break; // ¡ENCONTRADO! salimos del loop inmediatamente
+                }
+            } catch (_) {
+                // ignorar errores individuales
+            }
         }
-
-        // antes de setState verifica otra vez que siga visible
+        if (radarAbortRef.current) return;
+    
         if (currentResultsRef.current.has(prod.COD_PRODUCTO) && !radarStopRef.current) {
             setStockStatus((prev) => ({
                 ...prev,
                 [prod.COD_PRODUCTO]: tieneStock ? 'ok' : 'none'
-            }))
+            }));
         }
-    }
-
-
+    };
+    
 
     const ProductoItem = ({ prod }) => {
         const status = stockStatus[prod.COD_PRODUCTO]
-
         return (
             <Paper
                 key={prod.COD_PRODUCTO}
@@ -587,14 +596,18 @@ export const PedidoDialog = ({
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     marginLeft: '16px'
-
                 }}
             >
                 <div
                     style={{ flex: 1, cursor: 'pointer' }}
                     onClick={() => handleSelectProduct(prod)}
                 >
-                    {`${prod.COD_PRODUCTO} - ${prod.NOMBRE}`}
+                    <Typography variant="body2" >
+                        {`${prod.COD_PRODUCTO} - ${prod.NOMBRE}`}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                        Modelos: {prod.MODELO}
+                    </Typography>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     {status === 'loading' && <CircularProgress size={18} />}
@@ -605,10 +618,10 @@ export const PedidoDialog = ({
         )
     }
 
-
     // Dentro de PedidoDialog, antes del return:
     const resetProductDialog = () => {
         radarStopRef.current = false;
+        radarAbortRef.current = false; //
         setSelectedProductForDialog(null);
         setAgenciesForProduct([]);
         setSelectedAgencyForProduct(null);
@@ -616,6 +629,7 @@ export const PedidoDialog = ({
         setSelectedLote(null);
         setAvailableUnits(0);
         setSelectedQuantity(1);
+        setStockStatus({})
     };
 
 
@@ -840,32 +854,24 @@ export const PedidoDialog = ({
             <Dialog
                 open={openProductDialog}
                 onClose={() => {
-                    // Reiniciar estados al cerrar el diálogo sin confirmar
-                    setSelectedProductForDialog(null)
-                    setAgenciesForProduct([])
-                    setSelectedAgencyForProduct(null)
-                    setLotesForProduct([])
-                    setSelectedLote(null)
-                    setAvailableUnits(0)
-                    setSelectedQuantity(1)
+                    resetProductDialog()
                     setOpenProductDialog(false)
                 }}
+                maxWidth="md"
+                fullWidth
             >
                 <DialogTitle disableTypography>
                     <Typography variant="h6" component="div">
                         Seleccionar Producto
                     </Typography>
-
-                    {/*  Subtítulo */}
                     <Typography variant="subtitle2" sx={{ color: 'text.secondary', mt: 0.5 }}>
                         {modeloMot}
                     </Typography>
                 </DialogTitle>
                 <DialogContent dividers style={{ position: 'relative' }}>
                     {selectedProductForDialog === null ? (
-                        // Vista de búsqueda: se filtra con "LIKE %texto%" si hay al menos 3 caracteres
                         <Grid container spacing={2}>
-                            <Grid item xs={12} sm={6}>
+                            <Grid item xs={12} sm={4}>
                                 <TextField
                                     label="Código Producto"
                                     variant="outlined"
@@ -877,7 +883,7 @@ export const PedidoDialog = ({
                                     }
                                 />
                             </Grid>
-                            <Grid item xs={12} sm={6}>
+                            <Grid item xs={12} sm={4}>
                                 <TextField
                                     label="Nombre Producto"
                                     variant="outlined"
@@ -889,6 +895,19 @@ export const PedidoDialog = ({
                                     }
                                 />
                             </Grid>
+                            <Grid item xs={12} sm={4}>
+                                <TextField
+                                    label="Modelo"
+                                    variant="outlined"
+                                    fullWidth
+                                    margin="dense"
+                                    value={productSearch.modelo}
+                                    onChange={(e) =>
+                                        setProductSearch({ ...productSearch, modelo: e.target.value })
+                                    }
+                                />
+                            </Grid>
+
                             {filtroProductos.length > 0 && (
                                 <Button
                                     variant="outlined"
@@ -909,7 +928,7 @@ export const PedidoDialog = ({
                                     Existencia
                                 </Button>
                             )}
-                            <div style={{ marginTop: 10 }}>
+                            <div style={{ marginTop: 10, width: '100%' }}>
                                 {filtroProductos.map((prod) => (
                                     <ProductoItem key={prod.COD_PRODUCTO} prod={prod} />
                                 ))}
