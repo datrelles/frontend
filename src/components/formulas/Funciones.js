@@ -13,6 +13,7 @@ import CustomGrid from "./common/custom-grid";
 import Check from "./common/check";
 import {
   createCustomComponentItem,
+  createEmptyItem,
   createTextFieldItem,
 } from "./common/form-generators";
 import MainComponent from "./common/main-component";
@@ -173,13 +174,11 @@ export default function Funciones() {
       .then((res) => {
         toast.success(res);
         setOpenUpdateParametro(false);
-        setModulo(shapeModulo);
-        setNombre("");
-        setNombreBD("");
-        setEstado(true);
-        setObservaciones("");
-        setRetorno(defaultRetorno);
         getParametros(codFuncion);
+        setTipoParametro(defaultTipoParametro);
+        setVariable("");
+        setFijoCaracter("");
+        setFijoNumero("");
       })
       .catch((err) => toast.error(err.message));
   };
@@ -563,46 +562,50 @@ export default function Funciones() {
     ),
   ];
 
-  const createParametroContentItems = [
-    createTextFieldItem(4, "cod_funcion", "Código Función", codFuncion),
-    createTextFieldItem(4, "secuencia", "Secuencia", parametros.length + 1),
-    createCustomComponentItem(
-      4,
-      "selectTipoParametro",
-      selectTipoParametro,
-      setTipoParametro
-    ),
-    createTextFieldItem(
-      4,
-      "variable",
-      "Variable",
-      variable,
-      setVariable,
-      false,
-      null,
-      tiposParametro.find((p) => p.value === "VARIABLE").value !== tipoParametro
-    ),
-    createTextFieldItem(
-      4,
-      "fijo_caracter",
-      "Caracter",
-      fijoCaracter,
-      setFijoCaracter,
-      false,
-      null,
-      tiposParametro.find((p) => p.value === "CARACTER").value !== tipoParametro
-    ),
-    createTextFieldItem(
-      4,
-      "fijo_numero",
-      "Número",
-      fijoNumero,
-      setFijoNumero,
-      false,
-      null,
-      tiposParametro.find((p) => p.value === "NUMERO").value !== tipoParametro
-    ),
-  ];
+  const variableTextFieldItem = createTextFieldItem(
+    12,
+    "variable",
+    "Variable",
+    variable,
+    setVariable
+  );
+  const caracterTextFieldItem = createTextFieldItem(
+    12,
+    "fijo_caracter",
+    "Caracter",
+    fijoCaracter,
+    setFijoCaracter
+  );
+  const numeroTextFieldItem = createTextFieldItem(
+    12,
+    "fijo_numero",
+    "Número",
+    fijoNumero,
+    setFijoNumero
+  );
+
+  const createParametroContentItems = () => {
+    const items = [
+      createTextFieldItem(4, "cod_funcion", "Código Función", codFuncion),
+      createTextFieldItem(4, "secuencia", "Secuencia", parametros.length + 1),
+      createCustomComponentItem(
+        4,
+        "selectTipoParametro",
+        selectTipoParametro,
+        setTipoParametro
+      ),
+    ];
+    switch (tipoParametro) {
+      case tiposParametro.find((p) => p.value === "VARIABLE").value:
+        return items.concat(variableTextFieldItem);
+      case tiposParametro.find((p) => p.value === "CARACTER").value:
+        return items.concat(caracterTextFieldItem);
+      case tiposParametro.find((p) => p.value === "NUMERO").value:
+        return items.concat(numeroTextFieldItem);
+      default:
+        return items;
+    }
+  };
 
   const updateContentItems = [
     createCustomComponentItem(4, "autocompleteModulos", autocompleteModulos),
@@ -627,57 +630,39 @@ export default function Funciones() {
     createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
   ];
 
-  const updateParametroContentItems = [
-    createTextFieldItem(4, "cod_funcion", "Código Función", codFuncion),
-    createTextFieldItem(4, "secuencia", "Secuencia", secuencia),
-    createCustomComponentItem(
-      4,
-      "selectTipoParametro",
-      selectTipoParametro,
-      setTipoParametro
-    ),
-    createTextFieldItem(
-      4,
-      "variable",
-      "Variable",
-      variable,
-      setVariable,
-      false,
-      null,
-      tiposParametro.find((p) => p.value === "VARIABLE").value !== tipoParametro
-    ),
-    createTextFieldItem(
-      4,
-      "fijo_caracter",
-      "Caracter",
-      fijoCaracter,
-      setFijoCaracter,
-      false,
-      null,
-      tiposParametro.find((p) => p.value === "CARACTER").value !== tipoParametro
-    ),
-    createTextFieldItem(
-      4,
-      "fijo_numero",
-      "Número",
-      fijoNumero,
-      setFijoNumero,
-      false,
-      null,
-      tiposParametro.find((p) => p.value === "NUMERO").value !== tipoParametro
-    ),
-  ];
+  const updateParametroContentItems = () => {
+    const items = [
+      createTextFieldItem(4, "cod_funcion", "Código Función", codFuncion),
+      createTextFieldItem(4, "secuencia", "Secuencia", secuencia),
+      createCustomComponentItem(
+        4,
+        "selectTipoParametro",
+        selectTipoParametro,
+        setTipoParametro
+      ),
+    ];
+    switch (tipoParametro) {
+      case tiposParametro.find((p) => p.value === "VARIABLE").value:
+        return items.concat(variableTextFieldItem);
+      case tiposParametro.find((p) => p.value === "CARACTER").value:
+        return items.concat(caracterTextFieldItem);
+      case tiposParametro.find((p) => p.value === "NUMERO").value:
+        return items.concat(numeroTextFieldItem);
+      default:
+        return items;
+    }
+  };
 
   const createContent = <CustomGrid items={createContentItems} />;
 
   const createParametroContent = (
-    <CustomGrid items={createParametroContentItems} />
+    <CustomGrid items={createParametroContentItems()} />
   );
 
   const updateContent = <CustomGrid items={updateContentItems} />;
 
   const updateParametroContent = (
-    <CustomGrid items={updateParametroContentItems} />
+    <CustomGrid items={updateParametroContentItems()} />
   );
 
   const header = <Header menus={menus} />;
