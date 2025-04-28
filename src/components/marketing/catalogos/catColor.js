@@ -231,7 +231,7 @@ function CatColor() {
                         Insertar Nuevo
                     </Button>
 
-                    <Button onClick={fetchColorData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar Todos</Button>
+                    <Button onClick={fetchColorData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
                 </Box>
 
                 <ThemeProvider theme={getMuiTheme()}>

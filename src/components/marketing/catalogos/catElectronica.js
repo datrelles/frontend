@@ -263,7 +263,7 @@ function CatElectronica() {
                         Insertar Nuevo
                     </Button>
 
-                    <Button onClick={fetchElectronicaData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar Electrónica</Button>
+                    <Button onClick={fetchElectronicaData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
                 </Box>
 
                 <ThemeProvider theme={getMuiTheme()}>

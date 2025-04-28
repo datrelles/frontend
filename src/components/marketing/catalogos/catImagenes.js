@@ -17,7 +17,6 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-import * as XLSX from "xlsx";
 import ImageUploader from "../uploadImages/s3_upload";
 
 const API = process.env.REACT_APP_API;
@@ -70,8 +69,6 @@ function CatImagen() {
             enqueueSnackbar("Error inesperado", { variant: "error" });
         }
     };
-
-
 
     useEffect(() => {
         getMenus();
@@ -286,14 +283,9 @@ function CatImagen() {
                             </Button>
 
                         </Box>
-
-
-
-
                         <ThemeProvider theme={getMuiTheme()}>
                             <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
                         </ThemeProvider>
-
                         <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                             <DialogTitle>{selectedImagen ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                             <DialogContent>
@@ -315,7 +307,6 @@ function CatImagen() {
                                         />
                                     </Grid>
                                 </Grid>
-
                             </DialogContent>
                             <DialogActions>
                                 <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
@@ -323,7 +314,6 @@ function CatImagen() {
                                     {selectedImagen ? 'Actualizar' : 'Guardar'}
                                 </Button>
                             </DialogActions>
-
                         </Dialog>
                     </div>
                 </>

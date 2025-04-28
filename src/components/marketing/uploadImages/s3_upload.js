@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { Button, LinearProgress } from "@mui/material";
+import { Button } from "@mui/material";
 import {useAuthContext} from "../../../context/authContext";
 import {toast} from "react-toastify";
 import Box from "@mui/material/Box";
@@ -8,7 +8,7 @@ import Box from "@mui/material/Box";
 const API = process.env.REACT_APP_API;
 
 const ImageUploader = ({ onUploadComplete }) => {
-    const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
+    const {jwt} = useAuthContext();
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [uploading, setUploading] = useState(false);
 

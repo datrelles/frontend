@@ -17,30 +17,33 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
+import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+
 import * as XLSX from "xlsx";
 
 const API = process.env.REACT_APP_API;
 
-function CatDimensionesPeso() {
+function CatCanal() {
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
-    const [alturaTotal, setAlturaTotal] = useState('');
-    const [longTotal, setLongTotal] = useState('');
-    const [anchoTotal, setAnchoTotal] = useState('');
-    const [pesoSeco, setPesoSeco] = useState('');
+    const [nombreCanal, setnombreCanal] = useState('');
+    const [estadoCanal, setestadoCanal] = useState('');
+    const [descripcionCanal, setdescripcionCanal] = useState('');
     const [cabeceras, setCabeceras] = useState([]);
     const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
-    const [selectedDimensiones, setSelectedDimensiones] = useState(null);
+    const [selectedCanal, setSelectedCanal] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
 
-    const handleInsertDimensionesPeso = async () => {
-        const url = selectedDimensiones && selectedDimensiones.codigo_dim_peso
-            ? `${API}/bench/update_dimensiones/${selectedDimensiones.codigo_dim_peso}`
-            : `${API}/bench/insert_dimension`;
+    const handleInsertCanal = async () => {
+        const url = selectedCanal && selectedCanal.codigo_canal
+            ? `${API}/bench/update_canal/${selectedCanal.codigo_canal}`
+            : `${API}/bench/insert_canal`;
 
-        const method = selectedDimensiones && selectedDimensiones.codigo_dim_peso ? "PUT" : "POST";
+        const method = selectedCanal && selectedCanal.codigo_canal ? "PUT" : "POST";
+
+        const estadoCanalNumerico = estadoCanal === "Activo" ? 1 : 0;
 
         try {
             const res = await fetch(url, {
@@ -50,17 +53,18 @@ function CatDimensionesPeso() {
                     "Authorization": "Bearer " + jwt
                 },
                 body: JSON.stringify({
-                    altura_total: alturaTotal,
-                    longitud_total: longTotal,
-                    ancho_total: anchoTotal,
-                    peso_seco: pesoSeco
+                    nombre_canal: nombreCanal,
+                    estado_canal: estadoCanalNumerico,
+                    descripcion_canal: descripcionCanal
                 })
             });
+
+
 
             const data = await res.json();
             if (res.ok) {
                 enqueueSnackbar(data.message || "Operación exitosa", { variant: "success" });
-                fetchDimensionesData();
+                fetchCanalData();
                 setDialogOpen(false);
             } else {
                 enqueueSnackbar(data.error || "Error al guardar", { variant: "error" });
@@ -91,13 +95,13 @@ function CatDimensionesPeso() {
 
     useEffect(() => {
         getMenus();
-        fetchDimensionesData();
+        fetchCanalData();
 
     }, [])
 
-    const fetchDimensionesData = async () => {
+    const fetchCanalData = async () => {
         try {
-            const res = await fetch(`${API}/bench/get_dimensiones`, {
+            const res = await fetch(`${API}/bench/get_canal`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -106,57 +110,41 @@ function CatDimensionesPeso() {
             });
             const data = await res.json();
             if (res.ok) {
-                setCabeceras(data); // <- carga los datos en la tabla
+                setCabeceras(data);
             } else {
-                enqueueSnackbar(data.error || "Error al obtener data de dimensiones", { variant: "error" });
+                enqueueSnackbar(data.error || "Error al obtener data de Canal", { variant: "error" });
             }
         } catch (error) {
             enqueueSnackbar("Error de conexión", { variant: "error" });
         }
     };
 
-
-    const handleUploadExcel = (e) => {
-        const file = e.target.files[0];
-        const reader = new FileReader();
-
-        reader.onload = async (evt) => {
-            const data = evt.target.result;
-            const workbook = XLSX.read(data, { type: "binary" });
-            const sheetName = workbook.SheetNames[0];
-            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-            try {
-                const res = await fetch(`${API}/bench/insert_dimension`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": "Bearer " + jwt,
-                    },
-                    body: JSON.stringify(rows)
-                });
-
-                const responseData = await res.json();
-                if (res.ok) {
-                    enqueueSnackbar("Carga exitosa", { variant: "success" });
-                    fetchDimensionesData();
-                } else {
-                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
-                }
-            } catch (error) {
-                enqueueSnackbar("Error inesperado", { variant: "error" });
-            }
-        };
-
-        reader.readAsBinaryString(file);
-    };
-
     const columns = [
-        { name: "codigo_dim_peso", label: "Código" },
-        { name: "altura_total", label: "Altura total" },
-        { name: "longitud_total", label: "Longitud total" },
-        { name: "ancho_total", label: "Ancho total" },
-        { name: "peso_seco", label: "Peso Seco" },
+        { name: "codigo_canal", label: "Código" },
+        { name: "nombre_canal", label: "Nombre Canal" },
+        {
+            name: "estado_canal",
+            label: "Estado Canal",
+            options: {
+                customBodyRender: (value) => (
+                    <div
+                        style={{
+                            backgroundColor: value === 1 ? 'green' : 'red',
+                            color: 'white',
+                            padding: '4px 8px',
+                            borderRadius: '10px',
+                            fontSize: '12px',
+                            display: 'inline-block',
+                            textAlign: 'center',
+                            minWidth: '70px'
+                        }}
+                    >
+                        {value === 1 ? "Activo" : "Inactivo"}
+                    </div>
+                )
+            }
+        },
+        { name: "descripcion_canal", label: "Descripción Canal" },
         { name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
@@ -175,12 +163,55 @@ function CatDimensionesPeso() {
         }
     ];
 
+    const handleUploadExcel = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async (evt) => {
+            const data = evt.target.result;
+            const workbook = XLSX.read(data, { type: "binary" });
+            const sheetName = workbook.SheetNames[0];
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+            // Conversión de "Activo"/"Inactivo" a 1/0
+            const processedRows = rows.map(row => ({
+                ...row,
+                estado_canal: row.estado_canal === "Activo" ? 1
+                    : row.estado_canal === "Inactivo" ? 0
+                        : row.estado_canal
+            }));
+
+            try {
+                const res = await fetch(`${API}/bench/insert_canal`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + jwt,
+                    },
+                    body: JSON.stringify(processedRows)
+                });
+
+                const responseData = await res.json();
+                if (res.ok) {
+                    enqueueSnackbar("Carga exitosa", { variant: "success" });
+                    fetchCanalData();
+                } else {
+                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
+                }
+            } catch (error) {
+                enqueueSnackbar("Error inesperado", { variant: "error" });
+            }
+        };
+
+        reader.readAsBinaryString(file);
+    };
+
+
     const openEditDialog = (rowData) => {
-        setSelectedDimensiones(rowData);
-        setAlturaTotal(rowData.altura_total || '');
-        setLongTotal(rowData.longitud_total || '');
-        setAnchoTotal(rowData.ancho_total || '');
-        setPesoSeco(rowData.peso_seco || '');
+        setSelectedCanal(rowData);
+        setnombreCanal(rowData.nombre_canal || '');
+        setestadoCanal(rowData.estado_canal === 1 ? "Activo" : "Inactivo");
+        setdescripcionCanal(rowData.descripcion_canal || '');
         setDialogOpen(true);
     };
 
@@ -233,37 +264,46 @@ function CatDimensionesPeso() {
                 <Box>
                     <Button
                         onClick={() => {
-                            setSelectedDimensiones(null);
-                            setAlturaTotal('');
-                            setLongTotal('');
-                            setAnchoTotal('');
-                            setPesoSeco('');
+                            setSelectedCanal(null);
+                            setnombreCanal('');
+                            setestadoCanal('');
+                            setdescripcionCanal('');
                             setDialogOpen(true);
                         }}
                         style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}
                     >
                         Insertar Nuevo
                     </Button>
-                    <Button onClick={fetchDimensionesData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
+                    <Button onClick={fetchCanalData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
                 </Box>
-
                 <ThemeProvider theme={getMuiTheme()}>
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
                 </ThemeProvider>
-
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
-                    <DialogTitle>{selectedDimensiones ? 'Actualizar' : 'Nuevo'}</DialogTitle>
+                    <DialogTitle>{selectedCanal ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Altura Total" value={alturaTotal} onChange={(e) => setAlturaTotal(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Longitud Total" value={longTotal} onChange={(e) => setLongTotal(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Ancho Total" value={anchoTotal} onChange={(e) => setAnchoTotal(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Peso Seco" value={pesoSeco} onChange={(e) => setPesoSeco(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Nombre canal" value={nombreCanal} onChange={(e) => setnombreCanal(e.target.value)} /></Grid>
+                            <Grid item xs={6}>
+                                <FormControl fullWidth>
+                                    <InputLabel id="estado-canal-label">Estado Canal</InputLabel>
+                                    <Select
+                                        labelId="estado-canal-label"
+                                        value={estadoCanal}
+                                        onChange={(e) => setestadoCanal(e.target.value)}
+                                    >
+                                        <MenuItem value="Activo">Activo</MenuItem>
+                                        <MenuItem value="Inactivo">Inactivo</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+
+                            <Grid item xs={6}><TextField fullWidth label="Descripcion" value={descripcionCanal} onChange={(e) => setdescripcionCanal(e.target.value)} /></Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleInsertDimensionesPeso} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedDimensiones ? 'Actualizar' : 'Guardar'}</Button>
+                        <Button onClick={handleInsertCanal} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedCanal ? 'Actualizar' : 'Guardar'}</Button>
                         <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
                             Cargar Excel
                             <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
@@ -278,7 +318,7 @@ function CatDimensionesPeso() {
 export default function IntegrationNotistack() {
     return (
         <SnackbarProvider maxSnack={3}>
-            <CatDimensionesPeso />
+            <CatCanal/>
         </SnackbarProvider>
     );
 }

@@ -21,26 +21,24 @@ import * as XLSX from "xlsx";
 
 const API = process.env.REACT_APP_API;
 
-function CatDimensionesPeso() {
+function CatTransmision() {
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
-    const [alturaTotal, setAlturaTotal] = useState('');
-    const [longTotal, setLongTotal] = useState('');
-    const [anchoTotal, setAnchoTotal] = useState('');
-    const [pesoSeco, setPesoSeco] = useState('');
+    const [cajaCambios, setcajaCambios] = useState('');
+    const [descripcionTransmision, setdescripcionTransmision] = useState('');
     const [cabeceras, setCabeceras] = useState([]);
     const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
-    const [selectedDimensiones, setSelectedDimensiones] = useState(null);
+    const [selectedTransmision, setSelectedTransmison] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
 
-    const handleInsertDimensionesPeso = async () => {
-        const url = selectedDimensiones && selectedDimensiones.codigo_dim_peso
-            ? `${API}/bench/update_dimensiones/${selectedDimensiones.codigo_dim_peso}`
-            : `${API}/bench/insert_dimension`;
+    const handleInsertTransmision = async () => {
+        const url = selectedTransmision && selectedTransmision.codigo_transmision
+            ? `${API}/bench/update_transmision/${selectedTransmision.codigo_transmision}`
+            : `${API}/bench/insert_transmision`;
 
-        const method = selectedDimensiones && selectedDimensiones.codigo_dim_peso ? "PUT" : "POST";
+        const method = selectedTransmision && selectedTransmision.codigo_transmision ? "PUT" : "POST";
 
         try {
             const res = await fetch(url, {
@@ -50,17 +48,15 @@ function CatDimensionesPeso() {
                     "Authorization": "Bearer " + jwt
                 },
                 body: JSON.stringify({
-                    altura_total: alturaTotal,
-                    longitud_total: longTotal,
-                    ancho_total: anchoTotal,
-                    peso_seco: pesoSeco
+                    caja_cambios: cajaCambios,
+                    descripcion_transmision: descripcionTransmision
                 })
             });
 
             const data = await res.json();
             if (res.ok) {
                 enqueueSnackbar(data.message || "Operación exitosa", { variant: "success" });
-                fetchDimensionesData();
+                fetchTransmisionData();
                 setDialogOpen(false);
             } else {
                 enqueueSnackbar(data.error || "Error al guardar", { variant: "error" });
@@ -91,13 +87,13 @@ function CatDimensionesPeso() {
 
     useEffect(() => {
         getMenus();
-        fetchDimensionesData();
+        fetchTransmisionData();
 
     }, [])
 
-    const fetchDimensionesData = async () => {
+    const fetchTransmisionData = async () => {
         try {
-            const res = await fetch(`${API}/bench/get_dimensiones`, {
+            const res = await fetch(`${API}/bench/get_transmision`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -106,57 +102,19 @@ function CatDimensionesPeso() {
             });
             const data = await res.json();
             if (res.ok) {
-                setCabeceras(data); // <- carga los datos en la tabla
+                setCabeceras(data);
             } else {
-                enqueueSnackbar(data.error || "Error al obtener data de dimensiones", { variant: "error" });
+                enqueueSnackbar(data.error || "Error al obtener data de transmisión", { variant: "error" });
             }
         } catch (error) {
             enqueueSnackbar("Error de conexión", { variant: "error" });
         }
     };
 
-
-    const handleUploadExcel = (e) => {
-        const file = e.target.files[0];
-        const reader = new FileReader();
-
-        reader.onload = async (evt) => {
-            const data = evt.target.result;
-            const workbook = XLSX.read(data, { type: "binary" });
-            const sheetName = workbook.SheetNames[0];
-            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-            try {
-                const res = await fetch(`${API}/bench/insert_dimension`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": "Bearer " + jwt,
-                    },
-                    body: JSON.stringify(rows)
-                });
-
-                const responseData = await res.json();
-                if (res.ok) {
-                    enqueueSnackbar("Carga exitosa", { variant: "success" });
-                    fetchDimensionesData();
-                } else {
-                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
-                }
-            } catch (error) {
-                enqueueSnackbar("Error inesperado", { variant: "error" });
-            }
-        };
-
-        reader.readAsBinaryString(file);
-    };
-
     const columns = [
-        { name: "codigo_dim_peso", label: "Código" },
-        { name: "altura_total", label: "Altura total" },
-        { name: "longitud_total", label: "Longitud total" },
-        { name: "ancho_total", label: "Ancho total" },
-        { name: "peso_seco", label: "Peso Seco" },
+        { name: "codigo_transmision", label: "Código" },
+        { name: "caja_cambios", label: "Caja de cambios" },
+        { name: "descripcion_transmision", label: "Descripción Transmisión" },
         { name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
@@ -175,12 +133,45 @@ function CatDimensionesPeso() {
         }
     ];
 
+    const handleUploadExcel = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async (evt) => {
+            const data = evt.target.result;
+            const workbook = XLSX.read(data, { type: "binary" });
+            const sheetName = workbook.SheetNames[0];
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+            try {
+                const res = await fetch(`${API}/bench/insert_transmision`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + jwt,
+                    },
+                    body: JSON.stringify(rows)
+                });
+
+                const responseData = await res.json();
+                if (res.ok) {
+                    enqueueSnackbar("Carga exitosa", { variant: "success" });
+                    fetchTransmisionData();
+                } else {
+                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
+                }
+            } catch (error) {
+                enqueueSnackbar("Error inesperado", { variant: "error" });
+            }
+        };
+
+        reader.readAsBinaryString(file);
+    };
+
     const openEditDialog = (rowData) => {
-        setSelectedDimensiones(rowData);
-        setAlturaTotal(rowData.altura_total || '');
-        setLongTotal(rowData.longitud_total || '');
-        setAnchoTotal(rowData.ancho_total || '');
-        setPesoSeco(rowData.peso_seco || '');
+        setSelectedTransmison(rowData);
+        setcajaCambios(rowData.caja_cambios || '');
+        setdescripcionTransmision(rowData.descripcion_transmision || '');
         setDialogOpen(true);
     };
 
@@ -233,37 +224,31 @@ function CatDimensionesPeso() {
                 <Box>
                     <Button
                         onClick={() => {
-                            setSelectedDimensiones(null);
-                            setAlturaTotal('');
-                            setLongTotal('');
-                            setAnchoTotal('');
-                            setPesoSeco('');
+                            setSelectedTransmison(null);
+                            setcajaCambios('');
+                            setdescripcionTransmision('');
                             setDialogOpen(true);
                         }}
                         style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}
                     >
                         Insertar Nuevo
                     </Button>
-                    <Button onClick={fetchDimensionesData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
+                    <Button onClick={fetchTransmisionData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
                 </Box>
-
                 <ThemeProvider theme={getMuiTheme()}>
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
                 </ThemeProvider>
-
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
-                    <DialogTitle>{selectedDimensiones ? 'Actualizar' : 'Nuevo'}</DialogTitle>
+                    <DialogTitle>{selectedTransmision ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Altura Total" value={alturaTotal} onChange={(e) => setAlturaTotal(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Longitud Total" value={longTotal} onChange={(e) => setLongTotal(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Ancho Total" value={anchoTotal} onChange={(e) => setAnchoTotal(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Peso Seco" value={pesoSeco} onChange={(e) => setPesoSeco(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Caja de Cambios" value={cajaCambios} onChange={(e) => setcajaCambios(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Descripcion" value={descripcionTransmision} onChange={(e) => setdescripcionTransmision(e.target.value)} /></Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleInsertDimensionesPeso} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedDimensiones ? 'Actualizar' : 'Guardar'}</Button>
+                        <Button onClick={handleInsertTransmision} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedTransmision ? 'Actualizar' : 'Guardar'}</Button>
                         <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
                             Cargar Excel
                             <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
@@ -278,7 +263,7 @@ function CatDimensionesPeso() {
 export default function IntegrationNotistack() {
     return (
         <SnackbarProvider maxSnack={3}>
-            <CatDimensionesPeso />
+            <CatTransmision/>
         </SnackbarProvider>
     );
 }

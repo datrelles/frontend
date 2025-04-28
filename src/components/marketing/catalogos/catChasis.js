@@ -264,7 +264,7 @@ function CatChasis() {
                     >
                         Insertar Nuevo
                     </Button>
-                    <Button onClick={fetchChasisData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar Chasis</Button>
+                    <Button onClick={fetchChasisData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
                 </Box>
 
                 <ThemeProvider theme={getMuiTheme()}>
