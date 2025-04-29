@@ -19,24 +19,12 @@ import MainComponent from "./common/main-component";
 import BoxCenter from "./common/box-center";
 import BtnCancelar from "./common/btn-cancelar";
 import CustomTypography from "./common/custom-typography";
+import { operadores, tiposOperadores } from "./common/enum";
 
 const shapeParametroOperador = {
   cod_parametro: "",
   nombre: "Seleccione",
 };
-
-const tiposOperadores = [
-  { value: "PAR", label: "PARÁMETRO" },
-  { value: "VAL", label: "VALOR FIJO" },
-  { value: "OPE", label: "OPERADOR" },
-];
-
-const operadores = [
-  { value: "+" },
-  { value: "-" },
-  { value: "*" },
-  { value: "/" },
-];
 
 export default function FactoresCalculo() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
@@ -142,24 +130,28 @@ export default function FactoresCalculo() {
 
   const checkUltimoTipoOperador = (clave) => {
     if (!factores || factores.length === 0) {
-      return clave === "OPE";
+      return clave === tiposOperadores.OPERADOR.key;
     }
     const ultimoTipo = factores[factores.length - 1].tipo_operador;
-    if (ultimoTipo === "PAR" || ultimoTipo === "VAL") return clave !== "OPE";
-    else return clave === "OPE";
+    if (
+      ultimoTipo === tiposOperadores.PARAMETRO.key ||
+      ultimoTipo === tiposOperadores.VALOR.key
+    )
+      return clave !== tiposOperadores.OPERADOR.key;
+    else return clave === tiposOperadores.OPERADOR.key;
   };
 
   const checkTipoOperador = (tipo) => {
     switch (tipo) {
-      case tiposOperadores.find((o) => o.value === "PAR").value:
+      case tiposOperadores.PARAMETRO.key:
         setValorFijo("");
         setOperador("Seleccione");
         break;
-      case tiposOperadores.find((o) => o.value === "VAL").value:
+      case tiposOperadores.VALOR.key:
         setParametroOperador(shapeParametroOperador);
         setOperador("Seleccione");
         break;
-      case tiposOperadores.find((o) => o.value === "OPE").value:
+      case tiposOperadores.OPERADOR.key:
         setParametroOperador(shapeParametroOperador);
         setValorFijo("");
         break;
@@ -254,10 +246,15 @@ export default function FactoresCalculo() {
       "n_f_tipo_operador",
       <CustomSelect
         label="Tipo operador"
-        options={tiposOperadores.map((o) => ({
-          ...o,
-          disabled: checkUltimoTipoOperador(o.value),
-        }))}
+        options={Object.fromEntries(
+          Object.entries(tiposOperadores).map(([key, value]) => [
+            key,
+            {
+              ...value,
+              disabled: checkUltimoTipoOperador(value.key),
+            },
+          ])
+        )}
         value={tipoOperador}
         onChange={(e) => {
           const nuevoTipo = e.target.value ?? "";
@@ -277,10 +274,7 @@ export default function FactoresCalculo() {
           setOperador(e.target.value);
         }}
         required={false}
-        disabled={
-          tiposOperadores.find((o) => o.value === tipoOperador) !==
-          tiposOperadores.find((o) => o.value === "OPE")
-        }
+        disabled={tipoOperador !== tiposOperadores.OPERADOR.key}
       />
     ),
     createTextFieldItem(
@@ -291,8 +285,7 @@ export default function FactoresCalculo() {
       createDefaultSetter(setValorFijo),
       false,
       "",
-      tiposOperadores.find((o) => o.value === tipoOperador) !==
-        tiposOperadores.find((o) => o.value === "VAL"),
+      tipoOperador !== tiposOperadores.VALOR.key,
       "number"
     ),
     createCustomComponentItem(
@@ -308,10 +301,7 @@ export default function FactoresCalculo() {
         onChange={(e, value) => {
           setParametroOperador(value ?? shapeParametroOperador);
         }}
-        disabled={
-          tiposOperadores.find((o) => o.value === tipoOperador) !==
-          tiposOperadores.find((o) => o.value === "PAR")
-        }
+        disabled={tipoOperador !== tiposOperadores.PARAMETRO.key}
       />
     ),
   ]);
@@ -325,10 +315,9 @@ export default function FactoresCalculo() {
     />
   );
 
-  const btnAddListItem = {
-    id: "btn_add",
-    grid_items: [createCustomComponentItem(12, "n_f_botones", btnAdd)],
-  };
+  const btnAddListItem = createCustomListItem("btn_add", [
+    createCustomComponentItem(12, "n_f_botones", btnAdd),
+  ]);
 
   const header = <Header menus={menus} />;
 

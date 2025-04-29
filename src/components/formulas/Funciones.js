@@ -20,15 +20,13 @@ import {
   createTextFieldItem,
 } from "./common/form-generators";
 import MainComponent from "./common/main-component";
+import {
+  defaultTipoParametro,
+  defaultTipoRetorno,
+  tiposParametro,
+  tiposRetorno,
+} from "./common/enum";
 
-const tiposRetorno = [{ value: "NUMBER" }, { value: "VARCHAR2" }];
-const defaultRetorno = tiposRetorno[0].value;
-const tiposParametro = [
-  { value: "VARIABLE", label: "Variable" },
-  { value: "CARACTER", label: "Caracter" },
-  { value: "NUMERO", label: "Número" },
-];
-const defaultTipoParametro = tiposParametro[0].value;
 const shapeModulo = {
   cod_sistema: "",
   sistema: "Seleccione",
@@ -53,7 +51,7 @@ export default function Funciones() {
   const [nombreBD, setNombreBD] = useState("");
   const [estado, setEstado] = useState(true);
   const [observaciones, setObservaciones] = useState("");
-  const [retorno, setRetorno] = useState(defaultRetorno);
+  const [retorno, setRetorno] = useState(defaultTipoRetorno);
   const [tipoParametro, setTipoParametro] = useState(defaultTipoParametro);
   const [secuencia, setSecuencia] = useState(1);
   const [variable, setVariable] = useState("");
@@ -98,7 +96,7 @@ export default function Funciones() {
         setNombreBD("");
         setEstado(true);
         setObservaciones("");
-        setRetorno(defaultRetorno);
+        setRetorno(defaultTipoRetorno);
         setParametros([]);
       })
       .catch((err) => toast.error(err.message));
@@ -160,7 +158,7 @@ export default function Funciones() {
         setNombreBD("");
         setEstado(true);
         setObservaciones("");
-        setRetorno(defaultRetorno);
+        setRetorno(defaultTipoRetorno);
         setParametros([]);
       })
       .catch((err) => toast.error(err.message));
@@ -280,7 +278,7 @@ export default function Funciones() {
     setNombreBD("");
     setEstado(true);
     setObservaciones("");
-    setRetorno(defaultRetorno);
+    setRetorno(defaultTipoRetorno);
   };
 
   const handleClickCloseCreate = () => {
@@ -313,15 +311,15 @@ export default function Funciones() {
 
   const checkTipoParametro = (tipo) => {
     switch (tipo) {
-      case tiposParametro.find((p) => p.value === "VARIABLE").value:
+      case tiposParametro.VARIABLE.key:
         setFijoCaracter("");
         setFijoNumero("");
         break;
-      case tiposParametro.find((p) => p.value === "CARACTER").value:
+      case tiposParametro.CARACTER.key:
         setVariable("");
         setFijoNumero("");
         break;
-      case tiposParametro.find((p) => p.value === "NUMERO").value:
+      case tiposParametro.NUMERO.key:
         setVariable("");
         setFijoCaracter("");
         break;
@@ -615,11 +613,11 @@ export default function Funciones() {
       ),
     ];
     switch (tipoParametro) {
-      case tiposParametro.find((p) => p.value === "VARIABLE").value:
+      case tiposParametro.VARIABLE.key:
         return items.concat(variableTextFieldItem);
-      case tiposParametro.find((p) => p.value === "CARACTER").value:
+      case tiposParametro.CARACTER.key:
         return items.concat(caracterTextFieldItem);
-      case tiposParametro.find((p) => p.value === "NUMERO").value:
+      case tiposParametro.NUMERO.key:
         return items.concat(numeroTextFieldItem);
       default:
         return items;
@@ -667,11 +665,11 @@ export default function Funciones() {
       ),
     ];
     switch (tipoParametro) {
-      case tiposParametro.find((p) => p.value === "VARIABLE").value:
+      case tiposParametro.VARIABLE.key:
         return items.concat(variableTextFieldItem);
-      case tiposParametro.find((p) => p.value === "CARACTER").value:
+      case tiposParametro.CARACTER.key:
         return items.concat(caracterTextFieldItem);
-      case tiposParametro.find((p) => p.value === "NUMERO").value:
+      case tiposParametro.NUMERO.key:
         return items.concat(numeroTextFieldItem);
       default:
         return items;

@@ -20,15 +20,24 @@ export default function CustomSelect({
       onChange={onChange ?? null}
     >
       {onChange && <MenuItem value="Seleccione">Seleccione</MenuItem>}
-      {options.map((option) => (
+      {Object.values(options).map((option) => (
         <MenuItem
           disabled={option.disabled ?? false}
-          key={option.value}
-          value={option.value}
+          key={option.key}
+          value={option.key}
         >
-          {option.label ?? option.value}
+          {option.label}
         </MenuItem>
       ))}
+      {/* {options.map((option) => (
+        <MenuItem
+          disabled={option.disabled ?? false}
+          key={option.key}
+          value={option.key}
+        >
+          {option.label}
+        </MenuItem>
+      ))} */}
     </TextField>
   );
 }
