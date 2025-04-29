@@ -283,6 +283,7 @@ export default function Funciones() {
   };
 
   const handleClickCloseCreate = () => {
+    setCodFuncion("");
     setOpenCreate(false);
   };
 
