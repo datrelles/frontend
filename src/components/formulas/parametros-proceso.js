@@ -16,6 +16,7 @@ import {
   createCustomComponentItem,
   createCustomTooltip,
   createDefaultSetter,
+  createTableOptions,
   createTextFieldItem,
 } from "./common/generators";
 import CustomGrid from "./common/custom-grid";
@@ -24,6 +25,7 @@ import MainComponent from "./common/main-component";
 import CustomSelectToolbar from "./common/custom-select-toolbar";
 import AutocompleteObject from "./common/autocomplete-objects";
 import BoxMasterDetail from "./common/box-master-detail";
+import { tiposSeleccionTabla } from "./common/enum";
 
 const shapeFormula = {
   cod_formula: "",
@@ -283,40 +285,13 @@ export default function ParametrosProceso() {
     },
   ];
 
-  const optionsMaster = {
-    responsive: "standard",
-    selectableRows: "none",
-    onRowClick: handleClickMaster,
-    textLabels: {
-      body: {
-        noMatch: "Lo siento, no se encontraron registros",
-        toolTip: "Ordenar",
-        columnHeaderTooltip: (column) => `Ordenar por ${column.label}`,
-      },
-      pagination: {
-        next: "Siguiente",
-        previous: "Anterior",
-        rowsPerPage: "Filas por página:",
-        displayRows: "de",
-      },
-      toolbar: {
-        search: "Buscar",
-        downloadCsv: "Descargar CSV",
-        print: "Imprimir",
-        viewColumns: "Ver columnas",
-        filterTable: "Filtrar tabla",
-      },
-      filter: {
-        all: "Todos",
-        title: "FILTROS",
-        reset: "REINICIAR",
-      },
-      viewColumns: {
-        title: "Mostrar columnas",
-        titleAria: "Mostrar/Ocultar columnas de tabla",
-      },
-    },
-  };
+  const optionsMaster = createTableOptions(
+    handleClickMaster,
+    undefined,
+    undefined,
+    undefined,
+    tiposSeleccionTabla.NONE.key
+  );
 
   const columnsDetail = [
     {
@@ -344,44 +319,12 @@ export default function ParametrosProceso() {
     },
   ];
 
-  const optionsDetail = {
-    responsive: "standard",
-    selectableRows: "single",
-    onRowClick: handleClickOpenUpdate,
-    customToolbarSelect: customSelectToolbar,
-    textLabels: {
-      body: {
-        noMatch: "Lo siento, no se encontraron registros",
-        toolTip: "Ordenar",
-        columnHeaderTooltip: (column) => `Ordenar por ${column.label}`,
-      },
-      pagination: {
-        next: "Siguiente",
-        previous: "Anterior",
-        rowsPerPage: "Filas por página:",
-        displayRows: "de",
-      },
-      toolbar: {
-        search: "Buscar",
-        downloadCsv: "Descargar CSV",
-        print: "Imprimir",
-        viewColumns: "Ver columnas",
-        filterTable: "Filtrar tabla",
-      },
-      filter: {
-        all: "Todos",
-        title: "FILTROS",
-        reset: "REINICIAR",
-      },
-      viewColumns: {
-        title: "Mostrar columnas",
-        titleAria: "Mostrar/Ocultar columnas de tabla",
-      },
-      selectedRows: {
-        text: "fila(s) seleccionada(s)",
-      },
-    },
-  };
+  const optionsDetail = createTableOptions(
+    handleClickOpenUpdate,
+    undefined,
+    undefined,
+    customSelectToolbar
+  );
 
   const columnsParametros = [
     {
@@ -405,35 +348,13 @@ export default function ParametrosProceso() {
     },
   ];
 
-  const optionsParametros = {
-    responsive: "standard",
-    selectableRows: "none",
-    onRowClick: handleAdd,
-    filter: false,
-    pagination: false,
-    download: false,
-    print: false,
-    textLabels: {
-      body: {
-        noMatch: "Lo siento, no se encontraron registros",
-        toolTip: "Ordenar",
-        columnHeaderTooltip: (column) => `Ordenar por ${column.label}`,
-      },
-      toolbar: {
-        search: "Buscar",
-        filterTable: "Filtrar tabla",
-      },
-      filter: {
-        all: "Todos",
-        title: "FILTROS",
-        reset: "REINICIAR",
-      },
-      viewColumns: {
-        title: "Mostrar columnas",
-        titleAria: "Mostrar/Ocultar columnas de tabla",
-      },
-    },
-  };
+  const optionsParametros = createTableOptions(
+    handleAdd,
+    undefined,
+    undefined,
+    undefined,
+    tiposSeleccionTabla.NONE.key
+  );
 
   const checkboxEstado = (
     <Check

@@ -15,6 +15,7 @@ import CustomGrid from "./common/custom-grid";
 import {
   createCustomComponentItem,
   createDefaultSetter,
+  createTableOptions,
   createTextFieldItem,
 } from "./common/generators";
 import MainComponent from "./common/main-component";
@@ -166,46 +167,7 @@ export default function Parametros() {
     },
   ];
 
-  const options = {
-    responsive: "standard",
-    selectableRows: "single",
-    onRowClick: handleRowClick,
-    onRowsDelete: handleDelete,
-    textLabels: {
-      body: {
-        noMatch: "Lo siento, no se encontraron registros",
-        toolTip: "Ordenar",
-        columnHeaderTooltip: (column) => `Ordenar por ${column.label}`,
-      },
-      pagination: {
-        next: "Siguiente",
-        previous: "Anterior",
-        rowsPerPage: "Filas por página:",
-        displayRows: "de",
-      },
-      toolbar: {
-        search: "Buscar",
-        downloadCsv: "Descargar CSV",
-        print: "Imprimir",
-        viewColumns: "Ver columnas",
-        filterTable: "Filtrar tabla",
-      },
-      filter: {
-        all: "Todos",
-        title: "FILTROS",
-        reset: "REINICIAR",
-      },
-      viewColumns: {
-        title: "Mostrar columnas",
-        titleAria: "Mostrar/Ocultar columnas de tabla",
-      },
-      selectedRows: {
-        text: "fila(s) seleccionada(s)",
-        delete: "Borrar",
-        deleteAria: "Borrar fila seleccionada",
-      },
-    },
-  };
+  const options = createTableOptions(handleRowClick, handleDelete);
 
   const checkboxEstado = (
     <Check

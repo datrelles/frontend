@@ -17,6 +17,7 @@ import Check from "./common/check";
 import {
   createCustomComponentItem,
   createDefaultSetter,
+  createTableOptions,
   createTextFieldItem,
 } from "./common/generators";
 import MainComponent from "./common/main-component";
@@ -76,6 +77,22 @@ export default function Funciones() {
     }
   };
 
+  const getFunciones = async () => {
+    try {
+      setFunciones(await APIService.getFunciones());
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const getParametros = async (funcion = codFuncion) => {
+    try {
+      setParametros(await APIService.getParametrosFuncion(funcion));
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
   const handleCreate = (e) => {
     e.preventDefault();
     APIService.createFuncion({
@@ -114,29 +131,13 @@ export default function Funciones() {
       .then((res) => {
         toast.success(res);
         setOpenCreateParametro(false);
-        getParametros(codFuncion);
+        getParametros();
         setTipoParametro(defaultTipoParametro);
         setVariable("");
         setFijoCaracter("");
         setFijoNumero("");
       })
       .catch((err) => toast.error(err.message));
-  };
-
-  const getFunciones = async () => {
-    try {
-      setFunciones(await APIService.getFunciones());
-    } catch (err) {
-      toast.error(err.message);
-    }
-  };
-
-  const getParametros = async (cod_funcion) => {
-    try {
-      setParametros(await APIService.getParametrosFuncion(cod_funcion));
-    } catch (err) {
-      toast.error(err.message);
-    }
   };
 
   const handleUpdate = (e) => {
@@ -378,47 +379,11 @@ export default function Funciones() {
     },
   ];
 
-  const options = {
-    responsive: "standard",
-    selectableRows: "single",
-    onRowSelectionChange: handleRowSelectionChange,
-    onRowClick: handleRowClick,
-    onRowsDelete: handleDelete,
-    textLabels: {
-      body: {
-        noMatch: "Lo siento, no se encontraron registros",
-        toolTip: "Ordenar",
-        columnHeaderTooltip: (column) => `Ordenar por ${column.label}`,
-      },
-      pagination: {
-        next: "Siguiente",
-        previous: "Anterior",
-        rowsPerPage: "Filas por página:",
-        displayRows: "de",
-      },
-      toolbar: {
-        search: "Buscar",
-        downloadCsv: "Descargar CSV",
-        print: "Imprimir",
-        viewColumns: "Ver columnas",
-        filterTable: "Filtrar tabla",
-      },
-      filter: {
-        all: "Todos",
-        title: "FILTROS",
-        reset: "REINICIAR",
-      },
-      viewColumns: {
-        title: "Mostrar columnas",
-        titleAria: "Mostrar/Ocultar columnas de tabla",
-      },
-      selectedRows: {
-        text: "fila(s) seleccionada(s)",
-        delete: "Borrar",
-        deleteAria: "Borrar fila seleccionada",
-      },
-    },
-  };
+  const options = createTableOptions(
+    handleRowClick,
+    handleDelete,
+    handleRowSelectionChange
+  );
 
   const columnsParametros = [
     {
@@ -456,46 +421,10 @@ export default function Funciones() {
     },
   ];
 
-  const optionsParametros = {
-    responsive: "standard",
-    selectableRows: "single",
-    onRowClick: handleRowClickParametro,
-    onRowsDelete: handleDeleteParametro,
-    textLabels: {
-      body: {
-        noMatch: "Lo siento, no se encontraron registros",
-        toolTip: "Ordenar",
-        columnHeaderTooltip: (column) => `Ordenar por ${column.label}`,
-      },
-      pagination: {
-        next: "Siguiente",
-        previous: "Anterior",
-        rowsPerPage: "Filas por página:",
-        displayRows: "de",
-      },
-      toolbar: {
-        search: "Buscar",
-        downloadCsv: "Descargar CSV",
-        print: "Imprimir",
-        viewColumns: "Ver columnas",
-        filterTable: "Filtrar tabla",
-      },
-      filter: {
-        all: "Todos",
-        title: "FILTROS",
-        reset: "REINICIAR",
-      },
-      viewColumns: {
-        title: "Mostrar columnas",
-        titleAria: "Mostrar/Ocultar columnas de tabla",
-      },
-      selectedRows: {
-        text: "fila(s) seleccionada(s)",
-        delete: "Borrar",
-        deleteAria: "Borrar fila seleccionada",
-      },
-    },
-  };
+  const optionsParametros = createTableOptions(
+    handleRowClickParametro,
+    handleDeleteParametro
+  );
 
   const autocompleteModulos = (
     <AutocompleteObject
@@ -705,10 +634,8 @@ export default function Funciones() {
     />
   );
 
-  const btnNuevoParametro = codFuncion ? (
-    <BtnNuevo onClick={handleClickOpenCreateParametro} />
-  ) : (
-    <></>
+  const btnNuevoParametro = (
+    <BtnNuevo onClick={handleClickOpenCreateParametro} disabled={!codFuncion} />
   );
 
   const tablaParametros = (

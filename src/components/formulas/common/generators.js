@@ -1,3 +1,5 @@
+import { tiposSeleccionTabla } from "./enum";
+
 export function createEmptyItem(xs, id) {
   return {
     xs,
@@ -48,6 +50,60 @@ export function createCustomTooltip(title, onClick, icon) {
 
 export function createCustomListItem(id, gridItems) {
   return { id, gridItems };
+}
+
+export function createTableOptions(
+  onRowClick,
+  onRowsDelete = null,
+  onRowSelectionChange = () => {},
+  customToolbarSelect = null,
+  selectable = tiposSeleccionTabla.SINGLE.key
+) {
+  return {
+    responsive: "standard",
+    selectableRows: selectable,
+    onRowClick,
+    ...(onRowsDelete && { onRowsDelete }),
+    onRowSelectionChange,
+    ...(customToolbarSelect && { customToolbarSelect }),
+    textLabels: {
+      body: {
+        noMatch: "Lo siento, no se encontraron registros",
+        toolTip: "Ordenar",
+        columnHeaderTooltip: (column) => `Ordenar por ${column.label}`,
+      },
+      pagination: {
+        next: "Siguiente",
+        previous: "Anterior",
+        rowsPerPage: "Filas por página:",
+        displayRows: "de",
+      },
+      toolbar: {
+        search: "Buscar",
+        downloadCsv: "Descargar CSV",
+        print: "Imprimir",
+        viewColumns: "Ver columnas",
+        filterTable: "Filtrar tabla",
+      },
+      filter: {
+        all: "Todos",
+        title: "FILTROS",
+        reset: "REINICIAR",
+      },
+      viewColumns: {
+        title: "Mostrar columnas",
+        titleAria: "Mostrar/Ocultar columnas de tabla",
+      },
+      selectedRows:
+        selectable === tiposSeleccionTabla.NONE.key
+          ? {}
+          : {
+              text: "fila(s) seleccionada(s)",
+              delete: "Borrar",
+              deleteAria: "Borrar fila seleccionada",
+            },
+    },
+  };
 }
 
 export function createDefaultSetter(setter, isCheck = false) {

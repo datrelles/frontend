@@ -41,3 +41,9 @@ export const tiposParametro = {
 };
 
 export const defaultTipoParametro = tiposParametro.VARIABLE.key;
+
+export const tiposSeleccionTabla = {
+  MULTIPLE: new Enum("multiple"),
+  SINGLE: new Enum("single"),
+  NONE: new Enum("none"),
+};
