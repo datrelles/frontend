@@ -382,6 +382,7 @@ export default function Funciones() {
   const options = createTableOptions(
     handleRowClick,
     handleDelete,
+    undefined,
     handleRowSelectionChange
   );
 

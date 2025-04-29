@@ -239,7 +239,7 @@ export default function ParametrosProceso() {
     setOpenUpdateDatos(true);
   };
 
-  const customSelectToolbar = (selectedRows, displayData, setSelectedRows) => {
+  const customToolbarSelect = (selectedRows, displayData, setSelectedRows) => {
     const tooltips = [
       createCustomTooltip(
         "Factores de cálculo",
@@ -288,8 +288,6 @@ export default function ParametrosProceso() {
   const optionsMaster = createTableOptions(
     handleClickMaster,
     undefined,
-    undefined,
-    undefined,
     tiposSeleccionTabla.NONE.key
   );
 
@@ -323,7 +321,8 @@ export default function ParametrosProceso() {
     handleClickOpenUpdate,
     undefined,
     undefined,
-    customSelectToolbar
+    undefined,
+    customToolbarSelect
   );
 
   const columnsParametros = [
@@ -350,8 +349,6 @@ export default function ParametrosProceso() {
 
   const optionsParametros = createTableOptions(
     handleAdd,
-    undefined,
-    undefined,
     undefined,
     tiposSeleccionTabla.NONE.key
   );

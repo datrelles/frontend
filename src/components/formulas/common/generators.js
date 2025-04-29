@@ -55,16 +55,16 @@ export function createCustomListItem(id, gridItems) {
 export function createTableOptions(
   onRowClick,
   onRowsDelete = null,
-  onRowSelectionChange = () => {},
-  customToolbarSelect = null,
-  selectable = tiposSeleccionTabla.SINGLE.key
+  selectable = tiposSeleccionTabla.SINGLE.key,
+  onRowSelectionChange = null,
+  customToolbarSelect = null
 ) {
   return {
     responsive: "standard",
     selectableRows: selectable,
     onRowClick,
     ...(onRowsDelete && { onRowsDelete }),
-    onRowSelectionChange,
+    ...(onRowSelectionChange && { onRowSelectionChange }),
     ...(customToolbarSelect && { customToolbarSelect }),
     textLabels: {
       body: {
