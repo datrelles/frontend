@@ -1,37 +1,43 @@
-const createKeyValue = (key, label = key) => ({
-  key,
-  label,
-});
+export class Enum {
+  constructor(key, label = key) {
+    this.key = key;
+    this.label = label;
+  }
 
-export const insertProp = (object, key, value) => ({
-  ...object,
-  [key]: value,
-});
+  addProp(key, value) {
+    this[key] = value;
+    return this;
+  }
 
-export const tiposOperadores = {
-  PARAMETRO: createKeyValue("PAR", "PARÁMETRO"),
-  VALOR: createKeyValue("VAL", "VALOR FIJO"),
-  OPERADOR: createKeyValue("OPE", "OPERADOR"),
+  static values(obj) {
+    return Object.values(obj).filter((item) => item instanceof Enum);
+  }
+}
+
+export const tiposOperador = {
+  PARAMETRO: new Enum("PAR", "PARÁMETRO"),
+  VALOR: new Enum("VAL", "VALOR FIJO"),
+  OPERADOR: new Enum("OPE", "OPERADOR"),
 };
 
 export const operadores = {
-  SUMA: createKeyValue("+"),
-  RESTA: createKeyValue("-"),
-  MULTIPLICACION: createKeyValue("*"),
-  DIVISION: createKeyValue("/"),
+  SUMA: new Enum("+"),
+  RESTA: new Enum("-"),
+  MULTIPLICACION: new Enum("*"),
+  DIVISION: new Enum("/"),
 };
 
 export const tiposRetorno = {
-  NUMBER: createKeyValue("NUMBER"),
-  VARCHAR: createKeyValue("VARCHAR2"),
+  NUMBER: new Enum("NUMBER"),
+  VARCHAR: new Enum("VARCHAR2"),
 };
 
 export const defaultTipoRetorno = tiposRetorno.NUMBER.key;
 
 export const tiposParametro = {
-  VARIABLE: createKeyValue("VARIABLE"),
-  CARACTER: createKeyValue("CARACTER"),
-  NUMERO: createKeyValue("NUMERO", "NÚMERO"),
+  VARIABLE: new Enum("VARIABLE"),
+  CARACTER: new Enum("CARACTER"),
+  NUMERO: new Enum("NUMERO", "NÚMERO"),
 };
 
 export const defaultTipoParametro = tiposParametro.VARIABLE.key;

@@ -19,7 +19,7 @@ import MainComponent from "./common/main-component";
 import BoxCenter from "./common/box-center";
 import BtnCancelar from "./common/btn-cancelar";
 import CustomTypography from "./common/custom-typography";
-import { operadores, tiposOperadores } from "./common/enum";
+import { Enum, operadores, tiposOperador } from "./common/enum";
 
 const shapeParametroOperador = {
   cod_parametro: "",
@@ -130,28 +130,28 @@ export default function FactoresCalculo() {
 
   const checkUltimoTipoOperador = (clave) => {
     if (!factores || factores.length === 0) {
-      return clave === tiposOperadores.OPERADOR.key;
+      return clave === tiposOperador.OPERADOR.key;
     }
     const ultimoTipo = factores[factores.length - 1].tipo_operador;
     if (
-      ultimoTipo === tiposOperadores.PARAMETRO.key ||
-      ultimoTipo === tiposOperadores.VALOR.key
+      ultimoTipo === tiposOperador.PARAMETRO.key ||
+      ultimoTipo === tiposOperador.VALOR.key
     )
-      return clave !== tiposOperadores.OPERADOR.key;
-    else return clave === tiposOperadores.OPERADOR.key;
+      return clave !== tiposOperador.OPERADOR.key;
+    else return clave === tiposOperador.OPERADOR.key;
   };
 
   const checkTipoOperador = (tipo) => {
     switch (tipo) {
-      case tiposOperadores.PARAMETRO.key:
+      case tiposOperador.PARAMETRO.key:
         setValorFijo("");
         setOperador("Seleccione");
         break;
-      case tiposOperadores.VALOR.key:
+      case tiposOperador.VALOR.key:
         setParametroOperador(shapeParametroOperador);
         setOperador("Seleccione");
         break;
-      case tiposOperadores.OPERADOR.key:
+      case tiposOperador.OPERADOR.key:
         setParametroOperador(shapeParametroOperador);
         setValorFijo("");
         break;
@@ -181,7 +181,7 @@ export default function FactoresCalculo() {
         `select_tipo_op_${item.orden}`,
         <CustomSelect
           label="Tipo operador"
-          options={tiposOperadores}
+          options={tiposOperador}
           value={item.tipo_operador}
         />
       ),
@@ -246,14 +246,8 @@ export default function FactoresCalculo() {
       "n_f_tipo_operador",
       <CustomSelect
         label="Tipo operador"
-        options={Object.fromEntries(
-          Object.entries(tiposOperadores).map(([key, value]) => [
-            key,
-            {
-              ...value,
-              disabled: checkUltimoTipoOperador(value.key),
-            },
-          ])
+        options={Enum.values(tiposOperador).map((item) =>
+          item.addProp("disabled", checkUltimoTipoOperador(item.key))
         )}
         value={tipoOperador}
         onChange={(e) => {
@@ -274,7 +268,7 @@ export default function FactoresCalculo() {
           setOperador(e.target.value);
         }}
         required={false}
-        disabled={tipoOperador !== tiposOperadores.OPERADOR.key}
+        disabled={tipoOperador !== tiposOperador.OPERADOR.key}
       />
     ),
     createTextFieldItem(
@@ -285,7 +279,7 @@ export default function FactoresCalculo() {
       createDefaultSetter(setValorFijo),
       false,
       "",
-      tipoOperador !== tiposOperadores.VALOR.key,
+      tipoOperador !== tiposOperador.VALOR.key,
       "number"
     ),
     createCustomComponentItem(
@@ -301,7 +295,7 @@ export default function FactoresCalculo() {
         onChange={(e, value) => {
           setParametroOperador(value ?? shapeParametroOperador);
         }}
-        disabled={tipoOperador !== tiposOperadores.PARAMETRO.key}
+        disabled={tipoOperador !== tiposOperador.PARAMETRO.key}
       />
     ),
   ]);

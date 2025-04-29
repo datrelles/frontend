@@ -1,4 +1,5 @@
 import { MenuItem, TextField } from "@mui/material";
+import { Enum } from "../common/enum";
 
 export default function CustomSelect({
   label,
@@ -20,7 +21,7 @@ export default function CustomSelect({
       onChange={onChange ?? null}
     >
       {onChange && <MenuItem value="Seleccione">Seleccione</MenuItem>}
-      {Object.values(options).map((option) => (
+      {Enum.values(options).map((option) => (
         <MenuItem
           disabled={option.disabled ?? false}
           key={option.key}
@@ -29,6 +30,15 @@ export default function CustomSelect({
           {option.label}
         </MenuItem>
       ))}
+      {/* {Object.values(options).map((option) => (
+        <MenuItem
+          disabled={option.disabled ?? false}
+          key={option.key}
+          value={option.key}
+        >
+          {option.label}
+        </MenuItem>
+      ))} */}
       {/* {options.map((option) => (
         <MenuItem
           disabled={option.disabled ?? false}
