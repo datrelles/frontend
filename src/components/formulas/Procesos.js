@@ -14,7 +14,7 @@ import {
   createCustomComponentItem,
   createDefaultSetter,
   createTextFieldItem,
-} from "./common/form-generators";
+} from "./common/generators";
 import CustomGrid from "./common/custom-grid";
 import Check from "./common/check";
 import MainComponent from "./common/main-component";

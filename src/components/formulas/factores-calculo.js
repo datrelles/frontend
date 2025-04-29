@@ -11,7 +11,7 @@ import {
   createTextFieldItem,
   createCustomListItem,
   createDefaultSetter,
-} from "./common/form-generators";
+} from "./common/generators";
 import CustomList from "./common/custom-list";
 import CustomSelect from "./common/custom-select";
 import AutocompleteObject from "./common/autocomplete-objects";

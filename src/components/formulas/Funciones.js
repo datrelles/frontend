@@ -18,7 +18,7 @@ import {
   createCustomComponentItem,
   createDefaultSetter,
   createTextFieldItem,
-} from "./common/form-generators";
+} from "./common/generators";
 import MainComponent from "./common/main-component";
 import {
   defaultTipoParametro,

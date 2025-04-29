@@ -6,10 +6,6 @@ export function createEmptyItem(xs, id) {
   };
 }
 
-export function createDefaultSetter(setter, isCheck = false) {
-  return (e) => setter(e.target[isCheck ? "checked" : "value"]);
-}
-
 export function createTextFieldItem(
   xs,
   id,
@@ -52,4 +48,8 @@ export function createCustomTooltip(title, onClick, icon) {
 
 export function createCustomListItem(id, gridItems) {
   return { id, gridItems };
+}
+
+export function createDefaultSetter(setter, isCheck = false) {
+  return (e) => setter(e.target[isCheck ? "checked" : "value"]);
 }
