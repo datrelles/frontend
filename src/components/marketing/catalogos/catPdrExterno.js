@@ -141,7 +141,7 @@ function CatProductoExterno() {
 
     const fetchEmpresas = async () => {
         try {
-            const res = await fetch(`${API}/bench/get_empresas`, {
+            const res = await fetch(`${API}/enterprise/${userShineray}`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -150,7 +150,12 @@ function CatProductoExterno() {
             });
             const data = await res.json();
             if (res.ok && Array.isArray(data)) {
-                setEmpresas(data);
+                // Convertir claves en mayúsculas a minúsculas
+                const normalizadas = data.map(emp => ({
+                    empresa: emp.EMPRESA,
+                    nombre: emp.NOMBRE
+                }));
+                setEmpresas(normalizadas);
             } else {
                 setEmpresas([]);
                 enqueueSnackbar(data.error || "Error al obtener empresas", { variant: "error" });
@@ -160,8 +165,6 @@ function CatProductoExterno() {
             enqueueSnackbar("Error de conexión", { variant: "error" });
         }
     };
-
-
 
     const fetchMarcas = async () => {
         try {
