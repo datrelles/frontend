@@ -219,7 +219,11 @@ export default function Formulas() {
   };
 
   const checkboxEstado = (
-    <Check label="Activa" checked={estado} setChecked={setEstado} />
+    <Check
+      label="Activa"
+      checked={estado}
+      onChange={createDefaultSetter(setEstado, true)}
+    />
   );
 
   const createContentItems = [

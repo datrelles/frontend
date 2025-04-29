@@ -196,7 +196,11 @@ export default function Procesos() {
   };
 
   const checkboxEstado = (
-    <Check label="Activo" checked={estado} setChecked={setEstado} />
+    <Check
+      label="Activo"
+      checked={estado}
+      onChange={createDefaultSetter(setEstado, true)}
+    />
   );
 
   const createContentItems = [

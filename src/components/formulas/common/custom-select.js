@@ -30,24 +30,6 @@ export default function CustomSelect({
           {option.label}
         </MenuItem>
       ))}
-      {/* {Object.values(options).map((option) => (
-        <MenuItem
-          disabled={option.disabled ?? false}
-          key={option.key}
-          value={option.key}
-        >
-          {option.label}
-        </MenuItem>
-      ))} */}
-      {/* {options.map((option) => (
-        <MenuItem
-          disabled={option.disabled ?? false}
-          key={option.key}
-          value={option.key}
-        >
-          {option.label}
-        </MenuItem>
-      ))} */}
     </TextField>
   );
 }

@@ -9,6 +9,7 @@ export default function AutocompleteObject({
   optionLabel,
   onChange,
   disabled = false,
+  required = true,
 }) {
   return (
     <Autocomplete
@@ -26,7 +27,7 @@ export default function AutocompleteObject({
         <TextField
           {...params}
           margin="dense"
-          required
+          required={required}
           label={id}
           type="text"
           className="form-control"

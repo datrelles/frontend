@@ -6,8 +6,8 @@ export function createEmptyItem(xs, id) {
   };
 }
 
-export function createDefaultSetter(setter) {
-  return (e) => setter(e.target.value);
+export function createDefaultSetter(setter, isCheck = false) {
+  return (e) => setter(e.target[isCheck ? "checked" : "value"]);
 }
 
 export function createTextFieldItem(

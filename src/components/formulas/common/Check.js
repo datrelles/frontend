@@ -1,6 +1,6 @@
 import { FormControlLabel, Checkbox } from "@mui/material";
 
-export default function Check({ label, checked, setChecked }) {
+export default function Check({ label, checked, onChange = null }) {
   return (
     <div
       style={{
@@ -14,13 +14,7 @@ export default function Check({ label, checked, setChecked }) {
           <Checkbox
             label={label}
             checked={checked}
-            onChange={
-              setChecked
-                ? (e) => {
-                    setChecked(e.target.checked);
-                  }
-                : null
-            }
+            onChange={onChange ?? null}
           />
         }
         label={label}

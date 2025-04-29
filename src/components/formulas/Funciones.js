@@ -516,7 +516,7 @@ export default function Funciones() {
       label="Tipo retorno"
       options={tiposRetorno}
       value={retorno}
-      onChange={(e) => setRetorno(e.target.value)}
+      onChange={createDefaultSetter(setRetorno)}
     />
   );
 
@@ -534,7 +534,11 @@ export default function Funciones() {
   );
 
   const checkboxEstado = (
-    <Check label="Activa" checked={estado} setChecked={setEstado} />
+    <Check
+      label="Activa"
+      checked={estado}
+      onChange={createDefaultSetter(setEstado, true)}
+    />
   );
 
   const createContentItems = [

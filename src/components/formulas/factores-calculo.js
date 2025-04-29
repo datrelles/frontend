@@ -264,9 +264,7 @@ export default function FactoresCalculo() {
         label="Operador"
         options={operadores}
         value={operador}
-        onChange={(e) => {
-          setOperador(e.target.value);
-        }}
+        onChange={createDefaultSetter(setOperador)}
         required={false}
         disabled={tipoOperador !== tiposOperador.OPERADOR.key}
       />

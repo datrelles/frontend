@@ -439,7 +439,7 @@ export default function ParametrosProceso() {
     <Check
       label="Activo"
       checked={estadoParametro}
-      setChecked={setEstadoParametro}
+      onChange={createDefaultSetter(setEstadoParametro, true)}
     />
   );
 
@@ -472,6 +472,7 @@ export default function ParametrosProceso() {
       onChange={(e, value) => {
         setFormula(value ?? shapeFormula);
       }}
+      required={false}
     />
   );
 
