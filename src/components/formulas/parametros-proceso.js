@@ -16,6 +16,7 @@ import {
   createCustomComponentItem,
   createCustomTooltip,
   createDefaultSetter,
+  createTableFeatures,
   createTableOptions,
   createTextFieldItem,
 } from "./common/generators";
@@ -350,7 +351,10 @@ export default function ParametrosProceso() {
   const optionsParametros = createTableOptions(
     handleAdd,
     undefined,
-    tiposSeleccionTabla.NONE.key
+    tiposSeleccionTabla.NONE.key,
+    undefined,
+    undefined,
+    createTableFeatures(true, false, false, false, false)
   );
 
   const checkboxEstado = (

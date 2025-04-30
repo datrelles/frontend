@@ -52,12 +52,33 @@ export function createCustomListItem(id, gridItems) {
   return { id, gridItems };
 }
 
+export function createTableFeatures(
+  search = true,
+  download = true,
+  print = true,
+  viewColumns = true,
+  filter = true,
+  pagination = true
+) {
+  return Object.fromEntries(
+    Object.entries({
+      search,
+      download,
+      print,
+      viewColumns,
+      filter,
+      pagination,
+    }).filter(([key, value]) => value === false)
+  );
+}
+
 export function createTableOptions(
   onRowClick,
   onRowsDelete = null,
   selectable = tiposSeleccionTabla.SINGLE.key,
   onRowSelectionChange = null,
-  customToolbarSelect = null
+  customToolbarSelect = null,
+  features = createTableFeatures()
 ) {
   return {
     responsive: "standard",
@@ -66,17 +87,17 @@ export function createTableOptions(
     ...(onRowsDelete && { onRowsDelete }),
     ...(onRowSelectionChange && { onRowSelectionChange }),
     ...(customToolbarSelect && { customToolbarSelect }),
+    ...features,
     textLabels: {
       body: {
         noMatch: "Lo siento, no se encontraron registros",
         toolTip: "Ordenar",
         columnHeaderTooltip: (column) => `Ordenar por ${column.label}`,
       },
-      pagination: {
-        next: "Siguiente",
-        previous: "Anterior",
-        rowsPerPage: "Filas por página:",
-        displayRows: "de",
+      selectedRows: {
+        text: "fila(s) seleccionada(s)",
+        delete: "Borrar",
+        deleteAria: "Borrar fila seleccionada",
       },
       toolbar: {
         search: "Buscar",
@@ -85,23 +106,21 @@ export function createTableOptions(
         viewColumns: "Ver columnas",
         filterTable: "Filtrar tabla",
       },
+      viewColumns: {
+        title: "Mostrar columnas",
+        titleAria: "Mostrar/Ocultar columnas de tabla",
+      },
       filter: {
         all: "Todos",
         title: "FILTROS",
         reset: "REINICIAR",
       },
-      viewColumns: {
-        title: "Mostrar columnas",
-        titleAria: "Mostrar/Ocultar columnas de tabla",
+      pagination: {
+        next: "Siguiente",
+        previous: "Anterior",
+        rowsPerPage: "Filas por página:",
+        displayRows: "de",
       },
-      selectedRows:
-        selectable === tiposSeleccionTabla.NONE.key
-          ? {}
-          : {
-              text: "fila(s) seleccionada(s)",
-              delete: "Borrar",
-              deleteAria: "Borrar fila seleccionada",
-            },
     },
   };
 }
