@@ -24,6 +24,7 @@ export default function CustomGrid({ items }) {
               }
               InputLabelProps={item.type === "date" ? { shrink: true } : {}}
               onChange={item.setValue ?? null}
+              {...item.multiline}
             />
           )}
         </Grid>

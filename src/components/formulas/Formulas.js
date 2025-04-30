@@ -218,7 +218,12 @@ export default function Formulas() {
       "definicion",
       "Definición",
       definicion,
-      createDefaultSetter(setDefinicion)
+      createDefaultSetter(setDefinicion),
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      3
     ),
   ];
 

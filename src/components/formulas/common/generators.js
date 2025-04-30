@@ -8,6 +8,13 @@ export function createEmptyItem(xs, id) {
   };
 }
 
+function createMultiline(rows) {
+  return {
+    multiline: true,
+    rows,
+  };
+}
+
 export function createTextFieldItem(
   xs,
   id,
@@ -17,7 +24,8 @@ export function createTextFieldItem(
   required = true,
   placeholder = "",
   disabled = !setValue,
-  type = "text"
+  type = "text",
+  rows = null
 ) {
   return {
     xs,
@@ -29,6 +37,7 @@ export function createTextFieldItem(
     placeholder,
     disabled,
     type,
+    multiline: rows ? createMultiline(rows) : {},
   };
 }
 
