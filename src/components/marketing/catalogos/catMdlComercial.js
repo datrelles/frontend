@@ -41,6 +41,7 @@ function CatModeloComercial() {
 
 
     const [form, setForm] = useState({
+        codigo_marca: '',
         nombre_marca: '',
         codigo_modelo_homologado: '',
         nombre_modelo: '',
@@ -52,6 +53,40 @@ function CatModeloComercial() {
     const handleChange = (field, value) => setForm({ ...form, [field]: value });
 
     const handleInsert = async () => {
+        let marca = marcas.find((t) => t.nombre_marca.trim().toLowerCase() === form.nombre_marca.trim().toLowerCase());
+
+        // Si no existe, lo crea
+        if (!marca) {
+            try {
+                const marcaRes = await fetch(`${API}/bench/insert_marca`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + jwt
+                    },
+                    body: JSON.stringify({
+                        nombre_marca: form.nombre_marca
+                    })
+                });
+
+                const marcaData = await marcaRes.json();
+
+                if (marcaRes.ok) {
+                    form.codigo_marca = marcaData.codigo_marca;
+                    // Refrescar la lista de tipos
+                    await fetchMarcas();
+                } else {
+                    enqueueSnackbar(marcaData.error || 'Error creando la marca', { variant: 'error' });
+                    return;
+                }
+            } catch (err) {
+                enqueueSnackbar('Error al crear la marca', { variant: 'error' });
+                return;
+            }
+        } else {
+            form.codigo_marca = marca.codigo_marca;
+        }
+
         const estadoNumerico = form.estado_modelo === 'Activo' ? 1 : form.estado_modelo === 'Inactivo' ? 0 : form.estado_modelo;
         const payload = { ...form, estado_modelo: estadoNumerico };
         const url = selectedItem ? `${API}/bench/update_modelo_comercial/${selectedItem.codigo_modelo_comercial}` : `${API}/bench/insert_modelo_comercial`;
@@ -62,6 +97,7 @@ function CatModeloComercial() {
                 method,
                 headers: { "Content-Type": "application/json", "Authorization": "Bearer " + jwt },
                 body: JSON.stringify(payload)
+
             });
             const data = await res.json();
 
@@ -88,25 +124,69 @@ function CatModeloComercial() {
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
             try {
+                const processedRows = rows.map((row, index) => {
+                    const nombre_marca = (row.nombre_marca || "").trim();
+                    const nombre_modelo_sri = (row.nombre_modelo_sri || "").trim();
+                    const nombre_modelo = (row.nombre_modelo || "").trim();
+                    const anio_modelo = parseInt(row.anio_modelo);
+                    const estado = (row.estado_modelo || "").toString().toLowerCase();
+
+                    if (!nombre_marca || !nombre_modelo_sri || !nombre_modelo || isNaN(anio_modelo)) {
+                        throw new Error(`Fila ${index + 2}: Datos obligatorios faltantes.`);
+                    }
+
+                    const estado_modelo = estado === "activo" ? 1 : estado === "inactivo" ? 0 : null;
+
+                    if (estado_modelo === null) {
+                        throw new Error(`Fila ${index + 2}: Estado debe ser 'Activo' o 'Inactivo'.`);
+                    }
+
+                    const homologado = homologados.find(
+                        h => h.nombre_modelo_sri.trim().toLowerCase() === nombre_modelo_sri.toLowerCase()
+                    );
+
+                    if (!homologado) {
+                        throw new Error(`Fila ${index + 2}: Modelo homologado '${nombre_modelo_sri}' no encontrado.`);
+                    }
+
+                    return {
+                        nombre_marca,
+                        codigo_modelo_homologado: homologado.codigo_modelo_homologado,
+                        nombre_modelo,
+                        anio_modelo,
+                        estado_modelo
+                    };
+                });
+
                 const res = await fetch(`${API}/bench/insert_modelo_comercial`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         "Authorization": "Bearer " + jwt,
                     },
-                    body: JSON.stringify(rows)
+                    body: JSON.stringify(processedRows)
                 });
 
                 const responseData = await res.json();
+
                 if (res.ok) {
-                    enqueueSnackbar(responseData.message, { variant: "success" });
+                    enqueueSnackbar(responseData.message || "Carga exitosa", { variant: "success" });
+
+                    if (responseData.duplicados?.length > 0) {
+                        enqueueSnackbar(`${responseData.duplicados.length} duplicado(s) omitido(s)`, { variant: "warning" });
+                    }
+
+                    if (responseData.errores?.length > 0) {
+                        enqueueSnackbar(`${responseData.errores.length} con error(es)`, { variant: "error" });
+                    }
+
                     fetchModeloComercial();
                 } else {
-                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
+                    enqueueSnackbar(responseData.error || "Error en la carga", { variant: "error" });
                 }
 
             } catch (error) {
-                enqueueSnackbar("Error inesperado al cargar Excel", { variant: "error" });
+                enqueueSnackbar(error.message || "Error durante la lectura del archivo", { variant: "error" });
             }
         };
 
@@ -135,10 +215,6 @@ function CatModeloComercial() {
         setEstadoModelo(row.estado_modelo === 1 ? 'Activo' : 'Inactivo');
         setDialogOpen(true);
     };
-
-
-
-
 
     const fetchModeloComercial = async () => {
         try {
@@ -181,14 +257,6 @@ function CatModeloComercial() {
             setHomologados(Array.isArray(data) ? data : []);
         } catch (err) {
             enqueueSnackbar('Error cargando tipos de motor', { variant: 'error' });
-        }
-    };
-
-    const waitForHomologados = async () => {
-        let intentos = 0;
-        while (homologados.length === 0 && intentos < 10) {
-            await new Promise(resolve => setTimeout(resolve, 200));
-            intentos++;
         }
     };
 
