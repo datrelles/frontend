@@ -85,6 +85,7 @@ import  CatLinea from "./components/marketing/catalogos/catLinea";
 import  CatModSri from "./components/marketing/catalogos/catModSri";
 import  CatMdlHomologado from "./components/marketing/catalogos/catMdlHomologado";
 import  CatMdlComercial from "./components/marketing/catalogos/catMdlComercial";
+import  MdlVersionRepuesto from "./components/marketing/catalogos/mdlVersionRepuesto";
 
 ///SellManagerB2B
 const API = process.env.REACT_APP_API;
@@ -232,6 +233,7 @@ function App() {
                   <Route exact path="/catalogo_sri" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatModSri/></Protected>}/>
                   <Route exact path="/modelo_homologado" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatMdlHomologado/></Protected>}/>
                   <Route exact path="/catalogo_modelo_comercial" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatMdlComercial/></Protected>}/>
+                  <Route exact path="/catalogo_modelo_repuesto" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><MdlVersionRepuesto/></Protected>}/>
                   <Route exact path="/settings" element={<Settings/>}></Route>
                 </Routes>
               </>            

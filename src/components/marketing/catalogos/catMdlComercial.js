@@ -37,7 +37,7 @@ function CatModeloComercial() {
     const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
     const [selectedHomologado, setSelectedHomologado] = useState(null);
-    const [estadoModelo, setEstadoModelo] = useState('');
+    const [setEstadoModelo] = useState('');
 
 
     const [form, setForm] = useState({
@@ -73,7 +73,7 @@ function CatModeloComercial() {
 
                 if (marcaRes.ok) {
                     form.codigo_marca = marcaData.codigo_marca;
-                    // Refrescar la lista de tipos
+
                     await fetchMarcas();
                 } else {
                     enqueueSnackbar(marcaData.error || 'Error creando la marca', { variant: 'error' });
@@ -420,7 +420,6 @@ function CatModeloComercial() {
                                 }}
                                 renderInput={(params) => <TextField {...params} label="Modelo Homologado" />}
                             />
-
 
                         </Grid>
                         <Grid item xs={6}><TextField fullWidth label="Nombre Modelo Comercial" value={form.nombre_modelo || ''} onChange={(e) => handleChange('nombre_modelo', e.target.value)} /></Grid>
