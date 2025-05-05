@@ -89,8 +89,8 @@ function CatModeloVersionRepuesto() {
                 headers: { "Authorization": "Bearer " + jwt }
             });
             const data = await res.json();
-            setProductosExternos(Array.isArray(data) ? data : []);
-        } catch (err) {
+           //setProductosExternos(Array.isArray(data) ? data : []);
+            setProductosExternos(Array.isArray(data) ? data.filter(producto => producto.estado_prod_externo === 1) : []);        } catch (err) {
             enqueueSnackbar('Error cargando datos', { variant: 'error' });
         }
     };
@@ -101,17 +101,19 @@ function CatModeloVersionRepuesto() {
                 headers: { "Authorization": "Bearer " + jwt }
             });
             const data = await res.json();
-            setModelosComerciales(Array.isArray(data) ? data : []);
+            setModelosComerciales(Array.isArray(data) ? data.filter(modelo => modelo.estado_modelo === 1) : []);
         } catch (err) {
             enqueueSnackbar('Error cargando datos', { variant: 'error' });
         }
     };
 
+
     const fetchVersiones = async () => {
         try {
             const res = await fetch(`${API}/bench/get_version`, { headers: { "Authorization": "Bearer " + jwt } });
             const data = await res.json();
-            setVersiones(Array.isArray(data) ? data : []);
+            //setVersiones(Array.isArray(data) ? data : []);
+            setVersiones(Array.isArray(data) ? data.filter(version => version.estado_version === 1) : []);
         } catch (err) {
             enqueueSnackbar('Error cargando versiones', { variant: 'error' });
         }
@@ -379,7 +381,7 @@ function CatModeloVersionRepuesto() {
                             </Grid>
                             <Grid item xs={12}>
                                 <Autocomplete
-                                    options={productosExternos}
+                                    options={productosExternos.filter(p => p.estado_prod_externo === 1)}
                                     getOptionLabel={(option) => option?.nombre_producto || ''}
                                     value={selectedProductoExterno}
                                     onChange={(e, v) => {
@@ -390,12 +392,11 @@ function CatModeloVersionRepuesto() {
                                         }));
                                     }}
                                     renderInput={(params) => <TextField {...params} label="Producto Externo" />}
-                                    isOptionEqualToValue={(option, value) => option.codigo_prod_externo === value.codigo_prod_externo}  // Comparar por código
                                 />
                             </Grid>
                             <Grid item xs={12}>
                                 <Autocomplete
-                                    options={modelosComerciales}
+                                    options={modelosComerciales.filter(mc => mc.estado_modelo === 1)}
                                     getOptionLabel={(mc) => mc.nombre_modelo || ''}
                                     value={selectedModeloComercial}
                                     onChange={(e, v) => {
@@ -413,7 +414,7 @@ function CatModeloVersionRepuesto() {
                             </Grid>
                             <Grid item xs={12}>
                                 <Autocomplete
-                                    options={versiones || []}
+                                    options={versiones.filter(v => v.estado_version === 1)}  // Filtra solo las versiones activas
                                     getOptionLabel={(v) => v?.nombre_version || ''}
                                     value={selectedVersion}
                                     onChange={(e, v) => {
@@ -421,7 +422,6 @@ function CatModeloVersionRepuesto() {
                                         setSelectedVersion(v);
                                     }}
                                     renderInput={(params) => <TextField {...params} label="Versión" />}
-                                    isOptionEqualToValue={(option, value) => option.codigo_version === value.codigo_version}
                                 />
                             </Grid>
                             <Grid item xs={12}>
