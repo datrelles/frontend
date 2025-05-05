@@ -37,7 +37,7 @@ function CatModeloComercial() {
     const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
     const [selectedHomologado, setSelectedHomologado] = useState(null);
-    const [setEstadoModelo] = useState('');
+    const [estadoModelo, setEstadoModelo] = useState('');
 
 
     const [form, setForm] = useState({
@@ -429,9 +429,9 @@ function CatModeloComercial() {
                             <FormControl fullWidth>
                                 <InputLabel id="estado-modelo-label">Estado</InputLabel>
                                 <Select
-                                    labelId="estado-modelo-label"
-                                    value={form.estado_modelo}
-                                    onChange={(e) => handleChange('estado_modelo', e.target.value)}
+                                    labelId="estado-marca-rep-label"
+                                    value={estadoModelo}
+                                    onChange={(e) => setEstadoModelo(e.target.value)}
                                 >
                                     <MenuItem value="Activo">Activo</MenuItem>
                                     <MenuItem value="Inactivo">Inactivo</MenuItem>

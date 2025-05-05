@@ -17,8 +17,6 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
-
 import * as XLSX from "xlsx";
 
 const API = process.env.REACT_APP_API;
@@ -29,7 +27,6 @@ function CatModeloVersionRepuesto() {
     const navigate = useNavigate();
 
     const [menus, setMenus] = useState([]);
-    const [data, setData] = useState([]);
     const [form, setForm] = useState({
         cod_producto: '',
         empresa: '',
@@ -53,8 +50,6 @@ function CatModeloVersionRepuesto() {
     const [selectedVersion, setSelectedVersion] = useState(null);
     const [cabeceras, setCabeceras] = useState([]);
     const [loading] = useState(false);
-
-
 
     const fetchModeloVersRepuesto = async () => {
         try {
@@ -122,7 +117,6 @@ function CatModeloVersionRepuesto() {
         }
     };
 
-
     useEffect(() => {
         getMenus();
         fetchModeloVersRepuesto();
@@ -133,89 +127,69 @@ function CatModeloVersionRepuesto() {
     }, []);
 
     const handleInsertOrUpdate = async () => {
-        try {
-            const payload = {
-                ...form,
-                precio_producto_modelo: parseFloat(form.precio_producto_modelo),
-                precio_venta_distribuidor: parseFloat(form.precio_venta_distribuidor)
-            };
+        if (!form.cod_producto || !form.codigo_prod_externo || !form.codigo_modelo_comercial || !form.codigo_version) {
+            enqueueSnackbar("Todos los campos son obligatorios", { variant: "error" });
+            return;
+        }
 
-            if (!payload.cod_producto) {
-                enqueueSnackbar("Debe seleccionar un producto válido", { variant: "error" });
-                return;
-            }
+        const method = selectedItem ? "PUT" : "POST";
+        const url = selectedItem ? `${API}/bench/update_modelo_version_repuesto/${selectedItem.codigo_mod_vers_repuesto}` : `${API}/bench/insert_modelo_version_repuesto`;
 
-            if (!payload.codigo_prod_externo) {
-                enqueueSnackbar("Debe seleccionar un producto externo", { variant: "error" });
-                return;
-            }
+        const payload = {
+            ...form,
+            precio_producto_modelo: parseFloat(form.precio_producto_modelo),
+            precio_venta_distribuidor: parseFloat(form.precio_venta_distribuidor)
+        };
 
-            if (!payload.codigo_modelo_comercial || !payload.codigo_marca) {
-                enqueueSnackbar("Debe seleccionar un modelo comercial con marca válida", { variant: "error" });
-                return;
-            }
+        const res = await fetch(url, {
+            method,
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + jwt
+            },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
 
-            if (!payload.codigo_version) {
-                enqueueSnackbar("Debe seleccionar una versión", { variant: "error" });
-                return;
-            }
-
-            if (isNaN(payload.precio_producto_modelo) || isNaN(payload.precio_venta_distribuidor)) {
-                enqueueSnackbar("Los precios deben ser valores numéricos válidos", { variant: "error" });
-                return;
-            }
-
-            if (payload.precio_producto_modelo < 0 || payload.precio_venta_distribuidor < 0) {
-                enqueueSnackbar("Los precios no pueden ser negativos", { variant: "error" });
-                return;
-            }
-
-            const res = await fetch(`${API}/bench/insert_modelo_version_repuesto`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + jwt
-                },
-                body: JSON.stringify(payload)
-            });
-
-            const json = await res.json();
-
-            if (res.ok) {
-                enqueueSnackbar(json.message || "Registro guardado correctamente", { variant: 'success' });
-                fetchModeloVersRepuesto();
-                setDialogOpen(false);
-            } else {
-                enqueueSnackbar(json.error || "Error al guardar", { variant: 'error' });
-                if (json.detalles) {
-                    console.warn("Detalles del error:", json.detalles);
-                }
-            }
-        } catch (err) {
-            enqueueSnackbar("Error de red o de conversión de datos", { variant: 'error' });
-            console.error("Error en handleInsertOrUpdate:", err);
+        if (res.ok) {
+            fetchModeloVersRepuesto();
+            enqueueSnackbar(data.message || "Registro guardado correctamente", { variant: 'success' });
+            setDialogOpen(false);
+        } else {
+            enqueueSnackbar(data.error || "Error al guardar", { variant: 'error' });
         }
     };
 
     const handleChange = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
 
-    const openDialog = (item = null) => {
-        if (item) {
-            const prod = productos?.find(p => p.cod_producto === item.cod_producto);
-            const prodExt = productosExternos?.find(pe => pe.codigo_prod_externo === item.codigo_prod_externo);
-            const modelo = modelosComerciales?.find(mc => mc.codigo_modelo_comercial === item.codigo_modelo_comercial);
-            const ver = versiones?.find(v => v.codigo_version === item.codigo_version);
+    const openDialog = async (item = null) => {
+        console.log("ITEM seleccionado:", item);
 
+        if (item) {
+            const prod = productos.find(p => p.cod_producto === item.cod_producto);
+            const modelo = modelosComerciales?.find(mc => mc.nombre_modelo === item.nombre_modelo_comercial);
+            const prodExt = productosExternos?.find(mc => mc.nombre_producto === item.nombre_producto_externo);
+            const ver = versiones?.find(v => v.nombre_version === item.nombre_version);
+
+            console.log("Productos externos:", productosExternos);
+            console.log("Producto Externo encontrado:", prodExt);
+
+            // Asignar los valores seleccionados
             setSelectedProducto(prod || null);
             setSelectedProductoExterno(prodExt || null);
             setSelectedModeloComercial(modelo || null);
             setSelectedVersion(ver || null);
 
+            // Establecer el formulario con los valores seleccionados
             setForm({
-                cod_producto: prod?.cod_producto || '', empresa: prod?.empresa || '', nombre_empresa: prod?.nombre_empresa || '',
+                cod_producto: prod?.cod_producto || '',
+                empresa: prod?.empresa || '',
+                nombre_empresa: prod?.nombre_empresa || '',
                 codigo_prod_externo: prodExt?.codigo_prod_externo || '',
-                codigo_modelo_comercial: modelo?.codigo_modelo_comercial || '', codigo_marca: modelo?.codigo_marca || '',
-                nombre_marca: modelo?.nombre_marca || '', codigo_version: ver?.codigo_version || '',
+                codigo_modelo_comercial: modelo?.codigo_modelo_comercial || '',
+                codigo_marca: modelo?.codigo_marca || '',
+                nombre_marca: modelo?.nombre_marca || '',
+                codigo_version: ver?.codigo_version || '',
                 descripcion: item.descripcion || '',
                 precio_producto_modelo: item.precio_producto_modelo || '',
                 precio_venta_distribuidor: item.precio_venta_distribuidor || ''
@@ -226,8 +200,21 @@ function CatModeloVersionRepuesto() {
             setSelectedModeloComercial(null);
             setSelectedVersion(null);
 
-            setForm({ cod_producto: '', empresa: '', nombre_empresa: '', codigo_prod_externo: '', codigo_modelo_comercial: '', codigo_marca: '', nombre_marca: '', codigo_version: '', descripcion: '', precio_producto_modelo: '', precio_venta_distribuidor: '' });
+            setForm({
+                cod_producto: '',
+                empresa: '',
+                nombre_empresa: '',
+                codigo_prod_externo: '',
+                codigo_modelo_comercial: '',
+                codigo_marca: '',
+                nombre_marca: '',
+                codigo_version: '',
+                descripcion: '',
+                precio_producto_modelo: '',
+                precio_venta_distribuidor: ''
+            });
         }
+
         setSelectedItem(item);
         setDialogOpen(true);
     };
@@ -272,7 +259,7 @@ function CatModeloVersionRepuesto() {
             label: "ACCIONES",
             options: {
                 customBodyRenderLite: (dataIndex) => {
-                    const rowData = data[dataIndex];
+                    const rowData = cabeceras[dataIndex];
                     return (
                         <IconButton onClick={() => openDialog(rowData)}>
                             <EditIcon />
@@ -354,6 +341,9 @@ function CatModeloVersionRepuesto() {
                             precio_venta_distribuidor:  ''
                         });
                         setSelectedProductoExterno(null);
+                        setSelectedProducto(null);
+                        setSelectedModeloComercial(null);
+                        setSelectedVersion(null);
                         fetchVersiones();
                         setDialogOpen(true);
                     } }
@@ -383,24 +373,26 @@ function CatModeloVersionRepuesto() {
                                     isOptionEqualToValue={(option, value) => option.cod_producto === value.cod_producto}
                                 />
                             </Grid>
-
                             <Grid item xs={12}>
-                                <TextField label="Empresa" value={`${form.nombre_empresa || ''}`} fullWidth disabled />
-                            </Grid>
 
+                                <TextField label="Empresa" value={selectedProducto?.nombre_empresa || ''} fullWidth disabled />
+                            </Grid>
                             <Grid item xs={12}>
                                 <Autocomplete
                                     options={productosExternos}
                                     getOptionLabel={(option) => option?.nombre_producto || ''}
                                     value={selectedProductoExterno}
                                     onChange={(e, v) => {
-                                        handleChange('codigo_prod_externo', v ? v.codigo_prod_externo : '');
                                         setSelectedProductoExterno(v);
+                                        setForm(prev => ({
+                                            ...prev,
+                                            codigo_prod_externo: v?.codigo_prod_externo || ''
+                                        }));
                                     }}
                                     renderInput={(params) => <TextField {...params} label="Producto Externo" />}
+                                    isOptionEqualToValue={(option, value) => option.codigo_prod_externo === value.codigo_prod_externo}  // Comparar por código
                                 />
                             </Grid>
-
                             <Grid item xs={12}>
                                 <Autocomplete
                                     options={modelosComerciales}
@@ -416,15 +408,13 @@ function CatModeloVersionRepuesto() {
                                     isOptionEqualToValue={(option, value) => option.codigo_modelo_comercial === value.codigo_modelo_comercial}
                                 />
                             </Grid>
-
                             <Grid item xs={12}>
                                 <TextField label="Marca" value={`${form.nombre_marca || ''}`} fullWidth disabled />
                             </Grid>
-
                             <Grid item xs={12}>
                                 <Autocomplete
                                     options={versiones || []}
-                                    getOptionLabel={(option) => option?.nombre_version || ''}
+                                    getOptionLabel={(v) => v?.nombre_version || ''}
                                     value={selectedVersion}
                                     onChange={(e, v) => {
                                         handleChange('codigo_version', v ? v.codigo_version : '');
@@ -433,21 +423,30 @@ function CatModeloVersionRepuesto() {
                                     renderInput={(params) => <TextField {...params} label="Versión" />}
                                     isOptionEqualToValue={(option, value) => option.codigo_version === value.codigo_version}
                                 />
-
                             </Grid>
-
-                            <Grid item xs={12}><TextField fullWidth label="Descripción" value={form.descripcion || ''} onChange={(e) => handleChange('descripcion', e.target.value)} /></Grid>
-
-                            <Grid item xs={6}>
-                                <TextField label="Precio Producto Modelo" type="number" value={form.precio_producto_modelo} onChange={(e) => handleChange('precio_producto_modelo', e.target.value)} fullWidth />
+                            <Grid item xs={12}>
+                                <TextField fullWidth label="Descripción"
+                                                          value={form.descripcion || ''}
+                                                          onChange={(e) =>
+                                                              handleChange('descripcion', e.target.value)}
+                                />
                             </Grid>
-
                             <Grid item xs={6}>
-                                <TextField label="Precio Venta Distribuidor" type="number" value={form.precio_venta_distribuidor} onChange={(e) => handleChange('precio_venta_distribuidor', e.target.value)} fullWidth />
+                                <TextField label="Precio Producto Modelo"
+                                           type="number" value={form.precio_producto_modelo}
+                                           onChange={(e) =>
+                                               handleChange('precio_producto_modelo', e.target.value)} fullWidth
+                                />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <TextField label="Precio Venta Distribuidor"
+                                           type="number" value={form.precio_venta_distribuidor}
+                                           onChange={(e) =>
+                                               handleChange('precio_venta_distribuidor', e.target.value)} fullWidth
+                                />
                             </Grid>
                         </Grid>
                     </DialogContent>
-
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                         <Button onClick={handleInsertOrUpdate} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedItem ? 'Actualizar' : 'Guardar'}</Button>
