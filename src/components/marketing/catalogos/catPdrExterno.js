@@ -38,6 +38,7 @@ function CatProductoExterno() {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [empresas, setEmpresas] = useState([]);
     const [marcaRepuesto, setMarcaRepuesto] = useState('');
+    const [marcasActivas, setMarcasActivas] = useState('');
     const [marcas, setMarcas] = useState([]);
 
 
@@ -176,19 +177,24 @@ function CatProductoExterno() {
                 }
             });
             const data = await res.json();
-            console.log("Marcas cargadas:", data); // <-- agrega esto
+            console.log("Marcas cargadas:", data);
 
             if (res.ok && Array.isArray(data)) {
+                const marcasActivas = data.filter(marca => marca.estado_marca_rep === 1);
+                setMarcasActivas(marcasActivas);
                 setMarcas(data);
             } else {
                 setMarcas([]);
+                setMarcasActivas([]);
                 enqueueSnackbar(data.error || "Error al obtener marcas", { variant: "error" });
             }
         } catch (error) {
             setMarcas([]);
+            setMarcasActivas([]);
             enqueueSnackbar("Error de conexión", { variant: "error" });
         }
     };
+
 
     const columns = [
         { name: "codigo_prod_externo", label: "Código Producto" },
@@ -407,13 +413,21 @@ function CatProductoExterno() {
                     <DialogContent>
                         <Grid container spacing={2}>
                             <Grid item xs={12}>
-                                <Autocomplete fullWidth options={marcas} getOptionLabel={(option) => option?.nombre_comercial || ''} value={marcaRepuesto} onChange={(e, newValue) => setMarcaRepuesto(newValue)} renderInput={(params) => <TextField {...params} label="Marca Repuesto" />} />
+                                <Autocomplete
+                                    fullWidth
+                                    options={marcasActivas}
+                                    getOptionLabel={(option) => option?.nombre_comercial || ''}
+                                    value={marcaRepuesto}
+                                    onChange={(e, newValue) => setMarcaRepuesto(newValue)}
+                                    renderInput={(params) => <TextField {...params} label="Marca Repuesto" />}
+                                />
                             </Grid>
                             <Grid item xs={6}><TextField fullWidth label="Nombre Producto" value={nombreProducto} onChange={(e) => setNombreProducto(e.target.value)} /></Grid>
                             <Grid item xs={6}>
                                 <FormControl fullWidth>
                                     <InputLabel id="estado-prod-ext-label">Estado</InputLabel>
-                                    <Select labelId="estado-prod-ext-label" value={estadoProdExterno} onChange={(e) => setEstadoProdExterno(e.target.value)}>
+                                    <Select labelId="estado-prod-ext-label" value={estadoProdExterno}
+                                            onChange={(e) => setEstadoProdExterno(e.target.value)}>
                                         <MenuItem value="Activo">Activo</MenuItem>
                                         <MenuItem value="Inactivo">Inactivo</MenuItem>
                                     </Select>
@@ -421,7 +435,13 @@ function CatProductoExterno() {
                             </Grid>
                             <Grid item xs={6}><TextField fullWidth label="Descripción Producto" value={descripcionProducto} onChange={(e) => setDescripcionProducto(e.target.value)} /></Grid>
                             <Grid item xs={6}>
-                                <Autocomplete fullWidth options={empresas} getOptionLabel={(option) => option?.nombre || ''} value={empresa} onChange={(e, newValue) => setEmpresa(newValue)} renderInput={(params) => <TextField {...params} label="Empresa" />} />
+                                <Autocomplete
+                                    fullWidth
+                                    options={empresas}
+                                    getOptionLabel={(option) => option?.nombre || ''} value={empresa}
+                                    onChange={(e, newValue) => setEmpresa(newValue)}
+                                    renderInput={(params) => <TextField {...params} label="Empresa" />}
+                                />
                             </Grid>
                         </Grid>
                     </DialogContent>

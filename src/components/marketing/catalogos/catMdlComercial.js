@@ -38,6 +38,7 @@ function CatModeloComercial() {
     const [loading] = useState(false);
     const [selectedHomologado, setSelectedHomologado] = useState(null);
     const [estadoModelo, setEstadoModelo] = useState('');
+    const [marcasActivas, setMarcasActivas] = useState([]);
 
 
     const [form, setForm] = useState({
@@ -55,7 +56,6 @@ function CatModeloComercial() {
     const handleInsert = async () => {
         let marca = marcas.find((t) => t.nombre_marca.trim().toLowerCase() === form.nombre_marca.trim().toLowerCase());
 
-        // Si no existe, lo crea
         if (!marca) {
             try {
                 const marcaRes = await fetch(`${API}/bench/insert_marca`, {
@@ -65,7 +65,8 @@ function CatModeloComercial() {
                         "Authorization": "Bearer " + jwt
                     },
                     body: JSON.stringify({
-                        nombre_marca: form.nombre_marca
+                        nombre_marca: form.nombre_marca,
+                        estado_marca: 1
                     })
                 });
 
@@ -86,8 +87,7 @@ function CatModeloComercial() {
         } else {
             form.codigo_marca = marca.codigo_marca;
         }
-
-        const estadoNumerico = form.estado_modelo === 'Activo' ? 1 : form.estado_modelo === 'Inactivo' ? 0 : form.estado_modelo;
+        const estadoNumerico = estadoModelo === 'Activo' ? 1 : 0;
         const payload = { ...form, estado_modelo: estadoNumerico };
         const url = selectedItem ? `${API}/bench/update_modelo_comercial/${selectedItem.codigo_modelo_comercial}` : `${API}/bench/insert_modelo_comercial`;
         const method = selectedItem ? "PUT" : "POST";
@@ -242,9 +242,16 @@ function CatModeloComercial() {
                 headers: { "Authorization": "Bearer " + jwt }
             });
             const data = await res.json();
-            setMarcas(Array.isArray(data) ? data : []);
+
+            if (res.ok && Array.isArray(data)) {
+                const marcasActivas = data.filter(marca => marca.estado_marca === 1);
+                setMarcasActivas(marcasActivas);
+                setMarcas(data);
+            } else {
+                enqueueSnackbar('Error al obtener marcas', { variant: 'error' });
+            }
         } catch (err) {
-            enqueueSnackbar('Error cargando tipos de motor', { variant: 'error' });
+            enqueueSnackbar('Error cargando marcas', { variant: 'error' });
         }
     };
 
@@ -287,7 +294,16 @@ function CatModeloComercial() {
 
     const columns = [
         { name: 'codigo_modelo_comercial', label: 'Código' },
-        { name: 'nombre_marca', label: 'Marca' },
+        {
+            name: 'nombre_marca',
+            label: 'Marca',
+            options: {
+                customBodyRender: (value) => {
+                    const marca = marcas.find(m => m.codigo_marca === value);
+                    return marca ? marca.nombre_marca : value;
+                }
+            }
+        },
         { name: 'nombre_modelo_homologado', label: 'Modelo Homologado' },
         { name: 'nombre_modelo', label: 'Modelo Comercial' },
         { name: 'anio_modelo', label: 'Año' },
@@ -402,13 +418,15 @@ function CatModeloComercial() {
                 <DialogTitle>{selectedItem ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                 <DialogContent>
                     <Grid container spacing={2}>
-                        <Grid item xs={12}><Autocomplete
-                            freeSolo
-                            options={marcas.map(m => m.nombre_marca)}
-                            value={form.nombre_marca || ''}
-                            onInputChange={(e, v) => handleChange('nombre_marca', v)}
-                            renderInput={(params) => <TextField {...params} label="Marca" />}
-                        /></Grid>
+                        <Grid item xs={12}>
+                            <Autocomplete
+                                freeSolo
+                                options={marcasActivas.map(m => m.nombre_marca)}
+                                value={form.nombre_marca || ''}
+                                onInputChange={(e, v) => handleChange('nombre_marca', v)}
+                                renderInput={(params) => <TextField {...params} label="Marca" />}
+                            />
+                        </Grid>
                         <Grid item xs={12}>
                             <Autocomplete
                                 options={homologados}
@@ -429,7 +447,7 @@ function CatModeloComercial() {
                             <FormControl fullWidth>
                                 <InputLabel id="estado-modelo-label">Estado</InputLabel>
                                 <Select
-                                    labelId="estado-marca-rep-label"
+                                    labelId="estado-modelo-label"
                                     value={estadoModelo}
                                     onChange={(e) => setEstadoModelo(e.target.value)}
                                 >
@@ -437,6 +455,7 @@ function CatModeloComercial() {
                                     <MenuItem value="Inactivo">Inactivo</MenuItem>
                                 </Select>
                             </FormControl>
+
                         </Grid>
                     </Grid>
                 </DialogContent>

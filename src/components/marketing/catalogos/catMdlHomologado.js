@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
 import Navbar0 from "../../Navbar0";
 import MUIDataTable from "mui-datatables";
@@ -17,7 +16,6 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 
 import * as XLSX from "xlsx";
 
@@ -33,9 +31,10 @@ function CatModeloHomologado() {
     const [modelosSri, setModelosSri] = useState([]);
     const [descripcionHomologacion, setDescripcionHomologacion] = useState('');
     const [selected, setSelected] = useState(null);
+    const [modelosSriActivos, setModelosSriActivos] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [menus, setMenus] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading] = useState(false);
 
     const fetchModelosHomologados = async () => {
         try {
@@ -56,8 +55,13 @@ function CatModeloHomologado() {
                 headers: { 'Authorization': 'Bearer ' + jwt }
             });
             const data = await res.json();
-            if (res.ok) setModelosSri(data);
-            else enqueueSnackbar(data.error || 'Error al obtener modelos SRI', { variant: 'error' });
+            if (res.ok) {
+                const modelosActivos = data.filter(modelo => modelo.estado_modelo === 1);
+                setModelosSriActivos(modelosActivos);
+                setModelosSri(data);
+            } else {
+                enqueueSnackbar(data.error || 'Error al obtener modelos SRI', { variant: 'error' });
+            }
         } catch {
             enqueueSnackbar('Error conexión SRI', { variant: 'error' });
         }
@@ -123,7 +127,16 @@ function CatModeloHomologado() {
 
     const columns = [
         { name: 'codigo_modelo_homologado', label: 'Código Homologado' },
-        { name: 'nombre_modelo_sri', label: 'Nombre Modelo SRI' },
+        {
+            name: 'codigo_modelo_sri',
+            label: 'Nombre Modelo SRI',
+            options: {
+                customBodyRender: (value) => {
+                    const modelo = modelosSri.find(m => m.codigo_modelo_sri === value);
+                    return modelo ? modelo.nombre_modelo : value;
+                }
+            }
+        },
         { name: 'descripcion_homologacion', label: 'Descripción' },
         { name: 'usuario_crea', label: 'Usuario Crea' },
         { name: 'fecha_creacion', label: 'Fecha Creación' },
@@ -237,7 +250,7 @@ function CatModeloHomologado() {
                             <Grid item xs={12}>
                                 <Autocomplete
                                     fullWidth
-                                    options={modelosSri}
+                                    options={modelosSriActivos}
                                     getOptionLabel={(option) => option?.nombre_modelo || ''}
                                     value={modeloSri}
                                     onChange={(e, newValue) => setModeloSri(newValue)}
