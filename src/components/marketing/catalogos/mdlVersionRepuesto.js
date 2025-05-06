@@ -89,8 +89,8 @@ function CatModeloVersionRepuesto() {
                 headers: { "Authorization": "Bearer " + jwt }
             });
             const data = await res.json();
-           //setProductosExternos(Array.isArray(data) ? data : []);
-            setProductosExternos(Array.isArray(data) ? data.filter(producto => producto.estado_prod_externo === 1) : []);        } catch (err) {
+            setProductosExternos(Array.isArray(data) ? data : []);
+        } catch (err) {
             enqueueSnackbar('Error cargando datos', { variant: 'error' });
         }
     };
@@ -101,19 +101,17 @@ function CatModeloVersionRepuesto() {
                 headers: { "Authorization": "Bearer " + jwt }
             });
             const data = await res.json();
-            setModelosComerciales(Array.isArray(data) ? data.filter(modelo => modelo.estado_modelo === 1) : []);
+            setModelosComerciales(Array.isArray(data) ? data : []);
         } catch (err) {
             enqueueSnackbar('Error cargando datos', { variant: 'error' });
         }
     };
 
-
     const fetchVersiones = async () => {
         try {
             const res = await fetch(`${API}/bench/get_version`, { headers: { "Authorization": "Bearer " + jwt } });
             const data = await res.json();
-            //setVersiones(Array.isArray(data) ? data : []);
-            setVersiones(Array.isArray(data) ? data.filter(version => version.estado_version === 1) : []);
+            setVersiones(Array.isArray(data) ? data : []);
         } catch (err) {
             enqueueSnackbar('Error cargando versiones', { variant: 'error' });
         }
@@ -170,19 +168,21 @@ function CatModeloVersionRepuesto() {
         if (item) {
             const prod = productos.find(p => p.cod_producto === item.cod_producto);
             const modelo = modelosComerciales?.find(mc => mc.nombre_modelo === item.nombre_modelo_comercial);
-            const prodExt = productosExternos?.find(mc => mc.nombre_producto === item.nombre_producto_externo);
+            const prodExt = productosExternos?.find(pe => pe.nombre_producto === item.nombre_producto_externo);
             const ver = versiones?.find(v => v.nombre_version === item.nombre_version);
 
+            console.log("Producto encontrado:", prod);
+            console.log("Modelos comerciales:", modelosComerciales);
+            console.log("Modelo comercial encontrado:", modelo);
             console.log("Productos externos:", productosExternos);
             console.log("Producto Externo encontrado:", prodExt);
+            console.log("Versión encontrada:", ver);
 
-            // Asignar los valores seleccionados
             setSelectedProducto(prod || null);
             setSelectedProductoExterno(prodExt || null);
             setSelectedModeloComercial(modelo || null);
             setSelectedVersion(ver || null);
 
-            // Establecer el formulario con los valores seleccionados
             setForm({
                 cod_producto: prod?.cod_producto || '',
                 empresa: prod?.empresa || '',
@@ -410,11 +410,12 @@ function CatModeloVersionRepuesto() {
                                 />
                             </Grid>
                             <Grid item xs={12}>
-                                <TextField label="Marca" value={`${form.nombre_marca || ''}`} fullWidth disabled />
+
+                                <TextField label="Marca" value={selectedModeloComercial?.nombre_marca || ''} fullWidth disabled />
                             </Grid>
                             <Grid item xs={12}>
                                 <Autocomplete
-                                    options={versiones.filter(v => v.estado_version === 1)}  // Filtra solo las versiones activas
+                                    options={versiones.filter(v => v.estado_version === 1)}
                                     getOptionLabel={(v) => v?.nombre_version || ''}
                                     value={selectedVersion}
                                     onChange={(e, v) => {
