@@ -241,10 +241,10 @@ function CatModeloHomologado() {
                     <Button onClick={fetchModelosHomologados} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable title="Modelos Homologados" data={cabeceras} columns={columns} options={{ selectableRows: 'none', responsive: 'standard' }} />
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={{ selectableRows: 'none', responsive: 'standard' }} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
-                    <DialogTitle>{selected ? 'Actualizar' : 'Nuevo Modelo Homologado'}</DialogTitle>
+                    <DialogTitle>{selected ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
                             <Grid item xs={12}>

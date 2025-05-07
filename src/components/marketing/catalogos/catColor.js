@@ -239,7 +239,7 @@ function CatColor() {
                 </ThemeProvider>
 
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
-                    <DialogTitle>{selectedColor ? 'Actualizar Color' : 'Nuevo Color'}</DialogTitle>
+                    <DialogTitle>{selectedColor ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
                             <Grid item xs={6}><TextField fullWidth label="Nombre color" value={nombreColor} onChange={(e) => setnombreColor(e.target.value)} /></Grid>

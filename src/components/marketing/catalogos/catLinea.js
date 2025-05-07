@@ -296,7 +296,14 @@ function CatLinea() {
                     <DialogTitle>{selectedLinea ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Nombre Línea" value={nombreLinea} onChange={(e) => setNombreLinea(e.target.value)} /></Grid>
+                            <Grid item xs={6}>
+                                <TextField
+                                    fullWidth
+                                    label="Nombre Línea"
+                                    value={nombreLinea}
+                                    onChange={(e) => setNombreLinea(e.target.value)}
+                                />
+                            </Grid>
                             <Grid item xs={6}>
                                 <FormControl fullWidth>
                                     <InputLabel id="estado-linea-label">Estado</InputLabel>
