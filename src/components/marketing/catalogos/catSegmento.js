@@ -26,6 +26,15 @@ function CatSegmento() {
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
     const [menus, setMenus] = useState([]);
+    const [modelosComerciales, setModelosComerciales] = useState([]);
+    const [lineas, setLineas] = useState([]);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [selectedModeloComercial, setSelectedModeloComercial] = useState(null);
+    const [selectedLineas, setSelectedLineas] = useState(null);
+    const [selectedLineaPadre, setSelectedLineaPadre] = useState(null);
+    const [cabeceras, setCabeceras] = useState([]);
+    const [loading] = useState(false);
     const [form, setForm] = useState({
         codigo_segmento: '',
         codigo_linea: '',
@@ -40,16 +49,6 @@ function CatSegmento() {
         estado_segmento: '',
         descripcion_segmento: '',
     });
-
-    const [modelosComerciales, setModelosComerciales] = useState([]);
-    const [lineas, setLineas] = useState([]);
-    const [selectedItem, setSelectedItem] = useState(null);
-    const [dialogOpen, setDialogOpen] = useState(false);
-    const [selectedModeloComercial, setSelectedModeloComercial] = useState(null);
-    const [selectedLineas, setSelectedLineas] = useState(null);
-    const [selectedLineaPadre, setSelectedLineaPadre] = useState(null);
-    const [cabeceras, setCabeceras] = useState([]);
-    const [loading] = useState(false);
 
     const fetchSegmentos = async () => {
         try {
@@ -70,7 +69,6 @@ function CatSegmento() {
             enqueueSnackbar("Error de conexión", { variant: "error" });
         }
     };
-
 
     const fetchModeloComercial = async () => {
         try {
@@ -95,7 +93,6 @@ function CatSegmento() {
             enqueueSnackbar('Error cargando datos', { variant: 'error' });
         }
     };
-
 
     useEffect(() => {
         getMenus();
@@ -127,8 +124,6 @@ function CatSegmento() {
             estado_segmento: form.estado_segmento,
             descripcion_segmento: form.descripcion_segmento,
         };
-
-        console.log("Payload:", payload);
 
         try {
             const res = await fetch(url, {
@@ -168,7 +163,6 @@ function CatSegmento() {
             setSelectedModeloComercial(modelo || null);
 
             setForm({
-
                 codigo_segmento: item.codigo_segmento,
                 codigo_linea: linea?.codigo_linea || '',
                 codigo_linea_padre: linea?.codigo_linea_padre || '',
@@ -178,9 +172,9 @@ function CatSegmento() {
                 nombre_modelo_comercial: modelo?.nombre_modelo || '',
                 codigo_marca: modelo?.codigo_marca || '',
                 nombre_marca: modelo?.nombre_marca || '',
-                estado_segmento: item.estado_segmento || '',
+                estado_segmento: item.estado_segmento !== undefined ? item.estado_segmento : '',
                 nombre_segmento: item.nombre_segmento || '',
-                descripcion_segmento: item.descripcion_segmento
+                descripcion_segmento: item.descripcion_segmento || ''
             });
         } else {
 
@@ -355,7 +349,6 @@ function CatSegmento() {
                 <ThemeProvider theme={getMuiTheme()}>
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
                 </ThemeProvider>
-
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selectedItem ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
@@ -414,7 +407,6 @@ function CatSegmento() {
                                     }}
                                     renderInput={(params) => <TextField {...params} label="Línea padre" />}
                                 />
-
                             </Grid>
                             <Grid item xs={6}>
                                 <Autocomplete

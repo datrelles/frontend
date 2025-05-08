@@ -1,15 +1,15 @@
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import React, { useState, useEffect } from "react";
-import Navbar0 from "../../Navbar0";
-import MUIDataTable from "mui-datatables";
-import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import LoadingCircle from "../../contabilidad/loader";
 import {Autocomplete, IconButton, TextField} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import React, { useState, useEffect } from "react";
+import Navbar0 from "../../Navbar0";
+import MUIDataTable from "mui-datatables";
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import { useAuthContext } from "../../../context/authContext";
 import EditIcon from '@mui/icons-material/Edit';
@@ -25,19 +25,7 @@ function CatModeloVersionRepuesto() {
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
-
     const [menus, setMenus] = useState([]);
-    const [form, setForm] = useState({
-        cod_producto: '',
-        empresa: '',
-        codigo_prod_externo: '',
-        codigo_modelo_comercial: '',
-        codigo_marca: '',
-        codigo_version: '',
-        descripcion: '',
-        precio_producto_modelo: '',
-        precio_venta_distribuidor: ''
-    });
     const [productos, setProductos] = useState([]);
     const [productosExternos, setProductosExternos] = useState([]);
     const [modelosComerciales, setModelosComerciales] = useState([]);
@@ -50,6 +38,19 @@ function CatModeloVersionRepuesto() {
     const [selectedVersion, setSelectedVersion] = useState(null);
     const [cabeceras, setCabeceras] = useState([]);
     const [loading] = useState(false);
+    const [selectedCategoria, setSelectedCategoria] = useState(null);
+    const [form, setForm] = useState({
+        cod_producto: '',
+        cod_item: '',
+        empresa: '',
+        codigo_prod_externo: '',
+        codigo_modelo_comercial: '',
+        codigo_marca: '',
+        codigo_version: '',
+        descripcion: '',
+        precio_producto_modelo: '',
+        precio_venta_distribuidor: ''
+    });
 
     const fetchModeloVersRepuesto = async () => {
         try {
@@ -117,13 +118,19 @@ function CatModeloVersionRepuesto() {
         }
     };
 
+    const uniqueItems = [...new Map(productos.map(p => [p.cod_item, {
+        cod_item: p.cod_item,
+        nombre_item: p.nombre_item
+    }])).values()];
+
+
     useEffect(() => {
         getMenus();
         fetchModeloVersRepuesto();
         fetchProductos();
         fetchProductosExternos();
         fetchModeloComercial();
-        fetchVersiones()
+        fetchVersiones();
     }, []);
 
     const handleInsertOrUpdate = async () => {
@@ -170,7 +177,7 @@ function CatModeloVersionRepuesto() {
             const modelo = modelosComerciales?.find(mc => mc.nombre_modelo === item.nombre_modelo_comercial);
             const prodExt = productosExternos?.find(pe => pe.nombre_producto === item.nombre_producto_externo);
             const ver = versiones?.find(v => v.nombre_version === item.nombre_version);
-
+            const cat = productos.find(i => i.nombre_item === item.nombre_item);
             console.log("Producto encontrado:", prod);
             console.log("Modelos comerciales:", modelosComerciales);
             console.log("Modelo comercial encontrado:", modelo);
@@ -179,12 +186,14 @@ function CatModeloVersionRepuesto() {
             console.log("Versión encontrada:", ver);
 
             setSelectedProducto(prod || null);
+            setSelectedCategoria(cat || null);
             setSelectedProductoExterno(prodExt || null);
             setSelectedModeloComercial(modelo || null);
             setSelectedVersion(ver || null);
 
             setForm({
                 cod_producto: prod?.cod_producto || '',
+                cod_item: cat?.cod_item || '',
                 empresa: prod?.empresa || '',
                 nombre_empresa: prod?.nombre_empresa || '',
                 codigo_prod_externo: prodExt?.codigo_prod_externo || '',
@@ -198,12 +207,14 @@ function CatModeloVersionRepuesto() {
             });
         } else {
             setSelectedProducto(null);
+            setSelectedCategoria(null);
             setSelectedProductoExterno(null);
             setSelectedModeloComercial(null);
             setSelectedVersion(null);
 
             setForm({
                 cod_producto: '',
+                cod_item: '',
                 empresa: '',
                 nombre_empresa: '',
                 codigo_prod_externo: '',
@@ -247,6 +258,7 @@ function CatModeloVersionRepuesto() {
 
     const columns = [
         { name: 'codigo_mod_vers_repuesto', label: 'CÓDIGO' },
+        { name: 'nombre_item', label: 'CATEGORÍA' },
         { name: 'nombre_producto', label: 'PRODUCTO' },
         { name: 'nombre_empresa', label: 'EMPRESA' },
         { name: 'nombre_producto_externo', label: 'PRODUCTO EXTERNO' },
@@ -331,6 +343,7 @@ function CatModeloVersionRepuesto() {
                         setSelectedItem(null);
                         setForm({
                             cod_producto:  '',
+                            cod_item: '',
                             empresa:  '',
                             nombre_empresa:  '',
                             codigo_prod_externo: '',
@@ -344,6 +357,7 @@ function CatModeloVersionRepuesto() {
                         });
                         setSelectedProductoExterno(null);
                         setSelectedProducto(null);
+                        setSelectedCategoria(null);
                         setSelectedModeloComercial(null);
                         setSelectedVersion(null);
                         fetchVersiones();
@@ -362,7 +376,19 @@ function CatModeloVersionRepuesto() {
                         <Grid container spacing={2}>
                             <Grid item xs={12}>
                                 <Autocomplete
-                                    options={productos}
+                                    options={uniqueItems}
+                                    getOptionLabel={(option) => `${option.cod_item} - ${option.nombre_item || ''}`}
+                                    value={selectedCategoria}
+                                    onChange={(e, v) => {
+
+                                        setSelectedCategoria(v);
+                                    }}
+                                    renderInput={(params) => <TextField {...params} label="Categoría" />}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Autocomplete
+                                    options={productos.filter(p => p.cod_item === selectedCategoria?.cod_item)}
                                     getOptionLabel={(p) => p.nombre_producto || ''}
                                     value={selectedProducto}
                                     onChange={(e, v) => {
@@ -372,7 +398,6 @@ function CatModeloVersionRepuesto() {
                                         setSelectedProducto(v);
                                     }}
                                     renderInput={(params) => <TextField {...params} label="Producto" />}
-                                    isOptionEqualToValue={(option, value) => option.cod_producto === value.cod_producto}
                                 />
                             </Grid>
                             <Grid item xs={12}>
