@@ -242,8 +242,8 @@ function CatTransmision() {
                     <DialogTitle>{selectedTransmision ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Caja de Cambios" value={cajaCambios} onChange={(e) => setcajaCambios(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Descripcion" value={descripcionTransmision} onChange={(e) => setdescripcionTransmision(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Caja de Cambios" value={cajaCambios} onChange={(e) => setcajaCambios(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Descripcion" value={descripcionTransmision} onChange={(e) => setdescripcionTransmision(e.target.value.toUpperCase())} /></Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>

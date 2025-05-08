@@ -28,7 +28,6 @@ function CatModeloComercial() {
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
-
     const [marcas, setMarcas] = useState([]);
     const [homologados, setHomologados] = useState([]);
     const [cabeceras, setCabeceras] = useState([]);
@@ -39,8 +38,6 @@ function CatModeloComercial() {
     const [selectedHomologado, setSelectedHomologado] = useState(null);
     const [estadoModelo, setEstadoModelo] = useState('');
     const [marcasActivas, setMarcasActivas] = useState([]);
-
-
     const [form, setForm] = useState({
         codigo_marca: '',
         nombre_marca: '',
@@ -87,9 +84,11 @@ function CatModeloComercial() {
         } else {
             form.codigo_marca = marca.codigo_marca;
         }
-        const estadoNumerico = estadoModelo === 'Activo' ? 1 : 0;
+        const estadoNumerico = estadoModelo === 'ACTIVO' ? 1 : 0;
         const payload = { ...form, estado_modelo: estadoNumerico };
-        const url = selectedItem ? `${API}/bench/update_modelo_comercial/${selectedItem.codigo_modelo_comercial}` : `${API}/bench/insert_modelo_comercial`;
+        const url = selectedItem ?
+            `${API}/bench/update_modelo_comercial/${selectedItem.codigo_modelo_comercial}` :
+            `${API}/bench/insert_modelo_comercial`;
         const method = selectedItem ? "PUT" : "POST";
 
         try {
@@ -135,7 +134,7 @@ function CatModeloComercial() {
                         throw new Error(`Fila ${index + 2}: Datos obligatorios faltantes.`);
                     }
 
-                    const estado_modelo = estado === "activo" ? 1 : estado === "inactivo" ? 0 : null;
+                    const estado_modelo = estado === "ACTIVO" ? 1 : estado === "INACTIVO" ? 0 : null;
 
                     if (estado_modelo === null) {
                         throw new Error(`Fila ${index + 2}: Estado debe ser 'Activo' o 'Inactivo'.`);
@@ -208,11 +207,11 @@ function CatModeloComercial() {
             codigo_modelo_homologado: homologado?.codigo_modelo_homologado || '',
             nombre_modelo: row.nombre_modelo,
             anio_modelo: row.anio_modelo,
-            estado_modelo: row.estado_modelo === 1 ? 'Activo' : 'Inactivo'
+            estado_modelo: row.estado_modelo === 1 ? 'ACTIVO' : 'INACTIVO'
         });
 
         setSelectedHomologado(homologado || null);
-        setEstadoModelo(row.estado_modelo === 1 ? 'Activo' : 'Inactivo');
+        setEstadoModelo(row.estado_modelo === 1 ? 'ACTIVO' : 'INACTIVO');
         setDialogOpen(true);
     };
 
@@ -324,7 +323,7 @@ function CatModeloComercial() {
                             minWidth: '70px'
                         }}
                     >
-                        {value === 1 ? "Activo" : "Inactivo"}
+                        {value === 1 ? "ACTIVO" : "INACTIVO"}
                     </div>
                 )
             }
@@ -440,8 +439,8 @@ function CatModeloComercial() {
                             />
 
                         </Grid>
-                        <Grid item xs={6}><TextField fullWidth label="Nombre Modelo Comercial" value={form.nombre_modelo || ''} onChange={(e) => handleChange('nombre_modelo', e.target.value)} /></Grid>
-                        <Grid item xs={3}><TextField fullWidth label="Año" type="number" value={form.anio_modelo || ''} onChange={(e) => handleChange('anio_modelo', e.target.value)} /></Grid>
+                        <Grid item xs={6}><TextField fullWidth label="Nombre Modelo Comercial" value={form.nombre_modelo || ''} onChange={(e) => handleChange('nombre_modelo', e.target.value.toUpperCase())} /></Grid>
+                        <Grid item xs={3}><TextField fullWidth label="Año" type="number" value={form.anio_modelo || ''} onChange={(e) => handleChange('anio_modelo', e.target.value.toUpperCase())} /></Grid>
 
                         <Grid item xs={3}>
                             <FormControl fullWidth>
@@ -449,10 +448,10 @@ function CatModeloComercial() {
                                 <Select
                                     labelId="estado-modelo-label"
                                     value={estadoModelo}
-                                    onChange={(e) => setEstadoModelo(e.target.value)}
+                                    onChange={(e) => setEstadoModelo(e.target.value.toUpperCase())}
                                 >
-                                    <MenuItem value="Activo">Activo</MenuItem>
-                                    <MenuItem value="Inactivo">Inactivo</MenuItem>
+                                    <MenuItem value="ACTIVO">ACTIVO</MenuItem>
+                                    <MenuItem value="INACTIVO">INACTIVO</MenuItem>
                                 </Select>
                             </FormControl>
 

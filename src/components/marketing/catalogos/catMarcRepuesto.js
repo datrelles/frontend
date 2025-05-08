@@ -43,7 +43,7 @@ function CatMarcaRepuesto() {
 
         const method = selectedMarca && selectedMarca.codigo_marca_rep ? "PUT" : "POST";
 
-        const estadoNumerico = estadoMarcaRep === "Activo" ? 1 : 0;
+        const estadoNumerico = estadoMarcaRep === "ACTIVO" ? 1 : 0;
 
         try {
             const res = await fetch(url, {
@@ -171,8 +171,8 @@ function CatMarcaRepuesto() {
 
             const processedRows = rows.map(row => ({
                 ...row,
-                estado_marca_rep: row.estado_marca_rep === "Activo" ? 1
-                    : row.estado_marca_rep === "Inactivo" ? 0
+                estado_marca_rep: row.estado_marca_rep === "ACTIVO" ? 1
+                    : row.estado_marca_rep === "INACTIVO" ? 0
                         : row.estado_marca_rep
             }));
 
@@ -204,7 +204,7 @@ function CatMarcaRepuesto() {
     const openEditDialog = (rowData) => {
         setSelectedMarca(rowData);
         setNombreComercial(rowData.nombre_comercial || '');
-        setEstadoMarcaRep(rowData.estado_marca_rep === 1 ? "Activo" : "Inactivo");
+        setEstadoMarcaRep(rowData.estado_marca_rep === 1 ? "ACTIVO" : "INACTIVO");
         setNombreFabricante(rowData.nombre_fabricante || '');
         setDialogOpen(true);
     };
@@ -277,21 +277,21 @@ function CatMarcaRepuesto() {
                     <DialogTitle>{selectedMarca ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Nombre Comercial" value={nombreComercial} onChange={(e) => setNombreComercial(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Nombre Comercial" value={nombreComercial} onChange={(e) => setNombreComercial(e.target.value.toUpperCase())} /></Grid>
                             <Grid item xs={6}>
                                 <FormControl fullWidth>
                                     <InputLabel id="estado-marca-rep-label">Estado</InputLabel>
                                     <Select
                                         labelId="estado-marca-rep-label"
                                         value={estadoMarcaRep}
-                                        onChange={(e) => setEstadoMarcaRep(e.target.value)}
+                                        onChange={(e) => setEstadoMarcaRep(e.target.value.toUpperCase())}
                                     >
-                                        <MenuItem value="Activo">Activo</MenuItem>
-                                        <MenuItem value="Inactivo">Inactivo</MenuItem>
+                                        <MenuItem value="ACTIVO">ACTIVO</MenuItem>
+                                        <MenuItem value="INACTIVO">INACTIVO</MenuItem>
                                     </Select>
                                 </FormControl>
                             </Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Nombre Fabricante" value={nombreFabricante} onChange={(e) => setNombreFabricante(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Nombre Fabricante" value={nombreFabricante} onChange={(e) => setNombreFabricante(e.target.value.toUpperCase())} /></Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>

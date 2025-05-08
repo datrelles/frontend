@@ -140,7 +140,9 @@ function CatModeloVersionRepuesto() {
         }
 
         const method = selectedItem ? "PUT" : "POST";
-        const url = selectedItem ? `${API}/bench/update_modelo_version_repuesto/${selectedItem.codigo_mod_vers_repuesto}` : `${API}/bench/insert_modelo_version_repuesto`;
+        const url = selectedItem ?
+            `${API}/bench/update_modelo_version_repuesto/${selectedItem.codigo_mod_vers_repuesto}` :
+            `${API}/bench/insert_modelo_version_repuesto`;
 
         const payload = {
             ...form,
@@ -178,12 +180,6 @@ function CatModeloVersionRepuesto() {
             const prodExt = productosExternos?.find(pe => pe.nombre_producto === item.nombre_producto_externo);
             const ver = versiones?.find(v => v.nombre_version === item.nombre_version);
             const cat = productos.find(i => i.nombre_item === item.nombre_item);
-            console.log("Producto encontrado:", prod);
-            console.log("Modelos comerciales:", modelosComerciales);
-            console.log("Modelo comercial encontrado:", modelo);
-            console.log("Productos externos:", productosExternos);
-            console.log("Producto Externo encontrado:", prodExt);
-            console.log("Versión encontrada:", ver);
 
             setSelectedProducto(prod || null);
             setSelectedCategoria(cat || null);
@@ -453,7 +449,7 @@ function CatModeloVersionRepuesto() {
                                 <TextField fullWidth label="Descripción"
                                                           value={form.descripcion || ''}
                                                           onChange={(e) =>
-                                                              handleChange('descripcion', e.target.value)}
+                                                              handleChange('descripcion', e.target.value.toUpperCase())}
                                 />
                             </Grid>
                             <Grid item xs={6}>

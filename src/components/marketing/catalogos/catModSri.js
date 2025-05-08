@@ -43,7 +43,7 @@ function CatModSri() {
 
         const method = selectedModelo && selectedModelo.codigo_modelo_sri ? "PUT" : "POST";
 
-        const estadoNumerico = estadoModelo === "Activo" ? 1 : 0;
+        const estadoNumerico = estadoModelo === "ACTIVO" ? 1 : 0;
 
         try {
             const res = await fetch(url, {
@@ -135,7 +135,7 @@ function CatModSri() {
                             minWidth: '70px'
                         }}
                     >
-                        {value === 1 ? "Activo" : "Inactivo"}
+                        {value === 1 ? "ACTIVO" : "INACTIVO"}
                     </div>
                 )
             }
@@ -171,8 +171,8 @@ function CatModSri() {
 
             const processedRows = rows.map(row => ({
                 ...row,
-                estado_modelo: row.estado_modelo === "Activo" ? 1
-                    : row.estado_modelo === "Inactivo" ? 0
+                estado_modelo: row.estado_modelo === "ACTIVO" ? 1
+                    : row.estado_modelo === "INACTIVO" ? 0
                         : row.estado_modelo
             }));
 
@@ -204,7 +204,7 @@ function CatModSri() {
     const openEditDialog = (rowData) => {
         setSelectedModelo(rowData);
         setNombreModelo(rowData.nombre_modelo || '');
-        setEstadoModelo(rowData.estado_modelo === 1 ? "Activo" : "Inactivo");
+        setEstadoModelo(rowData.estado_modelo === 1 ? "ACTIVO" : "INACTIVO");
         setAnioModelo(rowData.anio_modelo || '');
         setDialogOpen(true);
     };
@@ -277,17 +277,17 @@ function CatModSri() {
                     <DialogTitle>{selectedModelo ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Nombre Modelo" value={nombreModelo} onChange={(e) => setNombreModelo(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Nombre Modelo" value={nombreModelo} onChange={(e) => setNombreModelo(e.target.value.toUpperCase())} /></Grid>
                             <Grid item xs={6}>
                                 <FormControl fullWidth>
                                     <InputLabel id="estado-modelo-label">Estado</InputLabel>
                                     <Select
                                         labelId="estado-marca-rep-label"
                                         value={estadoModelo}
-                                        onChange={(e) => setEstadoModelo(e.target.value)}
+                                        onChange={(e) => setEstadoModelo(e.target.value.toUpperCase())}
                                     >
-                                        <MenuItem value="Activo">Activo</MenuItem>
-                                        <MenuItem value="Inactivo">Inactivo</MenuItem>
+                                        <MenuItem value="ACTIVO">ACTIVO</MenuItem>
+                                        <MenuItem value="INACTIVO">INACTIVO</MenuItem>
                                     </Select>
                                 </FormControl>
                             </Grid>

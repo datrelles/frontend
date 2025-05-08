@@ -46,7 +46,7 @@ function CatLinea() {
             : `${API}/bench/insert_linea`;
 
         const method = selectedLinea && selectedLinea.codigo_linea ? "PUT" : "POST";
-        const estadoNumerico = estadoLinea === "Activo" ? 1 : 0;
+        const estadoNumerico = estadoLinea === "ACTIVO" ? 1 : 0;
 
         const codigoPadre = lineaPadre && typeof lineaPadre === 'object'
             ? lineaPadre.codigo_linea
@@ -154,7 +154,7 @@ function CatLinea() {
                             minWidth: '70px'
                         }}
                     >
-                        {value === 1 ? "Activo" : "Inactivo"}
+                        {value === 1 ? "ACTIVO" : "INACTIVO"}
                     </div>
                 )
             }
@@ -190,8 +190,8 @@ function CatLinea() {
 
             const processedRows = rows.map(row => ({
                 ...row,
-                estado_linea: row.estado_linea === "Activo" ? 1
-                    : row.estado_linea === "Inactivo" ? 0
+                estado_linea: row.estado_linea === "ACTIVO" ? 1
+                    : row.estado_linea === "INACTIVO" ? 0
                         : row.estado_linea
             }));
 
@@ -223,7 +223,7 @@ function CatLinea() {
     const openEditDialog = (rowData) => {
         setSelectedLinea(rowData);
         setNombreLinea(rowData.nombre_linea || '');
-        setEstadoLinea(rowData.estado_linea === 1 ? "Activo" : "Inactivo");
+        setEstadoLinea(rowData.estado_linea === 1 ? "ACTIVO" : "INACTIVO");
         setDescripcionLinea(rowData.descripcion_linea || '');
         const padre = lineasPadre.find(p => p.codigo_linea === rowData.codigo_linea_padre);
         setLineaPadreSeleccionada(padre || null);
@@ -301,7 +301,7 @@ function CatLinea() {
                                     fullWidth
                                     label="Nombre Línea"
                                     value={nombreLinea}
-                                    onChange={(e) => setNombreLinea(e.target.value)}
+                                    onChange={(e) => setNombreLinea(e.target.value.toUpperCase())}
                                 />
                             </Grid>
                             <Grid item xs={6}>
@@ -310,14 +310,14 @@ function CatLinea() {
                                     <Select
                                         labelId="estado-linea-label"
                                         value={estadoLinea}
-                                        onChange={(e) => setEstadoLinea(e.target.value)}
+                                        onChange={(e) => setEstadoLinea(e.target.value.toUpperCase())}
                                     >
-                                        <MenuItem value="Activo">Activo</MenuItem>
-                                        <MenuItem value="Inactivo">Inactivo</MenuItem>
+                                        <MenuItem value="ACTIVO">ACTIVO</MenuItem>
+                                        <MenuItem value="INACTIVO">INACTIVO</MenuItem>
                                     </Select>
                                 </FormControl>
                             </Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Descripción" value={descripcionLinea} onChange={(e) => setDescripcionLinea(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Descripción" value={descripcionLinea} onChange={(e) => setDescripcionLinea(e.target.value.toUpperCase())} /></Grid>
                             <Grid item xs={6}>
                                 <Autocomplete
                                     fullWidth

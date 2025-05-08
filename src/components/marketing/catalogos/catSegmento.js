@@ -245,7 +245,7 @@ function CatSegmento() {
                             minWidth: '70px'
                         }}
                     >
-                        {value === 1 ? "Activo" : "Inactivo"}
+                        {value === 1 ? "ACTIVO" : "INACTIVO"}
                     </div>
                 )
             }
@@ -359,7 +359,7 @@ function CatSegmento() {
                                     label="Nombre Segmento"
                                     value={form.nombre_segmento || ''}
                                     onChange={(e) =>
-                                        handleChange('nombre_segmento', e.target.value)}
+                                        handleChange('nombre_segmento', e.target.value.toUpperCase())}
                                 />
                             </Grid>
                             <Grid item xs={12}>
@@ -386,10 +386,10 @@ function CatSegmento() {
                                     <Select
                                         labelId="estado-segmento-label"
                                         value={form.estado_segmento}
-                                        onChange={(e) => handleChange('estado_segmento', e.target.value)}
+                                        onChange={(e) => handleChange('estado_segmento', e.target.value.toUpperCase())}
                                     >
-                                        <MenuItem value={1}>Activo</MenuItem>
-                                        <MenuItem value={0}>Inactivo</MenuItem>
+                                        <MenuItem value={1}>ACTIVO</MenuItem>
+                                        <MenuItem value={0}>INACTIVO</MenuItem>
                                     </Select>
                                 </FormControl>
                             </Grid>
@@ -432,7 +432,7 @@ function CatSegmento() {
                                 <TextField fullWidth label="Descripción"
                                            value={form.descripcion_segmento || ''}
                                            onChange={(e) =>
-                                               handleChange('descripcion_segmento', e.target.value)}
+                                               handleChange('descripcion_segmento', e.target.value.toUpperCase())}
                                 />
                             </Grid>
                         </Grid>

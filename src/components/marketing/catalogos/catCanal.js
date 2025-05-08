@@ -43,7 +43,7 @@ function CatCanal() {
 
         const method = selectedCanal && selectedCanal.codigo_canal ? "PUT" : "POST";
 
-        const estadoCanalNumerico = estadoCanal === "Activo" ? 1 : 0;
+        const estadoCanalNumerico = estadoCanal === "ACTIVO" ? 1 : 0;
 
         try {
             const res = await fetch(url, {
@@ -58,8 +58,6 @@ function CatCanal() {
                     descripcion_canal: descripcionCanal
                 })
             });
-
-
 
             const data = await res.json();
             if (res.ok) {
@@ -139,7 +137,7 @@ function CatCanal() {
                             minWidth: '70px'
                         }}
                     >
-                        {value === 1 ? "Activo" : "Inactivo"}
+                        {value === 1 ? "ACTIVO" : "INACTIVO"}
                     </div>
                 )
             }
@@ -173,11 +171,10 @@ function CatCanal() {
             const sheetName = workbook.SheetNames[0];
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-            // Conversión de "Activo"/"Inactivo" a 1/0
             const processedRows = rows.map(row => ({
                 ...row,
-                estado_canal: row.estado_canal === "Activo" ? 1
-                    : row.estado_canal === "Inactivo" ? 0
+                estado_canal: row.estado_canal === "ACTIVO" ? 1
+                    : row.estado_canal === "INACTIVO" ? 0
                         : row.estado_canal
             }));
 
@@ -202,15 +199,13 @@ function CatCanal() {
                 enqueueSnackbar("Error inesperado", { variant: "error" });
             }
         };
-
         reader.readAsBinaryString(file);
     };
-
 
     const openEditDialog = (rowData) => {
         setSelectedCanal(rowData);
         setnombreCanal(rowData.nombre_canal || '');
-        setestadoCanal(rowData.estado_canal === 1 ? "Activo" : "Inactivo");
+        setestadoCanal(rowData.estado_canal === 1 ? "ACTIVO" : "INACTIVO");
         setdescripcionCanal(rowData.descripcion_canal || '');
         setDialogOpen(true);
     };
@@ -283,22 +278,22 @@ function CatCanal() {
                     <DialogTitle>{selectedCanal ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Nombre canal" value={nombreCanal} onChange={(e) => setnombreCanal(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Nombre canal" value={nombreCanal} onChange={(e) => setnombreCanal(e.target.value.toUpperCase())} /></Grid>
                             <Grid item xs={6}>
                                 <FormControl fullWidth>
-                                    <InputLabel id="estado-canal-label">Estado Canal</InputLabel>
+                                    <InputLabel id="estado-canal-label">Estado</InputLabel>
                                     <Select
                                         labelId="estado-canal-label"
                                         value={estadoCanal}
-                                        onChange={(e) => setestadoCanal(e.target.value)}
+                                        onChange={(e) => setestadoCanal(e.target.value.toUpperCase())}
                                     >
-                                        <MenuItem value="Activo">Activo</MenuItem>
-                                        <MenuItem value="Inactivo">Inactivo</MenuItem>
+                                        <MenuItem value="ACTIVO">ACTIVO</MenuItem>
+                                        <MenuItem value="INACTIVO">INACTIVO</MenuItem>
                                     </Select>
                                 </FormControl>
                             </Grid>
 
-                            <Grid item xs={6}><TextField fullWidth label="Descripcion" value={descripcionCanal} onChange={(e) => setdescripcionCanal(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Descripcion" value={descripcionCanal} onChange={(e) => setdescripcionCanal(e.target.value.toUpperCase())} /></Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>

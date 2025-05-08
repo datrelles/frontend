@@ -112,9 +112,6 @@ function ClienteCanal() {
             descripcion_cliente_canal: form.descripcion_cliente_canal
         };
 
-        console.log("Payload:", payload);
-        console.log("Formulario:", form);
-
         try {
             const res = await fetch(url, {
                 method,
@@ -355,7 +352,7 @@ function ClienteCanal() {
                                 </Grid>
                             </Grid>
                             <Grid item xs={12}>
-                                <TextField label="Descripción" value={form.descripcion_cliente_canal} onChange={e => handleChange('descripcion_cliente_canal', e.target.value)} fullWidth />
+                                <TextField label="Descripción" value={form.descripcion_cliente_canal} onChange={e => handleChange('descripcion_cliente_canal', e.target.value.toUpperCase())} fullWidth />
                             </Grid>
                         </Grid>
                     </DialogContent>

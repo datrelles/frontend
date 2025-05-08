@@ -90,7 +90,9 @@ function CatModeloHomologado() {
             return;
         }
 
-        const url = selected ? `${API}/bench/update_modelo_homologado/${selected.codigo_modelo_homologado}` : `${API}/bench/insert_modelo_homologado`;
+        const url = selected ?
+            `${API}/bench/update_modelo_homologado/${selected.codigo_modelo_homologado}` :
+            `${API}/bench/insert_modelo_homologado`;
         const method = selected ? 'PUT' : 'POST';
 
         try {
@@ -172,8 +174,6 @@ function CatModeloHomologado() {
         fetchModelosHomologados();
     }, []);
 
-
-
     const handleUploadExcel = (e) => {
         const file = e.target.files[0];
         const reader = new FileReader();
@@ -184,14 +184,13 @@ function CatModeloHomologado() {
             const sheetName = workbook.SheetNames[0];
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-            // 🔥 Aquí normalizamos nombre_modelo_sri
             const processedRows = rows.map(row => ({
                 nombre_modelo_sri: (row.nombre_modelo_sri || "")
                     .normalize("NFKD")
-                    .replace(/[\u0300-\u036f]/g, "") // elimina acentos
-                    .replace(/\u00A0/g, ' ')         // corrige espacios duros
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .replace(/\u00A0/g, ' ')
                     .trim()
-                    .toLowerCase(),                  // minúsculas
+                    .toLowerCase(),
                 descripcion_homologacion: (row.descripcion_homologacion || "").trim()
             }));
 
@@ -262,7 +261,7 @@ function CatModeloHomologado() {
                                     fullWidth
                                     label="Descripción Homologación"
                                     value={descripcionHomologacion}
-                                    onChange={(e) => setDescripcionHomologacion(e.target.value)}
+                                    onChange={(e) => setDescripcionHomologacion(e.target.value.toUpperCase())}
                                 />
                             </Grid>
                         </Grid>

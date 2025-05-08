@@ -69,7 +69,6 @@ function CatMotor() {
 
                 if (tipoMotorRes.ok) {
                     form.codigo_tipo_motor = tipoMotorData.codigo_tipo_motor;
-                    // Refrescar la lista de tipos
                     await fetchTiposMotor();
                 } else {
                     enqueueSnackbar(tipoMotorData.error || 'Error creando tipo de motor', { variant: 'error' });
@@ -84,7 +83,9 @@ function CatMotor() {
         }
 
         const isUpdate = selectedMotor && selectedMotor.codigo_motor;
-        const url = isUpdate ? `${API}/bench/update_motor/${selectedMotor.codigo_motor}` : `${API}/bench/insert_motor`;
+        const url = isUpdate ?
+            `${API}/bench/update_motor/${selectedMotor.codigo_motor}` :
+            `${API}/bench/insert_motor`;
         const method = isUpdate ? 'PUT' : 'POST';
 
         try {
@@ -282,7 +283,7 @@ function CatMotor() {
                                 freeSolo
                                 options={tiposMotor.map((item) => item.nombre_tipo)}
                                 value={form.tipo_motor_nombre || ''}
-                                onInputChange={(e, newValue) => handleChange('tipo_motor_nombre', newValue)}
+                                onInputChange={(e, newValue) => handleChange('tipo_motor_nombre', newValue?.toUpperCase() || '')}
                                 renderInput={(params) => <TextField {...params} label="Tipo de Motor" />}
                             /></Grid>
                             <Grid item xs={12}>
@@ -290,17 +291,17 @@ function CatMotor() {
                                     fullWidth
                                     label="Descripción del Tipo de Motor"
                                     value={form.descripcion_tipo_motor || ''}
-                                    onChange={(e) => handleChange('descripcion_tipo_motor', e.target.value)}
+                                    onChange={(e) => handleChange('descripcion_tipo_motor', e.target.value.toUpperCase())}
                                 />
                             </Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Nombre Motor" value={form.nombre_motor || ''} onChange={(e) => handleChange('nombre_motor', e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Cilindrada" value={form.cilindrada || ''} onChange={(e) => handleChange('cilindrada', e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Caballos de Fuerza" value={form.caballos_fuerza || ''} onChange={(e) => handleChange('caballos_fuerza', e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Torque Máximo" value={form.torque_maximo || ''} onChange={(e) => handleChange('torque_maximo', e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Combustible" value={form.sistema_combustible || ''} onChange={(e) => handleChange('sistema_combustible', e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Arranque" value={form.arranque || ''} onChange={(e) => handleChange('arranque', e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Refrigeración" value={form.sistema_refrigeracion || ''} onChange={(e) => handleChange('sistema_refrigeracion', e.target.value)} /></Grid>
-                            <Grid item xs={12}><TextField fullWidth label="Descripción" value={form.descripcion_motor || ''} onChange={(e) => handleChange('descripcion_motor', e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Nombre Motor" value={form.nombre_motor || ''} onChange={(e) => handleChange('nombre_motor', e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Cilindrada" value={form.cilindrada || ''} onChange={(e) => handleChange('cilindrada', e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Caballos de Fuerza" value={form.caballos_fuerza || ''} onChange={(e) => handleChange('caballos_fuerza', e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Torque Máximo" value={form.torque_maximo || ''} onChange={(e) => handleChange('torque_maximo', e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Combustible" value={form.sistema_combustible || ''} onChange={(e) => handleChange('sistema_combustible', e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Arranque" value={form.arranque || ''} onChange={(e) => handleChange('arranque', e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Refrigeración" value={form.sistema_refrigeracion || ''} onChange={(e) => handleChange('sistema_refrigeracion', e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={12}><TextField fullWidth label="Descripción" value={form.descripcion_motor || ''} onChange={(e) => handleChange('descripcion_motor', e.target.value.toUpperCase())} /></Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>

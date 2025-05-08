@@ -275,14 +275,14 @@ function CatChasis() {
                     <DialogTitle>{selectedChasis ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Aros Rueda Delantera" value={arosDel} onChange={(e) => setArosDel(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Aros Rueda Posterior" value={arosPost} onChange={(e) => setArosPost(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Neumático Delantero" value={neuDel} onChange={(e) => setNeuDel(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Neumático Trasero" value={neuPost} onChange={(e) => setNeuPost(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Suspensión Delantera" value={suspDel} onChange={(e) => setSuspDel(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Suspensión Trasera" value={suspPost} onChange={(e) => setSuspPost(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Frenos Delanteros" value={frenoDel} onChange={(e) => setFrenoDel(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Frenos Traseros" value={frenoPost} onChange={(e) => setFrenoPost(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Aros Rueda Delantera" value={arosDel} onChange={(e) => setArosDel(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Aros Rueda Posterior" value={arosPost} onChange={(e) => setArosPost(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Neumático Delantero" value={neuDel} onChange={(e) => setNeuDel(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Neumático Trasero" value={neuPost} onChange={(e) => setNeuPost(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Suspensión Delantera" value={suspDel} onChange={(e) => setSuspDel(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Suspensión Trasera" value={suspPost} onChange={(e) => setSuspPost(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Frenos Delanteros" value={frenoDel} onChange={(e) => setFrenoDel(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Frenos Traseros" value={frenoPost} onChange={(e) => setFrenoPost(e.target.value.toUpperCase())} /></Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>

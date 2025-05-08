@@ -18,7 +18,6 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
-
 import * as XLSX from "xlsx";
 
 const API = process.env.REACT_APP_API;
@@ -62,7 +61,7 @@ function CatProductoExterno() {
 
         const method = selectedProducto && selectedProducto.codigo_prod_externo ? "PUT" : "POST";
 
-        const estadoNumerico = estadoProdExterno === "Activo" ? 1 : 0;
+        const estadoNumerico = estadoProdExterno === "ACTIVO" ? 1 : 0;
 
         try {
             const res = await fetch(url, {
@@ -93,8 +92,6 @@ function CatProductoExterno() {
             enqueueSnackbar("Error inesperado", { variant: "error" });
         }
     };
-
-
 
     const getMenus = async () => {
         try {
@@ -151,7 +148,6 @@ function CatProductoExterno() {
             });
             const data = await res.json();
             if (res.ok && Array.isArray(data)) {
-                // Convertir claves en mayúsculas a minúsculas
                 const normalizadas = data.map(emp => ({
                     empresa: emp.EMPRESA,
                     nombre: emp.NOMBRE
@@ -226,7 +222,7 @@ function CatProductoExterno() {
                             minWidth: '70px'
                         }}
                     >
-                        {value === 1 ? "Activo" : "Inactivo"}
+                        {value === 1 ? "ACTIVO" : "INACTIVO"}
                     </div>
                 )
             }
@@ -303,7 +299,7 @@ function CatProductoExterno() {
                     return {
                         codigo_marca_rep: marcaObj.codigo_marca_rep,
                         nombre_producto: nombreProducto,
-                        estado_prod_externo: estadoProducto === "activo" ? 1 : 0,
+                        estado_prod_externo: estadoProducto === "ACTIVO" ? 1 : 0,
                         descripcion_producto: descripcion,
                         empresa: empresaObj.empresa
                     };
@@ -348,7 +344,7 @@ function CatProductoExterno() {
         setSelectedProducto(rowData);
         setMarcaRepuesto(marcas.find(m => m.codigo_marca_rep === rowData.codigo_marca_rep) || null);
         setNombreProducto(rowData.nombre_producto || '');
-        setEstadoProdExterno(rowData.estado_prod_externo === 1 ? "Activo" : "Inactivo");
+        setEstadoProdExterno(rowData.estado_prod_externo === 1 ? "ACTIVO" : "INACTIVO");
         setDescripcionProducto(rowData.descripcion_producto || '');
         setEmpresa(empresas.find(emp => emp.empresa === rowData.empresa) || null);
         setDialogOpen(true);
@@ -418,22 +414,22 @@ function CatProductoExterno() {
                                     options={marcasActivas}
                                     getOptionLabel={(option) => option?.nombre_comercial || ''}
                                     value={marcaRepuesto}
-                                    onChange={(e, newValue) => setMarcaRepuesto(newValue)}
+                                    onChange={(e, newValue) => setMarcaRepuesto(newValue?.toUpperCase() || '')}
                                     renderInput={(params) => <TextField {...params} label="Marca Repuesto" />}
                                 />
                             </Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Nombre Producto" value={nombreProducto} onChange={(e) => setNombreProducto(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Nombre Producto" value={nombreProducto} onChange={(e) => setNombreProducto(e.target.value.toUpperCase())} /></Grid>
                             <Grid item xs={6}>
                                 <FormControl fullWidth>
                                     <InputLabel id="estado-prod-ext-label">Estado</InputLabel>
                                     <Select labelId="estado-prod-ext-label" value={estadoProdExterno}
-                                            onChange={(e) => setEstadoProdExterno(e.target.value)}>
-                                        <MenuItem value="Activo">Activo</MenuItem>
-                                        <MenuItem value="Inactivo">Inactivo</MenuItem>
+                                            onChange={(e) => setEstadoProdExterno(e.target.value.toUpperCase())}>
+                                        <MenuItem value="ACTIVO">ACTIVO</MenuItem>
+                                        <MenuItem value="INACTIVO">INACTIVO</MenuItem>
                                     </Select>
                                 </FormControl>
                             </Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Descripción Producto" value={descripcionProducto} onChange={(e) => setDescripcionProducto(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Descripción Producto" value={descripcionProducto} onChange={(e) => setDescripcionProducto(e.target.value.toUpperCase())} /></Grid>
                             <Grid item xs={6}>
                                 <Autocomplete
                                     fullWidth

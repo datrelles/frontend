@@ -43,7 +43,7 @@ function CatVersion() {
 
         const method = selectedVersion && selectedVersion.codigo_version ? "PUT" : "POST";
 
-        const estadoNumerico = estadoVersion === "Activo" ? 1 : 0;
+        const estadoNumerico = estadoVersion === "ACTIVO" ? 1 : 0;
 
         try {
             const res = await fetch(url, {
@@ -135,7 +135,7 @@ function CatVersion() {
                             minWidth: '70px'
                         }}
                     >
-                        {value === 1 ? "Activo" : "Inactivo"}
+                        {value === 1 ? "ACTIVO" : "INACTIVO"}
                     </div>
                 )
             }
@@ -171,8 +171,8 @@ function CatVersion() {
 
             const processedRows = rows.map(row => ({
                 ...row,
-                estado_version: row.estado_version === "Activo" ? 1
-                    : row.estado_version === "Inactivo" ? 0
+                estado_version: row.estado_version === "ACTIVO" ? 1
+                    : row.estado_version === "INACTIVO" ? 0
                         : row.estado_version
             }));
 
@@ -204,7 +204,7 @@ function CatVersion() {
     const openEditDialog = (rowData) => {
         setSelectedVersion(rowData);
         setNombreVersion(rowData.nombre_version || '');
-        setEstadoVersion(rowData.estado_version === 1 ? "Activo" : "Inactivo");
+        setEstadoVersion(rowData.estado_version === 1 ? "ACTIVO" : "INACTIVO");
         setdescripcionVersion(rowData.descripcion_version || '');
         setDialogOpen(true);
     };
@@ -277,21 +277,21 @@ function CatVersion() {
                     <DialogTitle>{selectedVersion ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Versión" value={nombreVersion} onChange={(e) => setNombreVersion(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Versión" value={nombreVersion} onChange={(e) => setNombreVersion(e.target.value.toUpperCase())} /></Grid>
                             <Grid item xs={6}>
                                 <FormControl fullWidth>
                                     <InputLabel id="estado-version-label">Estado</InputLabel>
                                     <Select
                                         labelId="estado-version-label"
                                         value={estadoVersion}
-                                        onChange={(e) => setEstadoVersion(e.target.value)}
+                                        onChange={(e) => setEstadoVersion(e.target.value.toUpperCase())}
                                     >
-                                        <MenuItem value="Activo">Activo</MenuItem>
-                                        <MenuItem value="Inactivo">Inactivo</MenuItem>
+                                        <MenuItem value="ACTIVO">ACTIVO</MenuItem>
+                                        <MenuItem value="INACTIVO">INACTIVO</MenuItem>
                                     </Select>
                                 </FormControl>
                             </Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Descripción" value={descripcionVersion} onChange={(e) => setdescripcionVersion(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Descripción" value={descripcionVersion} onChange={(e) => setdescripcionVersion(e.target.value.toUpperCase())} /></Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>
