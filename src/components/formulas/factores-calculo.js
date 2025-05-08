@@ -19,9 +19,9 @@ import MainComponent from "./common/main-component";
 import BoxCenter from "./common/box-center";
 import BtnCancelar from "./common/btn-cancelar";
 import CustomTypography from "./common/custom-typography";
-import { Enum, operadores, tiposOperador } from "./common/enum";
+import { Enum, Operadores, TiposFactor } from "./common/enum";
 
-const shapeParametroOperador = {
+const shapeParametroTipo = {
   cod_parametro: "",
   nombre: "Seleccione",
 };
@@ -44,12 +44,10 @@ export default function FactoresCalculo() {
   const [parametros, setParametros] = useState([]);
   const [createFactor, setCreateFactor] = useState(false);
   const [orden, setOrden] = useState(1);
-  const [tipoOperador, setTipoOperador] = useState("Seleccione");
-  const [operador, setOperador] = useState("");
+  const [tipoFactor, setTipoFactor] = useState("Seleccione");
+  const [parametroTipo, setParametroTipo] = useState(shapeParametroTipo);
   const [valorFijo, setValorFijo] = useState("");
-  const [parametroOperador, setParametroOperador] = useState(
-    shapeParametroOperador
-  );
+  const [operador, setOperador] = useState("");
 
   const getMenus = async () => {
     try {
@@ -92,17 +90,17 @@ export default function FactoresCalculo() {
     e.preventDefault();
     APIService.createFactor(codProceso, codParametro, {
       orden,
-      tipo_operador: tipoOperador,
+      tipo_factor: tipoFactor,
       operador,
       valor_fijo: valorFijo,
-      cod_parametro_operador: parametroOperador.cod_parametro,
+      cod_parametro_tipo: parametroTipo.cod_parametro,
     })
       .then((res) => {
         toast.success(res);
-        setTipoOperador("Seleccione");
+        setTipoFactor("Seleccione");
         setOperador("Seleccione");
         setValorFijo("");
-        setParametroOperador(shapeParametroOperador);
+        setParametroTipo(shapeParametroTipo);
         getFactores();
       })
       .catch((err) => toast.error(err.message));
@@ -130,35 +128,35 @@ export default function FactoresCalculo() {
 
   const checkUltimoTipoOperador = (clave) => {
     if (!factores || factores.length === 0) {
-      return clave === tiposOperador.OPERADOR.key;
+      return clave === TiposFactor.OPERADOR.key;
     }
-    const ultimoTipo = factores[factores.length - 1].tipo_operador;
+    const ultimoTipo = factores[factores.length - 1].tipo_factor;
     if (
-      ultimoTipo === tiposOperador.PARAMETRO.key ||
-      ultimoTipo === tiposOperador.VALOR.key
+      ultimoTipo === TiposFactor.PARAMETRO.key ||
+      ultimoTipo === TiposFactor.VALOR.key
     )
-      return clave !== tiposOperador.OPERADOR.key;
-    else return clave === tiposOperador.OPERADOR.key;
+      return clave !== TiposFactor.OPERADOR.key;
+    else return clave === TiposFactor.OPERADOR.key;
   };
 
   const checkTipoOperador = (tipo) => {
     switch (tipo) {
-      case tiposOperador.PARAMETRO.key:
+      case TiposFactor.PARAMETRO.key:
         setValorFijo("");
         setOperador("Seleccione");
         break;
-      case tiposOperador.VALOR.key:
-        setParametroOperador(shapeParametroOperador);
+      case TiposFactor.VALOR.key:
+        setParametroTipo(shapeParametroTipo);
         setOperador("Seleccione");
         break;
-      case tiposOperador.OPERADOR.key:
-        setParametroOperador(shapeParametroOperador);
+      case TiposFactor.OPERADOR.key:
+        setParametroTipo(shapeParametroTipo);
         setValorFijo("");
         break;
       default:
         setValorFijo("");
         setOperador("Seleccione");
-        setParametroOperador(shapeParametroOperador);
+        setParametroTipo(shapeParametroTipo);
         return;
     }
   };
@@ -181,8 +179,8 @@ export default function FactoresCalculo() {
         `select_tipo_op_${item.orden}`,
         <CustomSelect
           label="Tipo operador"
-          options={tiposOperador}
-          value={item.tipo_operador}
+          options={TiposFactor}
+          value={item.tipo_factor}
         />
       ),
       createCustomComponentItem(
@@ -191,7 +189,7 @@ export default function FactoresCalculo() {
         item.operador ? (
           <CustomSelect
             label="Operador"
-            options={operadores}
+            options={Operadores}
             value={item.operador}
           />
         ) : (
@@ -211,14 +209,13 @@ export default function FactoresCalculo() {
             "number"
           )
         : createEmptyItem(2, `valor_fijo_${item.orden}`),
-      item.cod_parametro_operador
+      item.cod_parametro_tipo
         ? createTextFieldItem(
             2,
             `cod_parametro_operador_${item.orden}`,
             "Parámetro",
-            parametros.find(
-              (p) => p.cod_parametro === item.cod_parametro_operador
-            )?.parametro?.nombre ?? ""
+            parametros.find((p) => p.cod_parametro === item.cod_parametro_tipo)
+              ?.parametro?.nombre ?? ""
           )
         : createEmptyItem(2, `cod_parametro_operador_${item.orden}`),
       createCustomComponentItem(
@@ -246,14 +243,14 @@ export default function FactoresCalculo() {
       "n_f_tipo_operador",
       <CustomSelect
         label="Tipo operador"
-        options={Enum.values(tiposOperador).map((item) =>
+        options={Enum.values(TiposFactor).map((item) =>
           item.addProp("disabled", checkUltimoTipoOperador(item.key))
         )}
-        value={tipoOperador}
+        value={tipoFactor}
         onChange={(e) => {
           const nuevoTipo = e.target.value ?? "";
           checkTipoOperador(nuevoTipo);
-          setTipoOperador(nuevoTipo);
+          setTipoFactor(nuevoTipo);
         }}
       />
     ),
@@ -262,11 +259,11 @@ export default function FactoresCalculo() {
       "n_f_operador",
       <CustomSelect
         label="Operador"
-        options={operadores}
+        options={Operadores}
         value={operador}
         onChange={createDefaultSetter(setOperador)}
         required={false}
-        disabled={tipoOperador !== tiposOperador.OPERADOR.key}
+        disabled={tipoFactor !== TiposFactor.OPERADOR.key}
       />
     ),
     createTextFieldItem(
@@ -277,7 +274,7 @@ export default function FactoresCalculo() {
       createDefaultSetter(setValorFijo),
       false,
       "",
-      tipoOperador !== tiposOperador.VALOR.key,
+      tipoFactor !== TiposFactor.VALOR.key,
       "number"
     ),
     createCustomComponentItem(
@@ -285,15 +282,15 @@ export default function FactoresCalculo() {
       "n_f_parametro",
       <AutocompleteObject
         id="Parámetro"
-        value={parametroOperador}
+        value={parametroTipo}
         valueId="cod_parametro"
-        shape={shapeParametroOperador}
+        shape={shapeParametroTipo}
         options={parametros}
         optionLabel="nombre"
         onChange={(e, value) => {
-          setParametroOperador(value ?? shapeParametroOperador);
+          setParametroTipo(value ?? shapeParametroTipo);
         }}
-        disabled={tipoOperador !== tiposOperador.PARAMETRO.key}
+        disabled={tipoFactor !== TiposFactor.PARAMETRO.key}
       />
     ),
   ]);

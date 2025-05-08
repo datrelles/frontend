@@ -26,7 +26,7 @@ import MainComponent from "./common/main-component";
 import CustomSelectToolbar from "./common/custom-select-toolbar";
 import AutocompleteObject from "./common/autocomplete-objects";
 import BoxMasterDetail from "./common/box-master-detail";
-import { tiposSeleccionTabla } from "./common/enum";
+import { TiposSeleccionTabla } from "./common/enum";
 
 const shapeFormula = {
   cod_formula: "",
@@ -289,7 +289,7 @@ export default function ParametrosProceso() {
   const optionsMaster = createTableOptions(
     handleClickMaster,
     undefined,
-    tiposSeleccionTabla.NONE.key
+    TiposSeleccionTabla.NONE.key
   );
 
   const columnsDetail = [
@@ -351,7 +351,7 @@ export default function ParametrosProceso() {
   const optionsParametros = createTableOptions(
     handleAdd,
     undefined,
-    tiposSeleccionTabla.NONE.key,
+    TiposSeleccionTabla.NONE.key,
     undefined,
     undefined,
     createTableFeatures(true, false, false, false, false)

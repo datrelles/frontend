@@ -14,35 +14,35 @@ export class Enum {
   }
 }
 
-export const tiposOperador = {
+export const TiposFactor = {
   PARAMETRO: new Enum("PAR", "PARÁMETRO"),
   VALOR: new Enum("VAL", "VALOR FIJO"),
   OPERADOR: new Enum("OPE", "OPERADOR"),
 };
 
-export const operadores = {
+export const Operadores = {
   SUMA: new Enum("+"),
   RESTA: new Enum("-"),
   MULTIPLICACION: new Enum("*"),
   DIVISION: new Enum("/"),
 };
 
-export const tiposRetorno = {
+export const TiposRetorno = {
   NUMBER: new Enum("NUMBER"),
   VARCHAR: new Enum("VARCHAR2"),
 };
 
-export const defaultTipoRetorno = tiposRetorno.NUMBER.key;
+export const DefaultTipoRetorno = TiposRetorno.NUMBER.key;
 
-export const tiposParametro = {
+export const TiposParametro = {
   VARIABLE: new Enum("VARIABLE"),
   CARACTER: new Enum("CARACTER"),
   NUMERO: new Enum("NUMERO", "NÚMERO"),
 };
 
-export const defaultTipoParametro = tiposParametro.VARIABLE.key;
+export const DefaultTipoParametro = TiposParametro.VARIABLE.key;
 
-export const tiposSeleccionTabla = {
+export const TiposSeleccionTabla = {
   MULTIPLE: new Enum("multiple"),
   SINGLE: new Enum("single"),
   NONE: new Enum("none"),

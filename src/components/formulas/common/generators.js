@@ -1,4 +1,4 @@
-import { tiposSeleccionTabla } from "./enum";
+import { TiposSeleccionTabla } from "./enum";
 
 export function createEmptyItem(xs, id) {
   return {
@@ -84,7 +84,7 @@ export function createTableFeatures(
 export function createTableOptions(
   onRowClick,
   onRowsDelete = null,
-  selectable = tiposSeleccionTabla.SINGLE.key,
+  selectable = TiposSeleccionTabla.SINGLE.key,
   onRowSelectionChange = null,
   customToolbarSelect = null,
   features = createTableFeatures()

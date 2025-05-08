@@ -22,10 +22,10 @@ import {
 } from "./common/generators";
 import MainComponent from "./common/main-component";
 import {
-  defaultTipoParametro,
-  defaultTipoRetorno,
-  tiposParametro,
-  tiposRetorno,
+  DefaultTipoParametro,
+  DefaultTipoRetorno,
+  TiposParametro,
+  TiposRetorno,
 } from "./common/enum";
 
 const shapeModulo = {
@@ -52,8 +52,8 @@ export default function Funciones() {
   const [nombreBD, setNombreBD] = useState("");
   const [estado, setEstado] = useState(true);
   const [observaciones, setObservaciones] = useState("");
-  const [retorno, setRetorno] = useState(defaultTipoRetorno);
-  const [tipoParametro, setTipoParametro] = useState(defaultTipoParametro);
+  const [retorno, setRetorno] = useState(DefaultTipoRetorno);
+  const [tipoParametro, setTipoParametro] = useState(DefaultTipoParametro);
   const [secuencia, setSecuencia] = useState(1);
   const [variable, setVariable] = useState("");
   const [fijoCaracter, setFijoCaracter] = useState("");
@@ -113,7 +113,7 @@ export default function Funciones() {
         setNombreBD("");
         setEstado(true);
         setObservaciones("");
-        setRetorno(defaultTipoRetorno);
+        setRetorno(DefaultTipoRetorno);
         setParametros([]);
       })
       .catch((err) => toast.error(err.message));
@@ -132,7 +132,7 @@ export default function Funciones() {
         toast.success(res);
         setOpenCreateParametro(false);
         getParametros();
-        setTipoParametro(defaultTipoParametro);
+        setTipoParametro(DefaultTipoParametro);
         setVariable("");
         setFijoCaracter("");
         setFijoNumero("");
@@ -159,7 +159,7 @@ export default function Funciones() {
         setNombreBD("");
         setEstado(true);
         setObservaciones("");
-        setRetorno(defaultTipoRetorno);
+        setRetorno(DefaultTipoRetorno);
         setParametros([]);
       })
       .catch((err) => toast.error(err.message));
@@ -177,7 +177,7 @@ export default function Funciones() {
         toast.success(res);
         setOpenUpdateParametro(false);
         getParametros(codFuncion);
-        setTipoParametro(defaultTipoParametro);
+        setTipoParametro(DefaultTipoParametro);
         setVariable("");
         setFijoCaracter("");
         setFijoNumero("");
@@ -279,7 +279,7 @@ export default function Funciones() {
     setNombreBD("");
     setEstado(true);
     setObservaciones("");
-    setRetorno(defaultTipoRetorno);
+    setRetorno(DefaultTipoRetorno);
   };
 
   const handleClickCloseCreate = () => {
@@ -313,15 +313,15 @@ export default function Funciones() {
 
   const checkTipoParametro = (tipo) => {
     switch (tipo) {
-      case tiposParametro.VARIABLE.key:
+      case TiposParametro.VARIABLE.key:
         setFijoCaracter("");
         setFijoNumero("");
         break;
-      case tiposParametro.CARACTER.key:
+      case TiposParametro.CARACTER.key:
         setVariable("");
         setFijoNumero("");
         break;
-      case tiposParametro.NUMERO.key:
+      case TiposParametro.NUMERO.key:
         setVariable("");
         setFijoCaracter("");
         break;
@@ -445,7 +445,7 @@ export default function Funciones() {
   const selectRetorno = (
     <CustomSelect
       label="Tipo retorno"
-      options={tiposRetorno}
+      options={TiposRetorno}
       value={retorno}
       onChange={createDefaultSetter(setRetorno)}
     />
@@ -454,7 +454,7 @@ export default function Funciones() {
   const selectTipoParametro = (
     <CustomSelect
       label="Tipo parámetro"
-      options={tiposParametro}
+      options={TiposParametro}
       value={tipoParametro}
       onChange={(e) => {
         const nuevoTipo = e.target.value ?? "";
@@ -548,11 +548,11 @@ export default function Funciones() {
       ),
     ];
     switch (tipoParametro) {
-      case tiposParametro.VARIABLE.key:
+      case TiposParametro.VARIABLE.key:
         return items.concat(variableTextFieldItem);
-      case tiposParametro.CARACTER.key:
+      case TiposParametro.CARACTER.key:
         return items.concat(caracterTextFieldItem);
-      case tiposParametro.NUMERO.key:
+      case TiposParametro.NUMERO.key:
         return items.concat(numeroTextFieldItem);
       default:
         return items;
@@ -600,11 +600,11 @@ export default function Funciones() {
       ),
     ];
     switch (tipoParametro) {
-      case tiposParametro.VARIABLE.key:
+      case TiposParametro.VARIABLE.key:
         return items.concat(variableTextFieldItem);
-      case tiposParametro.CARACTER.key:
+      case TiposParametro.CARACTER.key:
         return items.concat(caracterTextFieldItem);
-      case tiposParametro.NUMERO.key:
+      case TiposParametro.NUMERO.key:
         return items.concat(numeroTextFieldItem);
       default:
         return items;
