@@ -95,6 +95,7 @@ function CatImagen() {
             enqueueSnackbar("Error de conexión", { variant: "error" });
         }
     };
+
     const eliminarImagen = async (pathImagen) => {
         if (!window.confirm("¿Estás seguro de que deseas eliminar esta imagen?")) return;
 
@@ -112,7 +113,7 @@ function CatImagen() {
 
             if (res.ok) {
                 toast.success(result.message || "Imagen eliminada");
-                fetchImagenData(); // actualizar la tabla
+                fetchImagenData();
             } else {
                 toast.error(result.error || "Error al eliminar imagen");
             }
@@ -261,27 +262,28 @@ function CatImagen() {
                             </ButtonGroup>
                         </Box>
 
-                        <Box display="flex" alignItems="center" gap={1} mt={2}>
-                            <Box display="flex" alignItems="center">
-                                <ImageUploader
-                                    onUploadComplete={(urls) => {
-                                        console.log("URLs subidas:", urls);
-                                        setpathImagen(urls[0]);
+                        <Box display="flex" alignItems="center" gap={1}>
+                            <Box display="flex" alignItems="center" gap={1}>
+                                <Box display="flex" alignItems="center">
+                                    <ImageUploader
+                                        onUploadComplete={(urls) => {
+                                            console.log("URLs subidas:", urls);
+                                            setpathImagen(urls[0]);
+                                        }}
+                                    />
+
+                                </Box>
+                                <Button
+                                    onClick={fetchImagenData}
+                                    style={{
+                                        backgroundColor: "firebrick",
+                                        color: "white",
+                                        height: '37px'
                                     }}
-                                />
-
+                                >
+                                    Listar
+                                </Button>
                             </Box>
-                            <Button
-                                onClick={fetchImagenData}
-                                style={{
-                                    backgroundColor: 'firebrick',
-                                    color: 'white',
-                                    height: '37px'
-                                }}
-                            >
-                                Listar
-                            </Button>
-
                         </Box>
                         <ThemeProvider theme={getMuiTheme()}>
                             <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />

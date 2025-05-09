@@ -94,7 +94,7 @@ const ImageUploader = ({ onUploadComplete }) => {
     };
 
     return (
-        <Box display="flex" alignItems="flex-start" gap={2} mt={2}>
+        <Box display="flex" alignItems="flex-start" gap={2}>
             <Box display="flex" alignItems="center" gap={1}>
                 <input
                     type="file"
