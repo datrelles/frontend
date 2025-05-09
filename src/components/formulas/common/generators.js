@@ -134,6 +134,9 @@ export function createTableOptions(
   };
 }
 
-export function createDefaultSetter(setter, isCheck = false) {
-  return (e) => setter(e.target[isCheck ? "checked" : "value"]);
+export function createDefaultSetter(setter, isCheck = false, toUpper = false) {
+  return (e) => {
+    const result = e.target[isCheck ? "checked" : "value"];
+    setter(toUpper ? result.toUpperCase() : result);
+  };
 }

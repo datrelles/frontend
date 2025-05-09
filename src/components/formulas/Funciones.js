@@ -479,7 +479,7 @@ export default function Funciones() {
       "cod_funcion",
       "Código",
       codFuncion,
-      createDefaultSetter(setCodFuncion),
+      createDefaultSetter(setCodFuncion, undefined, true),
       true,
       "FUNC###"
     ),

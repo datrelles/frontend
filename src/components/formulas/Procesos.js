@@ -171,7 +171,7 @@ export default function Procesos() {
       "cod_proceso",
       "Código",
       codProceso,
-      createDefaultSetter(setCodProceso),
+      createDefaultSetter(setCodProceso, undefined, true),
       true,
       "PROCE###"
     ),

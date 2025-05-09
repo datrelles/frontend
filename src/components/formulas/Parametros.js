@@ -183,7 +183,7 @@ export default function Parametros() {
       "cod_parametro",
       "Código",
       codParametro,
-      createDefaultSetter(setCodParametro),
+      createDefaultSetter(setCodParametro, undefined, true),
       true,
       "PARAM###"
     ),

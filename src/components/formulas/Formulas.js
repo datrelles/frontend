@@ -194,7 +194,7 @@ export default function Formulas() {
       "cod_formula",
       "Código",
       codFormula,
-      createDefaultSetter(setCodFormula),
+      createDefaultSetter(setCodFormula, undefined, true),
       true,
       "FORMU###"
     ),
