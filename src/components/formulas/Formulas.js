@@ -13,6 +13,7 @@ import CustomDialog from "./common/custom-dialog";
 import {
   createCustomComponentItem,
   createDefaultSetter,
+  createEmptyItem,
   createTableOptions,
   createTextFieldItem,
 } from "./common/generators";
@@ -20,6 +21,12 @@ import CustomGrid from "./common/custom-grid";
 import Check from "./common/check";
 import MainComponent from "./common/main-component";
 import BoxCenter from "./common/box-center";
+import AutocompleteObject from "./common/autocomplete-objects";
+
+const shapeFuncion = {
+  cod_funcion: "",
+  nombre: "Seleccione",
+};
 
 export default function Formulas() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
@@ -28,8 +35,13 @@ export default function Formulas() {
     () => new API(jwt, userShineray, enterpriseShineray, systemShineray),
     [jwt]
   );
-  const [formulas, setFormulas] = useState([]);
   const [menus, setMenus] = useState([]);
+  const [funcion, setFuncion] = useState(shapeFuncion);
+  const [funciones, setFunciones] = useState([]);
+  const [matchActual, setMatchActual] = useState(null);
+  const [sugerencias, setSugerencias] = useState([]);
+  const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
+  const [formulas, setFormulas] = useState([]);
   const [openCreate, setOpenCreate] = useState(false);
   const [openUpdate, setOpenUpdate] = useState(false);
   const [codFormula, setCodFormula] = useState("");
@@ -41,6 +53,14 @@ export default function Formulas() {
   const getMenus = async () => {
     try {
       setMenus(await APIService.getMenus());
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const getFunciones = async () => {
+    try {
+      setFunciones(await APIService.getFunciones());
     } catch (err) {
       toast.error(err.message);
     }
@@ -154,6 +174,56 @@ export default function Formulas() {
 
   const handleClickCloseUpdate = () => {
     setOpenUpdate(false);
+    setMostrarSugerencias(false);
+  };
+
+  const onChangeDefinicion = (e) => {
+    const definicion = e.target.value;
+    setDefinicion(definicion);
+    const cursor = e.target.selectionStart;
+    const hastaCursor = definicion.slice(0, cursor);
+    const regex = /&(\w*)/g;
+    let match;
+    let ultimoMatch = null;
+    while ((match = regex.exec(hastaCursor)) !== null) {
+      ultimoMatch = {
+        textoCompleto: match[0],
+        palabra: match[1],
+        start: match.index,
+        end: match.index + match[0].length,
+      };
+    }
+    if (ultimoMatch) {
+      const query = ultimoMatch.palabra.toLowerCase();
+      const fullMatch = funciones.some(
+        (funcion) => funcion.cod_funcion.toLowerCase() === query
+      );
+      if (!fullMatch) {
+        const filtradas = funciones.filter((funcion) =>
+          funcion.nombre.toLowerCase().includes(query)
+        );
+        setSugerencias(filtradas);
+        setMostrarSugerencias(true);
+        setMatchActual({ ...ultimoMatch, cursor });
+      } else {
+        setMostrarSugerencias(false);
+        setMatchActual(null);
+      }
+    } else {
+      setMostrarSugerencias(false);
+      setMatchActual(null);
+    }
+  };
+
+  const insertarSugerencia = (texto) => {
+    if (!matchActual) return;
+    const { start, end } = matchActual;
+    const antes = definicion.slice(0, start);
+    const despues = definicion.slice(end);
+    const nuevoTexto = `${antes}&${texto} ${despues}`;
+    setDefinicion(nuevoTexto);
+    setMostrarSugerencias(false);
+    setMatchActual(null);
   };
 
   const columns = [
@@ -207,6 +277,22 @@ export default function Formulas() {
     />
   );
 
+  const autocompleteFunciones = (
+    <AutocompleteObject
+      id="Funciones"
+      value={funcion}
+      valueId="cod_funcion"
+      shape={shapeFuncion}
+      options={sugerencias}
+      optionLabel="nombre"
+      onChange={(e, value) => {
+        if (value) {
+          insertarSugerencia(value.cod_funcion);
+        }
+      }}
+    />
+  );
+
   const createContentItems = [
     createTextFieldItem(
       6,
@@ -237,13 +323,20 @@ export default function Formulas() {
       "definicion",
       "Definición",
       definicion,
-      createDefaultSetter(setDefinicion),
+      onChangeDefinicion,
       undefined,
       undefined,
       undefined,
       undefined,
       3
     ),
+    mostrarSugerencias
+      ? createCustomComponentItem(
+          12,
+          "autocompleteFunciones",
+          autocompleteFunciones
+        )
+      : createEmptyItem(12, "autocompleteFunciones"),
   ];
 
   const updateContentItems = [
@@ -268,8 +361,21 @@ export default function Formulas() {
       "definicion",
       "Definición",
       definicion,
-      createDefaultSetter(setDefinicion)
+      onChangeDefinicion,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      3
     ),
+    mostrarSugerencias
+      ? createCustomComponentItem(
+          12,
+          "autocompleteFunciones",
+          autocompleteFunciones
+        )
+      : createEmptyItem(12, "autocompleteFunciones"),
     createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
     createCustomComponentItem(12, "btnTest", btnTest),
   ];
@@ -317,6 +423,7 @@ export default function Formulas() {
   useEffect(() => {
     document.title = "Fórmulas";
     getMenus();
+    getFunciones();
     getFormulas();
   }, []);
 
