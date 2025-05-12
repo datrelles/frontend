@@ -27,6 +27,7 @@ import {
   TiposParametro,
   TiposRetorno,
 } from "./common/enum";
+import BoxCenter from "./common/box-center";
 
 const shapeModulo = {
   cod_sistema: "",
@@ -311,6 +312,16 @@ export default function Funciones() {
     setOpenUpdateParametro(false);
   };
 
+  const handleTest = async () => {
+    try {
+      toast.success(
+        "Resultado: " + (await APIService.executeFuncionBD(codFuncion)).mensaje
+      );
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
   const checkTipoParametro = (tipo) => {
     switch (tipo) {
       case TiposParametro.VARIABLE.key:
@@ -472,6 +483,14 @@ export default function Funciones() {
     />
   );
 
+  const btnTest = (
+    <BoxCenter
+      components={[
+        <BtnNuevo onClick={handleTest} texto="Probar" icon={false} />,
+      ]}
+    />
+  );
+
   const createContentItems = [
     createCustomComponentItem(4, "autocompleteModulos", autocompleteModulos),
     createTextFieldItem(
@@ -586,6 +605,7 @@ export default function Funciones() {
       false
     ),
     createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
+    createCustomComponentItem(12, "btnTest", btnTest),
   ];
 
   const updateParametroContentItems = () => {

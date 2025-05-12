@@ -126,6 +126,17 @@ export default function FactoresCalculo() {
       .catch((err) => toast.error(err.message));
   };
 
+  const handleTest = async () => {
+    try {
+      toast.success(
+        "Resultado: " +
+          (await APIService.executeFactoresBD(codProceso, codParametro)).mensaje
+      );
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
   const checkUltimoTipoOperador = (clave) => {
     if (!factores || factores.length === 0) {
       return clave === TiposFactor.OPERADOR.key;
@@ -295,6 +306,8 @@ export default function FactoresCalculo() {
     ),
   ]);
 
+  const btnTest = <BtnNuevo onClick={handleTest} texto="Probar" icon={false} />;
+
   const btnAdd = (
     <BoxCenter
       components={[
@@ -324,7 +337,7 @@ export default function FactoresCalculo() {
         texto="Aún no se han registrado factores de cálculo"
       />
     ) : (
-      <></>
+      btnTest
     );
 
   const factoresList = (

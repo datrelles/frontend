@@ -19,6 +19,7 @@ import {
 import CustomGrid from "./common/custom-grid";
 import Check from "./common/check";
 import MainComponent from "./common/main-component";
+import BoxCenter from "./common/box-center";
 
 export default function Formulas() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
@@ -114,6 +115,16 @@ export default function Formulas() {
     return true;
   };
 
+  const handleTest = async () => {
+    try {
+      toast.success(
+        "Resultado: " + (await APIService.executeFormulaBD(codFormula)).mensaje
+      );
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
   const handleRowClick = (rowData, rowMeta) => {
     const row = formulas.find((item) => item.cod_formula === rowData[0]);
     setCodFormula(row.cod_formula);
@@ -188,6 +199,14 @@ export default function Formulas() {
     />
   );
 
+  const btnTest = (
+    <BoxCenter
+      components={[
+        <BtnNuevo onClick={handleTest} texto="Probar" icon={false} />,
+      ]}
+    />
+  );
+
   const createContentItems = [
     createTextFieldItem(
       6,
@@ -252,6 +271,7 @@ export default function Formulas() {
       createDefaultSetter(setDefinicion)
     ),
     createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
+    createCustomComponentItem(12, "btnTest", btnTest),
   ];
 
   const createContent = <CustomGrid items={createContentItems} />;

@@ -282,4 +282,25 @@ export default class API {
       this.#headers
     );
   });
+
+  executeFuncionBD = this.#errorHandler(async (funcion) => {
+    return await axios.get(
+      `${this.#URL}/funciones-bd/${funcion}`,
+      this.#headers
+    );
+  });
+
+  executeFormulaBD = this.#errorHandler(async (formula) => {
+    return await axios.get(
+      `${this.#URL}/formulas-bd/${formula}`,
+      this.#headers
+    );
+  });
+
+  executeFactoresBD = this.#errorHandler(async (proceso, parametro) => {
+    return await axios.get(
+      `${this.#URL}/procesos/${proceso}/parametros/${parametro}/factores-bd`,
+      this.#headers
+    );
+  });
 }
