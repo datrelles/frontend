@@ -31,6 +31,33 @@ const shapeFuncion = {
   nombre: "Seleccione",
 };
 
+const itemsLeyenda = [
+  createLegendItem("Número", "#", ColoresFondo.INFO.key),
+  createLegendItem("Función", "&", ColoresFondo.SUCCESS.key),
+  createLegendItem("Factor", "$", ColoresFondo.DARK.key),
+  createLegendItem("Fórmula", "@", ColoresFondo.DANGER.key),
+  createLegendItem(
+    "+ - * / ( )",
+    "Caracteres válidos",
+    ColoresFondo.DANGER.key
+  ),
+  createLegendItem(
+    "S ( v1 , 'cond' , v2 , v3 , v4 , v5 )",
+    "SI",
+    ColoresFondo.DANGER.key
+  ),
+  createLegendItem(
+    "'>' '<' '=' '>=' '<=' '<>' '!=' E (entre)",
+    "Cond",
+    ColoresFondo.DANGER.key
+  ),
+  createLegendItem(
+    "Todas las expresiones van separadas por espacios y sin ENTER"
+  ),
+];
+
+const leyendaFormulas = <Legend title="Notas" items={itemsLeyenda} />;
+
 export default function Formulas() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
     useAuthContext();
@@ -39,7 +66,6 @@ export default function Formulas() {
     [jwt]
   );
   const [menus, setMenus] = useState([]);
-  const [funcion, setFuncion] = useState(shapeFuncion);
   const [funciones, setFunciones] = useState([]);
   const [matchActual, setMatchActual] = useState(null);
   const [sugerencias, setSugerencias] = useState([]);
@@ -52,6 +78,7 @@ export default function Formulas() {
   const [observaciones, setObservaciones] = useState("");
   const [estado, setEstado] = useState(true);
   const [definicion, setDefinicion] = useState("");
+  const [definicionActualizada, setDefinicionActualizada] = useState(false);
 
   const getMenus = async () => {
     try {
@@ -107,13 +134,8 @@ export default function Formulas() {
       definicion,
     })
       .then((res) => {
+        setDefinicionActualizada(true);
         toast.success(res);
-        setOpenUpdate(false);
-        setCodFormula("");
-        setNombre("");
-        setObservaciones("");
-        setEstado(true);
-        setDefinicion("");
       })
       .catch((err) => toast.error(err.message));
   };
@@ -149,6 +171,7 @@ export default function Formulas() {
   };
 
   const handleRowClick = (rowData, rowMeta) => {
+    setDefinicionActualizada(true);
     const row = formulas.find((item) => item.cod_formula === rowData[0]);
     setCodFormula(row.cod_formula);
     setNombre(row.nombre);
@@ -181,6 +204,7 @@ export default function Formulas() {
   };
 
   const onChangeDefinicion = (e) => {
+    setDefinicionActualizada(false);
     const definicion = e.target.value;
     setDefinicion(definicion);
     const cursor = e.target.selectionStart;
@@ -275,7 +299,13 @@ export default function Formulas() {
   const btnTest = (
     <BoxCenter
       components={[
-        <BtnNuevo onClick={handleTest} texto="Probar" icon={false} />,
+        <BtnNuevo onClick={handleUpdate} texto="Actualizar" icon={false} />,
+        <BtnNuevo
+          onClick={handleTest}
+          texto="Evaluar"
+          icon={false}
+          disabled={!definicionActualizada}
+        />,
       ]}
     />
   );
@@ -283,7 +313,7 @@ export default function Formulas() {
   const autocompleteFunciones = (
     <AutocompleteObject
       id="Funciones"
-      value={funcion}
+      value={shapeFuncion}
       valueId="cod_funcion"
       shape={shapeFuncion}
       options={sugerencias}
@@ -382,33 +412,6 @@ export default function Formulas() {
     createCustomComponentItem(12, "btnTest", btnTest),
   ];
 
-  const itemsLeyenda = [
-    createLegendItem("Número", "#", ColoresFondo.INFO.key),
-    createLegendItem("Función", "&", ColoresFondo.SUCCESS.key),
-    createLegendItem("Factor", "$", ColoresFondo.DARK.key),
-    createLegendItem("Fórmula", "@", ColoresFondo.DANGER.key),
-    createLegendItem(
-      "+ - * / ( )",
-      "Caracteres válidos",
-      ColoresFondo.DANGER.key
-    ),
-    createLegendItem(
-      "S ( v1 , 'cond' , v2 , v3 , v4 , v5 )",
-      "SI",
-      ColoresFondo.DANGER.key
-    ),
-    createLegendItem(
-      "'>' '<' '=' '>=' '<=' '<>' '!=' E (entre)",
-      "Cond",
-      ColoresFondo.DANGER.key
-    ),
-    createLegendItem(
-      "Todas las expresiones van separadas por espacios y sin ENTER"
-    ),
-  ];
-
-  const leyendaFormulas = <Legend title="Notas" items={itemsLeyenda} />;
-
   const createContent = (
     <>
       <CustomGrid items={createContentItems} />
@@ -454,8 +457,6 @@ export default function Formulas() {
       open={openUpdate}
       handleClose={handleClickCloseUpdate}
       handleCancel={handleClickCloseUpdate}
-      handleConfirm={handleUpdate}
-      confirmText="Actualizar"
     />
   );
 

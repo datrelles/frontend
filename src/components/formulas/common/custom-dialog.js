@@ -10,7 +10,7 @@ export default function CustomDialog({
   open,
   handleClose,
   handleCancel,
-  handleConfirm,
+  handleConfirm = null,
   confirmText = "Crear",
 }) {
   return (
