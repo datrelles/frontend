@@ -30,6 +30,7 @@ export default function Legend({ title, items, split = true }) {
               <span
                 className={`badge rounded-pill text-center ${item.color}`}
                 style={{
+                  minWidth: "1.75rem",
                   whiteSpace: "normal",
                   textAlign: "center",
                   display: "inline-block",

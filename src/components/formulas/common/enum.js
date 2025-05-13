@@ -58,3 +58,10 @@ export const ColoresFondo = {
   LIGHT: new Enum("bg-light"),
   DARK: new Enum("bg-dark"),
 };
+
+export const CaracteresFormula = {
+  NUMERO: new Enum("#"),
+  FUNCION: new Enum("&"),
+  PARAMETRO: new Enum("$"),
+  FORMULA: new Enum("@"),
+};

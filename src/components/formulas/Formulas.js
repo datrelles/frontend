@@ -24,31 +24,31 @@ import MainComponent from "./common/main-component";
 import BoxCenter from "./common/box-center";
 import AutocompleteObject from "./common/autocomplete-objects";
 import Legend from "./common/legend";
-import { ColoresFondo } from "./common/enum";
+import { CaracteresFormula, ColoresFondo, Enum } from "./common/enum";
 
-const shapeFuncion = {
-  cod_funcion: "",
+const shapeSugerencia = {
+  codigo: "",
   nombre: "Seleccione",
 };
 
 const itemsLeyenda = [
   createLegendItem("Número", "#", ColoresFondo.INFO.key),
   createLegendItem("Función", "&", ColoresFondo.SUCCESS.key),
-  createLegendItem("Factor", "$", ColoresFondo.DARK.key),
-  createLegendItem("Fórmula", "@", ColoresFondo.DANGER.key),
+  createLegendItem("Parámetro", "$", ColoresFondo.DARK.key),
+  createLegendItem("Fórmula", "@", ColoresFondo.WARNING.key),
   createLegendItem(
     "+ - * / ( )",
-    "Caracteres válidos",
+    "Operadores válidos",
     ColoresFondo.DANGER.key
   ),
   createLegendItem(
-    "S ( v1 , 'cond' , v2 , v3 , v4 , v5 )",
+    "S ( v1 , condición , v2 , v3 , v4 , v5 )",
     "SI",
     ColoresFondo.DANGER.key
   ),
   createLegendItem(
-    "'>' '<' '=' '>=' '<=' '<>' '!=' E (entre)",
-    "Cond",
+    "> < = >= <= <> != E (entre)",
+    "Condición",
     ColoresFondo.DANGER.key
   ),
   createLegendItem(
@@ -66,9 +66,11 @@ export default function Formulas() {
     [jwt]
   );
   const [menus, setMenus] = useState([]);
-  const [funciones, setFunciones] = useState([]);
+  const [funcionesSugerencias, setFuncionesSugerencias] = useState([]);
+  const [parametrosSugerencias, setParametrosSugerencias] = useState([]);
   const [matchActual, setMatchActual] = useState(null);
   const [sugerencias, setSugerencias] = useState([]);
+  const [labelSugerencias, setLabelSugerencias] = useState("");
   const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
   const [formulas, setFormulas] = useState([]);
   const [openCreate, setOpenCreate] = useState(false);
@@ -88,9 +90,27 @@ export default function Formulas() {
     }
   };
 
-  const getFunciones = async () => {
+  const getFuncionesSugerencias = async () => {
     try {
-      setFunciones(await APIService.getFunciones());
+      setFuncionesSugerencias(
+        (await APIService.getFunciones()).map((funcion) => ({
+          codigo: funcion.cod_funcion,
+          nombre: funcion.nombre,
+        }))
+      );
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const getParmetrosSugerencias = async () => {
+    try {
+      setParametrosSugerencias(
+        (await APIService.getParametros()).map((parametro) => ({
+          codigo: parametro.cod_parametro,
+          nombre: parametro.nombre,
+        }))
+      );
     } catch (err) {
       toast.error(err.message);
     }
@@ -209,7 +229,13 @@ export default function Formulas() {
     setDefinicion(definicion);
     const cursor = e.target.selectionStart;
     const hastaCursor = definicion.slice(0, cursor);
-    const regex = /&(\w*)/g;
+    const caracteresFormula = Enum.values(CaracteresFormula).reduce(
+      (res, cur) =>
+        cur.key !== CaracteresFormula.NUMERO.key ? res + cur.key : res,
+      ""
+    );
+    const regexString = `[${caracteresFormula}](\\w*)`;
+    const regex = new RegExp(regexString, "g");
     let match;
     let ultimoMatch = null;
     while ((match = regex.exec(hastaCursor)) !== null) {
@@ -222,21 +248,72 @@ export default function Formulas() {
     }
     if (ultimoMatch) {
       const query = ultimoMatch.palabra.toLowerCase();
-      const fullMatch = funciones.some(
-        (funcion) => funcion.cod_funcion.toLowerCase() === query
-      );
+      //Logica para switch en funcion de ultimoMatch.textoCompleto[0]
+      //Hacer un shapeSugerencia para reemplazar shapeFuncion y que todas las sugerencias tengan solo codigo y nombre
+      //Hacer map a cualquier array de sugerencias antes de asignarlo con setSUgerencias
+      const caracterSugerencia = ultimoMatch.textoCompleto[0];
+      let fullMatch;
+      switch (caracterSugerencia) {
+        case CaracteresFormula.FUNCION.key:
+          fullMatch = funcionesSugerencias.some(
+            (item) => item.codigo.toLowerCase() === query
+          );
+          break;
+        case CaracteresFormula.PARAMETRO.key:
+          fullMatch = parametrosSugerencias.some(
+            (item) => item.codigo.toLowerCase() === query
+          );
+          break;
+        case CaracteresFormula.FORMULA.key:
+          fullMatch = formulas.some(
+            (formula) => formula.cod_formula.toLowerCase() === query
+          );
+          break;
+        default:
+          break;
+      }
       if (!fullMatch) {
-        const filtradas = funciones.filter((funcion) =>
-          funcion.nombre.toLowerCase().includes(query)
-        );
+        let filtradas = [];
+        switch (caracterSugerencia) {
+          case CaracteresFormula.FUNCION.key:
+            setLabelSugerencias("Funciones");
+            filtradas = funcionesSugerencias.filter((item) =>
+              item.nombre.toLowerCase().includes(query)
+            );
+            break;
+          case CaracteresFormula.PARAMETRO.key:
+            setLabelSugerencias("Parámetros");
+            filtradas = parametrosSugerencias.filter((item) =>
+              item.nombre.toLowerCase().includes(query)
+            );
+            break;
+          case CaracteresFormula.FORMULA.key:
+            setLabelSugerencias("Fórmulas");
+            filtradas = formulas
+              .filter(
+                (formula) =>
+                  formula.nombre.toLowerCase().includes(query) &&
+                  formula.cod_formula.toLowerCase() !== codFormula.toLowerCase()
+              )
+              .map((formula) => ({
+                codigo: formula.cod_formula,
+                nombre: formula.nombre,
+              }));
+            break;
+          default:
+            setLabelSugerencias("");
+            break;
+        }
         setSugerencias(filtradas);
         setMostrarSugerencias(true);
         setMatchActual({ ...ultimoMatch, cursor });
       } else {
+        setLabelSugerencias("");
         setMostrarSugerencias(false);
         setMatchActual(null);
       }
     } else {
+      setLabelSugerencias("");
       setMostrarSugerencias(false);
       setMatchActual(null);
     }
@@ -247,7 +324,8 @@ export default function Formulas() {
     const { start, end } = matchActual;
     const antes = definicion.slice(0, start);
     const despues = definicion.slice(end);
-    const nuevoTexto = `${antes}&${texto} ${despues}`;
+    const caracterSugerencia = matchActual.textoCompleto[0];
+    const nuevoTexto = `${antes}${caracterSugerencia}${texto} ${despues}`;
     setDefinicion(nuevoTexto);
     setMostrarSugerencias(false);
     setMatchActual(null);
@@ -312,15 +390,15 @@ export default function Formulas() {
 
   const autocompleteFunciones = (
     <AutocompleteObject
-      id="Funciones"
-      value={shapeFuncion}
-      valueId="cod_funcion"
-      shape={shapeFuncion}
+      id={labelSugerencias}
+      value={shapeSugerencia}
+      valueId="codigo"
+      shape={shapeSugerencia}
       options={sugerencias}
       optionLabel="nombre"
       onChange={(e, value) => {
         if (value) {
-          insertarSugerencia(value.cod_funcion);
+          insertarSugerencia(value.codigo);
         }
       }}
     />
@@ -463,7 +541,8 @@ export default function Formulas() {
   useEffect(() => {
     document.title = "Fórmulas";
     getMenus();
-    getFunciones();
+    getFuncionesSugerencias();
+    getParmetrosSugerencias();
     getFormulas();
   }, []);
 
