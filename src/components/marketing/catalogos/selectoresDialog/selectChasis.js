@@ -30,7 +30,6 @@ export default function SelectorChasis({ chasis, selectedChasisId, onSelect }) {
                     <SearchIcon />
                 </IconButton>
             </Box>
-
             <Dialog open={open} onClose={handleCloseDialog} maxWidth="lg" fullWidth>
                 <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="h6">Seleccionar</Typography>

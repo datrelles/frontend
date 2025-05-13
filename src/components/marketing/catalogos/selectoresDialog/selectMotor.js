@@ -30,7 +30,6 @@ export default function SelectorMotor({ motores, tiposMotor, selectedMotorId, on
                     <SearchIcon />
                 </IconButton>
             </Box>
-
             <Dialog open={open} onClose={handleCloseDialog} maxWidth="lg" fullWidth>
                 <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="h6">Seleccionar</Typography>

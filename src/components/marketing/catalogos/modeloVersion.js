@@ -34,6 +34,12 @@ function CatModeloVersion() {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selectedProducto, setSelectedProducto] = useState(null);
     const [selectedElectronica, setSelectedElectronica] = useState(null);
+    const [selectedChasis, setSelectedChasis] = useState(null);
+    const [selectedMotor, setSelectedMotor] = useState(null);
+    const [selectedColor, setSelectedColor] = useState(null);
+    const [selectedImagen, setSelectedImagen] = useState(null);
+    const [selectedCanal, setSelectedCanal] = useState(null);
+    const [selectedTransmision, setSelectedTransmision] = useState(null);
     const [selectedModeloComercial, setSelectedModeloComercial] = useState(null);
     const [selectedClienteCanal, setSelectedClienteCanal] = useState(null);
     const [selectedVersion, setSelectedVersion] = useState(null);
@@ -66,11 +72,16 @@ function CatModeloVersion() {
         codigo_modelo_comercial: '',
         codigo_marca: '',
         codigo_cliente_canal: '',
+        codigo_canal: '',
+        descripcion_imagen: '',
+        nombre_canal: '',
+        nombre_color: '',
         codigo_mod_vers_repuesto: '',
         empresa: '',
         cod_producto: '',
         codigo_version: '',
         nombre_modelo_version: '',
+        nombre_version: '',
         anio_modelo_version: '',
         precio_producto_modelo: '',
         precio_venta_distribuidor: ''
@@ -343,6 +354,7 @@ function CatModeloVersion() {
             enqueueSnackbar("Error de conexión", { variant: "error" });
         }
     };
+
     useEffect(() => {
         getMenus();
         fetchModeloVersion();
@@ -429,45 +441,62 @@ function CatModeloVersion() {
     const handleChange = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
 
     const openDialog = async (item = null) => {
-        console.log("ITEM seleccionado:", item);
 
         if (item) {
             const prod = productos.find(p => p.cod_producto === item.cod_producto);
             const modelo = modelosComerciales?.find(mc => mc.nombre_modelo === item.nombre_modelo_comercial);
             const ver = versiones?.find(v => v.nombre_version === item.nombre_version);
-            const cha = chasis?.find(c => c.nombre_chasis === item.nombre_chasis);
+            const cha = chasis?.find(c => c.codigo_chasis === item.codigo_chasis);
             const motor = motores?.find(m => m.nombre_motor === item.nombre_motor);
-            const tipoMotor = tiposMotor?.find(tm => tm.nombre_tipo_motor === item.nombre_tipo_motor);
-            const transmision = transmisiones?.find(t => t.codigo_transmision === item.codigo_transmision);
+            const tipoMotor = tiposMotor?.find(tm => tm.codigo_tipo_motor === item.codigo_tipo_motor);
             const elect = electronica?.find(e => e.codigo_electronica === item.codigo_electronica);
-            const color = colores?.find(c => c.nombre_color === item.nombre_color);
+            const transmision = transmisiones.find(t => t.codigo_transmision === item.codigo_transmision);
+            const color = colores.find(c => c.codigo_color_bench === item.codigo_color_bench);
+            const imagen = imagenes.find(i => i.codigo_imagen === item.codigo_imagen);
+            const cl_canal = clienteCanal.find(c => c.codigo_cliente_canal === item.codigo_cliente_canal);
+            const canal = canales.find(cc => cc.codigo_canal === item.codigo_canal);
 
             setSelectedProducto(prod || null);
             setSelectedModeloComercial(modelo || null);
             setSelectedVersion(ver || null);
-            setSelectedTipoMotor(ver || null);
-            setSelectedElectronica(ver || null);
-
+            setSelectedTipoMotor(tipoMotor || null);
+            setSelectedMotor(motor || null);
+            setSelectedElectronica(elect || null);
+            setSelectedChasis(cha || null);
+            setSelectedTransmision(transmision || null);
+            setSelectedColor(color || null);
+            setSelectedImagen(imagen || null);
+            setSelectedClienteCanal(cl_canal || null);
+            setSelectedCanal(canal || null);
 
             setForm({
-                cod_producto: prod?.cod_producto || '',
-                empresa: prod?.empresa || '',
-                nombre_empresa: prod?.nombre_empresa || '',
+                codigo_modelo_version: item.codigo_modelo_version || '',
+                codigo_dim_peso: item.codigo_dim_peso || '',
+                codigo_electronica: item.codigo_electronica || '',
+                codigo_tipo_motor: item.codigo_tipo_motor || '',
+                codigo_motor: item.codigo_motor || '',
+                codigo_transmision: item.codigo_transmision || '',
+                nombre_color: color?.nombre_color || '',
+                descripcion_imagen: imagen?.descripcion_imagen || '',
+                nombre_canal: item.nombre_canal || '',
+                codigo_color_bench: color?.codigo_color_bench || '',
+                codigo_imagen: item.codigo_imagen || '',
+                codigo_chasis: item.codigo_chasis || '',
                 codigo_modelo_comercial: modelo?.codigo_modelo_comercial || '',
                 codigo_marca: modelo?.codigo_marca || '',
-                nombre_marca: modelo?.nombre_marca || '',
+                codigo_cliente_canal: cl_canal.codigo_cliente_canal || '',
+                codigo_mod_vers_repuesto: cl_canal.codigo_mod_vers_repuesto || '',
+                empresa: item.empresa || '',
+                cod_producto: prod?.cod_producto || '',
+                codigo_canal: canal?.codigo_canal || '',
                 codigo_version: ver?.codigo_version || '',
+                nombre_modelo_version: item.nombre_modelo_version || '',
                 nombre_version: ver?.nombre_version || '',
-                codigo_electronica: elect?.codigo_electronica || '',
-                codigo_transmision: transmision?.codigo_transmision || '',
+                anio_modelo_version: item.anio_modelo_version || '',
                 precio_producto_modelo: item.precio_producto_modelo || '',
                 precio_venta_distribuidor: item.precio_venta_distribuidor || ''
             });
         } else {
-            setSelectedProducto(null);
-            setSelectedModeloComercial(null);
-            setSelectedVersion(null);
-
             setForm({
                 codigo_modelo_version: '',
                 codigo_dim_peso: '',
@@ -481,6 +510,10 @@ function CatModeloVersion() {
                 codigo_modelo_comercial: '',
                 codigo_marca: '',
                 codigo_cliente_canal: '',
+                codigo_canal: '',
+                descripcion_imagen: '',
+                nombre_canal: '',
+                nombre_color: '',
                 codigo_mod_vers_repuesto: '',
                 empresa: '',
                 cod_producto: '',
@@ -559,6 +592,10 @@ function CatModeloVersion() {
                                 codigo_modelo_comercial: '',
                                 codigo_marca: '',
                                 codigo_cliente_canal: '',
+                                codigo_canal: '',
+                                descripcion_imagen: '',
+                                nombre_canal: '',
+                                nombre_color: '',
                                 codigo_mod_vers_repuesto: '',
                                 empresa: '',
                                 cod_producto: '',
@@ -571,7 +608,16 @@ function CatModeloVersion() {
                             });
                             setSelectedProducto(null);
                             setSelectedModeloComercial(null);
-                            setSelectedVersion(null);
+                            setSelectedVersion( null);
+                            setSelectedTipoMotor(null);
+                            setSelectedMotor( null);
+                            setSelectedElectronica( null);
+                            setSelectedChasis( null);
+                            setSelectedCanal( null);
+                            setSelectedTransmision( null);
+                            setSelectedColor( null);
+                            setSelectedImagen(null);
+                            setSelectedClienteCanal(null);
                             fetchVersiones();
                             setDialogOpen(true);
                         } }
@@ -625,10 +671,13 @@ function CatModeloVersion() {
                                 <Grid item xs={6}>
                                     <Autocomplete
                                         options={transmisiones}
-                                        getOptionLabel={(x) => x.caja_cambios+ ''}
-                                        onChange={(e, v) =>
-                                            handleChange('codigo_transmision', v?.codigo_transmision || '')}
-                                        renderInput={(params) => <TextField {...params} label="Transmisión"  />}
+                                        getOptionLabel={(x) => x.caja_cambios}
+                                        value={selectedTransmision}
+                                        onChange={(e, v) => {
+                                            setSelectedTransmision(v || null);
+                                            handleChange('codigo_transmision', v?.codigo_transmision || '');
+                                        }}
+                                        renderInput={(params) => <TextField {...params} label="Transmisión" />}
                                     />
                                 </Grid>
                                 <SelectorElectronica
@@ -640,8 +689,11 @@ function CatModeloVersion() {
                                     <Autocomplete
                                         options={colores}
                                         getOptionLabel={(x) => x.nombre_color}
-                                        onChange={(e, v) =>
-                                            handleChange('codigo_color_bench', v?.codigo_color_bench || '')}
+                                        value={selectedColor}
+                                        onChange={(e, v) => {
+                                            setSelectedColor(v || null);
+                                            handleChange('codigo_color_bench', v?.codigo_color_bench || '');
+                                        }}
                                         renderInput={(params) => <TextField {...params} label="Color" />}
                                     />
                                 </Grid>
@@ -649,8 +701,11 @@ function CatModeloVersion() {
                                     <Autocomplete
                                         options={imagenes}
                                         getOptionLabel={(x) => x.descripcion_imagen}
-                                        onChange={(e, v) =>
-                                            handleChange('codigo_imagen', v?.codigo_imagen || '')}
+                                        value={selectedImagen}
+                                        onChange={(e, v) => {
+                                            setSelectedImagen(v || null);
+                                            handleChange('codigo_imagen', v?.codigo_imagen || '');
+                                        }}
                                         renderInput={(params) => <TextField {...params} label="Imagen" />}
                                     />
                                 </Grid>
@@ -695,11 +750,12 @@ function CatModeloVersion() {
                                 <Grid item xs={7}>
                                     <Autocomplete
                                         options={clienteCanal}
-                                        getOptionLabel={(x) => `${x.codigo_cliente_canal} - ${x.nombre_canal} `}
+                                        getOptionLabel={(x) => `${x.codigo_cliente_canal} - ${x.nombre_canal}`}
+                                        value={selectedClienteCanal}
                                         isOptionEqualToValue={(opt, val) => opt.codigo_cliente_canal === val?.codigo_cliente_canal}
                                         onChange={(e, v) => {
                                             if (!v) return;
-
+                                            setSelectedClienteCanal(v);
                                             handleChange('codigo_cliente_canal', v.codigo_cliente_canal || '');
 
                                             setForm((prev) => ({
@@ -726,7 +782,6 @@ function CatModeloVersion() {
                                 </Grid>
                                 <Grid item xs={12}>
                                     <TextField label="Producto" value={selectedClienteCanal?.nombre_producto || ''} fullWidth disabled />
-
                                 </Grid>
                                 <Grid item xs={12}>
                                     <TextField label="Empresa" value={selectedProducto?.nombre_empresa || ''} fullWidth disabled />
