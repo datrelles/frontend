@@ -47,3 +47,14 @@ export const TiposSeleccionTabla = {
   SINGLE: new Enum("single"),
   NONE: new Enum("none"),
 };
+
+export const ColoresFondo = {
+  SUCCESS: new Enum("bg-success"),
+  DANGER: new Enum("bg-danger"),
+  WARNING: new Enum("bg-warning"),
+  INFO: new Enum("bg-info"),
+  PRIMARY: new Enum("bg-primary"),
+  SECONDARY: new Enum("bg-secondary"),
+  LIGHT: new Enum("bg-light"),
+  DARK: new Enum("bg-dark"),
+};

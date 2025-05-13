@@ -14,6 +14,7 @@ import {
   createCustomComponentItem,
   createDefaultSetter,
   createEmptyItem,
+  createLegendItem,
   createTableOptions,
   createTextFieldItem,
 } from "./common/generators";
@@ -22,6 +23,8 @@ import Check from "./common/check";
 import MainComponent from "./common/main-component";
 import BoxCenter from "./common/box-center";
 import AutocompleteObject from "./common/autocomplete-objects";
+import Legend from "./common/legend";
+import { ColoresFondo } from "./common/enum";
 
 const shapeFuncion = {
   cod_funcion: "",
@@ -340,7 +343,7 @@ export default function Formulas() {
   ];
 
   const updateContentItems = [
-    createTextFieldItem(6, "cod_formula", "Código", codFormula),
+    createTextFieldItem(4, "cod_formula", "Código", codFormula),
     createTextFieldItem(
       6,
       "nombre",
@@ -348,6 +351,7 @@ export default function Formulas() {
       nombre,
       createDefaultSetter(setNombre)
     ),
+    createCustomComponentItem(2, "checkboxEstado", checkboxEstado),
     createTextFieldItem(
       12,
       "observaciones",
@@ -366,7 +370,6 @@ export default function Formulas() {
       undefined,
       undefined,
       undefined,
-      undefined,
       3
     ),
     mostrarSugerencias
@@ -376,13 +379,49 @@ export default function Formulas() {
           autocompleteFunciones
         )
       : createEmptyItem(12, "autocompleteFunciones"),
-    createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
     createCustomComponentItem(12, "btnTest", btnTest),
   ];
 
-  const createContent = <CustomGrid items={createContentItems} />;
+  const itemsLeyenda = [
+    createLegendItem("Número", "#", ColoresFondo.INFO.key),
+    createLegendItem("Función", "&", ColoresFondo.SUCCESS.key),
+    createLegendItem("Factor", "$", ColoresFondo.DARK.key),
+    createLegendItem("Fórmula", "@", ColoresFondo.DANGER.key),
+    createLegendItem(
+      "+ - * / ( )",
+      "Caracteres válidos",
+      ColoresFondo.DANGER.key
+    ),
+    createLegendItem(
+      "S ( v1 , 'cond' , v2 , v3 , v4 , v5 )",
+      "SI",
+      ColoresFondo.DANGER.key
+    ),
+    createLegendItem(
+      "'>' '<' '=' '>=' '<=' '<>' '!=' E (entre)",
+      "Cond",
+      ColoresFondo.DANGER.key
+    ),
+    createLegendItem(
+      "Todas las expresiones van separadas por espacios y sin ENTER"
+    ),
+  ];
 
-  const updateContent = <CustomGrid items={updateContentItems} />;
+  const leyendaFormulas = <Legend title="Notas" items={itemsLeyenda} />;
+
+  const createContent = (
+    <>
+      <CustomGrid items={createContentItems} />
+      {leyendaFormulas}
+    </>
+  );
+
+  const updateContent = (
+    <>
+      <CustomGrid items={updateContentItems} />
+      {leyendaFormulas}
+    </>
+  );
 
   const header = <Header menus={menus} />;
 

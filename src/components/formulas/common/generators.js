@@ -1,4 +1,4 @@
-import { TiposSeleccionTabla } from "./enum";
+import { ColoresFondo, TiposSeleccionTabla } from "./enum";
 
 export function createEmptyItem(xs, id) {
   return {
@@ -138,5 +138,17 @@ export function createDefaultSetter(setter, isCheck = false, toUpper = false) {
   return (e) => {
     const result = e.target[isCheck ? "checked" : "value"];
     setter(toUpper ? result.toUpperCase() : result);
+  };
+}
+
+export function createLegendItem(
+  description,
+  label = null,
+  color = ColoresFondo.DANGER
+) {
+  return {
+    description,
+    label,
+    color,
   };
 }
