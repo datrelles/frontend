@@ -2,23 +2,23 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
 import Navbar0 from "../../Navbar0";
-import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import LoadingCircle from "../../contabilidad/loader";
-import {Autocomplete, IconButton, TextField} from '@mui/material';
+import {Autocomplete, TextField} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import { useAuthContext } from "../../../context/authContext";
-import EditIcon from '@mui/icons-material/Edit';
 import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-import * as XLSX from "xlsx";
 import CatModeloVersionExpandible from "../uploadImages/tablaExpandible";
-import SearchIcon from "@material-ui/icons/Search";
+import SelectorChasis from "./selectoresDialog/selectChasis";
+import SelectorElectronica from "./selectoresDialog/selectElectronica";
+import SelectorDimensiones from "./selectoresDialog/selectDimensiones";
+import SelectorMotor from "./selectoresDialog/selectMotor";
 
 const API = process.env.REACT_APP_API;
 
@@ -27,17 +27,12 @@ function CatModeloVersion() {
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
     const [menus, setMenus] = useState([]);
-
     const [productos, setProductos] = useState([]);
-    const [productosExternos, setProductosExternos] = useState([]);
     const [modelosComerciales, setModelosComerciales] = useState([]);
     const [versiones, setVersiones] = useState([]);
-
-
     const [selectedItem, setSelectedItem] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selectedProducto, setSelectedProducto] = useState(null);
-    const [selectedProductoExterno, setSelectedProductoExterno] = useState(null);
     const [selectedElectronica, setSelectedElectronica] = useState(null);
     const [selectedModeloComercial, setSelectedModeloComercial] = useState(null);
     const [selectedClienteCanal, setSelectedClienteCanal] = useState(null);
@@ -147,19 +142,6 @@ function CatModeloVersion() {
             });
             const data = await res.json();
             setProductos(Array.isArray(data) ? data : []);
-        } catch (error) {
-            console.error("Error:", error);
-            enqueueSnackbar("Error de conexión", { variant: "error" });
-        }
-
-    };
-    const fetchProductosExternos = async () => {
-        try {
-            const res = await fetch(`${API}/bench/get_productos_externos`, {
-                headers: { "Authorization": "Bearer " + jwt }
-            });
-            const data = await res.json();
-            setProductosExternos(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error("Error:", error);
             enqueueSnackbar("Error de conexión", { variant: "error" });
@@ -366,7 +348,6 @@ function CatModeloVersion() {
         fetchModeloVersion();
         fetchModeloVersRepuesto();
         fetchProductos();
-        fetchProductosExternos();
         fetchModeloComercial();
         fetchVersiones();
         fetchChasis();
@@ -380,17 +361,6 @@ function CatModeloVersion() {
         fetchCanal();
         fetchClienteCanal()
     }, []);
-
-
-    const sanitizePayload = (payload) => {
-        const cleaned = {};
-        for (const [key, value] of Object.entries(payload)) {
-            if (value !== "" && value !== undefined && value !== null) {
-                cleaned[key] = value;
-            }
-        }
-        return cleaned;
-    };
 
     const handleInsertOrUpdate = async () => {
 
@@ -434,7 +404,7 @@ function CatModeloVersion() {
             precio_venta_distribuidor: parseFloat(form.precio_venta_distribuidor)
         };
         console.log("PAYLOAD:", payload);
-        const sanitizedPayload = sanitizePayload(payload);
+
 
         const res = await fetch(url, {
             method,
@@ -442,14 +412,13 @@ function CatModeloVersion() {
                 "Content-Type": "application/json",
                 "Authorization": "Bearer " + jwt
             },
-            body: JSON.stringify(sanitizedPayload)
+            body: JSON.stringify(payload)
         });
-
 
         const data = await res.json();
 
         if (res.ok) {
-            fetchModeloVersRepuesto();
+            fetchModeloVersion();
             enqueueSnackbar(data.message || "Registro guardado correctamente", { variant: 'success' });
             setDialogOpen(false);
         } else {
@@ -465,7 +434,6 @@ function CatModeloVersion() {
         if (item) {
             const prod = productos.find(p => p.cod_producto === item.cod_producto);
             const modelo = modelosComerciales?.find(mc => mc.nombre_modelo === item.nombre_modelo_comercial);
-            const prodExt = productosExternos?.find(pe => pe.nombre_producto === item.nombre_producto_externo);
             const ver = versiones?.find(v => v.nombre_version === item.nombre_version);
             const cha = chasis?.find(c => c.nombre_chasis === item.nombre_chasis);
             const motor = motores?.find(m => m.nombre_motor === item.nombre_motor);
@@ -475,7 +443,6 @@ function CatModeloVersion() {
             const color = colores?.find(c => c.nombre_color === item.nombre_color);
 
             setSelectedProducto(prod || null);
-            setSelectedProductoExterno(prodExt || null);
             setSelectedModeloComercial(modelo || null);
             setSelectedVersion(ver || null);
             setSelectedTipoMotor(ver || null);
@@ -486,7 +453,6 @@ function CatModeloVersion() {
                 cod_producto: prod?.cod_producto || '',
                 empresa: prod?.empresa || '',
                 nombre_empresa: prod?.nombre_empresa || '',
-                codigo_prod_externo: prodExt?.codigo_prod_externo || '',
                 codigo_modelo_comercial: modelo?.codigo_modelo_comercial || '',
                 codigo_marca: modelo?.codigo_marca || '',
                 nombre_marca: modelo?.nombre_marca || '',
@@ -499,7 +465,6 @@ function CatModeloVersion() {
             });
         } else {
             setSelectedProducto(null);
-            setSelectedProductoExterno(null);
             setSelectedModeloComercial(null);
             setSelectedVersion(null);
 
@@ -532,90 +497,6 @@ function CatModeloVersion() {
         setDialogOpen(true);
     };
 
-    const handleUploadExcel = (e) => {
-        const file = e.target.files[0];
-        const reader = new FileReader();
-        reader.onload = async (evt) => {
-            try {
-                const wb = XLSX.read(evt.target.result, { type: 'binary' });
-                const sheet = wb.Sheets[wb.SheetNames[0]];
-                const rows = XLSX.utils.sheet_to_json(sheet);
-                const res = await fetch(`${API}/bench/insert_modelo_version_repuesto`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
-                    body: JSON.stringify({ repuestos: rows })
-                });
-                const json = await res.json();
-                if (res.ok) enqueueSnackbar(json.message, { variant: 'success' });
-                else enqueueSnackbar(json.error || 'Error en carga', { variant: 'error' });
-                fetchModeloVersRepuesto();
-            } catch (err) {
-                enqueueSnackbar('Error procesando archivo', { variant: 'error' });
-            }
-        };
-        reader.readAsBinaryString(file);
-    };
-
-    const columns = [
-        { name: 'codigo_modelo_version', label: 'CÓDIGO' },
-        { name: 'nombre_modelo_version', label: 'MODELO VERSIÓN' },
-        { name: 'nombre_producto', label: 'PRODUCTO' },
-        { name: 'nombre_empresa', label: 'EMPRESA' },
-        {
-            name: "path_imagen",
-            label: "Imagen",
-            options: {
-                customBodyRender: (value) => (
-                    <Button
-                        onClick={() => {
-                            setImagenModal(value);
-                            setOpenModalImagen(true);
-                        }}
-                        variant="outlined"
-                        size="small"
-                    >
-                        Ver imagen
-                    </Button>
-                )
-            }
-        },
-        { name: 'codigo_dim_peso', label: 'DIMENSIONES' },
-        { name: 'codigo_electronica', label: 'ELECTRÓNICA' },
-        { name: 'nombre_tipo_motor', label: 'TIPO MOTOR' },
-        { name: 'nombre_motor', label: 'MOTOR' },
-        { name: 'caja_cambios', label: 'TRANSMISIÓN' },
-        { name: 'nombre_color', label: 'COLOR' },
-        { name: 'codigo_chasis', label: 'CHASIS' },
-        { name: 'nombre_modelo_comercial', label: 'MODELO COMERCIAL' },
-        { name: 'nombre_marca', label: 'MARCA' },
-        { name: 'nombre_canal', label: 'CANAL' },
-        { name: 'nombre_version', label: 'VERSIÓN' },
-        { name: 'anio_modelo_version', label: 'AÑO MODELO' },
-        { name: 'precio_producto_modelo', label: 'PRECIO PRODUCTO' },
-        { name: 'precio_venta_distribuidor', label: 'PRECIO DISTRIBUIDOR' },
-        {
-            name: "acciones",
-            label: "ACCIONES",
-            options: {
-                customBodyRenderLite: (dataIndex) => {
-                    const rowData = cabeceras[dataIndex];
-                    return (
-                        <IconButton onClick={() => openDialog(rowData)}>
-                            <EditIcon />
-                        </IconButton>
-                    );
-                }
-            }
-        }
-    ];
-
-    const options = {
-        responsive: 'standard', selectableRows: 'none', textLabels: {
-            body: { noMatch: 'Lo siento, no se encontraron registros', toolTip: 'Ordenar' },
-            pagination: { next: 'Siguiente', previous: 'Anterior', rowsPerPage: 'Filas por página:', displayRows: 'de' }
-        }
-    };
-
     const getMenus = async () => {
         try {
             const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`, {
@@ -632,26 +513,6 @@ function CatModeloVersion() {
             toast.error('Error cargando menús');
         }
     };
-
-    const getMuiTheme = () => createTheme({
-        components: {
-            MuiTableCell: {
-                styleOverrides: {
-                    root: {
-                        paddingLeft: '3px', paddingRight: '3px', paddingTop: '0px', paddingBottom: '0px',
-                        backgroundColor: '#00000', whiteSpace: 'nowrap', flex: 1,
-                        borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontSize: '14px'
-                    },
-                    head: {
-                        backgroundColor: 'firebrick', color: '#ffffff', fontWeight: 'bold',
-                        paddingLeft: '0px', paddingRight: '0px', fontSize: '12px'
-                    }
-                }
-            },
-            MuiTable: { styleOverrides: { root: { borderCollapse: 'collapse' } } },
-            MuiToolbar: { styleOverrides: { regular: { minHeight: '10px' } } }
-        }
-    });
 
     return (
         <>
@@ -708,7 +569,6 @@ function CatModeloVersion() {
                                 precio_producto_modelo: '',
                                 precio_venta_distribuidor: ''
                             });
-                            setSelectedProductoExterno(null);
                             setSelectedProducto(null);
                             setSelectedModeloComercial(null);
                             setSelectedVersion(null);
@@ -733,66 +593,49 @@ function CatModeloVersion() {
                         <DialogTitle>{selectedItem ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                         <DialogContent>
                             <Grid container spacing={2}>
-                                <Grid item xs={6}>
-                                    <Grid item xs={6}>
-                                        <Box display="flex" alignItems="center">
-                                            <Autocomplete
-                                                options={chasis}
-                                                getOptionLabel={(x) => `${x.codigo_chasis}`}
-                                                onChange={(e, v) => handleChange('codigo_chasis', v?.codigo_chasis || '')}
-                                                renderInput={(params) => <TextField {...params} label="Chasis" fullWidth />}
-                                            />
-                                            <IconButton onClick={handleOpenDialogChasis}>
-                                                <SearchIcon />
-                                            </IconButton>
-                                        </Box>
-                                    </Grid>
 
-                                </Grid>
+                                <SelectorChasis
+                                    chasis={chasis}
+                                    selectedChasisId={form.codigo_chasis}
+                                    onSelect={(codigo) => handleChange('codigo_chasis', codigo)}
+                                />
+                                <SelectorDimensiones
+                                    dimensiones={dimensiones}
+                                    selectedDimensionesId={form.codigo_dim_peso}
+                                    onSelect={(codigo) => handleChange('codigo_dim_peso', codigo)}
+                                />
+                                <SelectorMotor
+                                    motores={motores}
+                                    tiposMotor={tiposMotor}
+                                    selectedMotorId={form.codigo_motor}
+                                    onSelect={({ codigo_motor, codigo_tipo_motor, nombre_motor, nombre_tipo_motor }) => {
+                                        handleChange('codigo_motor', codigo_motor);
+                                        handleChange('codigo_tipo_motor', codigo_tipo_motor);
+                                        setSelectedTipoMotor({ nombre_tipo: nombre_tipo_motor });
+                                    }}
+                                />
                                 <Grid item xs={6}>
-                                    <Autocomplete
-                                        options={dimensiones}
-                                        getOptionLabel={(x) => x.codigo_dim_peso + ''}
-                                        onChange={(e, v) =>
-                                            handleChange('codigo_dim_peso', v?.codigo_dim_peso || '')}
-                                        renderInput={(params) => <TextField {...params} label="Dimensiones" />}
+                                    <TextField
+                                        label="Tipo Motor"
+                                        value={selectedTipoMotor?.nombre_tipo || ''}
+                                        fullWidth
+                                        disabled
                                     />
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <Autocomplete
-                                        options={motores}
-                                        getOptionLabel={(x) => x.nombre_motor}
-                                        onChange={(e, v) => {
-                                            handleChange('codigo_motor', v?.codigo_motor || '');
-                                            handleChange('codigo_tipo_motor', v?.codigo_tipo_motor || '');
-
-                                            const tipo = tiposMotor.find(t => t.codigo_tipo_motor === v?.codigo_tipo_motor);
-                                            setSelectedTipoMotor(tipo || null);
-                                        }}
-                                        renderInput={(params) => <TextField {...params} label="Motor" />}
-                                    />
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <TextField label="Tipo Motor" value={selectedTipoMotor?.nombre_tipo || ''} fullWidth disabled />
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Autocomplete
                                         options={transmisiones}
-                                        getOptionLabel={(x) => x.codigo_transmision + ''}
+                                        getOptionLabel={(x) => x.caja_cambios+ ''}
                                         onChange={(e, v) =>
                                             handleChange('codigo_transmision', v?.codigo_transmision || '')}
                                         renderInput={(params) => <TextField {...params} label="Transmisión"  />}
                                     />
                                 </Grid>
-                                <Grid item xs={6}>
-                                    <Autocomplete
-                                        options={electronica}
-                                        getOptionLabel={(x) => x.codigo_electronica + ''}
-                                        onChange={(e, v) =>
-                                            handleChange('codigo_electronica', v?.codigo_electronica || '')}
-                                        renderInput={(params) => <TextField {...params} label="Electrónica" />}
-                                    />
-                                </Grid>
+                                <SelectorElectronica
+                                    electronica={electronica}
+                                    selectedElectronicaId={form.codigo_electronica}
+                                    onSelect={(codigo) => handleChange('codigo_electronica', codigo)}
+                                />
                                 <Grid item xs={6}>
                                     <Autocomplete
                                         options={colores}
@@ -902,10 +745,6 @@ function CatModeloVersion() {
                         <DialogActions>
                             <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                             <Button onClick={handleInsertOrUpdate} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedItem ? 'Actualizar' : 'Guardar'}</Button>
-                            <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
-                                Cargar Excel
-                                <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
-                            </Button>
                         </DialogActions>
                     </Dialog>
                 </div>
