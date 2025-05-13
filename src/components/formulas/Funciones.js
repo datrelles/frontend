@@ -486,7 +486,7 @@ export default function Funciones() {
   const btnTest = (
     <BoxCenter
       components={[
-        <BtnNuevo onClick={handleTest} texto="Probar" icon={false} />,
+        <BtnNuevo onClick={handleTest} texto="Evaluar" icon={false} />,
       ]}
     />
   );

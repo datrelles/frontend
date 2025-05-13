@@ -306,7 +306,9 @@ export default function FactoresCalculo() {
     ),
   ]);
 
-  const btnTest = <BtnNuevo onClick={handleTest} texto="Probar" icon={false} />;
+  const btnTest = (
+    <BtnNuevo onClick={handleTest} texto="Evaluar" icon={false} />
+  );
 
   const btnAdd = (
     <BoxCenter
