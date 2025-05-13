@@ -305,7 +305,7 @@ function CatImagen() {
                                             fullWidth
                                             label="Descripción Imagen"
                                             value={descripcionImagen}
-                                            onChange={(e) => setDescripcionImagen(e.target.value.toUpperCase())}
+                                            onChange={(e) => setDescripcionImagen(e.target.value)}
                                         />
                                     </Grid>
                                 </Grid>

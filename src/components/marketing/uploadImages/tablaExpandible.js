@@ -1,10 +1,12 @@
-// ESTE ARCHIVO COMBINA CatModeloVersion CON TABLA EXPANDIBLE
+// CatModeloVersionExpandible.jsx
 import React, { useState } from 'react';
 import {
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    Paper, IconButton, Collapse, Box, Typography, Button, Dialog, DialogTitle, DialogContent
+    Table, TableBody, TableCell, TableRow,
+    IconButton, Collapse, Box, Typography, Button, Dialog, DialogTitle, DialogContent,
 } from '@mui/material';
-import { KeyboardArrowDown, KeyboardArrowUp, Edit as EditIcon } from '@mui/icons-material';
+import { Edit as EditIcon } from '@mui/icons-material';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import MUIDataTable from 'mui-datatables';
 
 export default function CatModeloVersionExpandible({
                                                        cabeceras,
@@ -18,7 +20,6 @@ export default function CatModeloVersionExpandible({
                                                        onEdit
                                                    }) {
     const [imagenModal, setImagenModal] = useState(null);
-
     const getDetalleElectronica = (codigo) => electronica.find(e => e.codigo_electronica === codigo);
     const getDetalleTransmision = (codigo) => transmisiones.find(t => t.codigo_transmision === codigo);
     const getDetalleDimensiones = (codigo) => dimensiones.find(d => d.codigo_dim_peso === codigo);
@@ -42,8 +43,7 @@ export default function CatModeloVersionExpandible({
         </>
     );
 
-    const ExpandableRow = ({ row }) => {
-        const [open, setOpen] = useState(false);
+    const ExpandableRow = (row) => {
         const detalleElectronica = getDetalleElectronica(row.codigo_electronica);
         const detalleTransmision = getDetalleTransmision(row.codigo_transmision);
         const detalleDimensiones = getDetalleDimensiones(row.codigo_dim_peso);
@@ -53,138 +53,128 @@ export default function CatModeloVersionExpandible({
         const pathImagen = row.path_imagen || getImagen(row.codigo_imagen);
 
         return (
-            <>
-                <TableRow>
-                    <TableCell sx={{ border: '1px solid #ddd', padding: '6px' }}>
-                        <IconButton onClick={() => setOpen(!open)} size="small">
-                            {open ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
-                        </IconButton>
-                    </TableCell>
-                    {[
-                        row.nombre_modelo_version,
-                        row.nombre_producto, row.nombre_empresa].map((value, idx) => (
-                        <TableCell key={idx} sx={{ border: '1px solid #ddd', padding: '6px', whiteSpace: 'nowrap' }}>{value}</TableCell>
-                    ))}
-                    <TableCell sx={{ border: '1px solid #ddd', padding: '6px' }}>
-                        {pathImagen ? (
-                            <Button variant="outlined" size="small" onClick={() => setImagenModal(pathImagen)}>Ver Imagen</Button>
-                        ) : 'N/A'}
-                    </TableCell>
-                    {[
-                        row.nombre_marca,
-                        row.nombre_version,
-                        row.anio_modelo_version,
-                        row.precio_producto_modelo,
-                        row.precio_venta_distribuidor].map((value, idx) => (
-                        <TableCell key={idx} sx={{ border: '1px solid #ddd', padding: '6px', whiteSpace: 'nowrap' }}>{value}</TableCell>
-                    ))}
-                    <TableCell sx={{ border: '1px solid #ddd', padding: '6px' }}>
-                        <IconButton onClick={() => onEdit(row)} size="small">
-                            <EditIcon />
-                        </IconButton>
-                    </TableCell>
-                </TableRow>
-                <TableRow>
-                    <TableCell colSpan={11} style={{ paddingBottom: 0, paddingTop: 0 }}>
-                        <Collapse in={open} timeout="auto" unmountOnExit>
-                            <Box margin={2}>
-                                <Typography variant="h6" sx={{ textAlign: 'center', fontWeight: 'bold' }}>
-                                    Detalles Técnicos
-                                </Typography>
-                                <Table size="small">
-                                    <TableBody>
-                                        {renderDetailTable("Motor", ["Nombre", "Tipo", "Cilindrada", "Caballos Fuerza", "Torque", "Arranque", "Combustible", "Refrigeración"], [
-                                            detalleMotor?.nombre_motor,
-                                            tipoMotor?.nombre_tipo,
-                                            detalleMotor?.cilindrada,
-                                            detalleMotor?.caballos_fuerza,
-                                            detalleMotor?.torque_maximo,
-                                            detalleMotor?.arranque,
-                                            detalleMotor?.sistema_combustible,
-                                            detalleMotor?.sistema_refrigeracion
-                                        ])}
-                                        {renderDetailTable("Chasis", ["Susp. Delantera", "Susp. Trasera", "Freno Delantero", "Freno Trasero", "Neumático Delantero", "Neumático Trasero", "Aro Delantero", "Aro Trasero"], [
-                                            detalleChasis?.suspension_delantera,
-                                            detalleChasis?.suspension_trasera,
-                                            detalleChasis?.frenos_delanteros,
-                                            detalleChasis?.frenos_traseros,
-                                            detalleChasis?.neumatico_delantero,
-                                            detalleChasis?.neumatico_trasero,
-                                            detalleChasis?.aros_rueda_delantera,
-                                            detalleChasis?.aros_rueda_posterior
-                                        ])}
-                                        {renderDetailTable("Electrónica", ["Tablero", "Luces delanteras", "Luces traseras", "Velocidad máxima", "Garantía"], [
-                                            detalleElectronica?.tablero,
-                                            detalleElectronica?.luces_delanteras,
-                                            detalleElectronica?.luces_posteriores,
-                                            detalleElectronica?.velocidad_maxima,
-                                            detalleElectronica?.garantia
-                                        ])}
-                                        {renderDetailTable("Dimensiones", ["Altura Total", "Peso Seco", "Longitud Total", "Ancho Total"], [
-                                            detalleDimensiones?.altura_total + ' mm',
-                                            detalleDimensiones?.peso_seco + ' kg',
-                                            detalleDimensiones?.longitud_total + ' mm',
-                                            detalleDimensiones?.ancho_total + ' mm'
-                                        ])}
-                                        {renderDetailTable("Transmisión", ["Caja de cambios"], [
-                                            detalleTransmision?.caja_cambios
-                                        ])}
-                                    </TableBody>
-                                </Table>
-                            </Box>
-                        </Collapse>
-                    </TableCell>
-                </TableRow>
-            </>
+            <Box margin={2}>
+                <Typography variant="h6" sx={{ textAlign: 'center', fontWeight: 'bold' }}>
+                    Detalles Técnicos
+                </Typography>
+                <Table size="small" sx={{margin: 2}}>
+
+                    <TableBody>
+
+                        {renderDetailTable("Motor", ["Nombre", "Tipo", "Cilindrada", "Caballos Fuerza", "Torque", "Arranque", "Combustible", "Refrigeración"], [
+                            detalleMotor?.nombre_motor,
+                            tipoMotor?.nombre_tipo,
+                            detalleMotor?.cilindrada,
+                            detalleMotor?.caballos_fuerza,
+                            detalleMotor?.torque_maximo,
+                            detalleMotor?.arranque,
+                            detalleMotor?.sistema_combustible,
+                            detalleMotor?.sistema_refrigeracion
+                        ])}
+                        {renderDetailTable("Chasis", ["Susp. Delantera", "Susp. Trasera", "Freno Delantero", "Freno Trasero", "Neumático Delantero", "Neumático Trasero", "Aro Delantero", "Aro Trasero"], [
+                            detalleChasis?.suspension_delantera,
+                            detalleChasis?.suspension_trasera,
+                            detalleChasis?.frenos_delanteros,
+                            detalleChasis?.frenos_traseros,
+                            detalleChasis?.neumatico_delantero,
+                            detalleChasis?.neumatico_trasero,
+                            detalleChasis?.aros_rueda_delantera,
+                            detalleChasis?.aros_rueda_posterior
+                        ])}
+                        {renderDetailTable("Electrónica", ["Tablero", "Luces delanteras", "Luces traseras", "Velocidad máxima", "Garantía"], [
+                            detalleElectronica?.tablero,
+                            detalleElectronica?.luces_delanteras,
+                            detalleElectronica?.luces_posteriores,
+                            detalleElectronica?.velocidad_maxima,
+                            detalleElectronica?.garantia
+                        ])}
+                        {renderDetailTable("Dimensiones", ["Altura Total", "Peso Seco", "Longitud Total", "Ancho Total"], [
+                            detalleDimensiones?.altura_total + ' mm',
+                            detalleDimensiones?.peso_seco + ' kg',
+                            detalleDimensiones?.longitud_total + ' mm',
+                            detalleDimensiones?.ancho_total + ' mm'
+                        ])}
+                        {renderDetailTable("Transmisión", ["Caja de cambios"], [
+                            detalleTransmision?.caja_cambios
+                        ])}
+                    </TableBody>
+                </Table>
+            </Box>
         );
     };
 
-    return (
-        <>
-            <TableContainer component={Paper} sx={{ marginTop: '20px' }}>
-                <Table>
-                    <TableHead>
-                        <TableRow sx={{ backgroundColor: 'firebrick', textAlign: 'center' }}>
-                            {["",
-                                "MODELO",
-                                "PRODUCTO",
-                                "EMPRESA",
-                                "IMAGEN REFERENCIA",
-                                "MARCA",
-                                "VERSIÓN",
-                                "AÑO",
-                                "PRECIO PRODUCTO",
-                                "PRECIO DISTRIBUIDOR",
-                                "ACCIONES"].map((label, i) => (
-                                <TableCell key={i} sx={{
-                                    color: 'white',
-                                    border: '1px solid #ddd',
-                                    padding: '6px',
-                                    whiteSpace: 'nowrap' }}>{label}</TableCell>
-                            ))}
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {cabeceras.map((row, index) => (
-                            <ExpandableRow key={index} row={row} />
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+    const columns = [
+        { name: 'nombre_modelo_version', label: 'MODELO' },
+        { name: 'nombre_producto', label: 'PRODUCTO' },
+        { name: 'nombre_empresa', label: 'EMPRESA' },
+        {
+            name: 'path_imagen', label: 'IMAGEN', options: {
+                customBodyRender: (value) => value ? (
+                    <Button variant="outlined" size="small" onClick={() => setImagenModal(value)}>Ver Imagen</Button>
+                ) : 'N/A'
+            }
+        },
+        { name: 'nombre_marca', label: 'MARCA' },
+        { name: 'nombre_version', label: 'VERSIÓN' },
+        { name: 'nombre_color', label: 'COLOR' },
+        { name: 'anio_modelo_version', label: 'AÑO' },
+        { name: 'precio_producto_modelo', label: 'PRECIO PRODUCTO' },
+        { name: 'precio_venta_distribuidor', label: 'PRECIO DISTRIBUIDOR' },
+        {
+            name: 'acciones', label: 'ACCIONES', options: {
+                customBodyRenderLite: (dataIndex) => (
+                    <IconButton onClick={() => onEdit(cabeceras[dataIndex])}><EditIcon /></IconButton>
+                )
+            }
+        }
+    ];
 
+    const options = {
+        responsive: 'standard',
+        selectableRows: 'none',
+        download: true,
+        rowsPerPage: 10,
+        expandableRows: true,
+        renderExpandableRow: (rowData, { dataIndex }) => (
+            <TableRow>
+                <TableCell colSpan={12}><Collapse in={true}>{ExpandableRow(cabeceras[dataIndex])}</Collapse></TableCell>
+            </TableRow>
+        ),
+        textLabels: {
+            body: { noMatch: "Lo siento, no se encontraron registros", toolTip: "Ordenar" },
+            pagination: { next: "Siguiente", previous: "Anterior", rowsPerPage: "Filas por página:", displayRows: "de" },
+            toolbar: { downloadCsv: "Exportar CSV" }
+        }
+    };
+
+    const getMuiTheme = () => createTheme({
+        components: {
+            MuiTableCell: {
+                styleOverrides: {
+                    root: { padding: 2, borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontSize: '14px' },
+                    head: { backgroundColor: 'firebrick', color: '#fff', fontWeight: 'bold', fontSize: '12px' }
+                }
+            }
+        }
+    });
+
+    return (
+        <ThemeProvider theme={getMuiTheme()}>
+            <MUIDataTable
+                title="LISTA COMPLETA"
+                data={cabeceras}
+                columns={columns}
+                options={options}
+            />
             <Dialog open={!!imagenModal} onClose={() => setImagenModal(null)} maxWidth="md" fullWidth>
                 <DialogTitle>Vista de Imagen</DialogTitle>
                 <DialogContent>
-                    <img
-                        src={imagenModal}
-                        alt="Vista previa"
-                        style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain' }}
-                    />
+                    <img src={imagenModal} alt="Vista previa" style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain' }} />
                     <Box textAlign="right" mt={2}>
                         <Button onClick={() => setImagenModal(null)} color="primary">Cerrar</Button>
                     </Box>
                 </DialogContent>
             </Dialog>
-        </>
+        </ThemeProvider>
     );
 }

@@ -440,7 +440,7 @@ function CatModeloComercial() {
 
                         </Grid>
                         <Grid item xs={6}><TextField fullWidth label="Nombre Modelo Comercial" value={form.nombre_modelo || ''} onChange={(e) => handleChange('nombre_modelo', e.target.value.toUpperCase())} /></Grid>
-                        <Grid item xs={3}><TextField fullWidth label="Año" type="number" value={form.anio_modelo || ''} onChange={(e) => handleChange('anio_modelo', e.target.value.toUpperCase())} /></Grid>
+                        <Grid item xs={3}><TextField fullWidth label="Año" type="number" value={form.anio_modelo || ''} onChange={(e) => handleChange('anio_modelo', e.target.value)} /></Grid>
 
                         <Grid item xs={3}>
                             <FormControl fullWidth>

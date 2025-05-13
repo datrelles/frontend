@@ -2,7 +2,6 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
 import Navbar0 from "../../Navbar0";
-import MUIDataTable from "mui-datatables";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import LoadingCircle from "../../contabilidad/loader";
@@ -19,6 +18,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import * as XLSX from "xlsx";
 import CatModeloVersionExpandible from "../uploadImages/tablaExpandible";
+import SearchIcon from "@material-ui/icons/Search";
 
 const API = process.env.REACT_APP_API;
 
@@ -27,31 +27,37 @@ function CatModeloVersion() {
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
     const [menus, setMenus] = useState([]);
+
     const [productos, setProductos] = useState([]);
     const [productosExternos, setProductosExternos] = useState([]);
     const [modelosComerciales, setModelosComerciales] = useState([]);
     const [versiones, setVersiones] = useState([]);
+
+
     const [selectedItem, setSelectedItem] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selectedProducto, setSelectedProducto] = useState(null);
     const [selectedProductoExterno, setSelectedProductoExterno] = useState(null);
+    const [selectedElectronica, setSelectedElectronica] = useState(null);
     const [selectedModeloComercial, setSelectedModeloComercial] = useState(null);
+    const [selectedClienteCanal, setSelectedClienteCanal] = useState(null);
     const [selectedVersion, setSelectedVersion] = useState(null);
     const [cabeceras, setCabeceras] = useState([]);
     const [loading] = useState(false);
     const [chasis, setChasis] = useState([]);
     const [motores, setMotores] = useState([]);
     const [tiposMotor, setTiposMotor] = useState([]);
+    const [selectedTipoMotor, setSelectedTipoMotor] = useState(null);
     const [transmisiones, setTransmisiones] = useState([]);
     const [dimensiones, setDimensiones] = useState([]);
     const [electronica, setElectronicas] = useState([]);
     const [colores, setColores] = useState([]);
     const [imagenes, setImagenes] = useState([]);
     const [canales, setCanales] = useState([]);
+    const [clienteCanal, setClienteCanal] = useState([]);
     const [modeloVersionesRepuestos, setModeloVersionesRepuestos] = useState([]);
     const [imagenModal, setImagenModal] = useState(null);
     const [openModalImagen, setOpenModalImagen] = useState(false);
-
     const [form, setForm] = useState({
         codigo_modelo_version: '',
         codigo_dim_peso: '',
@@ -336,7 +342,25 @@ function CatModeloVersion() {
         }
 
     };
-
+    const fetchClienteCanal = async () => {
+        try {
+            const res = await fetch(`${API}/bench/get_cliente_canal`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + jwt
+                }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setClienteCanal(data);
+            } else {
+                enqueueSnackbar(data.error || "Error al obtener datos", { variant: "error" });
+            }
+        } catch (error) {
+            enqueueSnackbar("Error de conexión", { variant: "error" });
+        }
+    };
     useEffect(() => {
         getMenus();
         fetchModeloVersion();
@@ -354,24 +378,63 @@ function CatModeloVersion() {
         fetchColores();
         fetchImagen();
         fetchCanal();
+        fetchClienteCanal()
     }, []);
 
+
+    const sanitizePayload = (payload) => {
+        const cleaned = {};
+        for (const [key, value] of Object.entries(payload)) {
+            if (value !== "" && value !== undefined && value !== null) {
+                cleaned[key] = value;
+            }
+        }
+        return cleaned;
+    };
+
     const handleInsertOrUpdate = async () => {
-        if (!form.cod_producto || !form.codigo_prod_externo || !form.codigo_modelo_comercial || !form.codigo_version) {
+
+        if (!selectedVersion?.nombre_version) {
+            enqueueSnackbar("Seleccione una versión válida", { variant: "error" });
+            return;
+        }
+
+        if (!form.cod_producto || !form.codigo_modelo_comercial || !form.codigo_version) {
             enqueueSnackbar("Todos los campos son obligatorios", { variant: "error" });
             return;
         }
 
         const method = selectedItem ? "PUT" : "POST";
         const url = selectedItem ?
-            `${API}/bench/update_modelo_version_repuesto/${selectedItem.codigo_mod_vers_repuesto}` :
-            `${API}/bench/insert_modelo_version_repuesto`;
+            `${API}/bench/update_modelo_version/${selectedItem.codigo_modelo_version}` :
+            `${API}/bench/insert_modelo_version`;
 
         const payload = {
-            ...form,
+            codigo_imagen: form.codigo_imagen,
+            codigo_dim_peso: form.codigo_dim_peso,
+            codigo_electronica: form.codigo_electronica,
+            codigo_motor: form.codigo_motor,
+            codigo_tipo_motor: form.codigo_tipo_motor,
+            codigo_transmision: form.codigo_transmision,
+            codigo_color_bench: form.codigo_color_bench,
+            codigo_chasis: form.codigo_chasis,
+
+            codigo_modelo_comercial: selectedModeloComercial?.codigo_modelo_comercial,
+            codigo_marca: selectedModeloComercial?.codigo_marca,
+            codigo_version: form.codigo_version,
+
+            codigo_cliente_canal: form.codigo_cliente_canal,
+            codigo_mod_vers_repuesto: form.codigo_mod_vers_repuesto,
+            empresa: form.empresa,
+            cod_producto: form.cod_producto,
+
+            nombre_modelo_version: form.nombre_modelo_version,
+            anio_modelo_version: parseInt(form.anio_modelo_version),
             precio_producto_modelo: parseFloat(form.precio_producto_modelo),
             precio_venta_distribuidor: parseFloat(form.precio_venta_distribuidor)
         };
+        console.log("PAYLOAD:", payload);
+        const sanitizedPayload = sanitizePayload(payload);
 
         const res = await fetch(url, {
             method,
@@ -379,8 +442,10 @@ function CatModeloVersion() {
                 "Content-Type": "application/json",
                 "Authorization": "Bearer " + jwt
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(sanitizedPayload)
         });
+
+
         const data = await res.json();
 
         if (res.ok) {
@@ -402,11 +467,20 @@ function CatModeloVersion() {
             const modelo = modelosComerciales?.find(mc => mc.nombre_modelo === item.nombre_modelo_comercial);
             const prodExt = productosExternos?.find(pe => pe.nombre_producto === item.nombre_producto_externo);
             const ver = versiones?.find(v => v.nombre_version === item.nombre_version);
+            const cha = chasis?.find(c => c.nombre_chasis === item.nombre_chasis);
+            const motor = motores?.find(m => m.nombre_motor === item.nombre_motor);
+            const tipoMotor = tiposMotor?.find(tm => tm.nombre_tipo_motor === item.nombre_tipo_motor);
+            const transmision = transmisiones?.find(t => t.codigo_transmision === item.codigo_transmision);
+            const elect = electronica?.find(e => e.codigo_electronica === item.codigo_electronica);
+            const color = colores?.find(c => c.nombre_color === item.nombre_color);
 
             setSelectedProducto(prod || null);
             setSelectedProductoExterno(prodExt || null);
             setSelectedModeloComercial(modelo || null);
             setSelectedVersion(ver || null);
+            setSelectedTipoMotor(ver || null);
+            setSelectedElectronica(ver || null);
+
 
             setForm({
                 cod_producto: prod?.cod_producto || '',
@@ -417,7 +491,9 @@ function CatModeloVersion() {
                 codigo_marca: modelo?.codigo_marca || '',
                 nombre_marca: modelo?.nombre_marca || '',
                 codigo_version: ver?.codigo_version || '',
-                descripcion: item.descripcion || '',
+                nombre_version: ver?.nombre_version || '',
+                codigo_electronica: elect?.codigo_electronica || '',
+                codigo_transmision: transmision?.codigo_transmision || '',
                 precio_producto_modelo: item.precio_producto_modelo || '',
                 precio_venta_distribuidor: item.precio_venta_distribuidor || ''
             });
@@ -445,6 +521,7 @@ function CatModeloVersion() {
                 cod_producto: '',
                 codigo_version: '',
                 nombre_modelo_version: '',
+                nombre_version: '',
                 anio_modelo_version: '',
                 precio_producto_modelo: '',
                 precio_venta_distribuidor: ''
@@ -597,7 +674,6 @@ function CatModeloVersion() {
                         </Button>
                     </DialogActions>
                 </Dialog>
-
                 <div style={{ marginTop: '150px', width: "100%" }}>
                     <Navbar0 menus={menus} />
                     <Box>
@@ -627,6 +703,7 @@ function CatModeloVersion() {
                                 cod_producto: '',
                                 codigo_version: '',
                                 nombre_modelo_version: '',
+                                nombre_version: '',
                                 anio_modelo_version: '',
                                 precio_producto_modelo: '',
                                 precio_venta_distribuidor: ''
@@ -657,50 +734,62 @@ function CatModeloVersion() {
                         <DialogContent>
                             <Grid container spacing={2}>
                                 <Grid item xs={6}>
-                                    <Autocomplete
-                                        options={chasis}
-                                        getOptionLabel={(x) => x.codigo_chasis + ''}
-                                        onChange={(e, v) => handleChange('codigo_chasis', v?.codigo_chasis || '')}
-                                        renderInput={(params) => <TextField {...params} label="Chasis" />}
-                                    />
+                                    <Grid item xs={6}>
+                                        <Box display="flex" alignItems="center">
+                                            <Autocomplete
+                                                options={chasis}
+                                                getOptionLabel={(x) => `${x.codigo_chasis}`}
+                                                onChange={(e, v) => handleChange('codigo_chasis', v?.codigo_chasis || '')}
+                                                renderInput={(params) => <TextField {...params} label="Chasis" fullWidth />}
+                                            />
+                                            <IconButton onClick={handleOpenDialogChasis}>
+                                                <SearchIcon />
+                                            </IconButton>
+                                        </Box>
+                                    </Grid>
+
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Autocomplete
-                                        options={tiposMotor}
-                                        getOptionLabel={(x) => x.nombre_tipo + ''}
-                                        onChange={(e, v) => handleChange('codigo_tipo_motor', v?.codigo_tipo_motor || '')}
-                                        renderInput={(params) => <TextField {...params} label="Tipo Motor" />}
+                                        options={dimensiones}
+                                        getOptionLabel={(x) => x.codigo_dim_peso + ''}
+                                        onChange={(e, v) =>
+                                            handleChange('codigo_dim_peso', v?.codigo_dim_peso || '')}
+                                        renderInput={(params) => <TextField {...params} label="Dimensiones" />}
                                     />
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Autocomplete
                                         options={motores}
                                         getOptionLabel={(x) => x.nombre_motor}
-                                        onChange={(e, v) => handleChange('codigo_motor', v?.codigo_motor || '')}
+                                        onChange={(e, v) => {
+                                            handleChange('codigo_motor', v?.codigo_motor || '');
+                                            handleChange('codigo_tipo_motor', v?.codigo_tipo_motor || '');
+
+                                            const tipo = tiposMotor.find(t => t.codigo_tipo_motor === v?.codigo_tipo_motor);
+                                            setSelectedTipoMotor(tipo || null);
+                                        }}
                                         renderInput={(params) => <TextField {...params} label="Motor" />}
                                     />
+                                </Grid>
+                                <Grid item xs={6}>
+                                    <TextField label="Tipo Motor" value={selectedTipoMotor?.nombre_tipo || ''} fullWidth disabled />
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Autocomplete
                                         options={transmisiones}
                                         getOptionLabel={(x) => x.codigo_transmision + ''}
-                                        onChange={(e, v) => handleChange('caja_cambios', v?.codigo_transmision || '')}
-                                        renderInput={(params) => <TextField {...params} label="Transmisión" />}
-                                    />
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <Autocomplete
-                                        options={dimensiones}
-                                        getOptionLabel={(x) => x.codigo_dim_peso + ''}
-                                        onChange={(e, v) => handleChange('codigo_dim_peso', v?.codigo_dim_peso || '')}
-                                        renderInput={(params) => <TextField {...params} label="Dimensiones" />}
+                                        onChange={(e, v) =>
+                                            handleChange('codigo_transmision', v?.codigo_transmision || '')}
+                                        renderInput={(params) => <TextField {...params} label="Transmisión"  />}
                                     />
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Autocomplete
                                         options={electronica}
                                         getOptionLabel={(x) => x.codigo_electronica + ''}
-                                        onChange={(e, v) => handleChange('codigo_electronica', v?.codigo_electronica || '')}
+                                        onChange={(e, v) =>
+                                            handleChange('codigo_electronica', v?.codigo_electronica || '')}
                                         renderInput={(params) => <TextField {...params} label="Electrónica" />}
                                     />
                                 </Grid>
@@ -708,66 +797,27 @@ function CatModeloVersion() {
                                     <Autocomplete
                                         options={colores}
                                         getOptionLabel={(x) => x.nombre_color}
-                                        onChange={(e, v) => handleChange('codigo_color_bench', v?.codigo_color_bench || '')}
+                                        onChange={(e, v) =>
+                                            handleChange('codigo_color_bench', v?.codigo_color_bench || '')}
                                         renderInput={(params) => <TextField {...params} label="Color" />}
                                     />
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Autocomplete
-                                        options={canales}
-                                        getOptionLabel={(x) => x.nombre_canal}
-                                        onChange={(e, v) => handleChange('codigo_cliente_canal', v?.codigo_canal || '')}
-                                        renderInput={(params) => <TextField {...params} label="Canal" />}
-                                    />
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <Autocomplete
                                         options={imagenes}
-                                        getOptionLabel={(x) => x.path_imagen}
-                                        onChange={(e, v) => handleChange('codigo_imagen', v?.codigo_imagen || '')}
+                                        getOptionLabel={(x) => x.descripcion_imagen}
+                                        onChange={(e, v) =>
+                                            handleChange('codigo_imagen', v?.codigo_imagen || '')}
                                         renderInput={(params) => <TextField {...params} label="Imagen" />}
                                     />
                                 </Grid>
-                                <Grid item xs={12}>
-
-                                    <Autocomplete
-                                        options={productos}
-                                        getOptionLabel={(p) => p.nombre_producto || ''}
-                                        value={selectedProducto}
-                                        onChange={(e, v) => {
-                                            handleChange('cod_producto', v?.cod_producto || '');
-                                            handleChange('empresa', v?.empresa || '');
-                                            handleChange('nombre_empresa', v?.nombre_empresa || '');
-                                            setSelectedProducto(v);
-                                        }}
-                                        renderInput={(params) => <TextField {...params} label="Producto" />}
-                                        isOptionEqualToValue={(option, value) => option.cod_producto === value.cod_producto}
-                                    />
+                                <Grid item xs={12}><
+                                    TextField fullWidth
+                                              label="Nombre Modelo Version"
+                                              value={form.nombre_modelo_version || ''} onChange={(e) =>
+                                    handleChange('nombre_modelo_version', e.target.value.toUpperCase())} />
                                 </Grid>
-                                <Grid item xs={12}>
-                                    <TextField label="Empresa" value={selectedProducto?.nombre_empresa || ''} fullWidth disabled />
-                                </Grid>
-
-                                <Grid item xs={12}>
-                                    <Autocomplete
-                                        options={modelosComerciales.filter(mc => mc.estado_modelo === 1)}
-                                        getOptionLabel={(mc) => mc.nombre_modelo || ''}
-                                        value={selectedModeloComercial}
-                                        onChange={(e, v) => {
-                                            handleChange('codigo_modelo_comercial', v?.codigo_modelo_comercial || '');
-                                            handleChange('codigo_marca', v?.codigo_marca || '');
-                                            handleChange('nombre_marca', v?.nombre_marca || '');
-                                            setSelectedModeloComercial(v);
-                                        }}
-                                        renderInput={(params) => <TextField {...params} label="Modelo Comercial" />}
-                                        isOptionEqualToValue={(option, value) => option.codigo_modelo_comercial === value.codigo_modelo_comercial}
-                                    />
-                                </Grid>
-                                <Grid item xs={6}>
-
-                                    <TextField label="Marca" value={selectedModeloComercial?.nombre_marca || ''} fullWidth disabled />
-                                </Grid>
-                                <Grid item xs={6}>
+                                <Grid item xs={9}>
                                     <Autocomplete
                                         options={versiones.filter(v => v.estado_version === 1)}
                                         getOptionLabel={(v) => v?.nombre_version || ''}
@@ -776,9 +826,15 @@ function CatModeloVersion() {
                                             handleChange('codigo_version', v ? v.codigo_version : '');
                                             setSelectedVersion(v);
                                         }}
-                                        renderInput={(params) => <TextField {...params} label="Versión" />}
+                                        renderInput={(params) => <TextField {...params} label="Versión Modelo"  />}
                                     />
                                 </Grid>
+                                <Grid item xs={3}><
+                                    TextField fullWidth
+                                              label="Año" type="number"
+                                              value={form.anio_modelo_version || ''} onChange={(e) =>
+                                    handleChange('anio_modelo_version', e.target.value)} /></Grid>
+
                                 <Grid item xs={6}>
                                     <TextField label="Precio Producto Modelo"
                                                type="number" value={form.precio_producto_modelo}
@@ -792,6 +848,54 @@ function CatModeloVersion() {
                                                onChange={(e) =>
                                                    handleChange('precio_venta_distribuidor', e.target.value)} fullWidth
                                     />
+                                </Grid>
+                                <Grid item xs={7}>
+                                    <Autocomplete
+                                        options={clienteCanal}
+                                        getOptionLabel={(x) => `${x.codigo_cliente_canal} - ${x.nombre_canal} `}
+                                        isOptionEqualToValue={(opt, val) => opt.codigo_cliente_canal === val?.codigo_cliente_canal}
+                                        onChange={(e, v) => {
+                                            if (!v) return;
+
+                                            handleChange('codigo_cliente_canal', v.codigo_cliente_canal || '');
+
+                                            setForm((prev) => ({
+                                                ...prev,
+                                                codigo_mod_vers_repuesto: v.codigo_mod_vers_repuesto,
+                                                cod_producto: v.cod_producto,
+                                                empresa: v.empresa,
+                                                codigo_modelo_comercial: v.codigo_modelo_comercial,
+                                                codigo_marca: v.codigo_marca,
+                                                codigo_version: v.codigo_version,
+                                            }));
+
+                                            const producto = productos.find(p => p.cod_producto === v.cod_producto && p.empresa === v.empresa);
+                                            const modelo = modelosComerciales.find(mc => mc.codigo_modelo_comercial === v.codigo_modelo_comercial);
+                                            const version = versiones.find(ver => ver.codigo_version === v.codigo_version);
+
+                                            setSelectedProducto(producto || null);
+                                            setSelectedModeloComercial(modelo || null);
+                                            setSelectedVersion(version || null);
+                                            setSelectedClienteCanal(v);
+                                        }}
+                                        renderInput={(params) => <TextField {...params} label="Canal" />}
+                                    />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <TextField label="Producto" value={selectedClienteCanal?.nombre_producto || ''} fullWidth disabled />
+
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <TextField label="Empresa" value={selectedProducto?.nombre_empresa || ''} fullWidth disabled />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <TextField label="Modelo comercial" value={selectedClienteCanal?.nombre_modelo_comercial || ''} fullWidth disabled />
+                                </Grid>
+                                <Grid item xs={6}>
+                                    <TextField label="Marca" value={selectedClienteCanal?.nombre_marca || ''} fullWidth disabled />
+                                </Grid>
+                                <Grid item xs={6}>
+                                    <TextField label="Versión" value={selectedClienteCanal?.nombre_version || ''} fullWidth disabled />
                                 </Grid>
                             </Grid>
                         </DialogContent>
