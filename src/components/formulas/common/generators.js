@@ -49,7 +49,7 @@ export function createCustomComponentItem(xs, id, customComponent) {
   };
 }
 
-export function createCustomTooltip(title, onClick, icon) {
+export function createCustomIconTooltip(title, onClick, icon) {
   return {
     title,
     onClick,

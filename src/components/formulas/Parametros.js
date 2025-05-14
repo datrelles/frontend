@@ -2,10 +2,7 @@ import { toast } from "react-toastify";
 import { useState, useEffect, useMemo } from "react";
 import { useAuthContext } from "../../context/authContext";
 import API from "../../services/modulo-formulas";
-import {
-  formatearEstado,
-  formatearFechaHora,
-} from "../../helpers/modulo-formulas";
+import { formatearEstado } from "../../helpers/modulo-formulas";
 import Header from "./common/header";
 import BtnNuevo from "./common/btn-nuevo";
 import Tabla from "./common/tabla";
@@ -19,6 +16,7 @@ import {
   createTextFieldItem,
 } from "./common/generators";
 import MainComponent from "./common/main-component";
+import CustomTooltip from "./common/custom-tooltip";
 
 export default function Parametros() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
@@ -150,6 +148,9 @@ export default function Parametros() {
     {
       name: "descripcion",
       label: "Descripción",
+      options: {
+        customBodyRender: (value) => <CustomTooltip texto={value} />,
+      },
     },
     {
       name: "estado",

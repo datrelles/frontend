@@ -13,7 +13,7 @@ import Tabla from "./common/tabla";
 import CustomDialog from "./common/custom-dialog";
 import {
   createCustomComponentItem,
-  createCustomTooltip,
+  createCustomIconTooltip,
   createDefaultSetter,
   createTableFeatures,
   createTableOptions,
@@ -254,17 +254,17 @@ export default function ParametrosProceso() {
 
   const customToolbarSelect = (selectedRows, displayData, setSelectedRows) => {
     const tooltips = [
-      createCustomTooltip(
+      createCustomIconTooltip(
         "Factores de cálculo",
         () => handleCustomAction(selectedRows, displayData),
         "calculate"
       ),
-      createCustomTooltip(
+      createCustomIconTooltip(
         "Datos parámetro",
         () => handleOpenUpdateDatos(selectedRows, displayData),
         "edit"
       ),
-      createCustomTooltip(
+      createCustomIconTooltip(
         "Eliminar",
         () => handleDelete(selectedRows, setSelectedRows),
         "delete"

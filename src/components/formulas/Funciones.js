@@ -28,6 +28,7 @@ import {
   TiposRetorno,
 } from "./common/enum";
 import BoxCenter from "./common/box-center";
+import CustomTooltip from "./common/custom-tooltip";
 
 const shapeModulo = {
   cod_sistema: "",
@@ -155,15 +156,6 @@ export default function Funciones() {
       .then((res) => {
         setNombreBDActualizado(true);
         toast.success(res);
-        // setOpenUpdate(false);
-        // setCodFuncion("");
-        // setModulo(shapeModulo);
-        // setNombre("");
-        // setNombreBD("");
-        // setEstado(true);
-        // setObservaciones("");
-        // setRetorno(DefaultTipoRetorno);
-        // setParametros([]);
       })
       .catch((err) => toast.error(err.message));
   };
@@ -365,6 +357,7 @@ export default function Funciones() {
     {
       name: "nombre_base_datos",
       label: "Nombre BD",
+      options: { customBodyRender: (value) => <CustomTooltip texto={value} /> },
     },
     {
       name: "estado",
@@ -376,6 +369,7 @@ export default function Funciones() {
     {
       name: "observaciones",
       label: "Observaciones",
+      options: { customBodyRender: (value) => <CustomTooltip texto={value} /> },
     },
     {
       name: "tipo_retorno",

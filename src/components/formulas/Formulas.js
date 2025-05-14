@@ -25,7 +25,7 @@ import BoxCenter from "./common/box-center";
 import AutocompleteObject from "./common/autocomplete-objects";
 import Legend from "./common/legend";
 import { CaracteresFormula, ColoresFondo, Enum } from "./common/enum";
-import CustomTooltip from "./common/tooltip";
+import CustomTooltip from "./common/custom-tooltip";
 
 const shapeSugerencia = {
   codigo: "",
