@@ -158,13 +158,6 @@ export default function Parametros() {
         customBodyRender: (value) => formatearEstado(value),
       },
     },
-    {
-      name: "audit_fecha_ing",
-      label: "Fecha creación",
-      options: {
-        customBodyRender: (value) => formatearFechaHora(value),
-      },
-    },
   ];
 
   const options = createTableOptions(handleRowClick, handleDelete);

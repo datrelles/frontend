@@ -378,17 +378,6 @@ export default function Funciones() {
       name: "tipo_retorno",
       label: "Retorno",
     },
-    {
-      name: "tipo_objeto",
-      label: "Tipo",
-    },
-    {
-      name: "audit_fecha_ing",
-      label: "Fecha creación",
-      options: {
-        customBodyRender: (value) => formatearFechaHora(value),
-      },
-    },
   ];
 
   const options = createTableOptions(
@@ -523,7 +512,11 @@ export default function Funciones() {
       "Observaciones",
       observaciones,
       createDefaultSetter(setObservaciones),
-      false
+      false,
+      undefined,
+      undefined,
+      undefined,
+      3
     ),
   ];
 
@@ -602,7 +595,11 @@ export default function Funciones() {
       "Observaciones",
       observaciones,
       createDefaultSetter(setObservaciones),
-      false
+      false,
+      undefined,
+      undefined,
+      undefined,
+      3
     ),
     createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
     createCustomComponentItem(12, "btnTest", btnTest),

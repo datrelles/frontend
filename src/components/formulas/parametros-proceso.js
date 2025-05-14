@@ -271,13 +271,6 @@ export default function ParametrosProceso() {
       label: "Nombre",
     },
     {
-      name: "audit_fecha_ing",
-      label: "Fecha creación",
-      options: {
-        customBodyRender: (value) => formatearFechaHora(value),
-      },
-    },
-    {
       name: "estado",
       label: "Estado",
       options: {
