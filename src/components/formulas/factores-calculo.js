@@ -294,7 +294,7 @@ export default function FactoresCalculo() {
       <AutocompleteObject
         id="Parámetro"
         value={parametroTipo}
-        valueId="cod_parametro"
+        optionId="cod_parametro"
         shape={shapeParametroTipo}
         options={parametros}
         optionLabel="nombre"

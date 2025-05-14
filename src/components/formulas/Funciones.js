@@ -429,7 +429,7 @@ export default function Funciones() {
     <AutocompleteObject
       id="Módulo"
       value={modulo}
-      valueId="cod_sistema"
+      optionId="cod_sistema"
       shape={shapeModulo}
       options={modulos}
       optionLabel="sistema"

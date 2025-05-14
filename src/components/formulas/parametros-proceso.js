@@ -400,7 +400,7 @@ export default function ParametrosProceso() {
     <AutocompleteObject
       id="Fórmula"
       value={formula}
-      valueId="cod_formula"
+      optionId="cod_formula"
       shape={shapeFormula}
       options={formulas}
       optionLabel="nombre"

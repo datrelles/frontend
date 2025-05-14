@@ -94,10 +94,13 @@ export default function Formulas() {
   const getFuncionesSugerencias = async () => {
     try {
       setFuncionesSugerencias(
-        (await APIService.getFunciones()).map((funcion) => ({
-          codigo: funcion.cod_funcion,
-          nombre: funcion.nombre,
-        }))
+        (await APIService.getFunciones()).map(
+          ({ cod_funcion, nombre, estado }) => ({
+            codigo: cod_funcion,
+            nombre,
+            estado,
+          })
+        )
       );
     } catch (err) {
       toast.error(err.message);
@@ -107,10 +110,13 @@ export default function Formulas() {
   const getParmetrosSugerencias = async () => {
     try {
       setParametrosSugerencias(
-        (await APIService.getParametros()).map((parametro) => ({
-          codigo: parametro.cod_parametro,
-          nombre: parametro.nombre,
-        }))
+        (await APIService.getParametros()).map(
+          ({ cod_parametro, nombre, estado }) => ({
+            codigo: cod_parametro,
+            nombre,
+            estado,
+          })
+        )
       );
     } catch (err) {
       toast.error(err.message);
@@ -306,6 +312,7 @@ export default function Formulas() {
             setLabelSugerencias("");
             break;
         }
+        filtradas = filtradas.filter((item) => item.estado);
         setSugerencias(filtradas);
         setMostrarSugerencias(true);
         setMatchActual({ ...ultimoMatch, cursor });
@@ -393,7 +400,7 @@ export default function Formulas() {
     <AutocompleteObject
       id={labelSugerencias}
       value={shapeSugerencia}
-      valueId="codigo"
+      optionId="codigo"
       shape={shapeSugerencia}
       options={sugerencias}
       optionLabel="nombre"

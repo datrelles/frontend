@@ -3,7 +3,7 @@ import { Autocomplete, TextField } from "@mui/material";
 export default function AutocompleteObject({
   id,
   value,
-  valueId,
+  optionId,
   shape,
   options,
   optionLabel,
@@ -15,14 +15,19 @@ export default function AutocompleteObject({
     <Autocomplete
       disabled={disabled}
       id={id}
-      options={value[valueId] ? options : [shape, ...options]}
+      options={value[optionId] ? options : [shape, ...options]}
       getOptionLabel={(option) => option[optionLabel]}
       value={value}
       onChange={onChange}
       isOptionEqualToValue={(option, value) =>
-        option[valueId] === value?.[valueId]
+        option[optionId] === value?.[optionId]
       }
       fullWidth
+      renderOption={(props, option) => (
+        <li {...props} key={option[optionId]}>
+          {option[optionLabel]}
+        </li>
+      )}
       renderInput={(params) => (
         <TextField
           {...params}
