@@ -61,6 +61,7 @@ export default function Funciones() {
   const [fijoNumero, setFijoNumero] = useState("");
   const [openCreateParametro, setOpenCreateParametro] = useState(false);
   const [openUpdateParametro, setOpenUpdateParametro] = useState(false);
+  const [nombreBDActualizado, setNombreBDActualizado] = useState(false);
 
   const getMenus = async () => {
     try {
@@ -152,16 +153,17 @@ export default function Funciones() {
       tipo_retorno: retorno,
     })
       .then((res) => {
+        setNombreBDActualizado(true);
         toast.success(res);
-        setOpenUpdate(false);
-        setCodFuncion("");
-        setModulo(shapeModulo);
-        setNombre("");
-        setNombreBD("");
-        setEstado(true);
-        setObservaciones("");
-        setRetorno(DefaultTipoRetorno);
-        setParametros([]);
+        // setOpenUpdate(false);
+        // setCodFuncion("");
+        // setModulo(shapeModulo);
+        // setNombre("");
+        // setNombreBD("");
+        // setEstado(true);
+        // setObservaciones("");
+        // setRetorno(DefaultTipoRetorno);
+        // setParametros([]);
       })
       .catch((err) => toast.error(err.message));
   };
@@ -210,6 +212,7 @@ export default function Funciones() {
   };
 
   const handleRowClick = (rowData, rowMeta) => {
+    setNombreBDActualizado(true);
     const row = funciones.find((item) => item.cod_funcion === rowData[1]);
     setCodFuncion(row.cod_funcion);
     setModulo(modulos.find((m) => m.cod_sistema === row.cod_modulo));
@@ -472,10 +475,16 @@ export default function Funciones() {
     />
   );
 
-  const btnTest = (
+  const boxCenter = (
     <BoxCenter
       components={[
-        <BtnNuevo onClick={handleTest} texto="Evaluar" icon={false} />,
+        <BtnNuevo onClick={handleUpdate} texto="Actualizar" icon={false} />,
+        <BtnNuevo
+          onClick={handleTest}
+          texto="Evaluar"
+          icon={false}
+          disabled={!nombreBDActualizado}
+        />,
       ]}
     />
   );
@@ -572,8 +581,8 @@ export default function Funciones() {
   };
 
   const updateContentItems = [
-    createCustomComponentItem(4, "autocompleteModulos", autocompleteModulos),
     createTextFieldItem(4, "cod_funcion", "Código", codFuncion),
+    createCustomComponentItem(8, "autocompleteModulos", autocompleteModulos),
     createCustomComponentItem(4, "selectRetorno", selectRetorno),
     createTextFieldItem(
       6,
@@ -582,12 +591,16 @@ export default function Funciones() {
       nombre,
       createDefaultSetter(setNombre)
     ),
+    createCustomComponentItem(2, "checkboxEstado", checkboxEstado),
     createTextFieldItem(
-      6,
+      12,
       "nombre_base_datos",
       "Nombre base de datos",
       nombreBD,
-      createDefaultSetter(setNombreBD)
+      (e) => {
+        setNombreBDActualizado(false);
+        setNombreBD(e.target.value);
+      }
     ),
     createTextFieldItem(
       12,
@@ -601,8 +614,7 @@ export default function Funciones() {
       undefined,
       3
     ),
-    createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
-    createCustomComponentItem(12, "btnTest", btnTest),
+    createCustomComponentItem(12, "boxCenter", boxCenter),
   ];
 
   const updateParametroContentItems = () => {
@@ -684,8 +696,6 @@ export default function Funciones() {
       open={openUpdate}
       handleClose={handleClickCloseUpdate}
       handleCancel={handleClickCloseUpdate}
-      handleConfirm={handleUpdate}
-      confirmText="Actualizar"
     />
   );
 

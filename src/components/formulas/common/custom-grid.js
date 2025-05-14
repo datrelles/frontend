@@ -4,7 +4,11 @@ import { formatearFechaInput } from "../../../helpers/modulo-formulas";
 
 export default function CustomGrid({ items }) {
   return (
-    <Grid container spacing={1}>
+    <Grid
+      container
+      spacing={1}
+      sx={{ alignItems: "center", justifyContent: "center" }}
+    >
       {items.map((item) => (
         <Grid key={item.id} item xs={item.xs}>
           {item.customComponent || (
