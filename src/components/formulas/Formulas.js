@@ -126,12 +126,14 @@ export default function Formulas() {
 
   const handleCreate = (e) => {
     e.preventDefault();
+    const definicionTrim = definicion.trim();
+    setDefinicion(definicionTrim);
     APIService.createFormula({
       empresa: enterpriseShineray,
       cod_formula: codFormula,
       nombre,
       observaciones,
-      definicion,
+      definicion: definicionTrim,
     })
       .then((res) => {
         toast.success(res);
@@ -147,11 +149,13 @@ export default function Formulas() {
 
   const handleUpdate = (e) => {
     e.preventDefault();
+    const definicionTrim = definicion.trim();
+    setDefinicion(definicionTrim);
     APIService.updateFormula(codFormula, {
       nombre,
       estado,
       observaciones: observaciones,
-      definicion,
+      definicion: definicionTrim,
     })
       .then((res) => {
         setDefinicionActualizada(true);
@@ -248,9 +252,6 @@ export default function Formulas() {
     }
     if (ultimoMatch) {
       const query = ultimoMatch.palabra.toLowerCase();
-      //Logica para switch en funcion de ultimoMatch.textoCompleto[0]
-      //Hacer un shapeSugerencia para reemplazar shapeFuncion y que todas las sugerencias tengan solo codigo y nombre
-      //Hacer map a cualquier array de sugerencias antes de asignarlo con setSUgerencias
       const caracterSugerencia = ultimoMatch.textoCompleto[0];
       let fullMatch;
       switch (caracterSugerencia) {
@@ -427,19 +428,18 @@ export default function Formulas() {
       "Observaciones",
       observaciones,
       createDefaultSetter(setObservaciones),
-      false
+      false,
+      undefined,
+      undefined,
+      undefined,
+      3
     ),
     createTextFieldItem(
       12,
       "definicion",
       "Definición",
       definicion,
-      onChangeDefinicion,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      3
+      onChangeDefinicion
     ),
     mostrarSugerencias
       ? createCustomComponentItem(
@@ -466,19 +466,18 @@ export default function Formulas() {
       "Observaciones",
       observaciones,
       createDefaultSetter(setObservaciones),
-      false
+      false,
+      undefined,
+      undefined,
+      undefined,
+      3
     ),
     createTextFieldItem(
       12,
       "definicion",
       "Definición",
       definicion,
-      onChangeDefinicion,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      3
+      onChangeDefinicion
     ),
     mostrarSugerencias
       ? createCustomComponentItem(
@@ -538,6 +537,40 @@ export default function Formulas() {
     />
   );
 
+  const detailContentItems = [
+    createTextFieldItem(
+      12,
+      "observaciones",
+      "Observaciones",
+      observaciones,
+      undefined,
+      false,
+      undefined,
+      undefined,
+      undefined,
+      3
+    ),
+    createTextFieldItem(
+      12,
+      "definicion",
+      "Definición",
+      definicion,
+      undefined,
+      false,
+      undefined,
+      undefined,
+      undefined,
+      3
+    ),
+  ];
+
+  const detailContent = (
+    <>
+      <br></br>
+      <CustomGrid items={detailContentItems} />
+    </>
+  );
+
   useEffect(() => {
     document.title = "Fórmulas";
     getMenus();
@@ -552,7 +585,14 @@ export default function Formulas() {
 
   return (
     <MainComponent
-      components={[header, btnNuevo, tabla, createDialog, updateDialog]}
+      components={[
+        header,
+        btnNuevo,
+        tabla,
+        createDialog,
+        updateDialog,
+        detailContent,
+      ]}
     />
   );
 }
