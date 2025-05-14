@@ -25,6 +25,7 @@ import BoxCenter from "./common/box-center";
 import AutocompleteObject from "./common/autocomplete-objects";
 import Legend from "./common/legend";
 import { CaracteresFormula, ColoresFondo, Enum } from "./common/enum";
+import CustomTooltip from "./common/tooltip";
 
 const shapeSugerencia = {
   codigo: "",
@@ -340,6 +341,9 @@ export default function Formulas() {
     {
       name: "nombre",
       label: "Nombre",
+      options: {
+        customBodyRender: (value) => <CustomTooltip texto={value} />,
+      },
     },
     {
       name: "definicion",
@@ -348,19 +352,15 @@ export default function Formulas() {
     {
       name: "observaciones",
       label: "Observaciones",
+      options: {
+        customBodyRender: (value) => <CustomTooltip texto={value} />,
+      },
     },
     {
       name: "estado",
       label: "Estado",
       options: {
         customBodyRender: (value) => formatearEstado(value, "a"),
-      },
-    },
-    {
-      name: "audit_fecha_ing",
-      label: "Fecha creación",
-      options: {
-        customBodyRender: (value) => formatearFechaHora(value),
       },
     },
   ];
@@ -537,40 +537,6 @@ export default function Formulas() {
     />
   );
 
-  const detailContentItems = [
-    createTextFieldItem(
-      12,
-      "observaciones",
-      "Observaciones",
-      observaciones,
-      undefined,
-      false,
-      undefined,
-      undefined,
-      undefined,
-      3
-    ),
-    createTextFieldItem(
-      12,
-      "definicion",
-      "Definición",
-      definicion,
-      undefined,
-      false,
-      undefined,
-      undefined,
-      undefined,
-      3
-    ),
-  ];
-
-  const detailContent = (
-    <>
-      <br></br>
-      <CustomGrid items={detailContentItems} />
-    </>
-  );
-
   useEffect(() => {
     document.title = "Fórmulas";
     getMenus();
@@ -585,14 +551,7 @@ export default function Formulas() {
 
   return (
     <MainComponent
-      components={[
-        header,
-        btnNuevo,
-        tabla,
-        createDialog,
-        updateDialog,
-        detailContent,
-      ]}
+      components={[header, btnNuevo, tabla, createDialog, updateDialog]}
     />
   );
 }
