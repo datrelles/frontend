@@ -193,7 +193,11 @@ export default function Parametros() {
       "Descripción",
       descripcion,
       createDefaultSetter(setDescripcion),
-      false
+      false,
+      undefined,
+      undefined,
+      undefined,
+      3
     ),
   ];
 
@@ -212,7 +216,11 @@ export default function Parametros() {
       "Descripción",
       descripcion,
       createDefaultSetter(setDescripcion),
-      false
+      false,
+      undefined,
+      undefined,
+      undefined,
+      3
     ),
     createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
   ];

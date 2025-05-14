@@ -5,7 +5,6 @@ import { useAuthContext } from "../../context/authContext";
 import API from "../../services/modulo-formulas";
 import {
   formatearEstado,
-  formatearFechaHora,
   formatearFechaInput,
 } from "../../helpers/modulo-formulas";
 import Header from "./common/header";
@@ -187,8 +186,21 @@ export default function ParametrosProceso() {
     return true;
   };
 
-  const handleClickMaster = (rowData, rowMeta) => {
-    setCodProceso(rowData[0]);
+  const handleMasterRowSelectionChange = (
+    currentRowsSelected,
+    allRowsSelected,
+    rowsSelected
+  ) => {
+    if (rowsSelected.length === 0) {
+      setCodProceso("");
+      setParametrosDetail([]);
+      return;
+    }
+    const indiceSeleccionado = rowsSelected[0];
+    const procesoSeleccionado = procesos[indiceSeleccionado];
+    if (procesoSeleccionado) {
+      setCodProceso(procesoSeleccionado.cod_proceso);
+    }
   };
 
   const handleClickOpenAdd = () => {
@@ -261,6 +273,14 @@ export default function ParametrosProceso() {
     return <CustomSelectToolbar tooltips={tooltips} />;
   };
 
+  const masterEmptyToolbarSelect = (
+    selectedRows,
+    displayData,
+    setSelectedRows
+  ) => {
+    return <></>;
+  };
+
   const columnsMaster = [
     {
       name: "cod_proceso",
@@ -280,9 +300,12 @@ export default function ParametrosProceso() {
   ];
 
   const optionsMaster = createTableOptions(
-    handleClickMaster,
     undefined,
-    TiposSeleccionTabla.NONE.key
+    undefined,
+    undefined,
+    handleMasterRowSelectionChange,
+    masterEmptyToolbarSelect,
+    createTableFeatures(true, false, false)
   );
 
   const columnsDetail = [
@@ -293,10 +316,6 @@ export default function ParametrosProceso() {
     {
       name: "nombre",
       label: "Nombre",
-    },
-    {
-      name: "descripcion",
-      label: "Descripción",
     },
     {
       name: "orden_imprime",
@@ -316,7 +335,8 @@ export default function ParametrosProceso() {
     undefined,
     undefined,
     undefined,
-    customToolbarSelect
+    customToolbarSelect,
+    createTableFeatures(true, false, false)
   );
 
   const columnsParametros = [

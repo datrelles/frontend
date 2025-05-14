@@ -82,7 +82,7 @@ export function createTableFeatures(
 }
 
 export function createTableOptions(
-  onRowClick,
+  onRowClick = null,
   onRowsDelete = null,
   selectable = TiposSeleccionTabla.SINGLE.key,
   onRowSelectionChange = null,
@@ -92,7 +92,7 @@ export function createTableOptions(
   return {
     responsive: "standard",
     selectableRows: selectable,
-    onRowClick,
+    ...(onRowClick && { onRowClick }),
     ...(onRowsDelete && { onRowsDelete }),
     ...(onRowSelectionChange && { onRowSelectionChange }),
     ...(customToolbarSelect && { customToolbarSelect }),
