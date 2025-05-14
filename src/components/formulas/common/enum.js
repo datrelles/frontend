@@ -28,17 +28,17 @@ export const Operadores = {
 };
 
 export const TiposRetorno = {
-  NUMERO: new Enum("NUMERO", "NÚMERO"),
-  TEXTO: new Enum("TEXTO"),
-  FECHA: new Enum("FECHA"),
+  NUMERO: new Enum("NUM", "NÚMERO"),
+  TEXTO: new Enum("TEX", "TEXTO"),
+  FECHA: new Enum("FEC", "FECHA"),
 };
 
 export const DefaultTipoRetorno = TiposRetorno.NUMERO.key;
 
 export const TiposParametro = {
-  VARIABLE: new Enum("VARIABLE"),
-  CARACTER: new Enum("CARACTER"),
-  NUMERO: new Enum("NUMERO", "NÚMERO"),
+  NUMERO: new Enum("NUM", "NÚMERO"),
+  TEXTO: new Enum("TEX", "TEXTO"),
+  VARIABLE: new Enum("VAR", "VARIABLE"),
 };
 
 export const DefaultTipoParametro = TiposParametro.VARIABLE.key;
