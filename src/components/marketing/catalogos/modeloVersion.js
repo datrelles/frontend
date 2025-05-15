@@ -15,10 +15,11 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import CatModeloVersionExpandible from "../uploadImages/tablaExpandible";
-import SelectorChasis from "./selectoresDialog/selectChasis";
-import SelectorElectronica from "./selectoresDialog/selectElectronica";
-import SelectorDimensiones from "./selectoresDialog/selectDimensiones";
-import SelectorMotor from "./selectoresDialog/selectMotor";
+import SelectorChasis from "../selectoresDialog/selectChasis";
+import SelectorDimensiones from "../selectoresDialog/selectDimensiones";
+import SelectorMotor from "../selectoresDialog/selectMotor";
+import SelectorElectronica from "../selectoresDialog/selectElectronica";
+
 
 const API = process.env.REACT_APP_API;
 
@@ -557,9 +558,10 @@ function CatModeloVersion() {
                     <DialogTitle>Vista de Imagen</DialogTitle>
                     <DialogContent>
                         <img
-                            src={imagenModal}
-                            title="Vista previa imagen"
+                            src={imagenModal}                            
+                            title="Vista previa imagen" 
                             style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain' }}
+                            alt="Vista previa imagen"
                         />
                     </DialogContent>
                     <DialogActions>

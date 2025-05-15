@@ -386,7 +386,7 @@ function CatSegmento() {
                                     <Select
                                         labelId="estado-segmento-label"
                                         value={form.estado_segmento}
-                                        onChange={(e) => handleChange('estado_segmento', e.target.value.toUpperCase())}
+                                        onChange={(e) => handleChange('estado_segmento', e.target.value)}
                                     >
                                         <MenuItem value={1}>ACTIVO</MenuItem>
                                         <MenuItem value={0}>INACTIVO</MenuItem>

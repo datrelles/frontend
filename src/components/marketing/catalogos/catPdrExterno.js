@@ -414,7 +414,7 @@ function CatProductoExterno() {
                                     options={marcasActivas}
                                     getOptionLabel={(option) => option?.nombre_comercial || ''}
                                     value={marcaRepuesto}
-                                    onChange={(e, newValue) => setMarcaRepuesto(newValue?.toUpperCase() || '')}
+                                    onChange={(e, newValue) => setMarcaRepuesto(newValue || '')}
                                     renderInput={(params) => <TextField {...params} label="Marca Repuesto" />}
                                 />
                             </Grid>

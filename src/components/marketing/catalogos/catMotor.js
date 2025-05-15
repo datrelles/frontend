@@ -67,13 +67,28 @@ function CatMotor() {
 
                 const tipoMotorData = await tipoMotorRes.json();
 
-                if (tipoMotorRes.ok) {
-                    form.codigo_tipo_motor = tipoMotorData.codigo_tipo_motor;
-                    await fetchTiposMotor();
-                } else {
-                    enqueueSnackbar(tipoMotorData.error || 'Error creando tipo de motor', { variant: 'error' });
-                    return;
+                if (!tipoMotorRes.ok) {
+                    // Si el error es por duplicado, intentar recuperar el tipo desde la API
+                    if (tipoMotorData.error?.includes('unique constraint')) {
+                        const lista = await fetch(`${API}/bench/get_tipos_motor`, {
+                            headers: {
+                                "Authorization": "Bearer " + jwt
+                            }
+                        });
+                        const tipos = await lista.json();
+                        const existente = tipos.find(t => t.nombre_tipo.trim().toLowerCase() === form.tipo_motor_nombre.trim().toLowerCase());
+                        if (existente) {
+                            form.codigo_tipo_motor = existente.codigo_tipo_motor;
+                        } else {
+                            enqueueSnackbar('Error encontrando tipo de motor existente', { variant: 'error' });
+                            return;
+                        }
+                    } else {
+                        enqueueSnackbar(tipoMotorData.error || 'Error creando tipo de motor', { variant: 'error' });
+                        return;
+                    }
                 }
+
             } catch (err) {
                 enqueueSnackbar('Error al crear tipo de motor', { variant: 'error' });
                 return;
