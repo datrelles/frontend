@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import {
     Box, Button, Grid, MenuItem, Select, Typography, Table, TableHead,
     TableRow, TableCell, TableBody, ButtonGroup, Dialog, DialogTitle,
-    DialogContent, DialogActions, Checkbox, TextField, Autocomplete
+    DialogContent, DialogActions, Checkbox
 } from '@mui/material';
 import { useAuthContext } from "../../../context/authContext";
 import { toast } from "react-toastify";
-import {enqueueSnackbar, SnackbarProvider} from "notistack";
+import { enqueueSnackbar } from "notistack";
 import LoadingCircle from "../../contabilidad/loader";
 import Navbar0 from "../../Navbar0";
 import { useNavigate } from "react-router-dom";
@@ -14,11 +14,11 @@ import DialogResumenComparacion from "../selectoresDialog/resultModeloVersion";
 
 const API = process.env.REACT_APP_API;
 
-function CompararModelos()  {
-
-    const [modeloBase, setModeloBase] = useState(null);
+const CompararModelosRepuestos = () => {
+    const [modeloBase, setModeloBase] = useState('');
     const [comparables, setComparables] = useState([]);
     const [resultado, setResultado] = useState(null);
+    const [modelos, setModelos] = useState([]);
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const [menus, setMenus] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -26,18 +26,13 @@ function CompararModelos()  {
     const navigate = useNavigate();
     const [openResumenDialog, setOpenResumenDialog] = useState(false);
     const [lineas, setLineas] = useState([]);
-    const [segmentos, setSegmentos] = useState([]);
     const [lineaSeleccionada, setLineaSeleccionada] = useState('');
-    const [segmentoSeleccionado, setSegmentoSeleccionado] = useState('');
-    const [modelos, setModelos] = useState([]);
+
+
 
     const toggleResumenDialog = () => setOpenResumenDialog(prev => !prev);
 
     const handleComparar = async () => {
-        if (!modeloBase || comparables.length === 0) {
-            enqueueSnackbar("Debes seleccionar un modelo base y al menos un comparable", { variant: 'warning' });
-            return;
-        }
         setLoading(true);
         try {
             const res = await fetch(`${API}/bench_model/comparar_modelos`, {
@@ -61,6 +56,22 @@ function CompararModelos()  {
         }
     };
 
+    const fetchModeloVersion = async () => {
+        try {
+            const res = await fetch(`${API}/bench/get_modelo_version`, {
+                headers: { "Authorization": "Bearer " + jwt }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setModelos(data);
+            } else {
+                enqueueSnackbar(data.error || "Error al obtener modelos", { variant: "error" });
+            }
+        } catch (error) {
+            enqueueSnackbar("Error de conexión", { variant: "error" });
+        }
+    };
+
     const getMenus = async () => {
         try {
             const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`, {
@@ -78,33 +89,17 @@ function CompararModelos()  {
         }
     };
 
-    const handleLineaChange = async (codigo) => {
+    const handleLineaChange = async (e) => {
+        const codigo = e.target.value;
         setLineaSeleccionada(codigo);
-        setSegmentoSeleccionado('');
-        setModelos([]);
+        setModeloBase('');
+        setComparables([]);
 
-        const res = await fetch(`${API}/bench_model/get_segmentos_por_linea/${codigo}`, {
-            headers: { Authorization: 'Bearer ' + jwt }
+        const res = await fetch(`${API}/bench_model/get_modelos_por_linea/${codigo}`, {
+            headers: { Authorization: "Bearer " + jwt }
         });
         const data = await res.json();
-        setSegmentos(data);
-    };
-
-    const handleSegmentoChange = async (codigoLinea, nombreSegmento) => {
-        setSegmentoSeleccionado(nombreSegmento);
-
-        const res = await fetch(`${API}/bench_model/get_modelos_por_linea_segmento?codigo_linea=${codigoLinea}&nombre_segmento=${nombreSegmento}`, {
-            headers: { Authorization: 'Bearer ' + jwt }
-        });
-
-        const data = await res.json();
-
-        if (Array.isArray(data)) {
-            setModelos(data);
-        } else {
-            setModelos([]);
-            enqueueSnackbar("Error cargando modelos", { variant: "error" });
-        }
+        setModelos(data);
     };
 
     const fetchLineas = async () => {
@@ -119,23 +114,11 @@ function CompararModelos()  {
         }
     };
 
-    const handleChange = (campo, valor) => {
-        if (!valor) return;
-
-        if (campo === 'codigo_linea') {
-            setLineaSeleccionada(valor.codigo_linea);
-            setSegmentoSeleccionado('');
-            setModelos([]);
-            handleLineaChange(valor.codigo_linea);
-        } else if (campo === 'codigo_segmento') {
-            setSegmentoSeleccionado(valor);
-            handleSegmentoChange(lineaSeleccionada, valor);
-        }
-    };
-
     useEffect(() => {
         getMenus();
-        fetchLineas();
+        fetchModeloVersion();
+        handleLineaChange();
+        fetchLineas()
     }, []);
 
     const handleDialogToggle = () => setDialogOpen(!dialogOpen);
@@ -164,33 +147,33 @@ function CompararModelos()  {
                     <Box padding={4}>
                         <Typography variant="h4" textAlign= "center">Comparar Modelos Versión</Typography>
                         <Grid container spacing={2} >
-                            <Grid item xs={2}>
-                                <Autocomplete
-                                    options={lineas}
-                                    getOptionLabel={(option) => option?.nombre_linea || ''}
-                                    value={lineas.find(l => l.codigo_linea === lineaSeleccionada) || null}
-                                    onChange={(e, v) => handleChange('codigo_linea', v)}
-                                    renderInput={(params) => <TextField {...params} label="Línea" />}
-                                />
-                            </Grid>
-                            <Grid item xs={2}>
-                                <Autocomplete
-                                    options={segmentos}
-                                    getOptionLabel={(option) => option?.nombre_segmento || ''}
-                                    value={segmentos.find(s => s.nombre_segmento === segmentoSeleccionado) || null}
-                                    onChange={(e, v) => handleChange('codigo_segmento', v?.nombre_segmento)}
-                                    renderInput={(params) => <TextField {...params} label="Segmento" />}
-                                    disabled={!lineaSeleccionada}
-                                />
+                            <Grid item xs={3} >
+                                <Typography variant="subtitle1">Línea</Typography>
+                                <Select
+                                    fullWidth
+                                    value={lineaSeleccionada}
+                                    onChange={handleLineaChange}
+                                >
+                                    {lineas.map(linea => (
+                                        <MenuItem key={linea.codigo_linea} value={linea.codigo_linea}>
+                                            {linea.nombre_linea}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
                             </Grid>
                             <Grid item xs={3}>
-                                <Autocomplete
-                                    options={modelos}
-                                    getOptionLabel={(option) => option.nombre_modelo_version}
-                                    value={modelos.find(m => m.codigo_modelo_version === modeloBase) || null}
-                                    onChange={(e, v) => setModeloBase(v ? v.codigo_modelo_version : null)}
-                                    renderInput={(params) => <TextField {...params} label="Modelo Base" />}
-                                />
+                                <Typography variant="subtitle1">Modelo Base</Typography>
+                                <Select
+                                    fullWidth
+                                    value={modeloBase}
+                                    onChange={(e) => setModeloBase(e.target.value)}
+                                >
+                                    {modelos.map(m => (
+                                        <MenuItem key={m.codigo_modelo_version} value={m.codigo_modelo_version}>
+                                            {m.nombre_modelo_version}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
                             </Grid>
                             <Grid item xs={5} sx={{alignItems: 'center' }}>
                                 <Typography variant="subtitle1">Comparables (hasta 3)</Typography>
@@ -223,13 +206,10 @@ function CompararModelos()  {
                             <Button
                                 variant="outlined"
                                 onClick={() => {
-                                    setModeloBase(null);
+                                    setModeloBase('');
                                     setComparables([]);
-                                    setLineaSeleccionada('');
-                                    setSegmentoSeleccionado('');
-                                    setModelos([]);
-                                    setSegmentos([]);
                                     setResultado(null);
+                                    setLineas([])
                                 }}
                                 sx={{
                                     backgroundColor: 'firebrick',
@@ -317,7 +297,7 @@ function CompararModelos()  {
                                         {resultado.comparables.map((item, idx) => {
                                             const modelo = modelos.find(m => m.codigo_modelo_version === item.modelo_version);
                                             const mejoras = Object.entries(item.mejor_en)
-                                                .flatMap(([_, detalles]) =>
+                                                .flatMap(([detalles]) =>
                                                     detalles.filter(d => d.estado === 'mejor').map(d => d.campo)
                                                 );
                                             return (
@@ -337,12 +317,6 @@ function CompararModelos()  {
             )}
         </>
     );
-}
+};
 
-export default function  IntegrationNotistack() {
-    return (
-        <SnackbarProvider maxSnack={3}>
-            <CompararModelos />
-        </SnackbarProvider>
-    );
-}
+export default CompararModelosRepuestos;

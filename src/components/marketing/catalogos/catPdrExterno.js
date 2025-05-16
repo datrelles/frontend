@@ -29,13 +29,11 @@ function CatProductoExterno() {
     const [nombreProducto, setNombreProducto] = useState('');
     const [estadoProdExterno, setEstadoProdExterno] = useState('');
     const [descripcionProducto, setDescripcionProducto] = useState('');
-    const [empresa, setEmpresa] = useState('');
     const [cabeceras, setCabeceras] = useState([]);
     const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
     const [selectedProducto, setSelectedProducto] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [empresas, setEmpresas] = useState([]);
     const [marcaRepuesto, setMarcaRepuesto] = useState('');
     const [marcasActivas, setMarcasActivas] = useState('');
     const [marcas, setMarcas] = useState([]);
@@ -46,10 +44,7 @@ function CatProductoExterno() {
             enqueueSnackbar("Debe seleccionar una Marca Repuesto", { variant: "error" });
             return;
         }
-        if (!empresa || !empresa.empresa) {
-            enqueueSnackbar("Debe seleccionar una Empresa", { variant: "error" });
-            return;
-        }
+
         if (!nombreProducto) {
             enqueueSnackbar("Debe ingresar un Nombre de Producto", { variant: "error" });
             return;
@@ -75,7 +70,6 @@ function CatProductoExterno() {
                     nombre_producto: nombreProducto,
                     estado_prod_externo: estadoNumerico,
                     descripcion_producto: descripcionProducto,
-                    empresa: empresa.empresa
                 })
             });
 
@@ -113,7 +107,6 @@ function CatProductoExterno() {
     useEffect(() => {
         getMenus();
         fetchProductoData();
-        fetchEmpresas();
         fetchMarcas();
     }, []);
 
@@ -133,32 +126,6 @@ function CatProductoExterno() {
                 enqueueSnackbar(data.error || "Error al obtener datos de Productos Externos", { variant: "error" });
             }
         } catch (error) {
-            enqueueSnackbar("Error de conexión", { variant: "error" });
-        }
-    };
-
-    const fetchEmpresas = async () => {
-        try {
-            const res = await fetch(`${API}/enterprise/${userShineray}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + jwt
-                }
-            });
-            const data = await res.json();
-            if (res.ok && Array.isArray(data)) {
-                const normalizadas = data.map(emp => ({
-                    empresa: emp.EMPRESA,
-                    nombre: emp.NOMBRE
-                }));
-                setEmpresas(normalizadas);
-            } else {
-                setEmpresas([]);
-                enqueueSnackbar(data.error || "Error al obtener empresas", { variant: "error" });
-            }
-        } catch (error) {
-            setEmpresas([]);
             enqueueSnackbar("Error de conexión", { variant: "error" });
         }
     };
@@ -190,7 +157,6 @@ function CatProductoExterno() {
             enqueueSnackbar("Error de conexión", { variant: "error" });
         }
     };
-
 
     const columns = [
         { name: "codigo_prod_externo", label: "Código Producto" },
@@ -228,16 +194,6 @@ function CatProductoExterno() {
             }
         },
         { name: "descripcion_producto", label: "Descripción Producto" },
-        {
-            name: "empresa",
-            label: "Empresa",
-            options: {
-                customBodyRender: (value) => {
-                    const empresaObj = Array.isArray(empresas) ? empresas.find(emp => emp.empresa === value) : null;
-                    return empresaObj ? empresaObj.nombre : value;
-                }
-            }
-        },
         { name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
@@ -273,18 +229,12 @@ function CatProductoExterno() {
 
                 const processedRows = rows.map((row, index) => {
                     const nombreProducto = (row.nombre_producto || "").trim();
-                    const nombreEmpresa = (row.nombre_empresa || "").trim();
                     const nombreMarca = (row.nombre_marca_repuesto || "").trim();
                     const estadoProducto = (row.estado_producto_externo || "").trim().toLowerCase();
                     const descripcion = (row.descripcion_producto || "").trim();
 
                     if (!nombreProducto) {
                         throw new Error(`Error en fila ${index + 2}: Falta nombre del producto.`);
-                    }
-
-                    const empresaObj = empresas.find(emp => emp.nombre.trim().toLowerCase() === nombreEmpresa.toLowerCase());
-                    if (!empresaObj) {
-                        throw new Error(`Error en fila ${index + 2}: Empresa '${nombreEmpresa}' no encontrada.`);
                     }
 
                     const marcaObj = Array.isArray(marcas) ? marcas.find(marca => marca.nombre_comercial.trim().toLowerCase() === nombreMarca.toLowerCase()) : null;
@@ -301,7 +251,6 @@ function CatProductoExterno() {
                         nombre_producto: nombreProducto,
                         estado_prod_externo: estadoProducto === "ACTIVO" ? 1 : 0,
                         descripcion_producto: descripcion,
-                        empresa: empresaObj.empresa
                     };
                 });
 
@@ -346,7 +295,6 @@ function CatProductoExterno() {
         setNombreProducto(rowData.nombre_producto || '');
         setEstadoProdExterno(rowData.estado_prod_externo === 1 ? "ACTIVO" : "INACTIVO");
         setDescripcionProducto(rowData.descripcion_producto || '');
-        setEmpresa(empresas.find(emp => emp.empresa === rowData.empresa) || null);
         setDialogOpen(true);
     };
 
@@ -398,7 +346,15 @@ function CatProductoExterno() {
                     </ButtonGroup>
                 </Box>
                 <Box>
-                    <Button onClick={() => { setSelectedProducto(null); setMarcaRepuesto(null); setNombreProducto(''); setEstadoProdExterno(''); setDescripcionProducto(''); setEmpresa(null); setDialogOpen(true); }} style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}>Insertar Nuevo</Button>
+                    <Button onClick={() => {
+                        setSelectedProducto(null);
+                        setMarcaRepuesto(null);
+                        setNombreProducto('');
+                        setEstadoProdExterno('');
+                        setDescripcionProducto('');
+                        setDialogOpen(true); }}
+                            style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}>Insertar Nuevo
+                    </Button>
                     <Button onClick={fetchProductoData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
@@ -430,15 +386,7 @@ function CatProductoExterno() {
                                 </FormControl>
                             </Grid>
                             <Grid item xs={6}><TextField fullWidth label="Descripción Producto" value={descripcionProducto} onChange={(e) => setDescripcionProducto(e.target.value.toUpperCase())} /></Grid>
-                            <Grid item xs={6}>
-                                <Autocomplete
-                                    fullWidth
-                                    options={empresas}
-                                    getOptionLabel={(option) => option?.nombre || ''} value={empresa}
-                                    onChange={(e, newValue) => setEmpresa(newValue)}
-                                    renderInput={(params) => <TextField {...params} label="Empresa" />}
-                                />
-                            </Grid>
+
                         </Grid>
                     </DialogContent>
                     <DialogActions>

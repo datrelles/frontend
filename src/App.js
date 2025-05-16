@@ -89,6 +89,8 @@ import  MdlVersionRepuesto from "./components/marketing/catalogos/mdlVersionRepu
 import  ClienteCanal from "./components/marketing/catalogos/clienteCanal";
 import  CatSegmento from "./components/marketing/catalogos/catSegmento";
 import  ModeloVersion from "./components/marketing/catalogos/modeloVersion";
+import  BenchModelos from "./components/marketing/benchModelo/benchModelos";
+import  BenchRepuestos from "./components/marketing/benchRepuesto/benchRepuestos";
 
 ///SellManagerB2B
 const API = process.env.REACT_APP_API;
@@ -240,6 +242,8 @@ function App() {
                   <Route exact path="/cliente_canal" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><ClienteCanal/></Protected>}/>
                   <Route exact path="/catalogo_segmento" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatSegmento/></Protected>}/>
                   <Route exact path="/modelo_version" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><ModeloVersion/></Protected>}/>
+                  <Route exact path="/modelo_compatible" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><BenchModelos/></Protected>}/>
+                  <Route exact path="/repuesto_compatible" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><BenchRepuestos/></Protected>}/>
                   <Route exact path="/settings" element={<Settings/>}></Route>
                 </Routes>
               </>            
