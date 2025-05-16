@@ -74,7 +74,7 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                                                         </TableCell>
                                                         <TableCell align="center">
                                                             {detalle.estado === 'mejor'
-                                                                ? 'Mejora'
+                                                                ? 'Mejor'
                                                                 : detalle.estado === 'igual'
                                                                     ? 'Igual'
                                                                     : 'Peor'}

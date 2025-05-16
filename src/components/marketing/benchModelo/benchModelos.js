@@ -193,11 +193,10 @@ function CompararModelos()  {
                                 />
                             </Grid>
                             <Grid item xs={5} sx={{alignItems: 'center' }}>
-                                <Typography variant="subtitle1">Comparables (hasta 3)</Typography>
                                 <Button variant="outlined" fullWidth onClick={handleDialogToggle}>
                                     {comparables.length > 0
                                         ? comparables.map(id => modelos.find(m => m.codigo_modelo_version === id)?.nombre_modelo_version).join(', ')
-                                        : "Seleccionar comparables"}
+                                        : "Seleccione hasta 3 modelos"}
                                 </Button>
                             </Grid>
                         </Grid>

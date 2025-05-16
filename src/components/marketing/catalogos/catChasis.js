@@ -27,8 +27,6 @@ function CatChasis() {
     const navigate = useNavigate();
     const [arosDel, setArosDel] = useState('');
     const [arosPost, setArosPost] = useState('');
-    const [neuDel, setNeuDel] = useState('');
-    const [neuPost, setNeuPost] = useState('');
     const [suspDel, setSuspDel] = useState('');
     const [suspPost, setSuspPost] = useState('');
     const [frenoDel, setFrenoDel] = useState('');
@@ -38,6 +36,12 @@ function CatChasis() {
     const [menus, setMenus] = useState([]);
     const [selectedChasis, setSelectedChasis] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
+
+    const [neuDel, setNeuDel] = useState('');
+    const [neuPost, setNeuPost] = useState('');
+    const [errorNeuDel, setErrorNeuDel] = useState(false);
+    const [errorNeuPost, setErrorNeuPost] = useState(false);
+
 
     const handleInsertChasis = async () => {
         const url = selectedChasis && selectedChasis.codigo_chasis
@@ -78,6 +82,12 @@ function CatChasis() {
             enqueueSnackbar("Error inesperado", { variant: "error" });
         }
     };
+
+    const formatoNeumaticoValido = (valor) => {
+        const regex = /^\d{2,3}\/\d{2,3}-\d{2,3}$/;
+        return regex.test(valor.trim());
+    };
+
 
     const getMenus = async () => {
         try {
@@ -277,8 +287,34 @@ function CatChasis() {
                         <Grid container spacing={2}>
                             <Grid item xs={6}><TextField fullWidth label="Aros Rueda Delantera" value={arosDel} onChange={(e) => setArosDel(e.target.value.toUpperCase())} /></Grid>
                             <Grid item xs={6}><TextField fullWidth label="Aros Rueda Posterior" value={arosPost} onChange={(e) => setArosPost(e.target.value.toUpperCase())} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Neumático Delantero" value={neuDel} onChange={(e) => setNeuDel(e.target.value.toUpperCase())} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Neumático Trasero" value={neuPost} onChange={(e) => setNeuPost(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}>
+                                <TextField
+                                    fullWidth
+                                    label="Neumático Delantero"
+                                    value={neuDel}
+                                    error={errorNeuDel}
+                                    helperText={errorNeuDel ? "Formato inválido. Usa 90/90-19" : ""}
+                                    onChange={(e) => {
+                                        const val = e.target.value.toUpperCase();
+                                        setNeuDel(val);
+                                        setErrorNeuDel(val && !formatoNeumaticoValido(val));
+                                    }}
+                                />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <TextField
+                                    fullWidth
+                                    label="Neumático Trasero"
+                                    value={neuPost}
+                                    error={errorNeuPost}
+                                    helperText={errorNeuPost ? "Formato inválido. Usa 110/90-17" : ""}
+                                    onChange={(e) => {
+                                        const val = e.target.value.toUpperCase();
+                                        setNeuPost(val);
+                                        setErrorNeuPost(val && !formatoNeumaticoValido(val));
+                                    }}
+                                />
+                            </Grid>
                             <Grid item xs={6}><TextField fullWidth label="Suspensión Delantera" value={suspDel} onChange={(e) => setSuspDel(e.target.value.toUpperCase())} /></Grid>
                             <Grid item xs={6}><TextField fullWidth label="Suspensión Trasera" value={suspPost} onChange={(e) => setSuspPost(e.target.value.toUpperCase())} /></Grid>
                             <Grid item xs={6}><TextField fullWidth label="Frenos Delanteros" value={frenoDel} onChange={(e) => setFrenoDel(e.target.value.toUpperCase())} /></Grid>
