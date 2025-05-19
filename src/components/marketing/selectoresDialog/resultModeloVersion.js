@@ -63,11 +63,16 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                                             <TableHead>
                                                 <TableRow>
                                                     <TableCell sx={{ width: '25%', fontWeight: 'bold' }}>Campo</TableCell>
-                                                    <TableCell align="center" sx={{ width: '25%', fontWeight: 'bold' }}>Modelo Base</TableCell>
-                                                    <TableCell align="center" sx={{ width: '25%', fontWeight: 'bold' }}>Comparable</TableCell>
+                                                    <TableCell align="center" sx={{ width: '25%', fontWeight: 'bold' }}>
+                                                        {modelos.find(m => m.codigo_modelo_version === resultado.base)?.nombre_modelo_version || "Modelo Base"}
+                                                    </TableCell>
+                                                    <TableCell align="center" sx={{ width: '25%', fontWeight: 'bold' }}>
+                                                        {modelo?.nombre_modelo_version || "Comparable"}
+                                                    </TableCell>
                                                     <TableCell align="center" sx={{ width: '25%', fontWeight: 'bold' }}>Estado</TableCell>
                                                 </TableRow>
                                             </TableHead>
+
                                             <TableBody>
                                                 {detalles.map((detalle, i) => (
                                                     <TableRow key={i}>

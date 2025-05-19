@@ -133,6 +133,30 @@ function CompararModelos()  {
         }
     };
 
+    const exportarExcel = async () => {
+        const res = await fetch(`${API}/bench_model/exportar_comparacion_xlsx`, {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + jwt,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                resultado,
+                modelos
+            })
+        });
+
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'comparacion_modelos.xlsx');
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    };
+
+
     useEffect(() => {
         const cargarDatos = async () => {
             try {
@@ -219,15 +243,35 @@ function CompararModelos()  {
                                 }}} >Comparar
                             </Button>
                             {resultado?.comparables?.length > 0 && (
-                                <Button variant="outlined" onClick={toggleResumenDialog} sx={{
-                                    backgroundColor: 'firebrick',
-                                    color: '#fff',
-                                    fontSize: '12px',
-                                    '&:hover': {
-                                        backgroundColor: '#b22222'
-                                    }}}>Ver resultados de comparación
-                                </Button>
+                                <>
+                                    <Button
+                                        variant="outlined"
+                                        onClick={toggleResumenDialog}
+                                        sx={{
+                                            backgroundColor: 'firebrick',
+                                            color: '#fff',
+                                            fontSize: '12px',
+                                            '&:hover': { backgroundColor: '#b22222' }
+                                        }}
+                                    >
+                                        Ver resultados de comparación
+                                    </Button>
+
+                                    <Button
+                                        variant="outlined"
+                                        onClick={exportarExcel}
+                                        sx={{
+                                            backgroundColor: 'green',
+                                            color: '#fff',
+                                            fontSize: '12px',
+                                            '&:hover': { backgroundColor: '#1b5e20' }
+                                        }}
+                                    >
+                                        Exportar a Excel
+                                    </Button>
+                                </>
                             )}
+
                             <Button
                                 variant="outlined"
                                 onClick={() => {
