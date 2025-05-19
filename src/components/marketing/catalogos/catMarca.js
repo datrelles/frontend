@@ -6,7 +6,7 @@ import MUIDataTable from "mui-datatables";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import LoadingCircle from "../../contabilidad/loader";
-import {IconButton, TextField} from '@mui/material';
+import {FormControl, IconButton, InputLabel, MenuItem, Select, TextField} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
@@ -21,23 +21,25 @@ import * as XLSX from "xlsx";
 
 const API = process.env.REACT_APP_API;
 
-function CatColor() {
+function CatMarca() {
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
-    const [nombreColor, setnombreColor] = useState('');
+    const [nombreMarca, setnombreMarca] = useState('');
+    const [estadoMarca, setestadoMarca] = useState('');
     const [cabeceras, setCabeceras] = useState([]);
     const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
-    const [selectedColor, setSelectedColor] = useState(null);
+    const [selectedMarca, setSelectedMarca] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
 
-    const handleInsertColor = async () => {
-        const url = selectedColor && selectedColor.codigo_color_bench
-            ? `${API}/bench/update_color/${selectedColor.codigo_color_bench}`
-            : `${API}/bench/insert_color`;
+    const handleInsertMarca = async () => {
+        const url = selectedMarca && selectedMarca.codigo_marca
+            ? `${API}/bench/update_marca/${selectedMarca.codigo_marca}`
+            : `${API}/bench/insert_marca`;
 
-        const method = selectedColor && selectedColor.codigo_color_bench ? "PUT" : "POST";
+        const method = selectedMarca && selectedMarca.codigo_marca ? "PUT" : "POST";
+        const estadoNumerico = estadoMarca === "ACTIVO" ? 1 : 0;
 
         try {
             const res = await fetch(url, {
@@ -47,14 +49,15 @@ function CatColor() {
                     "Authorization": "Bearer " + jwt
                 },
                 body: JSON.stringify({
-                    nombre_color: nombreColor
+                    nombre_marca: nombreMarca,
+                    estado_marca: estadoNumerico
                 })
             });
 
             const data = await res.json();
             if (res.ok) {
                 enqueueSnackbar(data.message || "Operación exitosa", { variant: "success" });
-                fetchColorData();
+                fetchMarcaData();
                 setDialogOpen(false);
             } else {
                 enqueueSnackbar(data.error || "Error al guardar", { variant: "error" });
@@ -85,13 +88,13 @@ function CatColor() {
 
     useEffect(() => {
         getMenus();
-        fetchColorData();
+        fetchMarcaData();
 
     }, [])
 
-    const fetchColorData = async () => {
+    const fetchMarcaData = async () => {
         try {
-            const res = await fetch(`${API}/bench/get_color`, {
+            const res = await fetch(`${API}/bench/get_marca`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -102,7 +105,7 @@ function CatColor() {
             if (res.ok) {
                 setCabeceras(data);
             } else {
-                enqueueSnackbar(data.error || "Error al obtener data de colores", { variant: "error" });
+                enqueueSnackbar(data.error || "Error al obtener marcas", { variant: "error" });
             }
         } catch (error) {
             enqueueSnackbar("Error de conexión", { variant: "error" });
@@ -110,8 +113,30 @@ function CatColor() {
     };
 
     const columns = [
-        { name: "codigo_color_bench", label: "Código" },
-        { name: "nombre_color", label: "Nombre color" },
+        { name: "codigo_marca", label: "Código" },
+        { name: "nombre_marca", label: "Nombre marca" },
+        {
+            name: "estado_marca",
+            label: "Estado",
+            options: {
+                customBodyRender: (value) => (
+                    <div
+                        style={{
+                            backgroundColor: value === 1 ? 'green' : 'red',
+                            color: 'white',
+                            padding: '4px 8px',
+                            borderRadius: '10px',
+                            fontSize: '12px',
+                            display: 'inline-block',
+                            textAlign: 'center',
+                            minWidth: '70px'
+                        }}
+                    >
+                        {value === 1 ? "ACTIVO" : "INACTIVO"}
+                    </div>
+                )
+            }
+        },
         { name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
@@ -141,7 +166,7 @@ function CatColor() {
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
             try {
-                const res = await fetch(`${API}/bench/insert_color`, {
+                const res = await fetch(`${API}/bench/insert_marca`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -153,7 +178,7 @@ function CatColor() {
                 const responseData = await res.json();
                 if (res.ok) {
                     enqueueSnackbar("Carga exitosa", { variant: "success" });
-                    fetchColorData();
+                    fetchMarcaData();
                 } else {
                     enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
                 }
@@ -166,8 +191,9 @@ function CatColor() {
     };
 
     const openEditDialog = (rowData) => {
-        setSelectedColor(rowData);
-        setnombreColor(rowData.nombre_color || '');
+        setSelectedMarca(rowData);
+        setnombreMarca(rowData.nombre_marca || '');
+        setestadoMarca(rowData.estado_marca === 1 ? "ACTIVO" : "INACTIVO");
         setDialogOpen(true);
     };
 
@@ -220,29 +246,52 @@ function CatColor() {
                 <Box>
                     <Button
                         onClick={() => {
-                            setSelectedColor(null);
-                            setnombreColor('');
+                            setSelectedMarca(null);
+                            setnombreMarca('');
+                            setestadoMarca('');
                             setDialogOpen(true);
                         }}
                         style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}
                     >
                         Insertar Nuevo
                     </Button>
-                    <Button onClick={fetchColorData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
+
+                    <Button onClick={fetchMarcaData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
                 </Box>
+
                 <ThemeProvider theme={getMuiTheme()}>
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
                 </ThemeProvider>
+
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
-                    <DialogTitle>{selectedColor ? 'Actualizar' : 'Nuevo'}</DialogTitle>
+                    <DialogTitle>{selectedMarca ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Nombre color" value={nombreColor} onChange={(e) => setnombreColor(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}>
+                                <TextField
+                                    fullWidth label="Nombre marca"
+                                    value={nombreMarca}
+                                    onChange={(e) => setnombreMarca(e.target.value.toUpperCase())}
+                                />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <FormControl fullWidth>
+                                    <InputLabel id="estado-marca-label">Estado</InputLabel>
+                                    <Select
+                                        labelId="estado-marca-label"
+                                        value={estadoMarca}
+                                        onChange={(e) => setestadoMarca(e.target.value)}
+                                    >
+                                        <MenuItem value="ACTIVO">ACTIVO</MenuItem>
+                                        <MenuItem value="INACTIVO">INACTIVO</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleInsertColor} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedColor ? 'Actualizar' : 'Guardar'}</Button>
+                        <Button onClick={handleInsertMarca} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedMarca ? 'Actualizar' : 'Guardar'}</Button>
                         <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
                             Cargar Excel
                             <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
@@ -257,7 +306,7 @@ function CatColor() {
 export default function IntegrationNotistack() {
     return (
         <SnackbarProvider maxSnack={3}>
-            <CatColor/>
+            <CatMarca/>
         </SnackbarProvider>
     );
 }

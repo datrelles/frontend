@@ -20,11 +20,9 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                         .flatMap(([categoria, campos]) =>
                             campos.filter(c => c.estado === 'mejor').map(c => `${c.campo} (${categoria})`)
                         );
-
                     return (
                         <Box key={index} sx={{ mb: 4 }}>
                             <Typography variant="h6" sx={{ mb: 2 }}>{modelo?.nombre_modelo_version}</Typography>
-
                             {mejorasClaras.length > 0 && (
                                 <Box mb={2}>
                                     <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: '#2e7d32' }}>
@@ -35,7 +33,6 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                                     </ul>
                                 </Box>
                             )}
-
                             {Object.entries(item.mejor_en).map(([categoria, detalles]) => (
                                 <Accordion key={categoria} defaultExpanded>
                                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>

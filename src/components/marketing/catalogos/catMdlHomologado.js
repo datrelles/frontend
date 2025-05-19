@@ -167,6 +167,20 @@ function CatModeloHomologado() {
             MuiToolbar: { styleOverrides: { regular: { minHeight: '10px' } } }
         }
     });
+    const options = {
+        responsive: 'standard',
+        selectableRows: 'none',
+        textLabels: {
+            body: {
+                noMatch: "Lo siento, no se encontraron registros",
+                toolTip: "Ordenar"
+            },
+            pagination: {
+                next: "Siguiente", previous: "Anterior",
+                rowsPerPage: "Filas por página:", displayRows: "de"
+            }
+        }
+    };
 
     useEffect(() => {
         getMenus();
@@ -219,7 +233,6 @@ function CatModeloHomologado() {
         reader.readAsBinaryString(file);
     };
 
-
     return (
         <>{loading ? (<LoadingCircle />) : (
             <div style={{ marginTop: '150px', width: "100%" }}>
@@ -240,7 +253,7 @@ function CatModeloHomologado() {
                     <Button onClick={fetchModelosHomologados} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={{ selectableRows: 'none', responsive: 'standard' }} />
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selected ? 'Actualizar' : 'Nuevo'}</DialogTitle>
