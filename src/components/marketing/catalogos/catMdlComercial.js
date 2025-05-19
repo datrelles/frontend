@@ -285,10 +285,18 @@ function CatModeloComercial() {
     };
 
     useEffect(() => {
-        getMenus();
-        fetchMarcas();
-        fetchHomologados();
-        fetchModeloComercial();
+        const cargarDatos = async () => {
+            try {
+                await getMenus();
+                await fetchMarcas();
+                await fetchHomologados();
+                await fetchModeloComercial();
+
+            } catch (err) {
+                console.error("Error cargando datos iniciales:", err);
+            }
+        };
+        cargarDatos();
     }, []);
 
     const columns = [

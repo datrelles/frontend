@@ -31,21 +31,35 @@ export default function CatModeloVersionExpandible({
     const renderDetailTable = (section, headers, values) => (
         <>
             <TableRow>
-                <TableCell sx={{ whiteSpace: 'nowrap', fontWeight: 'bold' }}>{section}:</TableCell>
+                <TableCell sx={{
+                    whiteSpace: 'nowrap',
+                    fontWeight: 'bold' }}>{section}:
+                </TableCell>
                 {headers.map((h, i) => (
-                    <TableCell key={i} sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{h}</TableCell>
+                    <TableCell
+                        key={i} sx={{
+                            backgroundColor: '#f5f5f5',
+                        fontWeight: 'bold',
+                        border: '1px solid #ddd',
+                        whiteSpace: 'nowrap' }}>{h}
+                    </TableCell>
                 ))}
             </TableRow>
             <TableRow>
                 <TableCell />
-                {values.map((v, i) => <TableCell key={i} sx={{ border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{v || 'N/A'}</TableCell>)}
+                {values.map((v, i) =>
+                    <TableCell
+                        key={i}
+                        sx={{ border: '1px solid #ddd',
+                            whiteSpace: 'nowrap' }}>{v || 'N/A'}
+                    </TableCell>)}
             </TableRow>
         </>
     );
 
     const ExpandableRow = (row) => {
         const detalleElectronica = getDetalleElectronica(row.codigo_electronica);
-        const detalleTransmision = getDetalleTransmision(row.codigo_transmision);
+        const detalleTransmission = getDetalleTransmision(row.codigo_transmision);
         const detalleDimensiones = getDetalleDimensiones(row.codigo_dim_peso);
         const detalleMotor = getDetalleMotor(row.codigo_motor);
         const tipoMotor = getTipoMotor(row.codigo_tipo_motor);
@@ -58,10 +72,17 @@ export default function CatModeloVersionExpandible({
                     Detalles Técnicos
                 </Typography>
                 <Table size="small" sx={{margin: 2}}>
-
                     <TableBody>
-
-                        {renderDetailTable("Motor", ["Nombre", "Tipo", "Cilindrada", "Caballos Fuerza", "Torque", "Arranque", "Combustible", "Refrigeración"], [
+                        {renderDetailTable("Motor",
+                            [
+                                "Nombre",
+                                "Tipo",
+                                "Cilindrada",
+                                "Caballos Fuerza",
+                                "Torque",
+                                "Arranque",
+                                "Combustible",
+                                "Refrigeración"], [
                             detalleMotor?.nombre_motor,
                             tipoMotor?.nombre_tipo,
                             detalleMotor?.cilindrada,
@@ -71,7 +92,16 @@ export default function CatModeloVersionExpandible({
                             detalleMotor?.sistema_combustible,
                             detalleMotor?.sistema_refrigeracion
                         ])}
-                        {renderDetailTable("Chasis", ["Susp. Delantera", "Susp. Trasera", "Freno Delantero", "Freno Trasero", "Neumático Delantero", "Neumático Trasero", "Aro Delantero", "Aro Trasero"], [
+                        {renderDetailTable("Chasis",
+                            [
+                                "Susp. Delantera",
+                                "Susp. Trasera",
+                                "Freno Delantero",
+                                "Freno Trasero",
+                                "Neumático Delantero",
+                                "Neumático Trasero",
+                                "Aro Delantero",
+                                "Aro Trasero"], [
                             detalleChasis?.suspension_delantera,
                             detalleChasis?.suspension_trasera,
                             detalleChasis?.frenos_delanteros,
@@ -81,21 +111,32 @@ export default function CatModeloVersionExpandible({
                             detalleChasis?.aros_rueda_delantera,
                             detalleChasis?.aros_rueda_posterior
                         ])}
-                        {renderDetailTable("Electrónica", ["Tablero", "Luces delanteras", "Luces traseras", "Velocidad máxima", "Garantía"], [
+                        {renderDetailTable("Electrónica",
+                            [
+                                "Tablero",
+                                "Luces delanteras",
+                                "Luces traseras",
+                                "Velocidad máxima",
+                                "Garantía"], [
                             detalleElectronica?.tablero,
                             detalleElectronica?.luces_delanteras,
                             detalleElectronica?.luces_posteriores,
                             detalleElectronica?.velocidad_maxima,
                             detalleElectronica?.garantia
                         ])}
-                        {renderDetailTable("Dimensiones", ["Altura Total", "Peso Seco", "Longitud Total", "Ancho Total"], [
+                        {renderDetailTable("Dimensiones",
+                            [
+                                "Altura Total",
+                                "Peso Seco",
+                                "Longitud Total",
+                                "Ancho Total"], [
                             detalleDimensiones?.altura_total + ' mm',
                             detalleDimensiones?.peso_seco + ' kg',
                             detalleDimensiones?.longitud_total + ' mm',
                             detalleDimensiones?.ancho_total + ' mm'
                         ])}
                         {renderDetailTable("Transmisión", ["Caja de cambios"], [
-                            detalleTransmision?.caja_cambios
+                            detalleTransmission?.caja_cambios
                         ])}
                     </TableBody>
                 </Table>
@@ -110,7 +151,10 @@ export default function CatModeloVersionExpandible({
         {
             name: 'path_imagen', label: 'IMAGEN', options: {
                 customBodyRender: (value) => value ? (
-                    <Button variant="outlined" size="small" onClick={() => setImagenModal(value)}>Ver Imagen</Button>
+                    <Button
+                        variant="outlined" size="small"
+                        onClick={() => setImagenModal(value)}>Ver Imagen
+                    </Button>
                 ) : 'N/A'
             }
         },
@@ -123,7 +167,9 @@ export default function CatModeloVersionExpandible({
         {
             name: 'acciones', label: 'ACCIONES', options: {
                 customBodyRenderLite: (dataIndex) => (
-                    <IconButton onClick={() => onEdit(cabeceras[dataIndex])}><EditIcon /></IconButton>
+                    <IconButton
+                        onClick={() => onEdit(cabeceras[dataIndex])}><EditIcon />
+                    </IconButton>
                 )
             }
         }
@@ -137,7 +183,11 @@ export default function CatModeloVersionExpandible({
         expandableRows: true,
         renderExpandableRow: (rowData, { dataIndex }) => (
             <TableRow>
-                <TableCell colSpan={12}><Collapse in={true}>{ExpandableRow(cabeceras[dataIndex])}</Collapse></TableCell>
+                <TableCell colSpan={12}>
+                    <Collapse
+                        in={true}>{ExpandableRow(cabeceras[dataIndex])}
+                    </Collapse>
+                </TableCell>
             </TableRow>
         ),
         textLabels: {
@@ -169,9 +219,16 @@ export default function CatModeloVersionExpandible({
             <Dialog open={!!imagenModal} onClose={() => setImagenModal(null)} maxWidth="md" fullWidth>
                 <DialogTitle>Vista de Imagen</DialogTitle>
                 <DialogContent>
-                    <img src={imagenModal} alt="Vista previa" style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain' }} />
+                    <img
+                        src={imagenModal}
+                        alt="Vista previa"
+                        style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain' }}
+                    />
                     <Box textAlign="right" mt={2}>
-                        <Button onClick={() => setImagenModal(null)} color="primary">Cerrar</Button>
+                        <Button
+                            onClick={() => setImagenModal(null)}
+                            color="primary">Cerrar
+                        </Button>
                     </Box>
                 </DialogContent>
             </Dialog>

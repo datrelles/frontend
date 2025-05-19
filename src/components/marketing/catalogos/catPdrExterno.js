@@ -105,9 +105,16 @@ function CatProductoExterno() {
     };
 
     useEffect(() => {
-        getMenus();
-        fetchProductoData();
-        fetchMarcas();
+        const cargarDatos = async () => {
+            try {
+                await getMenus();
+                await fetchProductoData();
+                await fetchMarcas();
+            } catch (err) {
+                console.error("Error cargando datos iniciales:", err);
+            }
+        };
+        cargarDatos();
     }, []);
 
     const fetchProductoData = async () => {

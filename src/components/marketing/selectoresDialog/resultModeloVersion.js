@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     Typography, Table, TableHead, TableRow, TableCell,
@@ -6,6 +6,14 @@ import {
     AccordionDetails, Box
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+
+const getUnidadCampo = (campo) => {
+    const camposMM = ['altura_total', 'longitud_total', 'ancho_total'];
+    const camposKG = ['peso_seco'];
+    if (camposMM.includes(campo)) return 'mm';
+    if (camposKG.includes(campo)) return 'kg';
+    return '';
+};
 
 const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
     if (!resultado?.comparables?.length) return null;
@@ -18,7 +26,13 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                     const modelo = modelos.find(m => m.codigo_modelo_version === item.modelo_version);
                     const mejorasClaras = Object.entries(item.mejor_en)
                         .flatMap(([categoria, campos]) =>
-                            campos.filter(c => c.estado === 'mejor').map(c => `${c.campo} (${categoria})`)
+                            campos
+                                .filter(c => c.estado === 'mejor')
+                                .map(c => ({
+                                    campo: c.campo,
+                                    categoria,
+                                    valor: c.comparable
+                                }))
                         );
                     return (
                         <Box key={index} sx={{ mb: 4 }}>
@@ -29,7 +43,11 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                                         Mejora clara en:
                                     </Typography>
                                     <ul>
-                                        {mejorasClaras.map((txt, i) => <li key={i}>{txt}</li>)}
+                                        {mejorasClaras.map((m, i) => (
+                                            <li key={i}>
+                                                {m.campo} ({m.categoria}) → <strong>{`${m.valor} ${getUnidadCampo(m.campo)}`}</strong>
+                                            </li>
+                                        ))}
                                     </ul>
                                 </Box>
                             )}
@@ -45,7 +63,7 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                                             <TableHead>
                                                 <TableRow>
                                                     <TableCell sx={{ width: '25%', fontWeight: 'bold' }}>Campo</TableCell>
-                                                    <TableCell align="center" sx={{ width: '25%', fontWeight: 'bold' }}>Base</TableCell>
+                                                    <TableCell align="center" sx={{ width: '25%', fontWeight: 'bold' }}>Modelo Base</TableCell>
                                                     <TableCell align="center" sx={{ width: '25%', fontWeight: 'bold' }}>Comparable</TableCell>
                                                     <TableCell align="center" sx={{ width: '25%', fontWeight: 'bold' }}>Estado</TableCell>
                                                 </TableRow>
@@ -54,7 +72,9 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                                                 {detalles.map((detalle, i) => (
                                                     <TableRow key={i}>
                                                         <TableCell>{detalle.campo}</TableCell>
-                                                        <TableCell align="center">{detalle.base}</TableCell>
+                                                        <TableCell align="center">
+                                                            {detalle.base != null ? `${detalle.base} ${getUnidadCampo(detalle.campo)}` : ''}
+                                                        </TableCell>
                                                         <TableCell
                                                             align="center"
                                                             sx={{
@@ -67,7 +87,8 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                                                                             : 'inherit',
                                                             }}
                                                         >
-                                                            {detalle.comparable}
+                                                            {detalle.comparable != null ?
+                                                                `${detalle.comparable} ${getUnidadCampo(detalle.campo)}` : ''}
                                                         </TableCell>
                                                         <TableCell align="center">
                                                             {detalle.estado === 'mejor'
@@ -88,13 +109,13 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                 })}
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose} sx={{
-                    backgroundColor: 'firebrick',
-                    color: '#fff',
-                    fontSize: '12px',
-                    '&:hover': { backgroundColor: '#b22222' }
-                }}>
-                    Cerrar
+                <Button onClick={onClose}
+                        sx={{
+                            backgroundColor: 'firebrick',
+                            color: '#fff',
+                            fontSize: '12px',
+                            '&:hover': { backgroundColor: '#b22222' }
+                        }}>Cerrar
                 </Button>
             </DialogActions>
         </Dialog>

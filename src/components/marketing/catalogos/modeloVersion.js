@@ -357,22 +357,29 @@ function CatModeloVersion() {
     };
 
     useEffect(() => {
-        getMenus();
-        fetchModeloVersion();
-        fetchModeloVersRepuesto();
-        fetchProductos();
-        fetchModeloComercial();
-        fetchVersiones();
-        fetchChasis();
-        fetchMotores();
-        fetchTiposMotor();
-        fetchTransmisiones();
-        fetchDimensiones();
-        fetchElectronica();
-        fetchColores();
-        fetchImagen();
-        fetchCanal();
-        fetchClienteCanal()
+        const cargarDatos = async () => {
+            try {
+                await getMenus();
+                await fetchModeloVersion();
+                await fetchModeloVersRepuesto();
+                await fetchProductos();
+                await fetchModeloComercial();
+                await fetchVersiones();
+                await fetchChasis();
+                await fetchMotores();
+                await fetchTiposMotor();
+                await fetchTransmisiones();
+                await fetchDimensiones();
+                await fetchElectronica();
+                await fetchColores();
+                await fetchImagen();
+                await fetchCanal();
+                await fetchClienteCanal();
+            } catch (err) {
+                console.error("Error cargando datos iniciales:", err);
+            }
+        };
+        cargarDatos();
     }, []);
 
     const handleInsertOrUpdate = async () => {
@@ -641,34 +648,29 @@ function CatModeloVersion() {
                         <DialogTitle>{selectedItem ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                         <DialogContent>
                             <Grid container spacing={2}>
-
                                 <SelectorChasis
                                     chasis={chasis}
                                     selectedChasisId={form.codigo_chasis}
-                                    onSelect={(codigo) => handleChange('codigo_chasis', codigo)}
-                                />
+                                    onSelect={(codigo) => handleChange('codigo_chasis', codigo)}/>
                                 <SelectorDimensiones
                                     dimensiones={dimensiones}
                                     selectedDimensionesId={form.codigo_dim_peso}
-                                    onSelect={(codigo) => handleChange('codigo_dim_peso', codigo)}
-                                />
+                                    onSelect={(codigo) => handleChange('codigo_dim_peso', codigo)}/>
                                 <SelectorMotor
                                     motores={motores}
                                     tiposMotor={tiposMotor}
                                     selectedMotorId={form.codigo_motor}
-                                    onSelect={({ codigo_motor, codigo_tipo_motor, nombre_motor, nombre_tipo_motor }) => {
+                                    onSelect={({ codigo_motor, codigo_tipo_motor, nombre_tipo_motor }) => {
                                         handleChange('codigo_motor', codigo_motor);
                                         handleChange('codigo_tipo_motor', codigo_tipo_motor);
                                         setSelectedTipoMotor({ nombre_tipo: nombre_tipo_motor });
-                                    }}
-                                />
+                                    }}/>
                                 <Grid item xs={6}>
                                     <TextField
                                         label="Tipo Motor"
                                         value={selectedTipoMotor?.nombre_tipo || ''}
                                         fullWidth
-                                        disabled
-                                    />
+                                        disabled/>
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Autocomplete
@@ -679,14 +681,12 @@ function CatModeloVersion() {
                                             setSelectedTransmision(v || null);
                                             handleChange('codigo_transmision', v?.codigo_transmision || '');
                                         }}
-                                        renderInput={(params) => <TextField {...params} label="Transmisión" />}
-                                    />
+                                        renderInput={(params) => <TextField {...params} label="Transmisión" />}/>
                                 </Grid>
                                 <SelectorElectronica
                                     electronica={electronica}
                                     selectedElectronicaId={form.codigo_electronica}
-                                    onSelect={(codigo) => handleChange('codigo_electronica', codigo)}
-                                />
+                                    onSelect={(codigo) => handleChange('codigo_electronica', codigo)}/>
                                 <Grid item xs={6}>
                                     <Autocomplete
                                         options={colores}
@@ -696,8 +696,7 @@ function CatModeloVersion() {
                                             setSelectedColor(v || null);
                                             handleChange('codigo_color_bench', v?.codigo_color_bench || '');
                                         }}
-                                        renderInput={(params) => <TextField {...params} label="Color" />}
-                                    />
+                                        renderInput={(params) => <TextField {...params} label="Color" />}/>
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Autocomplete
@@ -708,8 +707,7 @@ function CatModeloVersion() {
                                             setSelectedImagen(v || null);
                                             handleChange('codigo_imagen', v?.codigo_imagen || '');
                                         }}
-                                        renderInput={(params) => <TextField {...params} label="Imagen" />}
-                                    />
+                                        renderInput={(params) => <TextField {...params} label="Imagen" />}/>
                                 </Grid>
                                 <Grid item xs={12}><
                                     TextField fullWidth
@@ -759,7 +757,6 @@ function CatModeloVersion() {
                                             if (!v) return;
                                             setSelectedClienteCanal(v);
                                             handleChange('codigo_cliente_canal', v.codigo_cliente_canal || '');
-
                                             setForm((prev) => ({
                                                 ...prev,
                                                 codigo_mod_vers_repuesto: v.codigo_mod_vers_repuesto,
@@ -769,11 +766,9 @@ function CatModeloVersion() {
                                                 codigo_marca: v.codigo_marca,
                                                 codigo_version: v.codigo_version,
                                             }));
-
                                             const producto = productos.find(p => p.cod_producto === v.cod_producto && p.empresa === v.empresa);
                                             const modelo = modelosComerciales.find(mc => mc.codigo_modelo_comercial === v.codigo_modelo_comercial);
                                             const version = versiones.find(ver => ver.codigo_version === v.codigo_version);
-
                                             setSelectedProducto(producto || null);
                                             setSelectedModeloComercial(modelo || null);
                                             setSelectedVersion(version || null);
@@ -783,19 +778,34 @@ function CatModeloVersion() {
                                     />
                                 </Grid>
                                 <Grid item xs={12}>
-                                    <TextField label="Producto" value={selectedClienteCanal?.nombre_producto || ''} fullWidth disabled />
+                                    <TextField
+                                        label="Producto"
+                                        value={selectedClienteCanal?.nombre_producto || ''}
+                                        fullWidth disabled />
                                 </Grid>
                                 <Grid item xs={12}>
-                                    <TextField label="Empresa" value={selectedProducto?.nombre_empresa || ''} fullWidth disabled />
+                                    <TextField
+                                        label="Empresa"
+                                        value={selectedProducto?.nombre_empresa || ''}
+                                        fullWidth disabled />
                                 </Grid>
                                 <Grid item xs={12}>
-                                    <TextField label="Modelo comercial" value={selectedClienteCanal?.nombre_modelo_comercial || ''} fullWidth disabled />
+                                    <TextField
+                                        label="Modelo comercial"
+                                        value={selectedClienteCanal?.nombre_modelo_comercial || ''}
+                                        fullWidth disabled />
                                 </Grid>
                                 <Grid item xs={6}>
-                                    <TextField label="Marca" value={selectedClienteCanal?.nombre_marca || ''} fullWidth disabled />
+                                    <TextField
+                                        label="Marca"
+                                        value={selectedClienteCanal?.nombre_marca || ''}
+                                        fullWidth disabled />
                                 </Grid>
                                 <Grid item xs={6}>
-                                    <TextField label="Versión" value={selectedClienteCanal?.nombre_version || ''} fullWidth disabled />
+                                    <TextField
+                                        label="Versión"
+                                        value={selectedClienteCanal?.nombre_version || ''}
+                                        fullWidth disabled />
                                 </Grid>
                             </Grid>
                         </DialogContent>

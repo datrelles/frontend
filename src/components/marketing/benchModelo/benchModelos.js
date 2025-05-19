@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-    Box, Button, Grid, MenuItem, Select, Typography, Table, TableHead,
+    Box, Button, Grid, Typography, Table, TableHead,
     TableRow, TableCell, TableBody, ButtonGroup, Dialog, DialogTitle,
     DialogContent, DialogActions, Checkbox, TextField, Autocomplete
 } from '@mui/material';
@@ -55,7 +55,7 @@ function CompararModelos()  {
             const data = await res.json();
             setResultado(data);
         } catch (error) {
-            enqueueSnackbar("Error al comparar modelos", { variant: "error" });
+            enqueueSnackbar("Error al comparar los modelos", { variant: "error" });
         } finally {
             setLoading(false);
         }
@@ -134,8 +134,17 @@ function CompararModelos()  {
     };
 
     useEffect(() => {
-        getMenus();
-        fetchLineas();
+        const cargarDatos = async () => {
+            try {
+                await getMenus();
+                await fetchLineas();
+
+            } catch (err) {
+                console.error("Error cargando datos iniciales:", err);
+            }
+        };
+
+        cargarDatos();
     }, []);
 
     const handleDialogToggle = () => setDialogOpen(!dialogOpen);
@@ -247,11 +256,12 @@ function CompararModelos()  {
                                     <TableHead>
                                         <TableRow>
                                             <TableCell />
-                                            <TableCell>Modelo</TableCell>
-                                            <TableCell>Modelo Comercial</TableCell>
-                                            <TableCell>Motor</TableCell>
-                                            <TableCell>Año</TableCell>
-                                            <TableCell>Precio</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold' }}>Modelo</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold' }}>Modelo Comercial</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold' }}>Marca</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold' }}>Versión</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold' }}>Año</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold' }}>Precio</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -269,7 +279,8 @@ function CompararModelos()  {
                                                 </TableCell>
                                                 <TableCell>{m.nombre_modelo_version}</TableCell>
                                                 <TableCell>{m.nombre_modelo_comercial}</TableCell>
-                                                <TableCell>{m.nombre_motor}</TableCell>
+                                                <TableCell>{m.nombre_marca}</TableCell>
+                                                <TableCell>{m.nombre_version}</TableCell>
                                                 <TableCell>{m.anio_modelo_version}</TableCell>
                                                 <TableCell>{m.precio_producto_modelo}</TableCell>
                                             </TableRow>
@@ -309,6 +320,8 @@ function CompararModelos()  {
                                     <TableHead>
                                         <TableRow>
                                             <TableCell><strong>Modelo externo</strong></TableCell>
+                                            <TableCell><strong>Marca</strong></TableCell>
+                                            <TableCell><strong>Versión</strong></TableCell>
                                             <TableCell><strong>Campos en los que mejora</strong></TableCell>
                                         </TableRow>
                                     </TableHead>
@@ -322,7 +335,8 @@ function CompararModelos()  {
                                             return (
                                                 <TableRow key={idx}>
                                                     <TableCell>{modelo?.nombre_modelo_version || `Modelo ${item.modelo_version}`}</TableCell>
-
+                                                    <TableCell>{modelo?.nombre_marca || `Marca ${item.modelo_version}`}</TableCell>
+                                                    <TableCell>{modelo?.nombre_version || `Versión ${item.modelo_version}`}</TableCell>
                                                     <TableCell>{mejoras.join(', ')}</TableCell>
                                                 </TableRow>
                                             );
