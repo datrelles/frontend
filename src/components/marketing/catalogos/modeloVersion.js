@@ -747,6 +747,31 @@ function CatModeloVersion() {
                                                    handleChange('precio_venta_distribuidor', e.target.value)} fullWidth
                                     />
                                 </Grid>
+                                <Grid item xs={12}>
+                                    <Autocomplete
+                                        options={modelosComerciales.filter(v => v.estado_modelo === 1)}
+                                        getOptionLabel={(v) => v?.nombre_modelo || ''}
+                                        value={selectedModeloComercial}
+                                        onChange={(e, v) => {
+                                            handleChange('codigo_modelo_comercial', v ? v.codigo_modelo_comercial : '');
+                                            handleChange('codigo_marca', v ? v.codigo_marca : '');
+                                            setSelectedModeloComercial(v);
+                                        }}
+                                        renderInput={(params) => (
+                                            <TextField {...params} label="Modelo Comercial" />
+                                        )}
+                                    />
+                                </Grid>
+
+                                <Grid item xs={6}>
+                                    <TextField
+                                        label="Marca"
+                                        value={selectedModeloComercial?.nombre_marca || ''}
+                                        fullWidth
+                                        disabled
+                                    />
+                                </Grid>
+
                                 <Grid item xs={7}>
                                     <Autocomplete
                                         options={clienteCanal}
@@ -762,15 +787,11 @@ function CatModeloVersion() {
                                                 codigo_mod_vers_repuesto: v.codigo_mod_vers_repuesto,
                                                 cod_producto: v.cod_producto,
                                                 empresa: v.empresa,
-                                                codigo_modelo_comercial: v.codigo_modelo_comercial,
-                                                codigo_marca: v.codigo_marca,
                                                 codigo_version: v.codigo_version,
                                             }));
                                             const producto = productos.find(p => p.cod_producto === v.cod_producto && p.empresa === v.empresa);
-                                            const modelo = modelosComerciales.find(mc => mc.codigo_modelo_comercial === v.codigo_modelo_comercial);
                                             const version = versiones.find(ver => ver.codigo_version === v.codigo_version);
                                             setSelectedProducto(producto || null);
-                                            setSelectedModeloComercial(modelo || null);
                                             setSelectedVersion(version || null);
                                             setSelectedClienteCanal(v);
                                         }}
@@ -789,18 +810,7 @@ function CatModeloVersion() {
                                         value={selectedProducto?.nombre_empresa || ''}
                                         fullWidth disabled />
                                 </Grid>
-                                <Grid item xs={12}>
-                                    <TextField
-                                        label="Modelo comercial"
-                                        value={selectedClienteCanal?.nombre_modelo_comercial || ''}
-                                        fullWidth disabled />
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <TextField
-                                        label="Marca"
-                                        value={selectedClienteCanal?.nombre_marca || ''}
-                                        fullWidth disabled />
-                                </Grid>
+
                                 <Grid item xs={6}>
                                     <TextField
                                         label="Versión"

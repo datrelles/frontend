@@ -30,6 +30,7 @@ function CatModSri() {
     const [nombreModelo, setNombreModelo] = useState('');
     const [estadoModelo, setEstadoModelo] = useState('');
     const [anioModelo, setAnioModelo] = useState('');
+    const [modeloImportacion, setModeloImportacion] = useState('');
     const [cabeceras, setCabeceras] = useState([]);
     const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
@@ -55,7 +56,8 @@ function CatModSri() {
                 body: JSON.stringify({
                     nombre_modelo: nombreModelo,
                     estado_modelo: estadoNumerico,
-                    anio_modelo: anioModelo
+                    anio_modelo: anioModelo,
+                    cod_mdl_importacion: modeloImportacion
                 })
             });
 
@@ -118,6 +120,7 @@ function CatModSri() {
     const columns = [
         { name: "codigo_modelo_sri", label: "Código" },
         { name: "nombre_modelo", label: "Nombre Modelo" },
+        { name: "cod_mdl_importacion", label: "Código Importación" },
         {
             name: "estado_modelo",
             label: "Estado",
@@ -206,6 +209,7 @@ function CatModSri() {
         setNombreModelo(rowData.nombre_modelo || '');
         setEstadoModelo(rowData.estado_modelo === 1 ? "ACTIVO" : "INACTIVO");
         setAnioModelo(rowData.anio_modelo || '');
+        setModeloImportacion(rowData.cod_mdl_importacion || '');
         setDialogOpen(true);
     };
 
@@ -262,6 +266,7 @@ function CatModSri() {
                             setNombreModelo('');
                             setEstadoModelo('');
                             setAnioModelo('');
+                            setModeloImportacion('');
                             setDialogOpen(true);
                         }}
                         style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}
@@ -278,6 +283,7 @@ function CatModSri() {
                     <DialogContent>
                         <Grid container spacing={2}>
                             <Grid item xs={6}><TextField fullWidth label="Nombre Modelo" value={nombreModelo} onChange={(e) => setNombreModelo(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Código Importación" value={modeloImportacion} onChange={(e) => setModeloImportacion(e.target.value.toUpperCase())} /></Grid>
                             <Grid item xs={6}>
                                 <FormControl fullWidth>
                                     <InputLabel id="estado-modelo-label">Estado</InputLabel>

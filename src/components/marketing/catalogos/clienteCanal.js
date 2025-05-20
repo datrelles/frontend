@@ -38,8 +38,6 @@ function ClienteCanal() {
         codigo_mod_vers_repuesto: '',
         empresa: '',
         cod_producto: '',
-        codigo_modelo_comercial: '',
-        codigo_marca: '',
         codigo_version: '',
         descripcion_cliente_canal: '',
     });
@@ -92,7 +90,7 @@ function ClienteCanal() {
     const handleInsertOrUpdate = async () => {
         console.log("form actual:", form);
 
-        if (!form.codigo_mod_vers_repuesto || !form.codigo_canal || !form.cod_producto || !form.empresa || !form.codigo_modelo_comercial || !form.codigo_marca || !form.codigo_version) {
+        if (!form.codigo_mod_vers_repuesto || !form.codigo_canal || !form.cod_producto || !form.empresa  || !form.codigo_version) {
             enqueueSnackbar("Todos los campos son obligatorios", { variant: "error" });
             return;
         }
@@ -106,8 +104,6 @@ function ClienteCanal() {
             codigo_mod_vers_repuesto: form.codigo_mod_vers_repuesto,
             cod_producto: form.cod_producto,
             empresa: form.empresa,
-            codigo_modelo_comercial: form.codigo_modelo_comercial,
-            codigo_marca: form.codigo_marca,
             codigo_version: form.codigo_version,
             descripcion_cliente_canal: form.descripcion_cliente_canal
         };
@@ -153,8 +149,6 @@ function ClienteCanal() {
             codigo_mod_vers_repuesto: '',
             empresa: '',
             cod_producto: '',
-            codigo_modelo_comercial: '',
-            codigo_marca: '',
             codigo_version: '',
             descripcion_cliente_canal: '' });
         setSelectedItem(item);
@@ -192,8 +186,6 @@ function ClienteCanal() {
         { name: 'codigo_mod_vers_repuesto', label: 'MODELO VERSION REPUESTO' },
         { name: 'nombre_producto', label: 'PRODUCTO' },
         { name: 'nombre_empresa', label: 'EMPRESA' },
-        { name: 'nombre_modelo_comercial', label: 'MODELO COMERCIAL' },
-        { name: 'nombre_marca', label: 'MARCA' },
         { name: 'nombre_version', label: 'VERSIÓN' },
         { name: 'descripcion_cliente_canal', label: 'DESCRIPCIÓN' },
         {
@@ -275,8 +267,6 @@ function ClienteCanal() {
                             codigo_mod_vers_repuesto: '',
                             empresa: '',
                             cod_producto: '',
-                            codigo_modelo_comercial: '',
-                            codigo_marca: '',
                             codigo_version: '',
                             descripcion_cliente_canal: '',
                         });
@@ -306,8 +296,6 @@ function ClienteCanal() {
                                                     codigo_mod_vers_repuesto: v.codigo_mod_vers_repuesto ?? '',
                                                     empresa: v.empresa ?? '',
                                                     cod_producto: v.cod_producto ?? '',
-                                                    codigo_modelo_comercial: v.codigo_modelo_comercial ?? '',
-                                                    codigo_marca: v.codigo_marca ?? '',
                                                     codigo_version: v.codigo_version ?? '',
                                                     nombre_empresa: v.nombre_empresa ?? '',
                                                     nombre_marca: v.nombre_marca ?? '',
@@ -329,13 +317,7 @@ function ClienteCanal() {
                                 <TextField label="Producto" value={form.nombre_producto || ''} fullWidth disabled />
                             </Grid>
                             <Grid item xs={12}>
-                                <TextField label="Modelo Comercial" value={form.nombre_modelo_comercial || ''} fullWidth disabled />
-                            </Grid>
-                            <Grid item xs={12}>
                                 <TextField label="Versión" value={form.nombre_version || ''} fullWidth disabled />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <TextField label="Marca" value={form.nombre_marca || ''} fullWidth disabled />
                             </Grid>
                             <Grid item xs={12}>
                                 <Grid item xs={12}>

@@ -28,13 +28,11 @@ function CatModeloVersionRepuesto() {
     const [menus, setMenus] = useState([]);
     const [productos, setProductos] = useState([]);
     const [productosExternos, setProductosExternos] = useState([]);
-    const [modelosComerciales, setModelosComerciales] = useState([]);
     const [versiones, setVersiones] = useState([]);
     const [selectedItem, setSelectedItem] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selectedProducto, setSelectedProducto] = useState(null);
     const [selectedProductoExterno, setSelectedProductoExterno] = useState(null);
-    const [selectedModeloComercial, setSelectedModeloComercial] = useState(null);
     const [selectedVersion, setSelectedVersion] = useState(null);
     const [cabeceras, setCabeceras] = useState([]);
     const [loading] = useState(false);
@@ -44,8 +42,6 @@ function CatModeloVersionRepuesto() {
         cod_item: '',
         empresa: '',
         codigo_prod_externo: '',
-        codigo_modelo_comercial: '',
-        codigo_marca: '',
         codigo_version: '',
         descripcion: '',
         precio_producto_modelo: '',
@@ -96,17 +92,6 @@ function CatModeloVersionRepuesto() {
         }
     };
 
-    const fetchModeloComercial = async () => {
-        try {
-            const res = await fetch(`${API}/bench/get_modelos_comerciales`, {
-                headers: { "Authorization": "Bearer " + jwt }
-            });
-            const data = await res.json();
-            setModelosComerciales(Array.isArray(data) ? data : []);
-        } catch (err) {
-            enqueueSnackbar('Error cargando datos', { variant: 'error' });
-        }
-    };
 
     const fetchVersiones = async () => {
         try {
@@ -129,12 +114,11 @@ function CatModeloVersionRepuesto() {
         fetchModeloVersRepuesto();
         fetchProductos();
         fetchProductosExternos();
-        fetchModeloComercial();
         fetchVersiones();
     }, []);
 
     const handleInsertOrUpdate = async () => {
-        if (!form.cod_producto || !form.codigo_prod_externo || !form.codigo_modelo_comercial || !form.codigo_version) {
+        if (!form.cod_producto || !form.codigo_prod_externo || !form.codigo_version) {
             enqueueSnackbar("Todos los campos son obligatorios", { variant: "error" });
             return;
         }
@@ -176,7 +160,6 @@ function CatModeloVersionRepuesto() {
 
         if (item) {
             const prod = productos.find(p => p.cod_producto === item.cod_producto);
-            const modelo = modelosComerciales?.find(mc => mc.nombre_modelo === item.nombre_modelo_comercial);
             const prodExt = productosExternos?.find(pe => pe.nombre_producto === item.nombre_producto_externo);
             const ver = versiones?.find(v => v.nombre_version === item.nombre_version);
             const cat = productos.find(i => i.nombre_item === item.nombre_item);
@@ -184,7 +167,6 @@ function CatModeloVersionRepuesto() {
             setSelectedProducto(prod || null);
             setSelectedCategoria(cat || null);
             setSelectedProductoExterno(prodExt || null);
-            setSelectedModeloComercial(modelo || null);
             setSelectedVersion(ver || null);
 
             setForm({
@@ -193,9 +175,6 @@ function CatModeloVersionRepuesto() {
                 empresa: prod?.empresa || '',
                 nombre_empresa: prod?.nombre_empresa || '',
                 codigo_prod_externo: prodExt?.codigo_prod_externo || '',
-                codigo_modelo_comercial: modelo?.codigo_modelo_comercial || '',
-                codigo_marca: modelo?.codigo_marca || '',
-                nombre_marca: modelo?.nombre_marca || '',
                 codigo_version: ver?.codigo_version || '',
                 descripcion: item.descripcion || '',
                 precio_producto_modelo: item.precio_producto_modelo || '',
@@ -205,7 +184,6 @@ function CatModeloVersionRepuesto() {
             setSelectedProducto(null);
             setSelectedCategoria(null);
             setSelectedProductoExterno(null);
-            setSelectedModeloComercial(null);
             setSelectedVersion(null);
 
             setForm({
@@ -214,9 +192,6 @@ function CatModeloVersionRepuesto() {
                 empresa: '',
                 nombre_empresa: '',
                 codigo_prod_externo: '',
-                codigo_modelo_comercial: '',
-                codigo_marca: '',
-                nombre_marca: '',
                 codigo_version: '',
                 descripcion: '',
                 precio_producto_modelo: '',
@@ -258,8 +233,6 @@ function CatModeloVersionRepuesto() {
         { name: 'nombre_producto', label: 'PRODUCTO' },
         { name: 'nombre_empresa', label: 'EMPRESA' },
         { name: 'nombre_producto_externo', label: 'PRODUCTO EXTERNO' },
-        { name: 'nombre_modelo_comercial', label: 'MODELO COMERCIAL' },
-        { name: 'nombre_marca', label: 'MARCA' },
         { name: 'nombre_version', label: 'VERSIÓN' },
         { name: 'precio_producto_modelo', label: 'PRECIO PRODUCTO' },
         { name: 'precio_venta_distribuidor', label: 'PRECIO DISTRIBUIDOR' },
@@ -343,8 +316,6 @@ function CatModeloVersionRepuesto() {
                             empresa:  '',
                             nombre_empresa:  '',
                             codigo_prod_externo: '',
-                            codigo_modelo_comercial: '',
-                            codigo_marca: '',
                             nombre_marca: '',
                             codigo_version: '',
                             descripcion:'',
@@ -354,7 +325,6 @@ function CatModeloVersionRepuesto() {
                         setSelectedProductoExterno(null);
                         setSelectedProducto(null);
                         setSelectedCategoria(null);
-                        setSelectedModeloComercial(null);
                         setSelectedVersion(null);
                         fetchVersiones();
                         setDialogOpen(true);
@@ -413,25 +383,6 @@ function CatModeloVersionRepuesto() {
                                     }}
                                     renderInput={(params) => <TextField {...params} label="Producto Externo" />}
                                 />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <Autocomplete
-                                    options={modelosComerciales.filter(mc => mc.estado_modelo === 1)}
-                                    getOptionLabel={(mc) => mc.nombre_modelo || ''}
-                                    value={selectedModeloComercial}
-                                    onChange={(e, v) => {
-                                        handleChange('codigo_modelo_comercial', v?.codigo_modelo_comercial || '');
-                                        handleChange('codigo_marca', v?.codigo_marca || '');
-                                        handleChange('nombre_marca', v?.nombre_marca || '');
-                                        setSelectedModeloComercial(v);
-                                    }}
-                                    renderInput={(params) => <TextField {...params} label="Modelo Comercial" />}
-                                    isOptionEqualToValue={(option, value) => option.codigo_modelo_comercial === value.codigo_modelo_comercial}
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-
-                                <TextField label="Marca" value={selectedModeloComercial?.nombre_marca || ''} fullWidth disabled />
                             </Grid>
                             <Grid item xs={12}>
                                 <Autocomplete
