@@ -62,7 +62,6 @@ function CompararModelos()  {
             setLoading(false);
         }
     };
-
     const fetchImagenData = async () => {
         try {
             const res = await fetch(`${API}/bench/get_imagenes`, {
@@ -82,7 +81,6 @@ function CompararModelos()  {
             enqueueSnackbar("Error de conexión", { variant: "error" });
         }
     };
-
     const getMenus = async () => {
         try {
             const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`, {
@@ -99,7 +97,6 @@ function CompararModelos()  {
             toast.error('Error cargando menús');
         }
     };
-
     const handleLineaChange = async (codigo) => {
         setLineaSeleccionada(codigo);
         setSegmentoSeleccionado('');
@@ -190,7 +187,6 @@ function CompararModelos()  {
         };
         cargarDatos();
     }, []);
-
 
     const handleToggleComparable = (id) => {
         if (comparables.includes(id)) {
@@ -367,9 +363,7 @@ function CompararModelos()  {
                                             color: '#fff',
                                             fontSize: '12px',
                                             '&:hover': { backgroundColor: '#b22222' }
-                                        }}
-                                    >
-                                        Ver resultados de comparación
+                                        }}>Ver resultados de comparación
                                     </Button>
                                     <Button
                                         variant="outlined"
@@ -379,9 +373,7 @@ function CompararModelos()  {
                                             color: '#fff',
                                             fontSize: '12px',
                                             '&:hover': { backgroundColor: '#1b5e20' }
-                                        }}
-                                    >
-                                        Exportar a Excel
+                                        }}>Exportar a Excel
                                     </Button>
                                 </>
                             )}
@@ -432,8 +424,7 @@ function CompararModelos()  {
                                             fontSize: '12px',
                                             textAlign: 'center'
                                         },
-                                    }}
-                                >
+                                    }}>
                                     <TableHead>
                                         <TableRow>
                                             <TableCell colSpan={4}>Resumen por modelo</TableCell>
