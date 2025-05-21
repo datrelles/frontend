@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
     Box, Button, Grid, Typography, Table, TableHead,
     TableRow, TableCell, TableBody, ButtonGroup, Dialog, DialogTitle,
-    DialogContent, DialogActions, Checkbox, TextField, Autocomplete
+    DialogContent, DialogActions, Checkbox, TextField, Autocomplete, TableContainer
 } from '@mui/material';
 import { useAuthContext } from "../../../context/authContext";
 import { toast } from "react-toastify";
@@ -22,7 +22,6 @@ function CompararModelos()  {
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const [menus, setMenus] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [dialogOpen, setDialogOpen] = useState(false);
     const navigate = useNavigate();
     const [openResumenDialog, setOpenResumenDialog] = useState(false);
     const [lineas, setLineas] = useState([]);
@@ -30,6 +29,10 @@ function CompararModelos()  {
     const [lineaSeleccionada, setLineaSeleccionada] = useState('');
     const [segmentoSeleccionado, setSegmentoSeleccionado] = useState('');
     const [modelos, setModelos] = useState([]);
+    const [imagenModal, setImagenModal] = useState(null);
+    const [openModalImagen, setOpenModalImagen] = useState(false);
+    const [selectedImagen, setSelectedImagen] = useState(null);
+
 
     const toggleResumenDialog = () => setOpenResumenDialog(prev => !prev);
 
@@ -51,13 +54,32 @@ function CompararModelos()  {
                     comparables: comparables.map(Number)
                 })
             });
-
             const data = await res.json();
             setResultado(data);
         } catch (error) {
             enqueueSnackbar("Error al comparar los modelos", { variant: "error" });
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchImagenData = async () => {
+        try {
+            const res = await fetch(`${API}/bench/get_imagenes`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + jwt
+                }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setImagenModal(data);
+            } else {
+                enqueueSnackbar(data.error || "Error al obtener imágenes", { variant: "error" });
+            }
+        } catch (error) {
+            enqueueSnackbar("Error de conexión", { variant: "error" });
         }
     };
 
@@ -156,30 +178,27 @@ function CompararModelos()  {
         link.remove();
     };
 
-
     useEffect(() => {
         const cargarDatos = async () => {
             try {
                 await getMenus();
                 await fetchLineas();
-
+                await fetchImagenData();
             } catch (err) {
                 console.error("Error cargando datos iniciales:", err);
             }
         };
-
         cargarDatos();
     }, []);
 
-    const handleDialogToggle = () => setDialogOpen(!dialogOpen);
 
     const handleToggleComparable = (id) => {
         if (comparables.includes(id)) {
             setComparables(prev => prev.filter(val => val !== id));
-        } else if (comparables.length < 3) {
+        } else if (comparables.length <= 5) {
             setComparables(prev => [...prev, id]);
         } else {
-            enqueueSnackbar("Solo puedes seleccionar hasta 3 modelos", { variant: "warning" });
+            enqueueSnackbar("Solo puedes seleccionar hasta 5 modelos", { variant: "warning" });
         }
     };
 
@@ -197,7 +216,7 @@ function CompararModelos()  {
                     <Box padding={4}>
                         <Typography variant="h4" textAlign= "center">Comparar Modelos Versión</Typography>
                         <Grid container spacing={2} >
-                            <Grid item xs={2}>
+                            <Grid item xs={1.5}>
                                 <Autocomplete
                                     options={lineas}
                                     getOptionLabel={(option) => option?.nombre_linea || ''}
@@ -206,7 +225,7 @@ function CompararModelos()  {
                                     renderInput={(params) => <TextField {...params} label="Línea" />}
                                 />
                             </Grid>
-                            <Grid item xs={2}>
+                            <Grid item xs={1.5}>
                                 <Autocomplete
                                     options={segmentos}
                                     getOptionLabel={(option) => option?.nombre_segmento || ''}
@@ -216,7 +235,7 @@ function CompararModelos()  {
                                     disabled={!lineaSeleccionada}
                                 />
                             </Grid>
-                            <Grid item xs={3}>
+                            <Grid item xs={2.5}>
                                 <Autocomplete
                                     options={modelos}
                                     getOptionLabel={(option) => option.nombre_modelo_version}
@@ -225,12 +244,108 @@ function CompararModelos()  {
                                     renderInput={(params) => <TextField {...params} label="Modelo Base" />}
                                 />
                             </Grid>
-                            <Grid item xs={5} sx={{alignItems: 'center' }}>
-                                <Button variant="outlined" fullWidth onClick={handleDialogToggle}>
-                                    {comparables.length > 0
-                                        ? comparables.map(id => modelos.find(m => m.codigo_modelo_version === id)?.nombre_modelo_version).join(', ')
-                                        : "Seleccione hasta 3 modelos"}
-                                </Button>
+                            <Grid item xs={6.5} sx={{ display: 'flex', flexDirection: 'column' }}>
+                                <Table size="small" sx={{ tableLayout: 'fixed', minWidth: '100%' }}>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell
+                                                colSpan={6}
+                                                sx={{
+                                                    fontWeight: 'bold',
+                                                    textAlign: 'center',
+                                                    backgroundColor: '#f5f5f5',
+                                                    position: 'sticky',
+                                                    top: 0,
+                                                    zIndex: 2,
+                                                    padding: '4px'
+                                                }}>Seleccione modelos comparables (máx. 5)
+                                            </TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                </Table>
+                                    <TableContainer
+                                        sx={{
+                                            maxHeight: 185,
+                                            border: '1px solid #ccc',
+                                            borderRadius: 1,
+                                            overflowY: 'auto'
+                                        }}
+                                    >
+                                        <Table stickyHeader size="small" sx={{ tableLayout: 'fixed', minWidth: '100%' }}>
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell
+                                                        sx={{
+                                                            width: '36px',
+                                                            padding: '4px',
+                                                            textAlign: 'center',
+                                                            backgroundColor: '#fff',
+                                                            position: 'sticky',
+                                                            top: 0,
+                                                            zIndex: 1
+                                                        }}
+                                                    />
+                                                    <TableCell sx={{ backgroundColor: '#fff', position: 'sticky', top: 0, zIndex: 1 }}>
+                                                        <strong>Modelo</strong>
+                                                    </TableCell>
+                                                    <TableCell sx={{ backgroundColor: '#fff', position: 'sticky', top: 0, zIndex: 1, padding: '4px' }}>
+                                                        <strong>Modelo Comercial</strong>
+                                                    </TableCell>
+                                                    <TableCell sx={{ backgroundColor: '#fff', position: 'sticky', top: 0, zIndex: 1 }}>
+                                                        <strong>Marca</strong>
+                                                    </TableCell>
+                                                    <TableCell sx={{ backgroundColor: '#fff', position: 'sticky', top: 0, zIndex: 1 }}>
+                                                        <strong>Versión</strong>
+                                                    </TableCell>
+                                                    <TableCell sx={{
+                                                            backgroundColor: '#fff',
+                                                            position: 'sticky',
+                                                            top: 0,
+                                                            zIndex: 1,
+                                                            textAlign: 'center'}}>
+                                                        <strong>Año</strong>
+                                                    </TableCell>
+                                                    <TableCell sx={{ backgroundColor: '#fff', position: 'sticky', top: 0, zIndex: 1 }}>
+                                                        <strong>Imágen</strong>
+                                                    </TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {modelos
+                                                    .filter((m) => m.codigo_modelo_version !== modeloBase)
+                                                    .map((m) => (
+                                                        <TableRow key={m.codigo_modelo_version}>
+                                                            <TableCell sx={{ width: '36px', padding: '4px', textAlign: 'center' }}>
+                                                                <Checkbox
+                                                                    checked={comparables.includes(m.codigo_modelo_version)}
+                                                                    onChange={() => handleToggleComparable(m.codigo_modelo_version)}
+                                                                    disabled={
+                                                                        !comparables.includes(m.codigo_modelo_version) &&
+                                                                        comparables.length >= 5
+                                                                    }
+                                                                    size="small"
+                                                                />
+                                                            </TableCell>
+                                                            <TableCell>{m.nombre_modelo_version}</TableCell>
+                                                            <TableCell>{m.nombre_modelo_comercial}</TableCell>
+                                                            <TableCell>{m.nombre_marca}</TableCell>
+                                                            <TableCell sx={{padding: '1px'}}>{m.nombre_version}</TableCell>
+                                                            <TableCell sx={{ textAlign: 'center' }}>{m.anio_modelo_version}</TableCell>
+                                                            <TableCell sx={{ textAlign: 'center' }}>
+                                                                <Button
+                                                                    variant="outlined"
+                                                                    size="small"
+                                                                    onClick={() => {
+                                                                        setSelectedImagen(m.path_imagen);
+                                                                        setOpenModalImagen(true);
+                                                                    }}>Ver
+                                                                </Button>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
                             </Grid>
                         </Grid>
                         <Box mt={2} display="flex" gap={2}>
@@ -256,7 +371,6 @@ function CompararModelos()  {
                                     >
                                         Ver resultados de comparación
                                     </Button>
-
                                     <Button
                                         variant="outlined"
                                         onClick={exportarExcel}
@@ -271,7 +385,6 @@ function CompararModelos()  {
                                     </Button>
                                 </>
                             )}
-
                             <Button
                                 variant="outlined"
                                 onClick={() => {
@@ -293,64 +406,6 @@ function CompararModelos()  {
                                 }}>Limpiar todo
                             </Button>
                         </Box>
-                        <Dialog open={dialogOpen} onClose={handleDialogToggle} fullWidth maxWidth="md">
-                            <DialogTitle>Seleccionar modelos comparables (máx. 3)</DialogTitle>
-                            <DialogContent>
-                                <Table>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell />
-                                            <TableCell sx={{ fontWeight: 'bold' }}>Modelo</TableCell>
-                                            <TableCell sx={{ fontWeight: 'bold' }}>Modelo Comercial</TableCell>
-                                            <TableCell sx={{ fontWeight: 'bold' }}>Marca</TableCell>
-                                            <TableCell sx={{ fontWeight: 'bold' }}>Versión</TableCell>
-                                            <TableCell sx={{ fontWeight: 'bold' }}>Año</TableCell>
-                                            <TableCell sx={{ fontWeight: 'bold' }}>Precio</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {modelos.map((m) => (
-                                            <TableRow key={m.codigo_modelo_version}>
-                                                <TableCell>
-                                                    <Checkbox
-                                                        checked={comparables.includes(m.codigo_modelo_version)}
-                                                        onChange={() => handleToggleComparable(m.codigo_modelo_version)}
-                                                        disabled={
-                                                            !comparables.includes(m.codigo_modelo_version) &&
-                                                            comparables.length >= 3
-                                                        }
-                                                    />
-                                                </TableCell>
-                                                <TableCell>{m.nombre_modelo_version}</TableCell>
-                                                <TableCell>{m.nombre_modelo_comercial}</TableCell>
-                                                <TableCell>{m.nombre_marca}</TableCell>
-                                                <TableCell>{m.nombre_version}</TableCell>
-                                                <TableCell>{m.anio_modelo_version}</TableCell>
-                                                <TableCell>{m.precio_producto_modelo}</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </DialogContent>
-                            <DialogActions sx={{ justifyContent: 'space-between' }}>
-                                <Button onClick={() => setComparables([])} sx={{
-                                    backgroundColor: 'firebrick',
-                                    color: '#fff',
-                                    fontSize: '12px',
-                                    '&:hover': {
-                                        backgroundColor: '#b22222'
-                                    }}}>Limpiar selección
-                                </Button>
-                                <Button onClick={handleDialogToggle} sx={{
-                                    backgroundColor: 'firebrick',
-                                    color: '#fff',
-                                    fontSize: '12px',
-                                    '&:hover': {
-                                        backgroundColor: '#b22222'
-                                    }}}>Cerrar
-                                </Button>
-                            </DialogActions>
-                        </Dialog>
                         <DialogResumenComparacion
                             open={openResumenDialog}
                             onClose={toggleResumenDialog}
@@ -358,15 +413,36 @@ function CompararModelos()  {
                             modelos={modelos}
                         />
                         {resultado?.comparables?.length > 0 && (
-                            <Box mt={4} mb={2}>
-                                <Typography variant="h6" textAlign="center"> Resumen por modelo:</Typography>
-                                <Table size="small" sx={{ mt: 1 }}>
+                            <Box mt={2}>
+                                <Table
+                                    size="small"
+                                    sx={{
+                                        mt: 2,
+                                        borderCollapse: 'collapse',
+                                        width: '100%',
+                                        '& td, & th': {
+                                            border: '1px solid #ddd',
+                                            padding: '2px',
+                                            fontSize: '13px',
+                                            texAlign: 'center'
+                                        },
+                                        '& th': {
+                                            backgroundColor: 'firebrick',
+                                            color: 'white',
+                                            fontSize: '12px',
+                                            textAlign: 'center'
+                                        },
+                                    }}
+                                >
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell><strong>Modelo externo</strong></TableCell>
-                                            <TableCell><strong>Marca</strong></TableCell>
-                                            <TableCell><strong>Versión</strong></TableCell>
-                                            <TableCell><strong>Campos en los que mejora</strong></TableCell>
+                                            <TableCell colSpan={4}>Resumen por modelo</TableCell>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableCell >Modelo externo</TableCell>
+                                            <TableCell >Marca</TableCell>
+                                            <TableCell >Versión</TableCell>
+                                            <TableCell >Campos en los que es diferente</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -378,10 +454,10 @@ function CompararModelos()  {
                                                 );
                                             return (
                                                 <TableRow key={idx}>
-                                                    <TableCell>{modelo?.nombre_modelo_version || `Modelo ${item.modelo_version}`}</TableCell>
-                                                    <TableCell>{modelo?.nombre_marca || `Marca ${item.modelo_version}`}</TableCell>
-                                                    <TableCell>{modelo?.nombre_version || `Versión ${item.modelo_version}`}</TableCell>
-                                                    <TableCell>{mejoras.join(', ')}</TableCell>
+                                                    <TableCell sx={{textAlign:'center'}}>{modelo?.nombre_modelo_version || `Modelo ${item.modelo_version}`}</TableCell>
+                                                    <TableCell sx={{textAlign:'center'}}>{modelo?.nombre_marca || `Marca ${item.modelo_version}`}</TableCell>
+                                                    <TableCell sx={{textAlign:'center'}}>{modelo?.nombre_version || `Versión ${item.modelo_version}`}</TableCell>
+                                                    <TableCell >{mejoras.join(', ')}</TableCell>
                                                 </TableRow>
                                             );
                                         })}
@@ -389,6 +465,22 @@ function CompararModelos()  {
                                 </Table>
                             </Box>
                         )}
+                        <Dialog open={openModalImagen} onClose={() => setOpenModalImagen(false)} maxWidth="md" fullWidth>
+                            <DialogTitle>Vista de Imagen</DialogTitle>
+                            <DialogContent>
+                                <img
+                                    src={selectedImagen}
+                                    title="Vista previa imagen"
+                                    style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain' }}
+                                    alt="Vista previa imagen"
+                                />
+                            </DialogContent>
+                            <DialogActions>
+                                <Button onClick={() => setOpenModalImagen(false)} color="primary">
+                                    Cerrar
+                                </Button>
+                            </DialogActions>
+                        </Dialog>
                     </Box>
                 </div>
             )}
