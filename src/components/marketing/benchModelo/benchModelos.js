@@ -210,7 +210,7 @@ function CompararModelos()  {
                         </ButtonGroup>
                     </Box>
                     <Box padding={4}>
-                        <Typography variant="h4" textAlign= "center">Comparar Modelos Versión</Typography>
+                        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold' }} >COMPARAR MODELOS COMERCIALES</DialogTitle>
                         <Grid container spacing={2} >
                             <Grid item xs={1.5}>
                                 <Autocomplete

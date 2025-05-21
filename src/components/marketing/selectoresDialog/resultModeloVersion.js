@@ -6,6 +6,11 @@ import {
     AccordionDetails, Box
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
+import ThumbDownIcon from '@mui/icons-material/ThumbDown';
+import DragHandleIcon from '@mui/icons-material/DragHandle';
+import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
+import { Tooltip } from '@mui/material';
 
 const getUnidadCampo = (campo) => {
     const camposMM = ['altura_total', 'longitud_total', 'ancho_total'];
@@ -171,11 +176,15 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                                                                 `${detalle.comparable} ${getUnidadCampo(detalle.campo)}` : ''}
                                                         </TableCell>
                                                         <TableCell align="center">
-                                                            {detalle.estado === 'mejor'
-                                                                ? 'Mejor'
-                                                                : detalle.estado === 'igual'
-                                                                    ? 'Igual'
-                                                                    : 'Peor'}
+                                                            {detalle.estado === 'mejor' ? (
+                                                                <Tooltip title="Mejor"><ThumbUpIcon sx={{ color: '#2e7d32' }} /></Tooltip>
+                                                            ) : detalle.estado === 'peor' ? (
+                                                                <Tooltip title="Peor"><ThumbDownIcon sx={{ color: '#d32f2f' }} /></Tooltip>
+                                                            ) : detalle.estado === 'diferente' ? (
+                                                                <Tooltip title="Diferente"><CompareArrowsIcon sx={{ color: '#1976d2' }} /></Tooltip>
+                                                            ) : (
+                                                                <Tooltip title="Igual"><DragHandleIcon sx={{ color: '#757575' }} /></Tooltip>
+                                                            )}
                                                         </TableCell>
                                                     </TableRow>
                                                 ))}
