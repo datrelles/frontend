@@ -194,10 +194,10 @@ function CompararModelos()  {
     const handleToggleComparable = (id) => {
         if (comparables.includes(id)) {
             setComparables(prev => prev.filter(val => val !== id));
-        } else if (comparables.length <= 5) {
+        } else if (comparables.length <= 4) {
             setComparables(prev => [...prev, id]);
         } else {
-            enqueueSnackbar("Solo puedes seleccionar hasta 5 modelos", { variant: "warning" });
+            enqueueSnackbar("Solo puedes seleccionar hasta 4 modelos", { variant: "warning" });
         }
     };
 

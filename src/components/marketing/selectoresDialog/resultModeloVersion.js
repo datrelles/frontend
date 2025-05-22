@@ -1,4 +1,4 @@
-import React, { } from 'react';
+import React from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     Typography, Table, TableHead, TableRow, TableCell,
@@ -8,218 +8,133 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
-import DragHandleIcon from '@mui/icons-material/DragHandle';
-import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
-import { Tooltip } from '@mui/material';
 
 const getUnidadCampo = (campo) => {
     const camposMM = ['altura_total', 'longitud_total', 'ancho_total'];
     const camposKG = ['peso_seco'];
-    if (camposMM.includes(campo)) return 'mm';
-    if (camposKG.includes(campo)) return 'kg';
-    return '';
+    return camposMM.includes(campo) ? 'mm' : camposKG.includes(campo) ? 'kg' : '';
 };
 
 const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
     if (!resultado?.comparables?.length) return null;
 
+    const modeloBase = modelos.find(m => m.codigo_modelo_version === resultado.base);
+    const comparables = resultado.comparables.map(c => {
+        const modelo = modelos.find(m => m.codigo_modelo_version === c.modelo_version);
+        return { ...modelo, detalles: c.mejor_en };
+    });
+
+    const categoriasAgrupadas = {};
+    for (const comparable of comparables) {
+        for (const [categoria, campos] of Object.entries(comparable.detalles)) {
+            if (!categoriasAgrupadas[categoria]) categoriasAgrupadas[categoria] = {};
+            for (const campo of campos) {
+                if (!categoriasAgrupadas[categoria][campo.campo]) {
+                    categoriasAgrupadas[categoria][campo.campo] = {
+                        base: campo.base,
+                        comparables: []
+                    };
+                }
+                categoriasAgrupadas[categoria][campo.campo].comparables.push({
+                    modelo_version: comparable.codigo_modelo_version,
+                    valor: campo.comparable,
+                    estado: campo.estado
+                });
+            }
+        }
+    }
+
     return (
-        <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
-            <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold' }} >Resumen detallado de comparación</DialogTitle>
+        <Dialog open={open} onClose={onClose} fullWidth maxWidth={false} sx={{ '& .MuiDialog-paper': { width: '100vw' } }}>
+            <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold' }}>RESUMEN DETALLADO DE COMPARACION</DialogTitle>
             <DialogContent dividers sx={{ maxHeight: '75vh' }}>
-                {resultado.comparables.map((item, index) => {
-                    const modelo = modelos.find(m => m.codigo_modelo_version === item.modelo_version);
-                    const mejorasClaras = Object.entries(item.mejor_en)
-                        .flatMap(([categoria, campos]) =>
-                            campos
-                                .filter(c => c.estado === 'mejor')
-                                .map(c => ({
-                                    campo: c.campo,
-                                    categoria,
-                                    valor: c.comparable
-                                }))
-                        );
-                    return (
-                        <Box key={index} sx={{ mb: 4 }}>
-                            <Box
-                                display="flex"
-                                justifyContent="space-between"
-                                alignItems="center"
-                                mb={3}
-                                gap={6}
-                                sx={{ flexWrap: 'wrap' }}>
-                                <Box flex={1} textAlign="center">
-                                    <Typography
-                                        variant="h6"
-                                        sx={{ mb: 2, textAlign: 'center', fontWeight: 'bold' }}
-                                    >
-                                        {`${modelos.find(m => m.codigo_modelo_version === resultado.base)?.nombre_modelo_comercial || 'Modelo Base'} VS ${modelo?.nombre_modelo_comercial || 'Comparable'}`}
-                                    </Typography>
-                                </Box>
-                                <Box display="flex" gap={4} flex={1} justifyContent="flex-end">
-                                    <Box textAlign="center">
-                                        <Typography variant="subtitle2" fontWeight="bold">
-                                            {modelos.find(m => m.codigo_modelo_version === resultado.base)?.nombre_modelo_comercial || "Modelo Base"}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                            {modelos.find(m => m.codigo_modelo_version === resultado.base)?.nombre_marca || ''}
-                                        </Typography>
-                                        <img
-                                            src={encodeURI(modelos.find(m => m.codigo_modelo_version === resultado.base)?.path_imagen)}
-                                            alt="Modelo Base"
-                                            style={{
-                                                width: '550px',
-                                                height: 'auto',
-                                                maxHeight: '400px',
-                                                borderRadius: 8,
-                                                objectFit: 'contain'
-                                            }}
-                                        />
-                                    </Box>
-                                    <Box textAlign="center">
-                                        <Typography variant="subtitle2" fontWeight="bold">
-                                            {modelo?.nombre_modelo_comercial || "Comparable"}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                            {modelo?.nombre_marca || ''}
-                                        </Typography>
-                                        <img
-                                            src={encodeURI(modelo?.path_imagen)}
-                                            alt="Modelo Comparable"
-                                            style={{
-                                                width: '550px',
-                                                height: 'auto',
-                                                maxHeight: '400px',
-                                                borderRadius: 8,
-                                                objectFit: 'contain'
-                                            }}
-                                        />
-                                    </Box>
-                                </Box>
-                            </Box>
-                            {Object.entries(item.mejor_en).map(([categoria, detalles]) => (
-                                <Accordion key={categoria} defaultExpanded>
-                                    <AccordionSummary
-                                        expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />}
-                                        sx={{
-                                            backgroundColor: 'firebrick',
-                                            color: 'white',
-                                            px: 2,
-                                            py: 1,
-                                            minHeight: '38px',
-                                            '& .MuiAccordionSummary-content': {
-                                                margin: 0,
-                                                alignItems: 'center'
-                                            }
-                                        }}>
-                                        <Typography sx={{ textTransform: 'capitalize', fontSize: '15px' }}>
-                                            {categoria}
-                                        </Typography>
-                                    </AccordionSummary>
-                                    <AccordionDetails>
-                                        <Table size="small" sx={{ minWidth: 650 }}>
-                                            <TableHead>
-                                                <TableRow sx={{
-                                                    fontWeight: 'bold',
-                                                    textAlign: 'center',
-                                                    backgroundColor: '#f5f5f5',
-                                                    position: 'sticky',
-                                                    top: 0,
-                                                    zIndex: 2,
-                                                    padding: '4px'
-                                                }}>
-                                                    <TableCell sx={{ width: '25%', fontWeight: 'bold' }}>Campo</TableCell>
-                                                    <TableCell align="center" sx={{ width: '25%' }}>
-                                                        <Box>
-                                                            <Typography variant="body2"  fontWeight="bold">
-                                                                {modelos.find(m => m.codigo_modelo_version === resultado.base)?.nombre_modelo_comercial || ''}
-                                                            </Typography>
-                                                            <Typography variant="body2" fontWeight="bold">
-                                                                {modelos.find(m => m.codigo_modelo_version === resultado.base)?.nombre_marca || ''}
-                                                            </Typography>
-                                                        </Box>
-                                                    </TableCell>
-                                                    <TableCell align="center" sx={{ width: '25%' }}>
-                                                        <Box>
-                                                            <Typography variant="body2"  fontWeight="bold">
-                                                                {modelo?.nombre_modelo_comercial || ''}
-                                                            </Typography>
-                                                            <Typography variant="body2" fontWeight="bold">
-                                                                {modelo?.nombre_marca || ''}
-                                                            </Typography>
-                                                        </Box>
-                                                    </TableCell>
-                                                    <TableCell align="center" sx={{ width: '25%', fontWeight: 'bold' }}>Comparativo</TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody>
-                                                {detalles.map((detalle, i) => (
-                                                    <TableRow key={i}>
-                                                        <TableCell>
-                                                            {detalle.campo.replace(/_/g, ' ').toUpperCase()}
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            {detalle.base != null ? `${detalle.base} ${getUnidadCampo(detalle.campo)}` : ''}
-                                                        </TableCell>
-                                                        <TableCell
-                                                            align="center"
-                                                            sx={{
-                                                                fontWeight: detalle.estado === 'mejor' ? 'bold' : 'normal',
-                                                                color:
-                                                                    detalle.estado === 'mejor'
-                                                                        ? '#2e7d32'
-                                                                        : detalle.estado === 'peor'
-                                                                            ? '#d32f2f'
-                                                                            : 'inherit',
-                                                            }}>
-                                                            {detalle.comparable != null ?
-                                                                `${detalle.comparable} ${getUnidadCampo(detalle.campo)}` : ''}
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            {detalle.estado === 'mejor' ? (
-                                                                <Tooltip title="Mejor">
-                                                                    <ThumbUpIcon sx={{ color: '#2e7d32' }} />
-                                                                </Tooltip>
-                                                            ) : detalle.estado === 'peor' ? (
-                                                                <Tooltip title="Peor">
-                                                                    <ThumbDownIcon sx={{ color: '#d32f2f' }} />
-                                                                </Tooltip>
-                                                            ) : detalle.estado === 'diferente' ? (
-                                                                <Tooltip title="Diferente">
-                                                                    <Box display="flex" justifyContent="center" alignItems="center" gap={0.5}>
-                                                                        <ThumbUpIcon sx={{ color: '#b300ac', fontSize: 22 }} />
-                                                                        <ThumbDownIcon sx={{ color: '#b300ac', fontSize: 22 }} />
-                                                                    </Box>
-                                                                </Tooltip>
-                                                            ) : (
-                                                                <Tooltip title="Igual">
-                                                                    <Box display="flex" justifyContent="center" alignItems="center" gap={0.5}>
-                                                                        <ThumbUpIcon sx={{ color: '#ff9800', fontSize: 22 }} />
-                                                                        <ThumbUpIcon sx={{ color: '#ff9800', fontSize: 22 }} />
-                                                                    </Box>
-                                                                </Tooltip>
-                                                            )}
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    </AccordionDetails>
-                                </Accordion>
-                            ))}
+                <Box display="flex" justifyContent="space-evenly" mb={3}>
+                    {[modeloBase, ...comparables].map((m, i) => (
+                        <Box key={i} textAlign="center">
+                            <Typography variant="subtitle2" fontWeight="bold">{m.nombre_modelo_comercial}</Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>{m.nombre_marca}</Typography>
+                            <img src={encodeURI(m.path_imagen)} alt={m.nombre_modelo_comercial} style={{ width: 300, height: 'auto' }} />
                         </Box>
-                    );
-                })}
+                    ))}
+                </Box>
+
+                {Object.entries(categoriasAgrupadas).map(([categoria, campos]) => (
+                    <Accordion key={categoria} defaultExpanded>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />} sx={{ backgroundColor: 'firebrick', color: 'white' }}>
+                            <Typography sx={{ textTransform: 'capitalize' }}>{categoria}</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <Table size="small">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell sx={{ fontWeight: 'bold' }} >CAMPO</TableCell>
+                                        <TableCell>
+                                            <Box textAlign="center">
+                                                <Typography fontWeight="bold">
+                                                    {modeloBase.nombre_modelo_comercial}
+                                                </Typography>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    {modeloBase.nombre_marca}
+                                                </Typography>
+                                            </Box>
+                                        </TableCell>
+
+                                        {comparables.map((m, i) => (
+                                            <React.Fragment key={i}>
+                                                <TableCell>
+                                                    <Box textAlign="center">
+                                                        <Typography fontWeight="bold">
+                                                            {m.nombre_modelo_comercial}
+                                                        </Typography>
+                                                        <Typography variant="body2" color="text.secondary">
+                                                            {m.nombre_marca}
+                                                        </Typography>
+                                                    </Box>
+                                                </TableCell>
+                                                <TableCell><strong>Comparativo</strong></TableCell>
+                                            </React.Fragment>
+                                        ))}
+
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {Object.entries(campos).map(([campo, data], i) => (
+                                        <TableRow key={i}>
+                                            <TableCell>{campo.replace(/_/g, ' ').toUpperCase()}</TableCell>
+                                            <TableCell>{data.base} {getUnidadCampo(campo)}</TableCell>
+                                            {data.comparables.map((comp, j) => (
+                                                <React.Fragment key={j}>
+                                                    <TableCell>{comp.valor} {getUnidadCampo(campo)}</TableCell>
+                                                    <TableCell align="center">
+                                                        {comp.estado === 'mejor' ? (
+                                                            <ThumbUpIcon sx={{ color: '#2e7d32' }} />
+                                                        ) : comp.estado === 'peor' ? (
+                                                            <ThumbDownIcon sx={{ color: '#d32f2f' }} />
+                                                        ) : comp.estado === 'diferente' ? (
+                                                            <Box display="flex" justifyContent="center" alignItems="center" gap={0.5}>
+                                                                <ThumbUpIcon sx={{ color: '#b300ac', fontSize: 20 }} />
+                                                                <ThumbDownIcon sx={{ color: '#b300ac', fontSize: 20 }} />
+                                                            </Box>
+                                                        ) : (
+                                                            <Box display="flex" justifyContent="center" alignItems="center" gap={0.5}>
+                                                                <ThumbUpIcon sx={{ color: '#ff9800', fontSize: 20 }} />
+                                                                <ThumbUpIcon sx={{ color: '#ff9800', fontSize: 20 }} />
+                                                            </Box>
+                                                        )}
+                                                    </TableCell>
+
+                                                </React.Fragment>
+                                            ))}
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </AccordionDetails>
+                    </Accordion>
+                ))}
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose}
-                        sx={{
-                            backgroundColor: 'firebrick',
-                            color: '#fff',
-                            fontSize: '12px',
-                            '&:hover': { backgroundColor: '#b22222' }
-                        }}>Cerrar
-                </Button>
+                <Button onClick={onClose} sx={{ backgroundColor: 'firebrick', color: '#fff', fontSize: '12px', '&:hover': { backgroundColor: '#b22222' } }}>Cerrar</Button>
             </DialogActions>
         </Dialog>
     );
