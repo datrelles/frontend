@@ -111,6 +111,9 @@ function CompararModelos()  {
 
     const handleSegmentoChange = async (codigoLinea, nombreSegmento) => {
         setSegmentoSeleccionado(nombreSegmento);
+        setModeloBase(null);
+        setComparables([]);
+        setResultado(null);
 
         const res = await fetch(`${API}/bench_model/get_modelos_por_linea_segmento?codigo_linea=${codigoLinea}&nombre_segmento=${nombreSegmento}`, {
             headers: { Authorization: 'Bearer ' + jwt }
@@ -254,7 +257,7 @@ function CompararModelos()  {
                                                     top: 0,
                                                     zIndex: 2,
                                                     padding: '4px'
-                                                }}>Seleccione modelos comparables (máx. 5)
+                                                }}>Seleccione modelos comparables (máx. 4)
                                             </TableCell>
                                         </TableRow>
                                     </TableHead>
@@ -317,7 +320,7 @@ function CompararModelos()  {
                                                                     onChange={() => handleToggleComparable(m.codigo_modelo_version)}
                                                                     disabled={
                                                                         !comparables.includes(m.codigo_modelo_version) &&
-                                                                        comparables.length >= 5
+                                                                        comparables.length >= 4
                                                                     }
                                                                     size="small"
                                                                 />
@@ -448,7 +451,7 @@ function CompararModelos()  {
                                                     <TableCell sx={{textAlign:'center'}}>{modelo?.nombre_modelo_version || `Modelo ${item.modelo_version}`}</TableCell>
                                                     <TableCell sx={{textAlign:'center'}}>{modelo?.nombre_marca || `Marca ${item.modelo_version}`}</TableCell>
                                                     <TableCell sx={{textAlign:'center'}}>{modelo?.nombre_version || `Versión ${item.modelo_version}`}</TableCell>
-                                                    <TableCell >{mejoras.join(', ')}</TableCell>
+                                                    <TableCell >{mejoras.join(', ').replace(/_/g, ' ').toUpperCase()}</TableCell>
                                                 </TableRow>
                                             );
                                         })}

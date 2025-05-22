@@ -177,13 +177,27 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                                                         </TableCell>
                                                         <TableCell align="center">
                                                             {detalle.estado === 'mejor' ? (
-                                                                <Tooltip title="Mejor"><ThumbUpIcon sx={{ color: '#2e7d32' }} /></Tooltip>
+                                                                <Tooltip title="Mejor">
+                                                                    <ThumbUpIcon sx={{ color: '#2e7d32' }} />
+                                                                </Tooltip>
                                                             ) : detalle.estado === 'peor' ? (
-                                                                <Tooltip title="Peor"><ThumbDownIcon sx={{ color: '#d32f2f' }} /></Tooltip>
+                                                                <Tooltip title="Peor">
+                                                                    <ThumbDownIcon sx={{ color: '#d32f2f' }} />
+                                                                </Tooltip>
                                                             ) : detalle.estado === 'diferente' ? (
-                                                                <Tooltip title="Diferente"><CompareArrowsIcon sx={{ color: '#1976d2' }} /></Tooltip>
+                                                                <Tooltip title="Diferente">
+                                                                    <Box display="flex" justifyContent="center" alignItems="center" gap={0.5}>
+                                                                        <ThumbUpIcon sx={{ color: '#b300ac', fontSize: 22 }} />
+                                                                        <ThumbDownIcon sx={{ color: '#b300ac', fontSize: 22 }} />
+                                                                    </Box>
+                                                                </Tooltip>
                                                             ) : (
-                                                                <Tooltip title="Igual"><DragHandleIcon sx={{ color: '#757575' }} /></Tooltip>
+                                                                <Tooltip title="Igual">
+                                                                    <Box display="flex" justifyContent="center" alignItems="center" gap={0.5}>
+                                                                        <ThumbUpIcon sx={{ color: '#ff9800', fontSize: 22 }} />
+                                                                        <ThumbUpIcon sx={{ color: '#ff9800', fontSize: 22 }} />
+                                                                    </Box>
+                                                                </Tooltip>
                                                             )}
                                                         </TableCell>
                                                     </TableRow>
