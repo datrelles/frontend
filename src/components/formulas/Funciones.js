@@ -22,8 +22,10 @@ import {
 } from "./common/generators";
 import MainComponent from "./common/main-component";
 import {
+  DefaultPaqueteBD,
   DefaultTipoParametro,
   DefaultTipoRetorno,
+  PaquetesBD,
   TiposParametro,
   TiposRetorno,
 } from "./common/enum";
@@ -50,16 +52,17 @@ export default function Funciones() {
   const [openUpdate, setOpenUpdate] = useState(false);
   const [codFuncion, setCodFuncion] = useState("");
   const [modulo, setModulo] = useState(shapeModulo);
+  const [paquete, setPaquete] = useState(DefaultPaqueteBD);
   const [nombre, setNombre] = useState("");
   const [nombreBD, setNombreBD] = useState("");
   const [estado, setEstado] = useState(true);
-  const [observaciones, setObservaciones] = useState("");
+  const [descripcion, setDescripcion] = useState("");
   const [retorno, setRetorno] = useState(DefaultTipoRetorno);
   const [tipoParametro, setTipoParametro] = useState(DefaultTipoParametro);
   const [secuencia, setSecuencia] = useState(1);
+  const [numero, setNumero] = useState("");
+  const [texto, setTexto] = useState("");
   const [variable, setVariable] = useState("");
-  const [fijoCaracter, setFijoCaracter] = useState("");
-  const [fijoNumero, setFijoNumero] = useState("");
   const [openCreateParametro, setOpenCreateParametro] = useState(false);
   const [openUpdateParametro, setOpenUpdateParametro] = useState(false);
   const [nombreBDActualizado, setNombreBDActualizado] = useState(false);
@@ -102,10 +105,11 @@ export default function Funciones() {
       empresa: enterpriseShineray,
       cod_funcion: codFuncion,
       cod_modulo: modulo.cod_sistema,
+      paquete,
       nombre,
       nombre_base_datos: nombreBD,
-      observaciones,
       tipo_retorno: retorno,
+      descripcion,
     })
       .then((res) => {
         toast.success(res);
@@ -115,7 +119,7 @@ export default function Funciones() {
         setNombre("");
         setNombreBD("");
         setEstado(true);
-        setObservaciones("");
+        setDescripcion("");
         setRetorno(DefaultTipoRetorno);
         setParametros([]);
       })
@@ -128,8 +132,8 @@ export default function Funciones() {
       secuencia: parametros.length + 1,
       tipo_parametro: tipoParametro,
       variable,
-      fijo_caracter: fijoCaracter,
-      fijo_numero: fijoNumero,
+      texto,
+      numero,
     })
       .then((res) => {
         toast.success(res);
@@ -137,8 +141,8 @@ export default function Funciones() {
         getParametros();
         setTipoParametro(DefaultTipoParametro);
         setVariable("");
-        setFijoCaracter("");
-        setFijoNumero("");
+        setTexto("");
+        setNumero("");
       })
       .catch((err) => toast.error(err.message));
   };
@@ -147,11 +151,12 @@ export default function Funciones() {
     e.preventDefault();
     APIService.updateFuncion(codFuncion, {
       cod_modulo: modulo.cod_sistema,
+      paquete,
       nombre,
       nombre_base_datos: nombreBD,
-      estado,
-      observaciones: observaciones,
+      descripcion: descripcion,
       tipo_retorno: retorno,
+      estado,
     })
       .then((res) => {
         setNombreBDActualizado(true);
@@ -165,8 +170,8 @@ export default function Funciones() {
     APIService.updateParametroFuncion(codFuncion, secuencia, {
       tipo_parametro: tipoParametro,
       variable,
-      fijo_caracter: fijoCaracter,
-      fijo_numero: fijoNumero,
+      texto,
+      numero,
     })
       .then((res) => {
         toast.success(res);
@@ -174,8 +179,8 @@ export default function Funciones() {
         getParametros(codFuncion);
         setTipoParametro(DefaultTipoParametro);
         setVariable("");
-        setFijoCaracter("");
-        setFijoNumero("");
+        setTexto("");
+        setNumero("");
       })
       .catch((err) => toast.error(err.message));
   };
@@ -211,7 +216,7 @@ export default function Funciones() {
     setNombre(row.nombre);
     setNombreBD(row.nombre_base_datos);
     setEstado(row.estado === 1);
-    setObservaciones(row.observaciones ?? "");
+    setDescripcion(row.descripcion ?? "");
     setRetorno(row.tipo_retorno);
     handleClickOpenUpdate();
   };
@@ -238,9 +243,9 @@ export default function Funciones() {
     const row = parametros.find((item) => item.secuencia === rowData[1]);
     setSecuencia(row.secuencia);
     setTipoParametro(row.tipo_parametro);
+    setNumero(row.numero ?? "");
+    setTexto(row.texto ?? "");
     setVariable(row.variable ?? "");
-    setFijoCaracter(row.fijo_caracter ?? "");
-    setFijoNumero(row.fijo_numero ?? "");
     handleClickOpenUpdateParametro();
   };
 
@@ -274,7 +279,7 @@ export default function Funciones() {
     setNombre("");
     setNombreBD("");
     setEstado(true);
-    setObservaciones("");
+    setDescripcion("");
     setRetorno(DefaultTipoRetorno);
   };
 
@@ -319,22 +324,22 @@ export default function Funciones() {
 
   const checkTipoParametro = (tipo) => {
     switch (tipo) {
-      case TiposParametro.VARIABLE.key:
-        setFijoCaracter("");
-        setFijoNumero("");
-        break;
-      case TiposParametro.CARACTER.key:
-        setVariable("");
-        setFijoNumero("");
-        break;
       case TiposParametro.NUMERO.key:
         setVariable("");
-        setFijoCaracter("");
+        setTexto("");
+        break;
+      case TiposParametro.TEXTO.key:
+        setVariable("");
+        setNumero("");
+        break;
+      case TiposParametro.VARIABLE.key:
+        setTexto("");
+        setNumero("");
         break;
       default:
         setVariable("");
-        setFijoCaracter("");
-        setFijoNumero("");
+        setTexto("");
+        setNumero("");
         return;
     }
   };
@@ -360,20 +365,20 @@ export default function Funciones() {
       options: { customBodyRender: (value) => <CustomTooltip texto={value} /> },
     },
     {
-      name: "estado",
-      label: "Estado",
-      options: {
-        customBodyRender: (value) => formatearEstado(value, "a"),
-      },
-    },
-    {
-      name: "observaciones",
-      label: "Observaciones",
+      name: "descripcion",
+      label: "Descripción",
       options: { customBodyRender: (value) => <CustomTooltip texto={value} /> },
     },
     {
       name: "tipo_retorno",
       label: "Retorno",
+    },
+    {
+      name: "estado",
+      label: "Estado",
+      options: {
+        customBodyRender: (value) => formatearEstado(value, "a"),
+      },
     },
   ];
 
@@ -400,16 +405,16 @@ export default function Funciones() {
       label: "Tipo parámetro",
     },
     {
+      name: "numero",
+      label: "Número",
+    },
+    {
+      name: "texto",
+      label: "Texto",
+    },
+    {
       name: "variable",
       label: "Variable",
-    },
-    {
-      name: "fijo_caracter",
-      label: "Caracter",
-    },
-    {
-      name: "fijo_numero",
-      label: "Número",
     },
     {
       name: "audit_fecha_ing",
@@ -445,6 +450,15 @@ export default function Funciones() {
       options={TiposRetorno}
       value={retorno}
       onChange={createDefaultSetter(setRetorno)}
+    />
+  );
+
+  const selectPaquete = (
+    <CustomSelect
+      label="Paquete"
+      options={PaquetesBD}
+      value={paquete}
+      onChange={createDefaultSetter(setPaquete)}
     />
   );
 
@@ -484,9 +498,8 @@ export default function Funciones() {
   );
 
   const createContentItems = [
-    createCustomComponentItem(4, "autocompleteModulos", autocompleteModulos),
     createTextFieldItem(
-      4,
+      3,
       "cod_funcion",
       "Código",
       codFuncion,
@@ -494,16 +507,11 @@ export default function Funciones() {
       true,
       "FUNC###"
     ),
-    createCustomComponentItem(4, "selectRetorno", selectRetorno),
+    createCustomComponentItem(5, "autocompleteModulos", autocompleteModulos),
+    createCustomComponentItem(4, "selectPaquete", selectPaquete),
+    createCustomComponentItem(3, "selectRetorno", selectRetorno),
     createTextFieldItem(
-      6,
-      "nombre",
-      "Nombre",
-      nombre,
-      createDefaultSetter(setNombre)
-    ),
-    createTextFieldItem(
-      6,
+      9,
       "nombre_base_datos",
       "Nombre base de datos",
       nombreBD,
@@ -511,10 +519,17 @@ export default function Funciones() {
     ),
     createTextFieldItem(
       12,
-      "observaciones",
-      "Observaciones",
-      observaciones,
-      createDefaultSetter(setObservaciones),
+      "nombre",
+      "Nombre",
+      nombre,
+      createDefaultSetter(setNombre)
+    ),
+    createTextFieldItem(
+      12,
+      "descripcion",
+      "Descripción",
+      descripcion,
+      createDefaultSetter(setDescripcion),
       false,
       undefined,
       undefined,
@@ -523,32 +538,32 @@ export default function Funciones() {
     ),
   ];
 
+  const numeroTextFieldItem = createTextFieldItem(
+    12,
+    "numero",
+    "Número",
+    numero,
+    createDefaultSetter(setNumero),
+    undefined,
+    undefined,
+    undefined,
+    "number"
+  );
+
+  const caracterTextFieldItem = createTextFieldItem(
+    12,
+    "texto",
+    "Texto",
+    texto,
+    createDefaultSetter(setTexto)
+  );
+
   const variableTextFieldItem = createTextFieldItem(
     12,
     "variable",
     "Variable",
     variable,
     createDefaultSetter(setVariable)
-  );
-
-  const caracterTextFieldItem = createTextFieldItem(
-    12,
-    "fijo_caracter",
-    "Caracter",
-    fijoCaracter,
-    createDefaultSetter(setFijoCaracter)
-  );
-
-  const numeroTextFieldItem = createTextFieldItem(
-    12,
-    "fijo_numero",
-    "Número",
-    fijoNumero,
-    createDefaultSetter(setFijoNumero),
-    undefined,
-    undefined,
-    undefined,
-    "number"
   );
 
   const createParametroContentItems = () => {
@@ -563,31 +578,24 @@ export default function Funciones() {
       ),
     ];
     switch (tipoParametro) {
-      case TiposParametro.VARIABLE.key:
-        return items.concat(variableTextFieldItem);
-      case TiposParametro.CARACTER.key:
-        return items.concat(caracterTextFieldItem);
       case TiposParametro.NUMERO.key:
         return items.concat(numeroTextFieldItem);
+      case TiposParametro.TEXTO.key:
+        return items.concat(caracterTextFieldItem);
+      case TiposParametro.VARIABLE.key:
+        return items.concat(variableTextFieldItem);
       default:
         return items;
     }
   };
 
   const updateContentItems = [
-    createTextFieldItem(4, "cod_funcion", "Código", codFuncion),
-    createCustomComponentItem(8, "autocompleteModulos", autocompleteModulos),
-    createCustomComponentItem(4, "selectRetorno", selectRetorno),
+    createTextFieldItem(3, "cod_funcion", "Código", codFuncion),
+    createCustomComponentItem(5, "autocompleteModulos", autocompleteModulos),
+    createCustomComponentItem(4, "selectPaquete", selectPaquete),
+    createCustomComponentItem(3, "selectRetorno", selectRetorno),
     createTextFieldItem(
-      6,
-      "nombre",
-      "Nombre",
-      nombre,
-      createDefaultSetter(setNombre)
-    ),
-    createCustomComponentItem(2, "checkboxEstado", checkboxEstado),
-    createTextFieldItem(
-      12,
+      7,
       "nombre_base_datos",
       "Nombre base de datos",
       nombreBD,
@@ -596,12 +604,20 @@ export default function Funciones() {
         setNombreBD(e.target.value);
       }
     ),
+    createCustomComponentItem(2, "checkboxEstado", checkboxEstado),
     createTextFieldItem(
       12,
-      "observaciones",
-      "Observaciones",
-      observaciones,
-      createDefaultSetter(setObservaciones),
+      "nombre",
+      "Nombre",
+      nombre,
+      createDefaultSetter(setNombre)
+    ),
+    createTextFieldItem(
+      12,
+      "descripcion",
+      "Descripción",
+      descripcion,
+      createDefaultSetter(setDescripcion),
       false,
       undefined,
       undefined,
@@ -623,12 +639,12 @@ export default function Funciones() {
       ),
     ];
     switch (tipoParametro) {
-      case TiposParametro.VARIABLE.key:
-        return items.concat(variableTextFieldItem);
-      case TiposParametro.CARACTER.key:
-        return items.concat(caracterTextFieldItem);
       case TiposParametro.NUMERO.key:
         return items.concat(numeroTextFieldItem);
+      case TiposParametro.TEXTO.key:
+        return items.concat(caracterTextFieldItem);
+      case TiposParametro.VARIABLE.key:
+        return items.concat(variableTextFieldItem);
       default:
         return items;
     }

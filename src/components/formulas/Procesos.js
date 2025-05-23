@@ -167,7 +167,7 @@ export default function Procesos() {
 
   const createContentItems = [
     createTextFieldItem(
-      6,
+      4,
       "cod_proceso",
       "Código",
       codProceso,
@@ -176,7 +176,7 @@ export default function Procesos() {
       "PROCE###"
     ),
     createTextFieldItem(
-      6,
+      8,
       "nombre",
       "Nombre",
       nombre,
@@ -185,9 +185,9 @@ export default function Procesos() {
   ];
 
   const updateContentItems = [
-    createTextFieldItem(6, "cod_proceso", "Código", codProceso),
+    createTextFieldItem(4, "cod_proceso", "Código", codProceso),
     createTextFieldItem(
-      6,
+      8,
       "nombre",
       "Nombre",
       nombre,

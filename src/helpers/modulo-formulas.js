@@ -1,4 +1,5 @@
 import { createTheme } from "@mui/material/styles";
+import { ColoresHex, Enum } from "../components/formulas/common/enum";
 
 export function formatearFechaHora(valor) {
   let fecha = new Date(valor);
@@ -30,6 +31,11 @@ export function formatearEstado(estado, terminacion = "o") {
   } catch (_) {
     return `Inactiv${terminacion}`;
   }
+}
+
+export function formatearColorHex(hex) {
+  const color = Enum.values(ColoresHex).find((color) => color.key === hex);
+  return color?.label ?? "N/A";
 }
 
 export function createMuiTheme() {

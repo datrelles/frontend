@@ -2,7 +2,10 @@ import { toast } from "react-toastify";
 import { useState, useEffect, useMemo } from "react";
 import { useAuthContext } from "../../context/authContext";
 import API from "../../services/modulo-formulas";
-import { formatearEstado } from "../../helpers/modulo-formulas";
+import {
+  formatearColorHex,
+  formatearEstado,
+} from "../../helpers/modulo-formulas";
 import Header from "./common/header";
 import BtnNuevo from "./common/btn-nuevo";
 import Tabla from "./common/tabla";
@@ -17,6 +20,8 @@ import {
 } from "./common/generators";
 import MainComponent from "./common/main-component";
 import CustomTooltip from "./common/custom-tooltip";
+import AutocompleteObject from "./common/autocomplete-objects";
+import { ColoresHex, DefaultColorHex, Enum } from "./common/enum";
 
 export default function Parametros() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
@@ -31,6 +36,7 @@ export default function Parametros() {
   const [openUpdate, setOpenUpdate] = useState(false);
   const [codParametro, setCodParametro] = useState("");
   const [nombre, setNombre] = useState("");
+  const [color, setColor] = useState(DefaultColorHex);
   const [descripcion, setDescripcion] = useState("");
   const [estado, setEstado] = useState(true);
 
@@ -48,6 +54,7 @@ export default function Parametros() {
       empresa: enterpriseShineray,
       cod_parametro: codParametro,
       nombre,
+      color: color.key,
       descripcion,
     })
       .then((res) => {
@@ -73,6 +80,7 @@ export default function Parametros() {
     e.preventDefault();
     APIService.updateParametro(codParametro, {
       nombre,
+      color: color.key,
       descripcion,
       estado,
     })
@@ -81,6 +89,7 @@ export default function Parametros() {
         setOpenUpdate(false);
         setCodParametro("");
         setNombre("");
+        setColor(DefaultColorHex);
         setDescripcion("");
         setEstado(true);
       })
@@ -111,6 +120,10 @@ export default function Parametros() {
     const row = parametros.find((item) => item.cod_parametro === rowData[0]);
     setCodParametro(row.cod_parametro);
     setNombre(row.nombre);
+    const color =
+      Enum.values(ColoresHex).find((item) => item.key === row.color) ??
+      DefaultColorHex;
+    setColor(color);
     setDescripcion(row.descripcion ?? "");
     setEstado(row.estado === 1);
     handleClickOpenUpdate();
@@ -146,6 +159,13 @@ export default function Parametros() {
       label: "Nombre",
     },
     {
+      name: "color",
+      label: "Color",
+      options: {
+        customBodyRender: (value) => formatearColorHex(value),
+      },
+    },
+    {
       name: "descripcion",
       label: "Descripción",
       options: {
@@ -171,9 +191,23 @@ export default function Parametros() {
     />
   );
 
+  const autocompleteColores = (
+    <AutocompleteObject
+      id="Colores"
+      value={color}
+      optionId="key"
+      shape={DefaultColorHex}
+      options={Enum.values(ColoresHex)}
+      optionLabel="label"
+      onChange={(e, value) => {
+        setColor(value ?? DefaultColorHex);
+      }}
+    />
+  );
+
   const createContentItems = [
     createTextFieldItem(
-      6,
+      4,
       "cod_parametro",
       "Código",
       codParametro,
@@ -182,12 +216,13 @@ export default function Parametros() {
       "PARAM###"
     ),
     createTextFieldItem(
-      6,
+      8,
       "nombre",
       "Nombre",
       nombre,
       createDefaultSetter(setNombre)
     ),
+    createCustomComponentItem(12, "color", autocompleteColores),
     createTextFieldItem(
       12,
       "descripcion",
@@ -203,14 +238,15 @@ export default function Parametros() {
   ];
 
   const updateContentItems = [
-    createTextFieldItem(6, "cod_parametro", "Código", codParametro),
+    createTextFieldItem(4, "cod_parametro", "Código", codParametro),
     createTextFieldItem(
-      6,
+      8,
       "nombre",
       "Nombre",
       nombre,
       createDefaultSetter(setNombre)
     ),
+    createCustomComponentItem(12, "color", autocompleteColores),
     createTextFieldItem(
       12,
       "descripcion",

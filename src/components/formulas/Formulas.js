@@ -78,7 +78,7 @@ export default function Formulas() {
   const [openUpdate, setOpenUpdate] = useState(false);
   const [codFormula, setCodFormula] = useState("");
   const [nombre, setNombre] = useState("");
-  const [observaciones, setObservaciones] = useState("");
+  const [descripcion, setDescripcion] = useState("");
   const [estado, setEstado] = useState(true);
   const [definicion, setDefinicion] = useState("");
   const [definicionActualizada, setDefinicionActualizada] = useState(false);
@@ -139,7 +139,7 @@ export default function Formulas() {
       empresa: enterpriseShineray,
       cod_formula: codFormula,
       nombre,
-      observaciones,
+      descripcion,
       definicion: definicionTrim,
     })
       .then((res) => {
@@ -147,7 +147,7 @@ export default function Formulas() {
         setOpenCreate(false);
         setCodFormula("");
         setNombre("");
-        setObservaciones("");
+        setDescripcion("");
         setEstado(true);
         setDefinicion("");
       })
@@ -161,7 +161,7 @@ export default function Formulas() {
     APIService.updateFormula(codFormula, {
       nombre,
       estado,
-      observaciones: observaciones,
+      descripcion: descripcion,
       definicion: definicionTrim,
     })
       .then((res) => {
@@ -208,7 +208,7 @@ export default function Formulas() {
     setNombre(row.nombre);
     setEstado(row.estado === 1);
     setDefinicion(row.definicion);
-    setObservaciones(row.observaciones ?? "");
+    setDescripcion(row.descripcion ?? "");
     handleClickOpenUpdate();
   };
 
@@ -216,7 +216,7 @@ export default function Formulas() {
     setOpenCreate(true);
     setCodFormula("");
     setNombre("");
-    setObservaciones("");
+    setDescripcion("");
     setEstado(true);
     setDefinicion("");
   };
@@ -357,8 +357,8 @@ export default function Formulas() {
       label: "Definición",
     },
     {
-      name: "observaciones",
-      label: "Observaciones",
+      name: "descripcion",
+      label: "Descripción",
       options: {
         customBodyRender: (value) => <CustomTooltip texto={value} />,
       },
@@ -431,10 +431,10 @@ export default function Formulas() {
     ),
     createTextFieldItem(
       12,
-      "observaciones",
-      "Observaciones",
-      observaciones,
-      createDefaultSetter(setObservaciones),
+      "descripcion",
+      "Descripción",
+      descripcion,
+      createDefaultSetter(setDescripcion),
       false,
       undefined,
       undefined,
@@ -469,10 +469,10 @@ export default function Formulas() {
     createCustomComponentItem(2, "checkboxEstado", checkboxEstado),
     createTextFieldItem(
       12,
-      "observaciones",
-      "Observaciones",
-      observaciones,
-      createDefaultSetter(setObservaciones),
+      "descripcion",
+      "Descripción",
+      descripcion,
+      createDefaultSetter(setDescripcion),
       false,
       undefined,
       undefined,

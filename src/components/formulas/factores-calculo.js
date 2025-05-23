@@ -46,7 +46,7 @@ export default function FactoresCalculo() {
   const [orden, setOrden] = useState(1);
   const [tipoFactor, setTipoFactor] = useState("Seleccione");
   const [parametroTipo, setParametroTipo] = useState(shapeParametroTipo);
-  const [valorFijo, setValorFijo] = useState("");
+  const [numero, setNumero] = useState("");
   const [operador, setOperador] = useState("");
 
   const getMenus = async () => {
@@ -91,15 +91,15 @@ export default function FactoresCalculo() {
     APIService.createFactor(codProceso, codParametro, {
       orden,
       tipo_factor: tipoFactor,
-      operador,
-      valor_fijo: valorFijo,
       cod_parametro_tipo: parametroTipo.cod_parametro,
+      numero: numero,
+      operador,
     })
       .then((res) => {
         toast.success(res);
         setTipoFactor("Seleccione");
         setOperador("Seleccione");
-        setValorFijo("");
+        setNumero("");
         setParametroTipo(shapeParametroTipo);
         getFactores();
       })
@@ -153,7 +153,7 @@ export default function FactoresCalculo() {
   const checkTipoOperador = (tipo) => {
     switch (tipo) {
       case TiposFactor.PARAMETRO.key:
-        setValorFijo("");
+        setNumero("");
         setOperador("Seleccione");
         break;
       case TiposFactor.VALOR.key:
@@ -162,10 +162,10 @@ export default function FactoresCalculo() {
         break;
       case TiposFactor.OPERADOR.key:
         setParametroTipo(shapeParametroTipo);
-        setValorFijo("");
+        setNumero("");
         break;
       default:
-        setValorFijo("");
+        setNumero("");
         setOperador("Seleccione");
         setParametroTipo(shapeParametroTipo);
         return;
@@ -207,19 +207,19 @@ export default function FactoresCalculo() {
           <></>
         )
       ),
-      item.valor_fijo
+      item.numero
         ? createTextFieldItem(
             2,
-            `valor_fijo_${item.orden}`,
-            "Valor fijo",
-            item.valor_fijo,
+            `numero_${item.orden}`,
+            "Número",
+            item.numero,
             undefined,
             undefined,
             undefined,
             undefined,
             "number"
           )
-        : createEmptyItem(2, `valor_fijo_${item.orden}`),
+        : createEmptyItem(2, `numero_${item.orden}`),
       item.cod_parametro_tipo
         ? createTextFieldItem(
             2,
@@ -279,10 +279,10 @@ export default function FactoresCalculo() {
     ),
     createTextFieldItem(
       2,
-      "n_f_valor_fijo",
-      "Valor fijo",
-      valorFijo,
-      createDefaultSetter(setValorFijo),
+      "n_f_numero",
+      "Número",
+      numero,
+      createDefaultSetter(setNumero),
       false,
       "",
       tipoFactor !== TiposFactor.VALOR.key,

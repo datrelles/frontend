@@ -26,6 +26,7 @@ import CustomSelectToolbar from "./common/custom-select-toolbar";
 import AutocompleteObject from "./common/autocomplete-objects";
 import BoxMasterDetail from "./common/box-master-detail";
 import { TiposSeleccionTabla } from "./common/enum";
+import CustomTooltip from "./common/custom-tooltip";
 
 const shapeFormula = {
   cod_formula: "",
@@ -77,7 +78,9 @@ export default function ParametrosProceso() {
 
   const getParametros = async () => {
     try {
-      setParametros(await APIService.getParametros());
+      setParametros(
+        (await APIService.getParametros()).filter((param) => param.estado)
+      );
     } catch (err) {
       toast.error(err.message);
     }
@@ -318,6 +321,12 @@ export default function ParametrosProceso() {
       label: "Nombre",
     },
     {
+      name: "descripcion",
+      options: {
+        display: "excluded",
+      },
+    },
+    {
       name: "orden_imprime",
       label: "Orden",
     },
@@ -347,10 +356,16 @@ export default function ParametrosProceso() {
     {
       name: "nombre",
       label: "Nombre",
+      options: {
+        customBodyRender: (value) => <CustomTooltip texto={value} />,
+      },
     },
     {
       name: "descripcion",
       label: "Descripción",
+      options: {
+        customBodyRender: (value) => <CustomTooltip texto={value} />,
+      },
     },
     {
       name: "estado",
@@ -381,7 +396,18 @@ export default function ParametrosProceso() {
   const updateContentItems = [
     createTextFieldItem(6, "cod_parametro", "Código", codParametro),
     createTextFieldItem(6, "nombre", "Nombre", nombreParametro),
-    createTextFieldItem(12, "descripcion", "Descripción", descripcionParametro),
+    createTextFieldItem(
+      12,
+      "descripcion",
+      "Descripción",
+      descripcionParametro,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      3
+    ),
     createTextFieldItem(
       12,
       "orden",
