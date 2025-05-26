@@ -2,10 +2,7 @@ import { toast } from "react-toastify";
 import { useState, useEffect, useMemo } from "react";
 import { useAuthContext } from "../../context/authContext";
 import API from "../../services/modulo-formulas";
-import {
-  formatearEstado,
-  formatearFechaHora,
-} from "../../helpers/modulo-formulas";
+import { formatearEstado } from "../../helpers/modulo-formulas";
 import Header from "./common/header";
 import Tabla from "./common/tabla";
 import BtnNuevo from "./common/btn-nuevo";
