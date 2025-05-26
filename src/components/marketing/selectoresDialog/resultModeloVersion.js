@@ -47,17 +47,27 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth={false} sx={{ '& .MuiDialog-paper': { width: '100vw' } }}>
             <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold' }}>RESUMEN DETALLADO DE COMPARACION</DialogTitle>
+            <Box
+                display="flex"
+                justifyContent="space-evenly"
+                mb={3}
+                sx={{
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 1000,
+                    backgroundColor: 'white',
+                    borderBottom: '1px solid lightgray'
+                }}
+            >
+                {[modeloBase, ...comparables].map((m, i) => (
+                    <Box key={i} textAlign="center">
+                        <Typography variant="subtitle2" fontWeight="bold">{m.nombre_modelo_comercial}</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>{m.nombre_marca}</Typography>
+                        <img src={encodeURI(m.path_imagen)} alt={m.nombre_modelo_comercial} style={{ width: 300, height: 'auto' }} />
+                    </Box>
+                ))}
+            </Box>
             <DialogContent dividers sx={{ maxHeight: '75vh' }}>
-                <Box display="flex" justifyContent="space-evenly" mb={3}>
-                    {[modeloBase, ...comparables].map((m, i) => (
-                        <Box key={i} textAlign="center">
-                            <Typography variant="subtitle2" fontWeight="bold">{m.nombre_modelo_comercial}</Typography>
-                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>{m.nombre_marca}</Typography>
-                            <img src={encodeURI(m.path_imagen)} alt={m.nombre_modelo_comercial} style={{ width: 300, height: 'auto' }} />
-                        </Box>
-                    ))}
-                </Box>
-
                 {Object.entries(categoriasAgrupadas).map(([categoria, campos]) => (
                     <Accordion key={categoria} defaultExpanded>
                         <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />} sx={{ backgroundColor: 'firebrick', color: 'white' }}>
@@ -78,7 +88,6 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                                                 </Typography>
                                             </Box>
                                         </TableCell>
-
                                         {comparables.map((m, i) => (
                                             <React.Fragment key={i}>
                                                 <TableCell>
@@ -94,7 +103,6 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                                                 <TableCell><strong>Comparativo</strong></TableCell>
                                             </React.Fragment>
                                         ))}
-
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -122,7 +130,6 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                                                             </Box>
                                                         )}
                                                     </TableCell>
-
                                                 </React.Fragment>
                                             ))}
                                         </TableRow>
