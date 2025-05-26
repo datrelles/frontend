@@ -33,9 +33,13 @@ export function formatearEstado(estado, terminacion = "o") {
   }
 }
 
-export function formatearColorHex(hex) {
+export function obtenerNombreColorHex(hex) {
   const color = Enum.values(ColoresHex).find((color) => color.key === hex);
   return color?.label ?? "N/A";
+}
+
+export function obtenerValorColorHex(hex) {
+  return `#${hex ?? "FFFFFF"}`;
 }
 
 export function createMuiTheme() {

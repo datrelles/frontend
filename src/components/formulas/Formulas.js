@@ -42,9 +42,15 @@ const itemsLeyenda = [
     "Operadores válidos",
     ColoresFondo.DANGER.key
   ),
+  createLegendItem("S (v1,cond,v2,v3,v4,v5)", "SI", ColoresFondo.DANGER.key),
   createLegendItem(
-    "S ( v1 , condición , v2 , v3 , v4 , v5 )",
-    "SI",
+    "SF (v1,cond,v2,v3,v4,v5)",
+    "SI FECHA",
+    ColoresFondo.DANGER.key
+  ),
+  createLegendItem(
+    "ST (v1,cond,v2,v3,v4)",
+    "SI TEXTO",
     ColoresFondo.DANGER.key
   ),
   createLegendItem(

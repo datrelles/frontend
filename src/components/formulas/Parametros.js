@@ -3,8 +3,9 @@ import { useState, useEffect, useMemo } from "react";
 import { useAuthContext } from "../../context/authContext";
 import API from "../../services/modulo-formulas";
 import {
-  formatearColorHex,
+  obtenerNombreColorHex,
   formatearEstado,
+  obtenerValorColorHex,
 } from "../../helpers/modulo-formulas";
 import Header from "./common/header";
 import BtnNuevo from "./common/btn-nuevo";
@@ -162,7 +163,14 @@ export default function Parametros() {
       name: "color",
       label: "Color",
       options: {
-        customBodyRender: (value) => formatearColorHex(value),
+        customBodyRender: (value) => {
+          const style = {
+            backgroundColor: obtenerValorColorHex(value),
+            padding: "8px",
+            borderRadius: "4px",
+          };
+          return <div style={style}>{obtenerNombreColorHex(value)}</div>;
+        },
       },
     },
     {
