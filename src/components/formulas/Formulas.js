@@ -310,8 +310,8 @@ export default function Formulas() {
                   formula.cod_formula.toLowerCase() !== codFormula.toLowerCase()
               )
               .map((formula) => ({
+                ...formula,
                 codigo: formula.cod_formula,
-                nombre: formula.nombre,
               }));
             break;
           default:
