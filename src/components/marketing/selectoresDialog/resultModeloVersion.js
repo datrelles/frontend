@@ -46,7 +46,7 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth={false} sx={{ '& .MuiDialog-paper': { width: '100vw' } }}>
-            <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold' }}>RESUMEN DETALLADO DE COMPARACION</DialogTitle>
+            <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold' }}>RESUMEN DETALLADO</DialogTitle>
             <Box
                 display="flex"
                 justifyContent="space-evenly"
