@@ -15,9 +15,11 @@ import {
   createCustomComponentItem,
   createCustomIconTooltip,
   createDefaultSetter,
+  createFunctionCustomBodyRender,
   createTableFeatures,
   createTableOptions,
   createTextFieldItem,
+  createTooltipCustomBodyRender,
 } from "./common/generators";
 import CustomGrid from "./common/custom-grid";
 import Check from "./common/check";
@@ -26,7 +28,6 @@ import CustomSelectToolbar from "./common/custom-select-toolbar";
 import AutocompleteObject from "./common/autocomplete-objects";
 import BoxMasterDetail from "./common/box-master-detail";
 import { TiposSeleccionTabla } from "./common/enum";
-import CustomTooltip from "./common/custom-tooltip";
 
 const shapeFormula = {
   cod_formula: "",
@@ -296,9 +297,7 @@ export default function ParametrosProceso() {
     {
       name: "estado",
       label: "Estado",
-      options: {
-        customBodyRender: (value) => formatearEstado(value),
-      },
+      options: createFunctionCustomBodyRender(formatearEstado),
     },
   ];
 
@@ -333,9 +332,7 @@ export default function ParametrosProceso() {
     {
       name: "estado",
       label: "Estado",
-      options: {
-        customBodyRender: (value) => formatearEstado(value),
-      },
+      options: createFunctionCustomBodyRender(formatearEstado),
     },
   ];
 
@@ -356,23 +353,17 @@ export default function ParametrosProceso() {
     {
       name: "nombre",
       label: "Nombre",
-      options: {
-        customBodyRender: (value) => <CustomTooltip texto={value} />,
-      },
+      options: createTooltipCustomBodyRender(),
     },
     {
       name: "descripcion",
       label: "Descripción",
-      options: {
-        customBodyRender: (value) => <CustomTooltip texto={value} />,
-      },
+      options: createTooltipCustomBodyRender(),
     },
     {
       name: "estado",
       label: "Estado",
-      options: {
-        customBodyRender: (value) => formatearEstado(value),
-      },
+      options: createFunctionCustomBodyRender(formatearEstado),
     },
   ];
 

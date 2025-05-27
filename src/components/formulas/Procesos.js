@@ -13,6 +13,7 @@ import CustomDialog from "./common/custom-dialog";
 import {
   createCustomComponentItem,
   createDefaultSetter,
+  createFunctionCustomBodyRender,
   createTableOptions,
   createTextFieldItem,
 } from "./common/generators";
@@ -142,16 +143,12 @@ export default function Procesos() {
     {
       name: "estado",
       label: "Estado",
-      options: {
-        customBodyRender: (value) => formatearEstado(value),
-      },
+      options: createFunctionCustomBodyRender(formatearEstado),
     },
     {
       name: "audit_fecha_ing",
       label: "Fecha creación",
-      options: {
-        customBodyRender: (value) => formatearFechaHora(value),
-      },
+      options: createFunctionCustomBodyRender(formatearFechaHora),
     },
   ];
 

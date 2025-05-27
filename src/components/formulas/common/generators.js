@@ -1,3 +1,4 @@
+import CustomTooltip from "./custom-tooltip";
 import { ColoresFondo, TiposSeleccionTabla } from "./enum";
 
 export function createEmptyItem(xs, id) {
@@ -152,3 +153,11 @@ export function createLegendItem(
     color,
   };
 }
+
+export const createFunctionCustomBodyRender = (fn, ...args) => ({
+  customBodyRender: (value) => fn(value, ...args),
+});
+
+export const createTooltipCustomBodyRender = () => ({
+  customBodyRender: (value) => <CustomTooltip texto={value} />,
+});

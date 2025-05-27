@@ -12,6 +12,10 @@ export class Enum {
   static values(obj) {
     return Object.values(obj).filter((item) => item instanceof Enum);
   }
+
+  static getLabel(obj, key) {
+    return this.values(obj).find((item) => item.key === key)?.label ?? "N/A";
+  }
 }
 
 export const TiposFactor = {

@@ -16,8 +16,10 @@ import CustomGrid from "./common/custom-grid";
 import {
   createCustomComponentItem,
   createDefaultSetter,
+  createFunctionCustomBodyRender,
   createTableOptions,
   createTextFieldItem,
+  createTooltipCustomBodyRender,
 } from "./common/generators";
 import MainComponent from "./common/main-component";
 import CustomTooltip from "./common/custom-tooltip";
@@ -176,16 +178,12 @@ export default function Parametros() {
     {
       name: "descripcion",
       label: "Descripción",
-      options: {
-        customBodyRender: (value) => <CustomTooltip texto={value} />,
-      },
+      options: createTooltipCustomBodyRender(),
     },
     {
       name: "estado",
       label: "Estado",
-      options: {
-        customBodyRender: (value) => formatearEstado(value),
-      },
+      options: createFunctionCustomBodyRender(formatearEstado),
     },
   ];
 

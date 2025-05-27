@@ -1,5 +1,9 @@
 import { createTheme } from "@mui/material/styles";
-import { ColoresHex, Enum } from "../components/formulas/common/enum";
+import {
+  ColoresHex,
+  Enum,
+  TiposRetorno,
+} from "../components/formulas/common/enum";
 
 export function formatearFechaHora(valor) {
   let fecha = new Date(valor);
@@ -32,6 +36,8 @@ export function formatearEstado(estado, terminacion = "o") {
     return `Inactiv${terminacion}`;
   }
 }
+export const obtenerNombreTipoRetorno = (retorno) =>
+  Enum.getLabel(TiposRetorno, retorno);
 
 export function obtenerNombreColorHex(hex) {
   const color = Enum.values(ColoresHex).find((color) => color.key === hex);

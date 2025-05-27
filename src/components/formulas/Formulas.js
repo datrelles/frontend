@@ -11,9 +11,11 @@ import {
   createCustomComponentItem,
   createDefaultSetter,
   createEmptyItem,
+  createFunctionCustomBodyRender,
   createLegendItem,
   createTableOptions,
   createTextFieldItem,
+  createTooltipCustomBodyRender,
 } from "./common/generators";
 import CustomGrid from "./common/custom-grid";
 import Check from "./common/check";
@@ -351,9 +353,7 @@ export default function Formulas() {
     {
       name: "nombre",
       label: "Nombre",
-      options: {
-        customBodyRender: (value) => <CustomTooltip texto={value} />,
-      },
+      options: createTooltipCustomBodyRender(),
     },
     {
       name: "definicion",
@@ -362,16 +362,12 @@ export default function Formulas() {
     {
       name: "descripcion",
       label: "Descripción",
-      options: {
-        customBodyRender: (value) => <CustomTooltip texto={value} />,
-      },
+      options: createTooltipCustomBodyRender(),
     },
     {
       name: "estado",
       label: "Estado",
-      options: {
-        customBodyRender: (value) => formatearEstado(value, "a"),
-      },
+      options: createFunctionCustomBodyRender(formatearEstado, "a"),
     },
   ];
 

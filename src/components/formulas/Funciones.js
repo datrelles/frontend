@@ -5,6 +5,7 @@ import API from "../../services/modulo-formulas";
 import {
   formatearEstado,
   formatearFechaHora,
+  obtenerNombreTipoRetorno,
 } from "../../helpers/modulo-formulas";
 import Header from "./common/header";
 import Tabla from "./common/tabla";
@@ -17,8 +18,10 @@ import Check from "./common/check";
 import {
   createCustomComponentItem,
   createDefaultSetter,
+  createFunctionCustomBodyRender,
   createTableOptions,
   createTextFieldItem,
+  createTooltipCustomBodyRender,
 } from "./common/generators";
 import MainComponent from "./common/main-component";
 import {
@@ -30,7 +33,6 @@ import {
   TiposRetorno,
 } from "./common/enum";
 import BoxCenter from "./common/box-center";
-import CustomTooltip from "./common/custom-tooltip";
 
 const shapeModulo = {
   cod_sistema: "",
@@ -362,23 +364,22 @@ export default function Funciones() {
     {
       name: "nombre_base_datos",
       label: "Nombre BD",
-      options: { customBodyRender: (value) => <CustomTooltip texto={value} /> },
+      options: createTooltipCustomBodyRender(),
     },
     {
       name: "descripcion",
       label: "Descripción",
-      options: { customBodyRender: (value) => <CustomTooltip texto={value} /> },
+      options: createTooltipCustomBodyRender(),
     },
     {
       name: "tipo_retorno",
       label: "Retorno",
+      options: createFunctionCustomBodyRender(obtenerNombreTipoRetorno),
     },
     {
       name: "estado",
       label: "Estado",
-      options: {
-        customBodyRender: (value) => formatearEstado(value, "a"),
-      },
+      options: createFunctionCustomBodyRender(formatearEstado, "a"),
     },
   ];
 
@@ -419,9 +420,7 @@ export default function Funciones() {
     {
       name: "audit_fecha_ing",
       label: "Fecha creación",
-      options: {
-        customBodyRender: (value) => formatearFechaHora(value),
-      },
+      options: createFunctionCustomBodyRender(formatearFechaHora),
     },
   ];
 
