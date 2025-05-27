@@ -2,7 +2,10 @@ import { toast } from "react-toastify";
 import { useState, useEffect, useMemo } from "react";
 import { useAuthContext } from "../../context/authContext";
 import API from "../../services/modulo-formulas";
-import { formatearEstado } from "../../helpers/modulo-formulas";
+import {
+  formatearEstado,
+  obtenerNombreTipoRetorno,
+} from "../../helpers/modulo-formulas";
 import Header from "./common/header";
 import Tabla from "./common/tabla";
 import BtnNuevo from "./common/btn-nuevo";
@@ -23,8 +26,14 @@ import MainComponent from "./common/main-component";
 import BoxCenter from "./common/box-center";
 import AutocompleteObject from "./common/autocomplete-objects";
 import Legend from "./common/legend";
-import { CaracteresFormula, ColoresFondo, Enum } from "./common/enum";
-import CustomTooltip from "./common/custom-tooltip";
+import {
+  CaracteresFormula,
+  ColoresFondo,
+  DefaultTipoRetorno,
+  Enum,
+  TiposRetorno,
+} from "./common/enum";
+import CustomSelect from "./common/custom-select";
 
 const shapeSugerencia = {
   codigo: "",
@@ -83,6 +92,7 @@ export default function Formulas() {
   const [openUpdate, setOpenUpdate] = useState(false);
   const [codFormula, setCodFormula] = useState("");
   const [nombre, setNombre] = useState("");
+  const [retorno, setRetorno] = useState(DefaultTipoRetorno);
   const [descripcion, setDescripcion] = useState("");
   const [estado, setEstado] = useState(true);
   const [definicion, setDefinicion] = useState("");
@@ -144,6 +154,7 @@ export default function Formulas() {
       empresa: enterpriseShineray,
       cod_formula: codFormula,
       nombre,
+      tipo_retorno: retorno,
       descripcion,
       definicion: definicionTrim,
     })
@@ -165,6 +176,7 @@ export default function Formulas() {
     setDefinicion(definicionTrim);
     APIService.updateFormula(codFormula, {
       nombre,
+      tipo_retorno: retorno,
       estado,
       descripcion: descripcion,
       definicion: definicionTrim,
@@ -211,6 +223,7 @@ export default function Formulas() {
     const row = formulas.find((item) => item.cod_formula === rowData[0]);
     setCodFormula(row.cod_formula);
     setNombre(row.nombre);
+    setRetorno(row.tipo_retorno);
     setEstado(row.estado === 1);
     setDefinicion(row.definicion);
     setDescripcion(row.descripcion ?? "");
@@ -221,6 +234,7 @@ export default function Formulas() {
     setOpenCreate(true);
     setCodFormula("");
     setNombre("");
+    setRetorno(DefaultTipoRetorno);
     setDescripcion("");
     setEstado(true);
     setDefinicion("");
@@ -356,6 +370,11 @@ export default function Formulas() {
       options: createTooltipCustomBodyRender(),
     },
     {
+      name: "tipo_retorno",
+      label: "Retorno",
+      options: createFunctionCustomBodyRender(obtenerNombreTipoRetorno),
+    },
+    {
       name: "definicion",
       label: "Definición",
     },
@@ -378,6 +397,15 @@ export default function Formulas() {
       label="Activa"
       checked={estado}
       onChange={createDefaultSetter(setEstado, true)}
+    />
+  );
+
+  const selectRetorno = (
+    <CustomSelect
+      label="Tipo retorno"
+      options={TiposRetorno}
+      value={retorno}
+      onChange={createDefaultSetter(setRetorno)}
     />
   );
 
@@ -413,7 +441,7 @@ export default function Formulas() {
 
   const createContentItems = [
     createTextFieldItem(
-      6,
+      3,
       "cod_formula",
       "Código",
       codFormula,
@@ -428,6 +456,7 @@ export default function Formulas() {
       nombre,
       createDefaultSetter(setNombre)
     ),
+    createCustomComponentItem(3, "retorno", selectRetorno),
     createTextFieldItem(
       12,
       "descripcion",
@@ -466,6 +495,7 @@ export default function Formulas() {
       createDefaultSetter(setNombre)
     ),
     createCustomComponentItem(2, "checkboxEstado", checkboxEstado),
+    createCustomComponentItem(12, "retorno", selectRetorno),
     createTextFieldItem(
       12,
       "descripcion",
