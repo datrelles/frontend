@@ -237,7 +237,7 @@ function CompararModelos()  {
                             <Grid item xs={2.5}>
                                 <Autocomplete
                                     options={modelos}
-                                    getOptionLabel={(option) => option.nombre_modelo_version}
+                                    getOptionLabel={(option) => option.nombre_modelo_comercial}
                                     value={modelos.find(m => m.codigo_modelo_version === modeloBase) || null}
                                     onChange={(e, v) => setModeloBase(v ? v.codigo_modelo_version : null)}
                                     renderInput={(params) => <TextField {...params} label="Modelo Base" />}

@@ -43,6 +43,8 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
             }
         }
     }
+    const MAX_COMPARABLES = 4;
+    const placeholdersCount = MAX_COMPARABLES - comparables.length;
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth={false} sx={{ '& .MuiDialog-paper': { width: '100vw' } }}>
@@ -79,7 +81,7 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                                     <TableRow>
                                         <TableCell sx={{ fontWeight: 'bold' }} >CAMPO</TableCell>
                                         <TableCell>
-                                            <Box textAlign="center">
+                                            <Box >
                                                 <Typography fontWeight="bold">
                                                     {modeloBase.nombre_modelo_comercial}
                                                 </Typography>
@@ -91,16 +93,18 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                                         {comparables.map((m, i) => (
                                             <React.Fragment key={i}>
                                                 <TableCell>
-                                                    <Box textAlign="center">
-                                                        <Typography fontWeight="bold">
-                                                            {m.nombre_modelo_comercial}
-                                                        </Typography>
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            {m.nombre_marca}
-                                                        </Typography>
+                                                    <Box >
+                                                        <Typography fontWeight="bold">{m.nombre_modelo_comercial}</Typography>
+                                                        <Typography variant="body2" color="text.secondary">{m.nombre_marca}</Typography>
                                                     </Box>
                                                 </TableCell>
                                                 <TableCell><strong>Comparativo</strong></TableCell>
+                                            </React.Fragment>
+                                        ))}
+                                        {[...Array(placeholdersCount)].map((_, i) => (
+                                            <React.Fragment key={`ph-head-${i}`}>
+                                                <TableCell />
+                                                <TableCell />
                                             </React.Fragment>
                                         ))}
                                     </TableRow>
@@ -113,23 +117,29 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                                             {data.comparables.map((comp, j) => (
                                                 <React.Fragment key={j}>
                                                     <TableCell>{comp.valor} {getUnidadCampo(campo)}</TableCell>
-                                                    <TableCell align="center">
+                                                    <TableCell>
                                                         {comp.estado === 'mejor' ? (
                                                             <ThumbUpIcon sx={{ color: '#2e7d32' }} />
                                                         ) : comp.estado === 'peor' ? (
                                                             <ThumbDownIcon sx={{ color: '#d32f2f' }} />
                                                         ) : comp.estado === 'diferente' ? (
-                                                            <Box display="flex" justifyContent="center" alignItems="center" gap={0.5}>
+                                                            <Box display="flex"   gap={0.5}>
                                                                 <ThumbUpIcon sx={{ color: '#b300ac', fontSize: 20 }} />
                                                                 <ThumbDownIcon sx={{ color: '#b300ac', fontSize: 20 }} />
                                                             </Box>
                                                         ) : (
-                                                            <Box display="flex" justifyContent="center" alignItems="center" gap={0.5}>
+                                                            <Box display="flex"   gap={0.5}>
                                                                 <ThumbUpIcon sx={{ color: '#ff9800', fontSize: 20 }} />
                                                                 <ThumbUpIcon sx={{ color: '#ff9800', fontSize: 20 }} />
                                                             </Box>
                                                         )}
                                                     </TableCell>
+                                                </React.Fragment>
+                                            ))}
+                                            {[...Array(placeholdersCount)].map((_, i) => (
+                                                <React.Fragment key={`ph-body-${i}`}>
+                                                    <TableCell />
+                                                    <TableCell />
                                                 </React.Fragment>
                                             ))}
                                         </TableRow>
