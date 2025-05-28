@@ -1,74 +1,64 @@
 import React, { useEffect, useState } from 'react';
 import {
-    Box, Button, Grid, MenuItem, Select, Typography, Table, TableHead,
-    TableRow, TableCell, TableBody, ButtonGroup, Dialog, DialogTitle,
-    DialogContent, DialogActions, Checkbox
+    Box, Button, Grid, MenuItem, Select, Typography, Table,
+    TableHead, TableRow, TableCell, TableBody, DialogTitle, DialogContent, DialogActions, Dialog
 } from '@mui/material';
 import { useAuthContext } from "../../../context/authContext";
-import { toast } from "react-toastify";
-import { enqueueSnackbar } from "notistack";
-import LoadingCircle from "../../contabilidad/loader";
+import {enqueueSnackbar, SnackbarProvider} from "notistack";
+import {useNavigate} from "react-router-dom";
+import {toast} from "react-toastify";
 import Navbar0 from "../../Navbar0";
-import { useNavigate } from "react-router-dom";
-import DialogResumenComparacion from "../selectoresDialog/resultModeloVersion";
+import LoadingCircle from "../../contabilidad/loader";
+import ButtonGroup from "@mui/material/ButtonGroup";
 
 const API = process.env.REACT_APP_API;
 
-const CompararModelosRepuestos = () => {
-    const [modeloBase, setModeloBase] = useState('');
-    const [comparables, setComparables] = useState([]);
-    const [resultado, setResultado] = useState(null);
-    const [modelos, setModelos] = useState([]);
+function BenchRepuestosCompatibles () {
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const [menus, setMenus] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [dialogOpen, setDialogOpen] = useState(false);
+    const [loading] = useState(false);
     const navigate = useNavigate();
-    const [openResumenDialog, setOpenResumenDialog] = useState(false);
-    const [lineas, setLineas] = useState([]);
-    const [lineaSeleccionada, setLineaSeleccionada] = useState('');
+    const [codProducto, setCodProducto] = useState('');
+    const [productos, setProductos] = useState([]);
+    const [compatibles, setCompatibles] = useState([]);
+    const [selectedImagen, setSelectedImagen] = useState(null);
+    const [imagenModal, setImagenModal] = useState(null);
+    const [openModalImagen, setOpenModalImagen] = useState(false);
 
-
-
-    const toggleResumenDialog = () => setOpenResumenDialog(prev => !prev);
-
-    const handleComparar = async () => {
-        setLoading(true);
-        try {
-            const res = await fetch(`${API}/bench_model/comparar_modelos`, {
-                method: 'POST',
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + jwt
-                },
-                body: JSON.stringify({
-                    modelo_base: parseInt(modeloBase),
-                    comparables: comparables.map(Number)
-                })
-            });
-
-            const data = await res.json();
-            setResultado(data);
-        } catch (error) {
-            enqueueSnackbar("Error al comparar modelos", { variant: "error" });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchModeloVersion = async () => {
+    const fetchProductos = async () => {
         try {
             const res = await fetch(`${API}/bench/get_modelo_version`, {
                 headers: { "Authorization": "Bearer " + jwt }
             });
             const data = await res.json();
             if (res.ok) {
-                setModelos(data);
+                const productosUnicos = Array.from(
+                    new Map(data.map(p => [p.nombre_producto, p])).values()
+                );
+                setProductos(productosUnicos);
             } else {
-                enqueueSnackbar(data.error || "Error al obtener modelos", { variant: "error" });
+                enqueueSnackbar("Error al obtener repuestos", { variant: "error" });
             }
-        } catch (error) {
+        } catch (e) {
             enqueueSnackbar("Error de conexión", { variant: "error" });
+        }
+    };
+
+    const buscarCompatibles = async () => {
+        if (!codProducto) return;
+
+        try {
+            const res = await fetch(`${API}/bench_rep/repuesto_compatibilidad?cod_producto=${codProducto}&empresa=${enterpriseShineray}`, {
+                headers: { "Authorization": "Bearer " + jwt }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setCompatibles(data);
+            } else {
+                enqueueSnackbar(data.error || "Error en consulta", { variant: "error" });
+            }
+        } catch (e) {
+            enqueueSnackbar("Error en servidor", { variant: "error" });
         }
     };
 
@@ -89,49 +79,38 @@ const CompararModelosRepuestos = () => {
         }
     };
 
-    const handleLineaChange = async (e) => {
-        const codigo = e.target.value;
-        setLineaSeleccionada(codigo);
-        setModeloBase('');
-        setComparables([]);
-
-        const res = await fetch(`${API}/bench_model/get_modelos_por_linea/${codigo}`, {
-            headers: { Authorization: "Bearer " + jwt }
-        });
-        const data = await res.json();
-        setModelos(data);
-    };
-
-    const fetchLineas = async () => {
+    const fetchImagenData = async () => {
         try {
-            const res = await fetch(`${API}/bench/get_lineas`, {
-                headers: { "Authorization": "Bearer " + jwt }
+            const res = await fetch(`${API}/bench/get_imagenes`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + jwt
+                }
             });
             const data = await res.json();
-            setLineas(Array.isArray(data) ? data : []);
-        } catch (err) {
-            enqueueSnackbar('Error cargando datos', { variant: 'error' });
+            if (res.ok) {
+                setImagenModal(data);
+            } else {
+                enqueueSnackbar(data.error || "Error al obtener imágenes", { variant: "error" });
+            }
+        } catch (error) {
+            enqueueSnackbar("Error de conexión", { variant: "error" });
         }
     };
 
     useEffect(() => {
-        getMenus();
-        fetchModeloVersion();
-        handleLineaChange();
-        fetchLineas()
+        const cargarDatos = async () => {
+            try {
+                await getMenus();
+                await fetchProductos();
+                await fetchImagenData();
+            } catch (err) {
+                console.error("Error cargando datos iniciales .!:", err);
+            }
+        };
+        cargarDatos();
     }, []);
-
-    const handleDialogToggle = () => setDialogOpen(!dialogOpen);
-
-    const handleToggleComparable = (id) => {
-        if (comparables.includes(id)) {
-            setComparables(prev => prev.filter(val => val !== id));
-        } else if (comparables.length < 3) {
-            setComparables(prev => [...prev, id]);
-        } else {
-            enqueueSnackbar("Solo puedes seleccionar hasta 3 modelos", { variant: "warning" });
-        }
-    };
 
     return (
         <>
@@ -145,178 +124,121 @@ const CompararModelosRepuestos = () => {
                         </ButtonGroup>
                     </Box>
                     <Box padding={4}>
-                        <Typography variant="h4" textAlign= "center">Comparar Modelos Versión</Typography>
-                        <Grid container spacing={2} >
-                            <Grid item xs={3} >
-                                <Typography variant="subtitle1">Línea</Typography>
+                        <Typography variant="h5" textAlign="center" gutterBottom>
+                            Modelos compatibles con el repuesto seleccionado
+                        </Typography>
+                        <Grid container spacing={2}>
+                            <Grid item xs={6}>
+                                <Typography>Seleccionar repuesto</Typography>
                                 <Select
                                     fullWidth
-                                    value={lineaSeleccionada}
-                                    onChange={handleLineaChange}
-                                >
-                                    {lineas.map(linea => (
-                                        <MenuItem key={linea.codigo_linea} value={linea.codigo_linea}>
-                                            {linea.nombre_linea}
+                                    value={codProducto}
+                                    onChange={(e) => setCodProducto(e.target.value)}
+                                 variant="outlined">
+                                    {productos.map(p => (
+                                        <MenuItem key={p.cod_producto} value={p.cod_producto}>
+                                            {p.nombre_producto}
                                         </MenuItem>
                                     ))}
                                 </Select>
                             </Grid>
-                            <Grid item xs={3}>
-                                <Typography variant="subtitle1">Modelo Base</Typography>
-                                <Select
-                                    fullWidth
-                                    value={modeloBase}
-                                    onChange={(e) => setModeloBase(e.target.value)}
+                            <Grid item xs={6} display="flex" alignItems="flex-end">
+                                <Button
+                                    variant="contained"
+                                    onClick={buscarCompatibles}
+                                    sx={{ backgroundColor: 'firebrick', color: '#fff' }}
                                 >
-                                    {modelos.map(m => (
-                                        <MenuItem key={m.codigo_modelo_version} value={m.codigo_modelo_version}>
-                                            {m.nombre_modelo_version}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </Grid>
-                            <Grid item xs={5} sx={{alignItems: 'center' }}>
-                                <Typography variant="subtitle1">Comparables (hasta 3)</Typography>
-                                <Button variant="outlined" fullWidth onClick={handleDialogToggle}>
-                                    {comparables.length > 0
-                                        ? comparables.map(id => modelos.find(m => m.codigo_modelo_version === id)?.nombre_modelo_version).join(', ')
-                                        : "Seleccionar comparables"}
+                                    Buscar modelos compatibles
                                 </Button>
                             </Grid>
                         </Grid>
-                        <Box mt={2} display="flex" gap={2}>
-                            <Button variant="contained" color="primary" onClick={handleComparar} sx={{
-                                backgroundColor: 'firebrick',
-                                color: '#fff',
-                                fontSize: '12px',
-                                '&:hover': {
-                                    backgroundColor: '#b22222'
-                                }}} >Comparar
-                            </Button>
-                            {resultado?.comparables?.length > 0 && (
-                                <Button variant="outlined" onClick={toggleResumenDialog} sx={{
-                                    backgroundColor: 'firebrick',
-                                    color: '#fff',
-                                    fontSize: '12px',
-                                    '&:hover': {
-                                        backgroundColor: '#b22222'
-                                    }}}>Ver resultados de comparación
-                                </Button>
-                            )}
-                            <Button
-                                variant="outlined"
-                                onClick={() => {
-                                    setModeloBase('');
-                                    setComparables([]);
-                                    setResultado(null);
-                                    setLineas([])
-                                }}
-                                sx={{
-                                    backgroundColor: 'firebrick',
-                                    color: '#fff',
-                                    fontSize: '12px',
-                                    '&:hover': {
-                                        backgroundColor: '#b22222'
-                                    }
-                                }}>Limpiar todo
-                            </Button>
-                        </Box>
-                        <Dialog open={dialogOpen} onClose={handleDialogToggle} fullWidth maxWidth="md">
-                            <DialogTitle>Seleccionar modelos comparables (máx. 3)</DialogTitle>
-                            <DialogContent>
-                                <Table>
+                        {compatibles.length > 0 && (
+                            <Box mt={4}>                                
+                                <Table size="small"
+                                       sx={{
+                                           mt: 2,
+                                           borderCollapse: 'collapse',
+                                           width: '100%',
+                                           '& td, & th': {
+                                               border: '1px solid #ddd',
+                                               padding: '2px',
+                                               fontSize: '13px',
+                                               texAlign: 'center'
+                                           },
+                                           '& th': {
+                                               backgroundColor: 'firebrick',
+                                               color: 'white',
+                                               fontSize: '12px',
+                                               textAlign: 'center'
+                                           },
+                                       }}>
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell />
-                                            <TableCell>Modelo</TableCell>
-                                            <TableCell>Modelo Comercial</TableCell>
-                                            <TableCell>Motor</TableCell>
-                                            <TableCell>Año</TableCell>
-                                            <TableCell>Precio</TableCell>
+                                            <TableCell colSpan={7}>Modelos compatibles</TableCell>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableCell >Modelo Comercial</TableCell>
+                                            <TableCell >Empresa</TableCell>
+                                            <TableCell >Versión</TableCell>
+                                            <TableCell >Marca</TableCell>
+                                            <TableCell >Línea</TableCell>
+                                            <TableCell >Segmento</TableCell>
+                                            <TableCell >Imagen Referencial</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {modelos.map((m) => (
-                                            <TableRow key={m.codigo_modelo_version}>
-                                                <TableCell>
-                                                    <Checkbox
-                                                        checked={comparables.includes(m.codigo_modelo_version)}
-                                                        onChange={() => handleToggleComparable(m.codigo_modelo_version)}
-                                                        disabled={
-                                                            !comparables.includes(m.codigo_modelo_version) &&
-                                                            comparables.length >= 3
-                                                        }
-                                                    />
+                                        {compatibles.map((item, idx) => (
+                                            <TableRow key={idx}>
+                                                <TableCell>{item.nombre_modelo_comercial}</TableCell>
+                                                <TableCell>{item.nombre_empresa}</TableCell>
+                                                <TableCell>{item.nombre_version}</TableCell>
+                                                <TableCell>{item.nombre_marca}</TableCell>
+                                                <TableCell>{item.nombre_linea}</TableCell>
+                                                <TableCell>{item.nombre_segmento}</TableCell>
+                                                <TableCell sx={{ textAlign: 'center' }}>
+                                                    <Button
+                                                        variant="outlined"
+                                                        size="small"
+                                                        onClick={() => {
+                                                            setSelectedImagen(item.path_imagen);
+                                                            setOpenModalImagen(true);
+                                                        }}>Ver Imágen
+                                                    </Button>
                                                 </TableCell>
-                                                <TableCell>{m.nombre_modelo_version}</TableCell>
-                                                <TableCell>{m.nombre_modelo_comercial}</TableCell>
-                                                <TableCell>{m.nombre_motor}</TableCell>
-                                                <TableCell>{m.anio_modelo_version}</TableCell>
-                                                <TableCell>{m.precio_producto_modelo}</TableCell>
                                             </TableRow>
                                         ))}
-                                    </TableBody>
-                                </Table>
-                            </DialogContent>
-                            <DialogActions sx={{ justifyContent: 'space-between' }}>
-                                <Button onClick={() => setComparables([])} sx={{
-                                    backgroundColor: 'firebrick',
-                                    color: '#fff',
-                                    fontSize: '12px',
-                                    '&:hover': {
-                                        backgroundColor: '#b22222'
-                                    }}}>Limpiar selección
-                                </Button>
-                                <Button onClick={handleDialogToggle} sx={{
-                                    backgroundColor: 'firebrick',
-                                    color: '#fff',
-                                    fontSize: '12px',
-                                    '&:hover': {
-                                        backgroundColor: '#b22222'
-                                    }}}>Cerrar
-                                </Button>
-                            </DialogActions>
-                        </Dialog>
-                        <DialogResumenComparacion
-                            open={openResumenDialog}
-                            onClose={toggleResumenDialog}
-                            resultado={resultado}
-                            modelos={modelos}
-                        />
-                        {resultado?.comparables?.length > 0 && (
-                            <Box mt={4} mb={2}>
-                                <Typography variant="h6" textAlign="center"> Resumen por modelo:</Typography>
-                                <Table size="small" sx={{ mt: 1 }}>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell><strong>Modelo externo</strong></TableCell>
-                                            <TableCell><strong>Campos en los que mejora</strong></TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {resultado.comparables.map((item, idx) => {
-                                            const modelo = modelos.find(m => m.codigo_modelo_version === item.modelo_version);
-                                            const mejoras = Object.entries(item.mejor_en)
-                                                .flatMap(([detalles]) =>
-                                                    detalles.filter(d => d.estado === 'mejor').map(d => d.campo)
-                                                );
-                                            return (
-                                                <TableRow key={idx}>
-                                                    <TableCell>{modelo?.nombre_modelo_version || `Modelo ${item.modelo_version}`}</TableCell>
-
-                                                    <TableCell>{mejoras.join(', ')}</TableCell>
-                                                </TableRow>
-                                            );
-                                        })}
                                     </TableBody>
                                 </Table>
                             </Box>
                         )}
                     </Box>
+                    <Dialog open={openModalImagen} onClose={() => setOpenModalImagen(false)} maxWidth="md" fullWidth>
+                        <DialogTitle>Vista de Imagen</DialogTitle>
+                        <DialogContent>
+                            <img
+                                src={selectedImagen}
+                                title="Vista previa imagen"
+                                style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain' }}
+                                alt="Vista previa imagen"
+                            />
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={() => setOpenModalImagen(false)} color="primary">
+                                Cerrar
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
                 </div>
             )}
         </>
     );
-};
+}
 
-export default CompararModelosRepuestos;
+export default function  IntegrationNotistack() {
+    return (
+        <SnackbarProvider maxSnack={3}>
+            <BenchRepuestosCompatibles />
+        </SnackbarProvider>
+    );
+}
+

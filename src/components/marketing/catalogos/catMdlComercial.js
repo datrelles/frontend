@@ -1,7 +1,3 @@
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import React, { useState, useEffect } from "react";
-import Navbar0 from "../../Navbar0";
 import MUIDataTable from "mui-datatables";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
@@ -10,6 +6,10 @@ import {Autocomplete, IconButton, TextField} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import React, { useState, useEffect } from "react";
+import Navbar0 from "../../Navbar0";
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import { useAuthContext } from "../../../context/authContext";
 import EditIcon from '@mui/icons-material/Edit';
@@ -457,7 +457,7 @@ function CatModeloComercial() {
                                     labelId="estado-modelo-label"
                                     value={estadoModelo}
                                     onChange={(e) => setEstadoModelo(e.target.value.toUpperCase())}
-                                >
+                                 variant="outlined">
                                     <MenuItem value="ACTIVO">ACTIVO</MenuItem>
                                     <MenuItem value="INACTIVO">INACTIVO</MenuItem>
                                 </Select>

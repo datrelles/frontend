@@ -24,18 +24,18 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
         return { ...modelo, detalles: c.mejor_en };
     });
 
-    const categoriasAgrupadas = {};
+    const categoriesAgrupadas = {};
     for (const comparable of comparables) {
         for (const [categoria, campos] of Object.entries(comparable.detalles)) {
-            if (!categoriasAgrupadas[categoria]) categoriasAgrupadas[categoria] = {};
+            if (!categoriesAgrupadas[categoria]) categoriesAgrupadas[categoria] = {};
             for (const campo of campos) {
-                if (!categoriasAgrupadas[categoria][campo.campo]) {
-                    categoriasAgrupadas[categoria][campo.campo] = {
+                if (!categoriesAgrupadas[categoria][campo.campo]) {
+                    categoriesAgrupadas[categoria][campo.campo] = {
                         base: campo.base,
                         comparables: []
                     };
                 }
-                categoriasAgrupadas[categoria][campo.campo].comparables.push({
+                categoriesAgrupadas[categoria][campo.campo].comparables.push({
                     modelo_version: comparable.codigo_modelo_version,
                     valor: campo.comparable,
                     estado: campo.estado
@@ -70,7 +70,7 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                 ))}
             </Box>
             <DialogContent dividers sx={{ maxHeight: '75vh' }}>
-                {Object.entries(categoriasAgrupadas).map(([categoria, campos]) => (
+                {Object.entries(categoriesAgrupadas).map(([categoria, campos]) => (
                     <Accordion key={categoria} defaultExpanded>
                         <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />} sx={{ backgroundColor: 'firebrick', color: 'white' }}>
                             <Typography sx={{ textTransform: 'capitalize' }}>{categoria}</Typography>

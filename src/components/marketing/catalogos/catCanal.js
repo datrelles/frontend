@@ -286,7 +286,7 @@ function CatCanal() {
                                         labelId="estado-canal-label"
                                         value={estadoCanal}
                                         onChange={(e) => setestadoCanal(e.target.value.toUpperCase())}
-                                    >
+                                     variant="outlined">
                                         <MenuItem value="ACTIVO">ACTIVO</MenuItem>
                                         <MenuItem value="INACTIVO">INACTIVO</MenuItem>
                                     </Select>
