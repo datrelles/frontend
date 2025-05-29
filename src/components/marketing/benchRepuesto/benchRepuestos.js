@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import {
-    Box, Button, Grid, MenuItem, Select, Typography, Table,
-    TableHead, TableRow, TableCell, TableBody, DialogTitle, DialogContent, DialogActions, Dialog
+    Box, Button, Grid, Table, TableHead, TableRow,
+    TableCell, TableBody, DialogTitle, DialogContent,
+    DialogActions, Dialog, Autocomplete, TextField, IconButton
 } from '@mui/material';
 import { useAuthContext } from "../../../context/authContext";
 import {enqueueSnackbar, SnackbarProvider} from "notistack";
@@ -10,6 +11,8 @@ import {toast} from "react-toastify";
 import Navbar0 from "../../Navbar0";
 import LoadingCircle from "../../contabilidad/loader";
 import ButtonGroup from "@mui/material/ButtonGroup";
+import MUIDataTable from "mui-datatables";
+import {createTheme, ThemeProvider} from "@mui/material/styles";
 
 const API = process.env.REACT_APP_API;
 
@@ -24,6 +27,9 @@ function BenchRepuestosCompatibles () {
     const [selectedImagen, setSelectedImagen] = useState(null);
     const [imagenModal, setImagenModal] = useState(null);
     const [openModalImagen, setOpenModalImagen] = useState(false);
+    const [prodcutoSeleccionada, setProductoSeleccionada] = useState('');
+    const [modelos, setModelos] = useState([]);
+    const [resultado, setResultado] = useState(null);
 
     const fetchProductos = async () => {
         try {
@@ -99,6 +105,29 @@ function BenchRepuestosCompatibles () {
         }
     };
 
+    const exportarExcel = async () => {
+        const res = await fetch(`${API}/bench_model/exportar_comparacion_xlsx`, {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + jwt,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                resultado,
+                modelos
+            })
+        });
+
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'comparacion_modelos.xlsx');
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    };
+
     useEffect(() => {
         const cargarDatos = async () => {
             try {
@@ -112,6 +141,68 @@ function BenchRepuestosCompatibles () {
         cargarDatos();
     }, []);
 
+    const options = {
+        responsive: 'standard',
+        selectableRows: 'none',
+        textLabels: {
+            body: {
+                noMatch: "Lo siento, no se encontraron registros",
+                toolTip: "Ordenar"
+            },
+            pagination: {
+                next: "Siguiente", previous: "Anterior",
+                rowsPerPage: "Filas por página:", displayRows: "de"
+            }
+        }
+    };
+
+    const columns = [
+        { name: "nombre_modelo_comercial", label: "Modelo Comercia" },
+        { name: "nombre_empresa", label: "Empresa" },
+        { name: "nombre_version", label: "Versión" },
+        { name: "nombre_marca", label: "Marca" },
+        { name: "nombre_linea", label: "Línea" },
+        { name: "nombre_segmento", label: "Segmento" },
+        {
+            name: "path_imagen",
+            label: "Imagen Referencial",
+            options: {
+                customBodyRender: (value) => (
+                    <Button
+                        onClick={() => {
+                            setImagenModal(value);
+                            setOpenModalImagen(true);
+                        }}
+                        variant="outlined"
+                        size="small"
+                    >
+                        Ver imagen
+                    </Button>
+                )
+            }
+        }
+    ];
+    const getMuiTheme = () =>
+        createTheme({
+            components: {
+                MuiTableCell: {
+                    styleOverrides: {
+                        root: {
+                            paddingLeft: '3px', paddingRight: '3px', paddingTop: '0px', paddingBottom: '0px',
+                            backgroundColor: '#00000', whiteSpace: 'nowrap', flex: 1,
+                            borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontSize: '14px'
+                        },
+                        head: {
+                            backgroundColor: 'firebrick', color: '#ffffff', fontWeight: 'bold',
+                            paddingLeft: '0px', paddingRight: '0px', fontSize: '12px'
+                        },
+                    }
+                },
+                MuiTable: { styleOverrides: { root: { borderCollapse: 'collapse' } } },
+                MuiToolbar: { styleOverrides: { regular: { minHeight: '10px' } } }
+            }
+        });
+
     return (
         <>
             {loading ? (<LoadingCircle />) : (
@@ -123,104 +214,82 @@ function BenchRepuestosCompatibles () {
                             <Button onClick={() => navigate(-1)}>Catálogos</Button>
                         </ButtonGroup>
                     </Box>
-                    <Box padding={4}>
-                        <Typography variant="h5" textAlign="center" gutterBottom>
-                            Modelos compatibles con el repuesto seleccionado
-                        </Typography>
-                        <Grid container spacing={2}>
-                            <Grid item xs={6}>
-                                <Typography>Seleccionar repuesto</Typography>
-                                <Select
-                                    fullWidth
-                                    value={codProducto}
-                                    onChange={(e) => setCodProducto(e.target.value)}
-                                 variant="outlined">
-                                    {productos.map(p => (
-                                        <MenuItem key={p.cod_producto} value={p.cod_producto}>
-                                            {p.nombre_producto}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
+                    <Box padding={4} sx={{ mt: 2, borderCollapse: 'collapse', width: '100%' }} >
+                        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold' }} >Modelos compatibles con el repuesto seleccionadoS</DialogTitle>
+                        <Grid container spacing={2} alignItems="center">
+                            <Grid item xs={5}>
+                                <Autocomplete
+                                    options={productos}
+                                    getOptionLabel={(option) => option.nombre_producto || ''}
+                                    value={productos.find(p => p.cod_producto === codProducto) || null}
+                                    onChange={(e, v) => setCodProducto(v ? v.cod_producto : null)}
+                                    renderInput={(params) => (
+                                        <TextField {...params} label="Seleccionar Repuesto" variant="outlined" fullWidth />
+                                    )}
+                                />
                             </Grid>
-                            <Grid item xs={6} display="flex" alignItems="flex-end">
+                            <Grid item>
                                 <Button
                                     variant="contained"
                                     onClick={buscarCompatibles}
-                                    sx={{ backgroundColor: 'firebrick', color: '#fff' }}
-                                >
-                                    Buscar modelos compatibles
+                                    sx={{
+                                        backgroundColor: 'firebrick',
+                                        color: '#fff',
+                                        fontSize: '12px',
+                                        minWidth: '180px',
+                                        '&:hover': {
+                                            backgroundColor: '#b22222'
+                                        }
+                                    }}>Buscar modelos compatibles
+                                </Button>
+                            </Grid>
+                            <Grid item>
+                                <Button
+                                    variant="outlined"
+                                    onClick={() => {
+                                        setCodProducto('');
+                                        setCompatibles([]);
+                                        setProductoSeleccionada('');
+                                        setImagenModal(null);
+                                        setSelectedImagen(null);
+                                        if (productos.length === 0) fetchProductos();
+                                    }}
+                                    sx={{
+                                        backgroundColor: '#535353',
+                                        color: '#fff',
+                                        fontSize: '12px',
+                                        '&:hover': {
+                                            backgroundColor: '#535353'
+                                        }
+                                    }}>Nueva Consulta
+                                </Button>
+                            </Grid>
+                            <Grid item>
+                                <Button
+                                    variant="outlined"
+                                    onClick={exportarExcel}
+                                    sx={{
+                                        backgroundColor: 'green',
+                                        color: '#fff',
+                                        fontSize: '12px',
+                                        '&:hover': { backgroundColor: '#1b5e20' }
+                                    }}>Exportar a Excel
                                 </Button>
                             </Grid>
                         </Grid>
-                        {compatibles.length > 0 && (
-                            <Box mt={4}>                                
-                                <Table size="small"
-                                       sx={{
-                                           mt: 2,
-                                           borderCollapse: 'collapse',
-                                           width: '100%',
-                                           '& td, & th': {
-                                               border: '1px solid #ddd',
-                                               padding: '2px',
-                                               fontSize: '13px',
-                                               texAlign: 'center'
-                                           },
-                                           '& th': {
-                                               backgroundColor: 'firebrick',
-                                               color: 'white',
-                                               fontSize: '12px',
-                                               textAlign: 'center'
-                                           },
-                                       }}>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell colSpan={7}>Modelos compatibles</TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell >Modelo Comercial</TableCell>
-                                            <TableCell >Empresa</TableCell>
-                                            <TableCell >Versión</TableCell>
-                                            <TableCell >Marca</TableCell>
-                                            <TableCell >Línea</TableCell>
-                                            <TableCell >Segmento</TableCell>
-                                            <TableCell >Imagen Referencial</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {compatibles.map((item, idx) => (
-                                            <TableRow key={idx}>
-                                                <TableCell>{item.nombre_modelo_comercial}</TableCell>
-                                                <TableCell>{item.nombre_empresa}</TableCell>
-                                                <TableCell>{item.nombre_version}</TableCell>
-                                                <TableCell>{item.nombre_marca}</TableCell>
-                                                <TableCell>{item.nombre_linea}</TableCell>
-                                                <TableCell>{item.nombre_segmento}</TableCell>
-                                                <TableCell sx={{ textAlign: 'center' }}>
-                                                    <Button
-                                                        variant="outlined"
-                                                        size="small"
-                                                        onClick={() => {
-                                                            setSelectedImagen(item.path_imagen);
-                                                            setOpenModalImagen(true);
-                                                        }}>Ver Imágen
-                                                    </Button>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </Box>
-                        )}
                     </Box>
+                    <ThemeProvider theme={getMuiTheme()}>
+                        <MUIDataTable title="Modelos Compatible"  data={compatibles} columns={columns} options={options} />
+                    </ThemeProvider>
                     <Dialog open={openModalImagen} onClose={() => setOpenModalImagen(false)} maxWidth="md" fullWidth>
                         <DialogTitle>Vista de Imagen</DialogTitle>
                         <DialogContent>
                             <img
-                                src={selectedImagen}
+                                src={imagenModal}
                                 title="Vista previa imagen"
                                 style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain' }}
-                                alt="Vista previa imagen"
                             />
+
                         </DialogContent>
                         <DialogActions>
                             <Button onClick={() => setOpenModalImagen(false)} color="primary">
@@ -241,4 +310,3 @@ export default function  IntegrationNotistack() {
         </SnackbarProvider>
     );
 }
-

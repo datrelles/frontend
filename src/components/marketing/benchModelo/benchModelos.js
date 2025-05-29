@@ -11,6 +11,8 @@ import LoadingCircle from "../../contabilidad/loader";
 import Navbar0 from "../../Navbar0";
 import { useNavigate } from "react-router-dom";
 import DialogResumenComparacion from "../selectoresDialog/resultModeloVersion";
+import {createTheme, ThemeProvider} from "@mui/material/styles";
+import MUIDataTable from "mui-datatables";
 
 const API = process.env.REACT_APP_API;
 
@@ -32,6 +34,7 @@ function CompararModelos()  {
     const [imagenModal, setImagenModal] = useState(null);
     const [openModalImagen, setOpenModalImagen] = useState(false);
     const [selectedImagen, setSelectedImagen] = useState(null);
+    const [filtro, setFiltro] = useState('');
 
 
     const toggleResumenDialog = () => setOpenResumenDialog(prev => !prev);
@@ -155,6 +158,28 @@ function CompararModelos()  {
         }
     };
 
+    const dataResumen = resultado?.comparables.map((item) => {
+        const modelo = modelos.find(m => m.codigo_modelo_version === item.modelo_version);
+
+        const mejoras = Object.entries(item.mejor_en || {})
+            .flatMap(([_, detalles]) =>
+                detalles.filter(d => d.estado === 'mejor').map(d => d.campo)
+            );
+
+        const diferencias = Object.entries(item.diferente_en || {})
+            .flatMap(([_, detalles]) =>
+                detalles.filter(d => d.estado === 'diferente').map(d => d.campo)
+            );
+
+        return {
+            nombre_modelo_comercial: modelo?.nombre_modelo_comercial || `Modelo ${item.nombre_modelo_comercial}`,
+            nombre_marca: modelo?.nombre_marca || `Marca ${item.modelo_version}`,
+            nombre_version: modelo?.nombre_version || `Versión ${item.modelo_version}`,
+            mejor_en: mejoras.join(', ').replace(/_/g, ' ').toUpperCase(),
+            diferente_en: diferencias.join(', ').replace(/_/g, ' ').toUpperCase()
+        };
+    });
+
     const exportarExcel = async () => {
         const res = await fetch(`${API}/bench_model/exportar_comparacion_xlsx`, {
             method: 'POST',
@@ -200,6 +225,36 @@ function CompararModelos()  {
             enqueueSnackbar("Solo puedes seleccionar hasta 4 modelos", { variant: "warning" });
         }
     };
+
+
+    const columns = [
+        { name: "nombre_modelo_comercial", label: "Modelo Comercia" },
+        { name: "nombre_marca", label: "Marca" },
+        { name: "nombre_version", label: "Versión" },
+        { name: "mejor_en", label: "Características técnicas en las que es mejo" },
+        { name: "diferente_en", label: "Características técnicas en las que es diferente" },
+
+    ];
+    const getMuiTheme = () =>
+        createTheme({
+            components: {
+                MuiTableCell: {
+                    styleOverrides: {
+                        root: {
+                            paddingLeft: '3px', paddingRight: '3px', paddingTop: '0px', paddingBottom: '0px',
+                            backgroundColor: '#00000', whiteSpace: 'nowrap', flex: 1,
+                            borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontSize: '14px'
+                        },
+                        head: {
+                            backgroundColor: 'firebrick', color: '#ffffff', fontWeight: 'bold',
+                            paddingLeft: '0px', paddingRight: '0px', fontSize: '12px'
+                        },
+                    }
+                },
+                MuiTable: { styleOverrides: { root: { borderCollapse: 'collapse' } } },
+                MuiToolbar: { styleOverrides: { regular: { minHeight: '10px' } } }
+            }
+        });
 
     return (
         <>
@@ -261,6 +316,18 @@ function CompararModelos()  {
                                             </TableCell>
                                         </TableRow>
                                     </TableHead>
+                                    <TableRow>
+                                        <TableCell colSpan={6} sx={{ padding: '4px', backgroundColor: '#fafafa' }}>
+                                            <TextField
+                                                fullWidth
+                                                variant="outlined"
+                                                size="small"
+                                                placeholder="Buscar por modelo, marca, versión..."
+                                                value={filtro}
+                                                onChange={(e) => setFiltro(e.target.value)}
+                                            />
+                                        </TableCell>
+                                    </TableRow>
                                 </Table>
                                     <TableContainer
                                         sx={{
@@ -268,8 +335,7 @@ function CompararModelos()  {
                                             border: '1px solid #ccc',
                                             borderRadius: 1,
                                             overflowY: 'auto'
-                                        }}
-                                    >
+                                        }}>
                                         <Table stickyHeader size="small" sx={{ tableLayout: 'fixed', minWidth: '100%' }}>
                                             <TableHead>
                                                 <TableRow>
@@ -312,6 +378,12 @@ function CompararModelos()  {
                                             <TableBody>
                                                 {modelos
                                                     .filter((m) => m.codigo_modelo_version !== modeloBase)
+                                                    .filter((m) =>
+                                                        [m.nombre_modelo_version, m.nombre_modelo_comercial, m.nombre_marca, m.nombre_version]
+                                                            .some(campo =>
+                                                                campo?.toLowerCase().includes(filtro.toLowerCase())
+                                                            )
+                                                    )
                                                     .map((m) => (
                                                         <TableRow key={m.codigo_modelo_version}>
                                                             <TableCell sx={{ width: '36px', padding: '4px', textAlign: 'center' }}>
@@ -392,13 +464,13 @@ function CompararModelos()  {
                                     setResultado(null);
                                 }}
                                 sx={{
-                                    backgroundColor: 'firebrick',
+                                    backgroundColor: '#535353',
                                     color: '#fff',
                                     fontSize: '12px',
                                     '&:hover': {
-                                        backgroundColor: '#b22222'
+                                        backgroundColor: '#535353'
                                     }
-                                }}>Limpiar todo
+                                }}>Nueva Consulta
                             </Button>
                         </Box>
                         <DialogResumenComparacion
@@ -407,58 +479,10 @@ function CompararModelos()  {
                             resultado={resultado}
                             modelos={modelos}
                         />
-                        {resultado?.comparables?.length > 0 && (
-                            <Box mt={2}>
-                                <Table
-                                    size="small"
-                                    sx={{
-                                        mt: 2,
-                                        borderCollapse: 'collapse',
-                                        width: '100%',
-                                        '& td, & th': {
-                                            border: '1px solid #ddd',
-                                            padding: '2px',
-                                            fontSize: '13px',
-                                            texAlign: 'center'
-                                        },
-                                        '& th': {
-                                            backgroundColor: 'firebrick',
-                                            color: 'white',
-                                            fontSize: '12px',
-                                            textAlign: 'center'
-                                        },
-                                    }}>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell colSpan={4}>Resumen por modelo</TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell >Modelo externo</TableCell>
-                                            <TableCell >Marca</TableCell>
-                                            <TableCell >Versión</TableCell>
-                                            <TableCell >Campos en los que es diferente</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {resultado.comparables.map((item, idx) => {
-                                            const modelo = modelos.find(m => m.codigo_modelo_version === item.modelo_version);
-                                            const mejoras = Object.entries(item.mejor_en)
-                                                .flatMap(([_, detalles]) =>
-                                                    detalles.filter(d => d.estado === 'mejor').map(d => d.campo)
-                                                );
-                                            return (
-                                                <TableRow key={idx}>
-                                                    <TableCell sx={{textAlign:'center'}}>{modelo?.nombre_modelo_version || `Modelo ${item.modelo_version}`}</TableCell>
-                                                    <TableCell sx={{textAlign:'center'}}>{modelo?.nombre_marca || `Marca ${item.modelo_version}`}</TableCell>
-                                                    <TableCell sx={{textAlign:'center'}}>{modelo?.nombre_version || `Versión ${item.modelo_version}`}</TableCell>
-                                                    <TableCell >{mejoras.join(', ').replace(/_/g, ' ').toUpperCase()}</TableCell>
-                                                </TableRow>
-                                            );
-                                        })}
-                                    </TableBody>
-                                </Table>
-                            </Box>
-                        )}
+                        <ThemeProvider theme={getMuiTheme()}>
+                            <MUIDataTable title="Resumen por modelo"  data={dataResumen} columns={columns}  />
+                        </ThemeProvider>
+
                         <Dialog open={openModalImagen} onClose={() => setOpenModalImagen(false)} maxWidth="md" fullWidth>
                             <DialogTitle>Vista de Imagen</DialogTitle>
                             <DialogContent>
