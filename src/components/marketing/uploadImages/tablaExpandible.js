@@ -73,16 +73,16 @@ export default function CatModeloVersionExpandible({
                 </Typography>
                 <Table size="small" sx={{margin: 2}}>
                     <TableBody>
-                        {renderDetailTable("Motor",
+                        {renderDetailTable("MOTOR",
                             [
-                                "Nombre",
-                                "Tipo",
-                                "Cilindrada",
-                                "Caballos Fuerza",
-                                "Torque",
-                                "Arranque",
-                                "Combustible",
-                                "Refrigeración"], [
+                                "NOMBRE",
+                                "TIPO",
+                                "CILINDRADA",
+                                "POTENCIA",
+                                "TORQUE",
+                                "ARRANQUE",
+                                "COMBUSTIBLE",
+                                "REFRIGERACIÓN"], [
                             detalleMotor?.nombre_motor,
                             tipoMotor?.nombre_tipo,
                             detalleMotor?.cilindrada,
@@ -92,16 +92,16 @@ export default function CatModeloVersionExpandible({
                             detalleMotor?.sistema_combustible,
                             detalleMotor?.sistema_refrigeracion
                         ])}
-                        {renderDetailTable("Chasis",
+                        {renderDetailTable("CHASIS",
                             [
-                                "Susp. Delantera",
-                                "Susp. Trasera",
-                                "Freno Delantero",
-                                "Freno Trasero",
-                                "Neumático Delantero",
-                                "Neumático Trasero",
-                                "Aro Delantero",
-                                "Aro Trasero"], [
+                                "SUSP. DELANTERA",
+                                "SUSP. TRASERA",
+                                "FRENO DELANTERO",
+                                "FRENO TRASERO",
+                                "NEUMÁTICO DELANTERO",
+                                "NEUMÁTICO TRASERO",
+                                "ARO RUEDA DELANTERA",
+                                "ARO RUEDA TRASERA"], [
                             detalleChasis?.suspension_delantera,
                             detalleChasis?.suspension_trasera,
                             detalleChasis?.frenos_delanteros,
@@ -111,31 +111,31 @@ export default function CatModeloVersionExpandible({
                             detalleChasis?.aros_rueda_delantera,
                             detalleChasis?.aros_rueda_posterior
                         ])}
-                        {renderDetailTable("Electrónica",
+                        {renderDetailTable("ELECTRÓNICA",
                             [
-                                "Tablero",
-                                "Luces delanteras",
-                                "Luces traseras",
-                                "Velocidad máxima",
-                                "Garantía"], [
+                                "TABLERO",
+                                "LUCES DELANTERAS",
+                                "LUCES TRASERAS",
+                                "VELOCIDAD MÁXIMA",
+                                "GARANTÍA"], [
                             detalleElectronica?.tablero,
                             detalleElectronica?.luces_delanteras,
                             detalleElectronica?.luces_posteriores,
                             detalleElectronica?.velocidad_maxima,
                             detalleElectronica?.garantia
                         ])}
-                        {renderDetailTable("Dimensiones",
+                        {renderDetailTable("DIMENSIONES",
                             [
-                                "Altura Total",
-                                "Peso Seco",
-                                "Longitud Total",
-                                "Ancho Total"], [
+                                "ALTURA TOTAL",
+                                "PESO SECO",
+                                "LONGITUD TOTAL",
+                                "ANCHO TOTAL"], [
                             detalleDimensiones?.altura_total + ' mm',
                             detalleDimensiones?.peso_seco + ' kg',
                             detalleDimensiones?.longitud_total + ' mm',
                             detalleDimensiones?.ancho_total + ' mm'
                         ])}
-                        {renderDetailTable("Transmisión", ["Caja de cambios"], [
+                        {renderDetailTable("TRANSMISIÓN", ["CAJA DE CAMBIOS"], [
                             detalleTransmission?.caja_cambios
                         ])}
                     </TableBody>

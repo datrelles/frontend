@@ -30,9 +30,10 @@ export default function SelectorChasis({ chasis, selectedChasisId, onSelect }) {
                     <SearchIcon />
                 </IconButton>
             </Box>
-            <Dialog open={open} onClose={handleCloseDialog} maxWidth="lg" fullWidth>
+            <Dialog open={open} onClose={handleCloseDialog} fullWidth maxWidth={false}
+                    sx={{ '& .MuiDialog-paper': { width: '80vw', maxWidth: '80vw' } }}>
                 <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="h6">Seleccionar</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Seleccionar</Typography>
                     <IconButton edge="end" onClick={handleCloseDialog}>
                         <CloseIcon />
                     </IconButton>
@@ -41,16 +42,16 @@ export default function SelectorChasis({ chasis, selectedChasisId, onSelect }) {
                     <Table size="small">
                         <TableHead>
                             <TableRow>
-                                <TableCell>Código</TableCell>
-                                <TableCell>Aros Delanteros</TableCell>
-                                <TableCell>Aros Traseros</TableCell>
-                                <TableCell>Neumático Del.</TableCell>
-                                <TableCell>Neumático Tras.</TableCell>
-                                <TableCell>Suspensión Del.</TableCell>
-                                <TableCell>Suspensión Tras.</TableCell>
-                                <TableCell>Frenos Del.</TableCell>
-                                <TableCell>Frenos Tras.</TableCell>
-                                <TableCell>Acciones</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Código</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Aros Delanteros</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Aros Traseros</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Neumático Del.</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Neumático Tras.</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Suspensión Del.</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Suspensión Tras.</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Frenos Del.</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Frenos Tras.</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Acciones</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>

@@ -226,15 +226,39 @@ function CompararModelos()  {
         }
     };
 
-
     const columns = [
         { name: "nombre_modelo_comercial", label: "Modelo Comercia" },
         { name: "nombre_marca", label: "Marca" },
         { name: "nombre_version", label: "Versión" },
-        { name: "mejor_en", label: "Características técnicas en las que es mejo" },
+        { name: "mejor_en", label: "Características técnicas en las que es mejor" },
         { name: "diferente_en", label: "Características técnicas en las que es diferente" },
 
     ];
+
+    const options = {
+        responsive: 'standard',
+        selectableRows: 'none',
+        pagination: false,
+        rowsPerPageOptions: [],
+        download: false,
+        print: false,
+        viewColumns: false,
+        filter: false,
+        search: false,
+        textLabels: {
+            body: {
+                noMatch: "Lo siento, no se encontraron registros",
+                toolTip: "Ordenar"
+            },
+            pagination: {
+                next: "Siguiente",
+                previous: "Anterior",
+                rowsPerPage: "Filas por página:",
+                displayRows: "de"
+            }
+        }
+    };
+
     const getMuiTheme = () =>
         createTheme({
             components: {
@@ -242,8 +266,9 @@ function CompararModelos()  {
                     styleOverrides: {
                         root: {
                             paddingLeft: '3px', paddingRight: '3px', paddingTop: '0px', paddingBottom: '0px',
-                            backgroundColor: '#00000', whiteSpace: 'nowrap', flex: 1,
+                            backgroundColor: '#00000', whiteSpace: 'normal', flex: 1,
                             borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontSize: '14px'
+
                         },
                         head: {
                             backgroundColor: 'firebrick', color: '#ffffff', fontWeight: 'bold',
@@ -251,8 +276,19 @@ function CompararModelos()  {
                         },
                     }
                 },
-                MuiTable: { styleOverrides: { root: { borderCollapse: 'collapse' } } },
-                MuiToolbar: { styleOverrides: { regular: { minHeight: '10px' } } }
+                MUIDataTableToolbar: {
+                    styleOverrides: {
+                        root: {
+                            justifyContent: 'center'
+                        },
+                        titleText: {
+                            width: '100%',
+                            textAlign: 'right',
+                            fontWeight: 'bold',
+                            fontSize: '22px'
+                        }
+                    }
+                }
             }
         });
 
@@ -426,7 +462,7 @@ function CompararModelos()  {
                                 fontSize: '12px',
                                 '&:hover': {
                                     backgroundColor: '#b22222'
-                                }}} >Comparar
+                                }}} >COMPARAR MODELOS
                             </Button>
                             {resultado?.comparables?.length > 0 && (
                                 <>
@@ -438,7 +474,7 @@ function CompararModelos()  {
                                             color: '#fff',
                                             fontSize: '12px',
                                             '&:hover': { backgroundColor: '#b22222' }
-                                        }}>Ver resultados de comparación
+                                        }}>VER RESUMEN DETALLADO
                                     </Button>
                                     <Button
                                         variant="outlined"
@@ -448,7 +484,7 @@ function CompararModelos()  {
                                             color: '#fff',
                                             fontSize: '12px',
                                             '&:hover': { backgroundColor: '#1b5e20' }
-                                        }}>Exportar a Excel
+                                        }}>Exportar
                                     </Button>
                                 </>
                             )}
@@ -480,9 +516,8 @@ function CompararModelos()  {
                             modelos={modelos}
                         />
                         <ThemeProvider theme={getMuiTheme()}>
-                            <MUIDataTable title="Resumen por modelo"  data={dataResumen} columns={columns}  />
+                            <MUIDataTable title="Resumen por modelo"  data={dataResumen} columns={columns} options={options}/>
                         </ThemeProvider>
-
                         <Dialog open={openModalImagen} onClose={() => setOpenModalImagen(false)} maxWidth="md" fullWidth>
                             <DialogTitle>Vista de Imagen</DialogTitle>
                             <DialogContent>

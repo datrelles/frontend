@@ -66,6 +66,8 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                         <Typography variant="subtitle2" fontWeight="bold">{m.nombre_modelo_comercial}</Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>{m.nombre_marca}</Typography>
                         <img src={encodeURI(m.path_imagen)} alt={m.nombre_modelo_comercial} style={{ width: 300, height: 'auto' }} />
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>Precio Venta Cliente</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>$ {m.precio_producto_modelo}</Typography>
                     </Box>
                 ))}
             </Box>
@@ -116,7 +118,7 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                                             <TableCell>{data.base} {getUnidadCampo(campo)}</TableCell>
                                             {data.comparables.map((comp, j) => (
                                                 <React.Fragment key={j}>
-                                                    <TableCell>{comp.valor} {getUnidadCampo(campo)}</TableCell>
+                                                    <TableCell>{comp.valor ? `${comp.valor} ${getUnidadCampo(campo)}` : ''}</TableCell>
                                                     <TableCell>
                                                         {comp.estado === 'mejor' ? (
                                                             <ThumbUpIcon sx={{ color: '#2e7d32' }} />
@@ -151,7 +153,13 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                 ))}
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose} sx={{ backgroundColor: 'firebrick', color: '#fff', fontSize: '12px', '&:hover': { backgroundColor: '#b22222' } }}>Cerrar</Button>
+                <Button onClick={onClose} sx={{
+                    backgroundColor: 'firebrick',
+                    color: '#fff',
+                    fontSize: '12px',
+                    '&:hover': {
+                        backgroundColor: '#b22222' } }}>Cerrar
+                </Button>
             </DialogActions>
         </Dialog>
     );

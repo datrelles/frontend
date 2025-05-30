@@ -30,9 +30,10 @@ export default function SelectorMotor({ motores, tiposMotor, selectedMotorId, on
                     <SearchIcon />
                 </IconButton>
             </Box>
-            <Dialog open={open} onClose={handleCloseDialog} maxWidth="lg" fullWidth>
-                <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="h6">Seleccionar</Typography>
+            <Dialog open={open} onClose={handleCloseDialog} fullWidth maxWidth={false}
+                sx={{ '& .MuiDialog-paper': { width: '80vw', maxWidth: '80vw' } }}>
+            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Seleccionar</Typography>
                     <IconButton edge="end" onClick={handleCloseDialog}>
                         <CloseIcon />
                     </IconButton>
@@ -41,17 +42,18 @@ export default function SelectorMotor({ motores, tiposMotor, selectedMotorId, on
                     <Table size="small">
                         <TableHead>
                             <TableRow>
-                                <TableCell>Nombre</TableCell>
-                                <TableCell>Tipo Motor</TableCell>
-                                <TableCell>Cilindrada</TableCell>
-                                <TableCell>Caballos</TableCell>
-                                <TableCell>Torque</TableCell>
-                                <TableCell>Combustible</TableCell>
-                                <TableCell>Arranque</TableCell>
-                                <TableCell>Refrigeración</TableCell>
-                                <TableCell>Acción</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Nombre</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Tipo Motor</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Cilindrada</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Potencia</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Torque Máximo</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Sistema de Combustible</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Arranque</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Sistema de Refrigeración</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Acción</TableCell>
                             </TableRow>
                         </TableHead>
+
                         <TableBody>
                             {motores.map((motor) => {
                                 const tipo = tiposMotor.find(t => t.codigo_tipo_motor === motor.codigo_tipo_motor);

@@ -234,7 +234,6 @@ function CatImagen() {
                 <LoadingCircle />
             ) : (
                 <>
-
                     <Dialog open={openModalImagen} onClose={() => setOpenModalImagen(false)} maxWidth="md" fullWidth>
                         <DialogTitle>Vista de Imagen</DialogTitle>
                         <DialogContent>
@@ -242,8 +241,7 @@ function CatImagen() {
                                 src={imagenModal}
                                 title="Vista previa imagen"
                                 style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain' }}
-                            />
-
+                                alt="Vista previa imagen"/>
                         </DialogContent>
                         <DialogActions>
                             <Button onClick={() => setOpenModalImagen(false)} color="primary">
@@ -251,8 +249,6 @@ function CatImagen() {
                             </Button>
                         </DialogActions>
                     </Dialog>
-
-
                     <div style={{ marginTop: '150px', width: "100%" }}>
                         <Navbar0 menus={menus} />
                         <Box>
@@ -261,7 +257,6 @@ function CatImagen() {
                                 <Button onClick={() => navigate(-1)}>Catálogos</Button>
                             </ButtonGroup>
                         </Box>
-
                         <Box display="flex" alignItems="center" gap={1}>
                             <Box display="flex" alignItems="center" gap={1}>
                                 <Box display="flex" alignItems="center">
@@ -271,7 +266,6 @@ function CatImagen() {
                                             setpathImagen(urls[0]);
                                         }}
                                     />
-
                                 </Box>
                                 <Button
                                     onClick={fetchImagenData}
@@ -279,9 +273,7 @@ function CatImagen() {
                                         backgroundColor: "firebrick",
                                         color: "white",
                                         height: '37px'
-                                    }}
-                                >
-                                    Listar
+                                    }}>Listar
                                 </Button>
                             </Box>
                         </Box>

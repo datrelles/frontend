@@ -30,9 +30,10 @@ export default function SelectorDimensiones({ dimensiones, selectedDimensionesId
                     <SearchIcon />
                 </IconButton>
             </Box>
-            <Dialog open={open} onClose={handleCloseDialog} maxWidth="lg" fullWidth>
+            <Dialog open={open} onClose={handleCloseDialog} fullWidth maxWidth={false}
+                    sx={{ '& .MuiDialog-paper': { width: '45vw', maxWidth: '45vw' } }}>
                 <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="h6">Seleccionar</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Seleccionar</Typography>
                     <IconButton edge="end" onClick={handleCloseDialog}>
                         <CloseIcon />
                     </IconButton>
@@ -41,12 +42,12 @@ export default function SelectorDimensiones({ dimensiones, selectedDimensionesId
                     <Table size="small">
                         <TableHead>
                             <TableRow>
-                                <TableCell>Código</TableCell>
-                                <TableCell>Altura Total  </TableCell>
-                                <TableCell>Longitud Total</TableCell>
-                                <TableCell>Ancho Total</TableCell>
-                                <TableCell>Peso Seco</TableCell>
-                                <TableCell>Acciones</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Código</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Altura Total  </TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Longitud Total</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Ancho Total</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Peso Seco</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Acciones</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>

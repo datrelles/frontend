@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
-    Box, Button, Grid, Table, TableHead, TableRow,
-    TableCell, TableBody, DialogTitle, DialogContent,
-    DialogActions, Dialog, Autocomplete, TextField, IconButton
+    Box, Button, Grid, DialogTitle, DialogContent,
+    DialogActions, Dialog, Autocomplete, TextField
 } from '@mui/material';
 import { useAuthContext } from "../../../context/authContext";
 import {enqueueSnackbar, SnackbarProvider} from "notistack";
@@ -106,7 +105,7 @@ function BenchRepuestosCompatibles () {
     };
 
     const exportarExcel = async () => {
-        const res = await fetch(`${API}/bench_model/exportar_comparacion_xlsx`, {
+        const res = await fetch(`${API}/bench_model/exportar_comparacion_repuestos_xlsx`, {
             method: 'POST',
             headers: {
                 'Authorization': 'Bearer ' + jwt,
@@ -144,6 +143,8 @@ function BenchRepuestosCompatibles () {
     const options = {
         responsive: 'standard',
         selectableRows: 'none',
+        download: false,
+        print: false,
         textLabels: {
             body: {
                 noMatch: "Lo siento, no se encontraron registros",
@@ -157,7 +158,7 @@ function BenchRepuestosCompatibles () {
     };
 
     const columns = [
-        { name: "nombre_modelo_comercial", label: "Modelo Comercia" },
+        { name: "nombre_modelo_comercial", label: "Modelo Comercial" },
         { name: "nombre_empresa", label: "Empresa" },
         { name: "nombre_version", label: "Versión" },
         { name: "nombre_marca", label: "Marca" },
@@ -165,7 +166,7 @@ function BenchRepuestosCompatibles () {
         { name: "nombre_segmento", label: "Segmento" },
         {
             name: "path_imagen",
-            label: "Imagen Referencial",
+            label: "Imágen Referencial",
             options: {
                 customBodyRender: (value) => (
                     <Button
@@ -198,8 +199,19 @@ function BenchRepuestosCompatibles () {
                         },
                     }
                 },
-                MuiTable: { styleOverrides: { root: { borderCollapse: 'collapse' } } },
-                MuiToolbar: { styleOverrides: { regular: { minHeight: '10px' } } }
+                MUIDataTableToolbar: {
+                    styleOverrides: {
+                        root: {
+                            justifyContent: 'center'
+                        },
+                        titleText: {
+                            width: '100%',
+                            textAlign: 'right',
+                            fontWeight: 'bold',
+                            fontSize: '22px'
+                        }
+                    }
+                }
             }
         });
 
@@ -215,7 +227,7 @@ function BenchRepuestosCompatibles () {
                         </ButtonGroup>
                     </Box>
                     <Box padding={4} sx={{ mt: 2, borderCollapse: 'collapse', width: '100%' }} >
-                        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold' }} >Modelos compatibles con el repuesto seleccionadoS</DialogTitle>
+                        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold' }} >Modelos compatibles con el repuesto seleccionado</DialogTitle>
                         <Grid container spacing={2} alignItems="center">
                             <Grid item xs={5}>
                                 <Autocomplete
@@ -279,7 +291,7 @@ function BenchRepuestosCompatibles () {
                         </Grid>
                     </Box>
                     <ThemeProvider theme={getMuiTheme()}>
-                        <MUIDataTable title="Modelos Compatible"  data={compatibles} columns={columns} options={options} />
+                        <MUIDataTable title="Modelos Compatibles"  data={compatibles} columns={columns} options={options} />
                     </ThemeProvider>
                     <Dialog open={openModalImagen} onClose={() => setOpenModalImagen(false)} maxWidth="md" fullWidth>
                         <DialogTitle>Vista de Imagen</DialogTitle>
@@ -288,8 +300,7 @@ function BenchRepuestosCompatibles () {
                                 src={imagenModal}
                                 title="Vista previa imagen"
                                 style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain' }}
-                            />
-
+                                alt="Vista previa imagen"/>
                         </DialogContent>
                         <DialogActions>
                             <Button onClick={() => setOpenModalImagen(false)} color="primary">

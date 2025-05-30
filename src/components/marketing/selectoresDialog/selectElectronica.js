@@ -30,9 +30,10 @@ export default function SelectorElectronica({ electronica, selectedElectronicaId
                     <SearchIcon />
                 </IconButton>
             </Box>
-            <Dialog open={open} onClose={handleCloseDialog} maxWidth="lg" fullWidth>
+            <Dialog open={open} onClose={handleCloseDialog} fullWidth maxWidth={false}
+                    sx={{ '& .MuiDialog-paper': { width: '60vw', maxWidth: '60vw' } }}>
                 <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="h6">Seleccionar</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Seleccionar</Typography>
                     <IconButton edge="end" onClick={handleCloseDialog}>
                         <CloseIcon />
                     </IconButton>
@@ -41,14 +42,14 @@ export default function SelectorElectronica({ electronica, selectedElectronicaId
                     <Table size="small">
                         <TableHead>
                             <TableRow>
-                                <TableCell>Código</TableCell>
-                                <TableCell>Capacidad Combustible</TableCell>
-                                <TableCell>Tablero</TableCell>
-                                <TableCell>Luces Delanteras</TableCell>
-                                <TableCell>Luces Posteriores.</TableCell>
-                                <TableCell>Garantía</TableCell>
-                                <TableCell>Velocidad Máxima.</TableCell>
-                                <TableCell>Acciones</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Código</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Capacidad Combustible</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Tablero</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Luces Delanteras</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Luces Posteriores.</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Garantía</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Velocidad Máxima.</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Acciones</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
