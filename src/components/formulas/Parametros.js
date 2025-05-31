@@ -65,6 +65,7 @@ export default function Parametros() {
         setOpenCreate(false);
         setCodParametro("");
         setNombre("");
+        setColor(DefaultColorHex);
         setDescripcion("");
         setEstado(true);
       })
@@ -136,6 +137,7 @@ export default function Parametros() {
     setOpenCreate(true);
     setCodParametro("");
     setNombre("");
+    setColor(DefaultColorHex);
     setDescripcion("");
     setEstado(true);
   };
