@@ -56,7 +56,7 @@ const itemsLeyenda = [
     ColoresFondo.DANGER.key
   ),
   createLegendItem(
-    "> < = >= <= <> != E (entre)",
+    "= <> != > >= < <= E (entre)",
     "Condición",
     ColoresFondo.DANGER.key
   ),
