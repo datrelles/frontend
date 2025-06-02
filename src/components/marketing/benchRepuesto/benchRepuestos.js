@@ -26,9 +26,7 @@ function BenchRepuestosCompatibles () {
     const [selectedImagen, setSelectedImagen] = useState(null);
     const [imagenModal, setImagenModal] = useState(null);
     const [openModalImagen, setOpenModalImagen] = useState(false);
-    const [prodcutoSeleccionada, setProductoSeleccionada] = useState('');
-    const [modelos, setModelos] = useState([]);
-    const [resultado, setResultado] = useState(null);
+    const [productoSeleccionado, setProductoSeleccionado] = useState('');
 
     const fetchProductos = async () => {
         try {
@@ -97,7 +95,7 @@ function BenchRepuestosCompatibles () {
             if (res.ok) {
                 setImagenModal(data);
             } else {
-                enqueueSnackbar(data.error || "Error al obtener imágenes", { variant: "error" });
+                enqueueSnackbar(data.error || "Error al obtener las imágenes", { variant: "error" });
             }
         } catch (error) {
             enqueueSnackbar("Error de conexión", { variant: "error" });
@@ -105,23 +103,34 @@ function BenchRepuestosCompatibles () {
     };
 
     const exportarExcel = async () => {
-        const res = await fetch(`${API}/bench_model/exportar_comparacion_repuestos_xlsx`, {
+        if (!productoSeleccionado || !productoSeleccionado.nombre_producto) {
+            console.error("No hay producto seleccionado.");
+            return;
+        }
+
+        const res = await fetch(`${API}/bench_rep/exportar_modelos_compatibles_xlsx`, {
             method: 'POST',
             headers: {
                 'Authorization': 'Bearer ' + jwt,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                resultado,
-                modelos
+                nombre_producto: productoSeleccionado.nombre_producto,
+                modelos: compatibles
             })
         });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error("Error al exportar:", errorText);
+            return;
+        }
 
         const blob = await res.blob();
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', 'comparacion_modelos.xlsx');
+        link.setAttribute('download', 'modelos_compatibles.xlsx');
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -183,6 +192,7 @@ function BenchRepuestosCompatibles () {
             }
         }
     ];
+
     const getMuiTheme = () =>
         createTheme({
             components: {
@@ -234,7 +244,10 @@ function BenchRepuestosCompatibles () {
                                     options={productos}
                                     getOptionLabel={(option) => option.nombre_producto || ''}
                                     value={productos.find(p => p.cod_producto === codProducto) || null}
-                                    onChange={(e, v) => setCodProducto(v ? v.cod_producto : null)}
+                                    onChange={(e, v) => {
+                                        setCodProducto(v ? v.cod_producto : null);
+                                        setProductoSeleccionado(v || null);
+                                    }}
                                     renderInput={(params) => (
                                         <TextField {...params} label="Seleccionar Repuesto" variant="outlined" fullWidth />
                                     )}
@@ -261,7 +274,7 @@ function BenchRepuestosCompatibles () {
                                     onClick={() => {
                                         setCodProducto('');
                                         setCompatibles([]);
-                                        setProductoSeleccionada('');
+                                        setProductoSeleccionado('');
                                         setImagenModal(null);
                                         setSelectedImagen(null);
                                         if (productos.length === 0) fetchProductos();
@@ -314,7 +327,7 @@ function BenchRepuestosCompatibles () {
     );
 }
 
-export default function  IntegrationNotistack() {
+export default function  IntegrationNotistack()  {
     return (
         <SnackbarProvider maxSnack={3}>
             <BenchRepuestosCompatibles />
