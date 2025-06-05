@@ -228,6 +228,7 @@ function CatSegmento() {
         { name: 'nombre_segmento', label: 'SEGMENTO' },
         { name: 'nombre_modelo_comercial', label: 'MODELO COMERCIAL' },
         { name: 'nombre_marca', label: 'MARCA' },
+        { name: 'anio_modelo', label: 'AÑO' },
         {
             name: "estado_segmento",
             label: "Estado",
@@ -365,12 +366,14 @@ function CatSegmento() {
                             <Grid item xs={12}>
                                 <Autocomplete
                                     options={modelosComerciales.filter(mc => mc.estado_modelo === 1)}
-                                    getOptionLabel={(mc) => mc.nombre_modelo || ''}
+                                    getOptionLabel={(mc) => `${mc.nombre_modelo} (${mc.anio_modelo})`}
+
                                     value={selectedModeloComercial}
                                     onChange={(e, v) => {
                                         handleChange('codigo_modelo_comercial', v?.codigo_modelo_comercial || '');
                                         handleChange('codigo_marca', v?.codigo_marca || '');
                                         handleChange('nombre_marca', v?.nombre_marca || '');
+                                        handleChange('anio_modelo', v?.anio_modelo || '');
                                         setSelectedModeloComercial(v);
                                     }}
                                     renderInput={(params) => <TextField {...params} label="Modelo Comercial" />}
@@ -379,6 +382,9 @@ function CatSegmento() {
                             </Grid>
                             <Grid item xs={6}>
                                 <TextField label="Marca" value={selectedModeloComercial?.nombre_marca || ''} fullWidth disabled />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <TextField label="AÑO" value={selectedModeloComercial?.anio_modelo || ''} fullWidth disabled />
                             </Grid>
                             <Grid item xs={6}>
                                 <FormControl fullWidth>

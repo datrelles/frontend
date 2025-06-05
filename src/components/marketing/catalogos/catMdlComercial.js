@@ -124,25 +124,30 @@ function CatModeloComercial() {
 
             try {
                 const processedRows = rows.map((row, index) => {
-                    const nombre_marca = (row.nombre_marca || "").trim();
-                    const nombre_modelo_sri = (row.nombre_modelo_sri || "").trim();
-                    const nombre_modelo = (row.nombre_modelo || "").trim();
+                    const nombre_marca = (row.nombre_marca || "").toString().trim();
+                    const nombre_modelo_sri = (row.nombre_modelo_sri || "").toString().trim();
+                    const nombre_modelo = (row.nombre_modelo || "").toString().trim();
                     const anio_modelo = parseInt(row.anio_modelo);
-                    const estado = (row.estado_modelo || "").toString().toLowerCase();
+                    const estado_raw = (row.estado_modelo || "").toString().trim().toLowerCase();
 
                     if (!nombre_marca || !nombre_modelo_sri || !nombre_modelo || isNaN(anio_modelo)) {
                         throw new Error(`Fila ${index + 2}: Datos obligatorios faltantes.`);
                     }
 
-                    const estado_modelo = estado === "ACTIVO" ? 1 : estado === "INACTIVO" ? 0 : null;
+                    const estado_modelo = estado_raw === "activo" ? 1 : estado_raw === "inactivo" ? 0 : null;
 
                     if (estado_modelo === null) {
-                        throw new Error(`Fila ${index + 2}: Estado debe ser 'Activo' o 'Inactivo'.`);
+                        throw new Error(`Fila ${index + 2}: Estado debe ser 'ACTIVO' o 'INACTIVO'.`);
                     }
 
                     const homologado = homologados.find(
-                        h => h.nombre_modelo_sri.trim().toLowerCase() === nombre_modelo_sri.toLowerCase()
+                        h =>
+                            (h.nombre_modelo_sri ?? "")
+                                .toString()
+                                .trim()
+                                .toLowerCase() === nombre_modelo_sri.toLowerCase()
                     );
+
 
                     if (!homologado) {
                         throw new Error(`Fila ${index + 2}: Modelo homologado '${nombre_modelo_sri}' no encontrado.`);
@@ -191,6 +196,7 @@ function CatModeloComercial() {
 
         reader.readAsBinaryString(file);
     };
+
 
     const openEditDialog = (row) => {
         const homologado = homologados.find(
