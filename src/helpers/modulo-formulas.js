@@ -5,6 +5,11 @@ import {
   TiposRetorno,
 } from "../components/formulas/common/enum";
 
+export function validarCedulaRUC(valor) {
+  const regex = /^(?:\d{13}|\d{9}-\d|\d{10})$/;
+  return regex.test(valor);
+}
+
 export function formatearFechaHora(valor) {
   let fecha = new Date(valor);
   if (isNaN(fecha.getTime())) {
@@ -36,6 +41,15 @@ export function formatearEstado(estado, terminacion = "o") {
     return `Inactiv${terminacion}`;
   }
 }
+
+export function formatearSiNo(estado) {
+  try {
+    return parseInt(estado) ? "Sí" : "No";
+  } catch (_) {
+    return "No";
+  }
+}
+
 export const obtenerNombreTipoRetorno = (retorno) =>
   Enum.getLabel(TiposRetorno, retorno);
 

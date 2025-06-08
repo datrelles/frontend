@@ -303,4 +303,38 @@ export default class API {
       this.#headers
     );
   });
+
+  getCliente = this.#errorHandler(async (cliente) => {
+    return await axios.get(`${this.#URL}/clientes/${cliente}`, this.#headers);
+  });
+
+  getClientes = this.#errorHandler(async () => {
+    return await axios.get(`${this.#URL}/clientes`, this.#headers);
+  });
+
+  createCliente = this.#errorHandler(async (data) => {
+    return await axios.post(`${this.#URL}/clientes`, data, this.#headers);
+  });
+
+  updateCliente = this.#errorHandler(async (cliente, data) => {
+    return await axios.put(
+      `${this.#URL}/clientes/${cliente}`,
+      data,
+      this.#headers
+    );
+  });
+
+  deleteCliente = this.#errorHandler(async (cliente) => {
+    return await axios.delete(
+      `${this.#URL}/clientes/${cliente}`,
+      this.#headers
+    );
+  });
+
+  getNuevoCliente = this.#errorHandler(async (cliente) => {
+    return await axios.get(
+      `${this.#URL}/nuevo-cliente/${cliente}`,
+      this.#headers
+    );
+  });
 }

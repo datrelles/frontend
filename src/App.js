@@ -76,6 +76,7 @@ import ParametrosProceso from "./components/formulas/parametros-proceso";
 import FactoresCalculo from "./components/formulas/factores-calculo";
 import Funciones from "./components/formulas/funciones";
 import PresupuestoCantidades from "./components/importaciones/presupuesto-cantidades";
+import Clientes from "./components/formulas/clientes";
 
 ///SellManagerB2B
 const API = process.env.REACT_APP_API;
@@ -683,6 +684,15 @@ function App() {
                 element={
                   <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
                     <Funciones />
+                  </Protected>
+                }
+              ></Route>
+              <Route
+                exact
+                path="/clientes-procesos"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
+                    <Clientes />
                   </Protected>
                 }
               ></Route>

@@ -93,3 +93,18 @@ export const CaracteresFormula = {
   PARAMETRO: new Enum("$"),
   FORMULA: new Enum("@"),
 };
+
+export const MesesProyeccion = {
+  "12_MESES": new Enum("12", "12 MESES"),
+  "24_MESES": new Enum("24", "24 MESES"),
+  "36_MESES": new Enum("36", "36 MESES"),
+  "48_MESES": new Enum("48", "48 MESES"),
+};
+
+export const DefaultMesesProyeccion = MesesProyeccion["12_MESES"].key;
+
+export const ModelosCliente = {
+  CLI1: new Enum("CLI1"),
+};
+
+export const DefaultModeloCliente = ModelosCliente.CLI1.key;
