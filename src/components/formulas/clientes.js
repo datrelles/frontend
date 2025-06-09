@@ -36,6 +36,7 @@ export default function Clientes() {
   const [codModelo, setCodModelo] = useState(DefaultModeloCliente);
   const [tipoCliente, setTipoCliente] = useState("");
   const [nombre, setNombre] = useState("");
+  const [nombreImprime, setNombreImprime] = useState("");
   const [agrupa, setAgrupa] = useState(false);
   const [nombreAgrupacion, setNombreAgrupacion] = useState("");
 
@@ -53,7 +54,7 @@ export default function Clientes() {
       cod_cliente: codCliente,
       cod_modelo: codModelo,
       tipo_cliente: tipoCliente,
-      nombre_imprime: nombre,
+      nombre_imprime: nombreImprime,
       agrupa_cliente: agrupa,
       nombre_agrupacion: nombreAgrupacion,
     })
@@ -63,7 +64,7 @@ export default function Clientes() {
         setCodCliente("");
         setCodModelo(DefaultModeloCliente);
         setTipoCliente("");
-        setNombre("");
+        setNombreImprime("");
         setAgrupa(false);
         setNombreAgrupacion("");
       })
@@ -83,7 +84,7 @@ export default function Clientes() {
     APIService.updateCliente(codCliente, {
       cod_modelo: codModelo,
       tipo_cliente: tipoCliente,
-      nombre_imprime: nombre,
+      nombre_imprime: nombreImprime,
       agrupa_cliente: agrupa,
       nombre_agrupacion: nombreAgrupacion,
     })
@@ -93,7 +94,7 @@ export default function Clientes() {
         setCodCliente("");
         setCodModelo(DefaultModeloCliente);
         setTipoCliente("");
-        setNombre("");
+        setNombreImprime("");
         setAgrupa(false);
         setNombreAgrupacion("");
       })
@@ -126,6 +127,7 @@ export default function Clientes() {
     setCodModelo(DefaultModeloCliente);
     setTipoCliente("");
     setNombre("");
+    setNombreImprime("");
     setAgrupa(false);
     setNombreAgrupacion("");
   };
@@ -147,7 +149,7 @@ export default function Clientes() {
     setCodCliente(row.cod_cliente);
     setCodModelo(row.cod_modelo);
     setTipoCliente(row.tipo_cliente);
-    setNombre(row.nombre_imprime);
+    setNombreImprime(row.nombre_imprime);
     setAgrupa(row.agrupa_cliente === 1);
     setNombreAgrupacion(row.nombre_agrupacion);
     handleClickOpenUpdate();
@@ -218,40 +220,54 @@ export default function Clientes() {
         if (validarCedulaRUC(codigo)) {
           try {
             const res = (await APIService.getNuevoCliente(codigo)).mensaje;
+            const nombre = res.split(",")[0];
             const tipo = res.split(",")[1];
             if (tipo) {
+              setNombre(nombre);
               setTipoCliente(tipo);
             } else {
               toast.error("El cliente no tiene un tipo registrado");
             }
           } catch (err) {
             toast.error(err.message);
+            setNombre("");
             setTipoCliente("");
           }
         } else {
+          setNombre("");
           setTipoCliente("");
         }
       },
       true,
       "CI / RUC"
     ),
-    createCustomComponentItem(4, "cod_modelo", selectModelo),
     createTextFieldItem(
-      4,
-      "tipo_cliente",
-      "Tipo cliente",
-      tipoCliente,
+      8,
+      "nombre",
+      "Nombre",
+      nombre,
       undefined,
       true,
       undefined,
       true
     ),
     createTextFieldItem(
-      12,
+      2,
+      "tipo_cliente",
+      "Tipo",
+      tipoCliente,
+      undefined,
+      true,
+      undefined,
+      true
+    ),
+    createCustomComponentItem(2, "cod_modelo", selectModelo),
+    createTextFieldItem(
+      8,
       "nombre_imprime",
       "Nombre",
-      nombre,
-      createDefaultSetter(setNombre)
+      nombreImprime,
+      createDefaultSetter(setNombreImprime)
     ),
     createCustomComponentItem(4, "checkboxAgrupa", checkboxAgrupa),
     agrupa
@@ -273,8 +289,8 @@ export default function Clientes() {
       12,
       "nombre_imprime",
       "Nombre",
-      nombre,
-      createDefaultSetter(setNombre)
+      nombreImprime,
+      createDefaultSetter(setNombreImprime)
     ),
     createCustomComponentItem(4, "checkboxAgrupa", checkboxAgrupa),
     agrupa

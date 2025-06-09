@@ -304,6 +304,13 @@ export default class API {
     );
   });
 
+  getNuevoCliente = this.#errorHandler(async (cliente) => {
+    return await axios.get(
+      `${this.#URL}/nuevo-cliente/${cliente}`,
+      this.#headers
+    );
+  });
+
   getCliente = this.#errorHandler(async (cliente) => {
     return await axios.get(`${this.#URL}/clientes/${cliente}`, this.#headers);
   });
@@ -331,10 +338,7 @@ export default class API {
     );
   });
 
-  getNuevoCliente = this.#errorHandler(async (cliente) => {
-    return await axios.get(
-      `${this.#URL}/nuevo-cliente/${cliente}`,
-      this.#headers
-    );
+  getClientesProyecciones = this.#errorHandler(async () => {
+    return await axios.get(`${this.#URL}/clientes-proyecciones`, this.#headers);
   });
 }

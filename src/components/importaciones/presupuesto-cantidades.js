@@ -20,6 +20,7 @@ export default function PresupuestoCantidades() {
     [jwt]
   );
   const [menus, setMenus] = useState([]);
+  const [clientes, setClientes] = useState([]);
   const [mesesProyeccion, setMesesProyeccion] = useState(
     DefaultMesesProyeccion
   );
@@ -34,6 +35,14 @@ export default function PresupuestoCantidades() {
 
   const handleProyectar = async () => {
     console.log("handleProyectar");
+  };
+
+  const getClientesProyecciones = async () => {
+    try {
+      setClientes(await APIService.getClientesProyecciones());
+    } catch (err) {
+      toast.error(err.message);
+    }
   };
 
   const header = <Header menus={menus} />;
@@ -51,10 +60,23 @@ export default function PresupuestoCantidades() {
     <BtnNuevo onClick={handleProyectar} texto="Proyectar" icon={false} />
   );
 
+  const lista = (
+    <ul>
+      {clientes.map((cliente, index) => (
+        <li key={index}>
+          {cliente.agrupa_cliente
+            ? cliente.nombre_agrupacion
+            : cliente.nombre_imprime}
+        </li>
+      ))}
+    </ul>
+  );
+
   useEffect(() => {
     document.title = "Presupuesto de Cantidades";
     getMenus();
+    getClientesProyecciones();
   }, []);
 
-  return <MainComponent components={[header, selectMeses, btnNuevo]} />;
+  return <MainComponent components={[header, selectMeses, btnNuevo, lista]} />;
 }
