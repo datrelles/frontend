@@ -341,4 +341,11 @@ export default class API {
   getClientesProyecciones = this.#errorHandler(async () => {
     return await axios.get(`${this.#URL}/clientes-proyecciones`, this.#headers);
   });
+
+  getModelosMotosProyecciones = this.#errorHandler(async () => {
+    return await axios.get(
+      `${this.#URL}/modelos-motos-proyecciones`,
+      this.#headers
+    );
+  });
 }
