@@ -157,25 +157,6 @@ export default function PresupuestoCantidades() {
     <BtnNuevo onClick={handleProyectar} texto="Proyectar" icon={false} />
   );
 
-  const listaClientes = (
-    <ul>
-      {clientes.map((cliente, index) => (
-        <li key={index}>
-          {cliente.agrupa_cliente
-            ? cliente.nombre_agrupacion
-            : cliente.nombre_imprime}
-        </li>
-      ))}
-    </ul>
-  );
-  const listaModelos = (
-    <ul>
-      {modelos.map((modelo, index) => (
-        <li key={index}>{modelo.nombre}</li>
-      ))}
-    </ul>
-  );
-
   const tabla = (
     <Tabla
       title="Tabla"
@@ -191,16 +172,5 @@ export default function PresupuestoCantidades() {
     getClientesModelos();
   }, []);
 
-  return (
-    <MainComponent
-      components={[
-        header,
-        selectMeses,
-        btnNuevo,
-        listaClientes,
-        listaModelos,
-        tabla,
-      ]}
-    />
-  );
+  return <MainComponent components={[header, selectMeses, btnNuevo, tabla]} />;
 }
