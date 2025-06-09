@@ -16,6 +16,13 @@ export default function SelectorDimensiones({ dimensiones, selectedDimensionesId
 
     const selectedItem = dimensiones.find(e => e.codigo_dim_peso === selectedDimensionesId);
     const dimensionesLabel = selectedItem ? `${selectedItem.codigo_dim_peso}` : '';
+    const [searchText, setSearchText] = useState('');
+
+    const filteredDimensiones = dimensiones.filter(item =>
+        Object.values(item).some(value =>
+            String(value).toLowerCase().includes(searchText.toLowerCase())
+        )
+    );
 
     return (
         <Grid item xs={6}>
@@ -39,6 +46,15 @@ export default function SelectorDimensiones({ dimensiones, selectedDimensionesId
                     </IconButton>
                 </DialogTitle>
                 <DialogContent>
+                    <TextField
+                        label="Buscar"
+                        variant="outlined"
+                        size="small"
+                        fullWidth
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        sx={{ mb: 2 }}
+                    />
                     <Table size="small">
                         <TableHead>
                             <TableRow>
@@ -51,7 +67,7 @@ export default function SelectorDimensiones({ dimensiones, selectedDimensionesId
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {dimensiones.map((item) => (
+                            {filteredDimensiones.map((item) =>  (
                                 <TableRow key={item.codigo_dim_peso} hover>
                                     <TableCell>{item.codigo_dim_peso}</TableCell>
                                     <TableCell>{item.altura_total}</TableCell>

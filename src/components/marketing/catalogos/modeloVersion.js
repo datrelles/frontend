@@ -24,10 +24,10 @@ import SelectorElectronica from "../selectoresDialog/selectElectronica";
 const API = process.env.REACT_APP_API;
 
 function CatModeloVersion() {
-    const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
-    const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
     const [menus, setMenus] = useState([]);
+    const { enqueueSnackbar } = useSnackbar();
+    const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const [productos, setProductos] = useState([]);
     const [modelosComerciales, setModelosComerciales] = useState([]);
     const [versiones, setVersiones] = useState([]);
@@ -40,7 +40,7 @@ function CatModeloVersion() {
     const [selectedColor, setSelectedColor] = useState(null);
     const [selectedImagen, setSelectedImagen] = useState(null);
     const [selectedCanal, setSelectedCanal] = useState(null);
-    const [selectedTransmision, setSelectedTransmision] = useState(null);
+    const [selectedTransmision, setselectedTransmision] = useState(null);
     const [selectedModeloComercial, setSelectedModeloComercial] = useState(null);
     const [selectedClienteCanal, setSelectedClienteCanal] = useState(null);
     const [selectedVersion, setSelectedVersion] = useState(null);
@@ -54,7 +54,7 @@ function CatModeloVersion() {
     const [dimensiones, setDimensiones] = useState([]);
     const [electronica, setElectronicas] = useState([]);
     const [colores, setColores] = useState([]);
-    const [imagenes, setImagenes] = useState([]);
+    const [images, setImages] = useState([]);
     const [canales, setCanales] = useState([]);
     const [clienteCanal, setClienteCanal] = useState([]);
     const [modeloVersionesRepuestos, setModeloVersionesRepuestos] = useState([]);
@@ -305,7 +305,7 @@ function CatModeloVersion() {
             });
             const data = await res.json();
             if (res.ok) {
-                setImagenes(data);
+                setImages(data);
             } else {
                 enqueueSnackbar(data.error || "Error al obtener datos de imágenes", { variant: "error" });
             }
@@ -356,30 +356,24 @@ function CatModeloVersion() {
         }
     };
 
+
     useEffect(() => {
-        const cargarDatos = async () => {
-            try {
-                await getMenus();
-                await fetchModeloVersion();
-                await fetchModeloVersRepuesto();
-                await fetchProductos();
-                await fetchModeloComercial();
-                await fetchVersiones();
-                await fetchChasis();
-                await fetchMotores();
-                await fetchTiposMotor();
-                await fetchTransmisiones();
-                await fetchDimensiones();
-                await fetchElectronica();
-                await fetchColores();
-                await fetchImagen();
-                await fetchCanal();
-                await fetchClienteCanal();
-            } catch (err) {
-                console.error("Error cargando datos iniciales:", err);
-            }
-        };
-        cargarDatos();
+        getMenus();
+        fetchModeloVersion();
+        fetchModeloVersRepuesto();
+        fetchProductos();
+        fetchModeloComercial();
+        fetchVersiones();
+        fetchChasis();
+        fetchMotores();
+        fetchTiposMotor();
+        fetchTransmisiones();
+        fetchDimensiones();
+        fetchElectronica();
+        fetchColores();
+        fetchImagen();
+        fetchCanal();
+        fetchClienteCanal();
     }, []);
 
     const handleInsertOrUpdate = async () => {
@@ -460,7 +454,7 @@ function CatModeloVersion() {
             const elect = electronica?.find(e => e.codigo_electronica === item.codigo_electronica);
             const transmision = transmisiones.find(t => t.codigo_transmision === item.codigo_transmision);
             const color = colores.find(c => c.codigo_color_bench === item.codigo_color_bench);
-            const imagen = imagenes.find(i => i.codigo_imagen === item.codigo_imagen);
+            const imagen = images.find(i => i.codigo_imagen === item.codigo_imagen);
             const cl_canal = clienteCanal.find(c => c.codigo_cliente_canal === item.codigo_cliente_canal);
             const canal = canales.find(cc => cc.codigo_canal === item.codigo_canal);
 
@@ -471,7 +465,7 @@ function CatModeloVersion() {
             setSelectedMotor(motor || null);
             setSelectedElectronica(elect || null);
             setSelectedChasis(cha || null);
-            setSelectedTransmision(transmision || null);
+            setselectedTransmision(transmision || null);
             setSelectedColor(color || null);
             setSelectedImagen(imagen || null);
             setSelectedClienteCanal(cl_canal || null);
@@ -623,7 +617,7 @@ function CatModeloVersion() {
                             setSelectedElectronica( null);
                             setSelectedChasis( null);
                             setSelectedCanal( null);
-                            setSelectedTransmision( null);
+                            setselectedTransmision( null);
                             setSelectedColor( null);
                             setSelectedImagen(null);
                             setSelectedClienteCanal(null);
@@ -639,7 +633,7 @@ function CatModeloVersion() {
                         transmisiones={transmisiones}
                         dimensiones={dimensiones}
                         motores={motores}
-                        imagenes={imagenes}
+                        imagenes={images}
                         tiposMotor={tiposMotor}
                         chasis={chasis}
                         onEdit={openDialog}
@@ -678,7 +672,7 @@ function CatModeloVersion() {
                                         getOptionLabel={(x) => x.caja_cambios}
                                         value={selectedTransmision}
                                         onChange={(e, v) => {
-                                            setSelectedTransmision(v || null);
+                                            setselectedTransmision(v || null);
                                             handleChange('codigo_transmision', v?.codigo_transmision || '');
                                         }}
                                         renderInput={(params) => <TextField {...params} label="Transmisión" />}/>
@@ -700,7 +694,7 @@ function CatModeloVersion() {
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Autocomplete
-                                        options={imagenes}
+                                        options={images}
                                         getOptionLabel={(x) => x.descripcion_imagen}
                                         value={selectedImagen}
                                         onChange={(e, v) => {
@@ -750,7 +744,9 @@ function CatModeloVersion() {
                                 <Grid item xs={12}>
                                     <Autocomplete
                                         options={modelosComerciales.filter(v => v.estado_modelo === 1)}
-                                        getOptionLabel={(v) => v?.nombre_modelo || ''}
+                                        getOptionLabel={(v) =>
+                                            `${v?.nombre_modelo ?? ''} (${v?.anio_modelo ?? ''})`
+                                        }
                                         value={selectedModeloComercial}
                                         onChange={(e, v) => {
                                             handleChange('codigo_modelo_comercial', v ? v.codigo_modelo_comercial : '');
@@ -775,7 +771,10 @@ function CatModeloVersion() {
                                 <Grid item xs={7}>
                                     <Autocomplete
                                         options={clienteCanal}
-                                        getOptionLabel={(x) => `${x.codigo_cliente_canal} - ${x.nombre_canal}`}
+                                        getOptionLabel={(option) =>
+                                            `${option.codigo_cliente_canal} - ${option.nombre_canal} - ${option.descripcion_cliente_canal} - ${option.nombre_producto}`
+                                        }
+
                                         value={selectedClienteCanal}
                                         isOptionEqualToValue={(opt, val) => opt.codigo_cliente_canal === val?.codigo_cliente_canal}
                                         onChange={(e, v) => {

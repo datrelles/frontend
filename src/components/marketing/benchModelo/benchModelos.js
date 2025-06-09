@@ -35,6 +35,11 @@ function CompararModelos()  {
     const [openModalImagen, setOpenModalImagen] = useState(false);
     const [selectedImagen, setSelectedImagen] = useState(null);
     const [filtro, setFiltro] = useState('');
+    const lineaAutomotriz = lineas.find((l) => l.nombre_linea?.toUpperCase() === 'AUTOMOTRIZ');
+
+    const lineasFiltradas = lineaAutomotriz
+        ? lineas.filter((l) => l.codigo_linea_padre === lineaAutomotriz.codigo_linea)
+        : [];
 
 
     const toggleResumenDialog = () => setOpenResumenDialog(prev => !prev);
@@ -131,7 +136,6 @@ function CompararModelos()  {
             enqueueSnackbar("Error cargando modelos", { variant: "error" });
         }
     };
-
     const fetchLineas = async () => {
         try {
             const res = await fetch(`${API}/bench/get_lineas`, {
@@ -143,7 +147,6 @@ function CompararModelos()  {
             enqueueSnackbar('Error cargando datos', { variant: 'error' });
         }
     };
-
     const handleChange = (campo, valor) => {
         if (!valor) return;
 
@@ -157,7 +160,6 @@ function CompararModelos()  {
             handleSegmentoChange(lineaSeleccionada, valor);
         }
     };
-
     const dataResumen = resultado?.comparables.map((item) => {
         const modelo = modelos.find(m => m.codigo_modelo_version === item.modelo_version);
 
@@ -179,7 +181,6 @@ function CompararModelos()  {
             diferente_en: diferencias.join(', ').replace(/_/g, ' ').toUpperCase()
         };
     });
-
     const exportarExcel = async () => {
         const res = await fetch(`${API}/bench_model/exportar_comparacion_xlsx`, {
             method: 'POST',
@@ -308,9 +309,9 @@ function CompararModelos()  {
                         <Grid container spacing={2} >
                             <Grid item xs={1.5}>
                                 <Autocomplete
-                                    options={lineas}
+                                    options={lineasFiltradas}
                                     getOptionLabel={(option) => option?.nombre_linea || ''}
-                                    value={lineas.find(l => l.codigo_linea === lineaSeleccionada) || null}
+                                    value={lineasFiltradas.find(l => l.codigo_linea === lineaSeleccionada) || null}
                                     onChange={(e, v) => handleChange('codigo_linea', v)}
                                     renderInput={(params) => <TextField {...params} label="Línea" />}
                                 />

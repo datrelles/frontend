@@ -139,6 +139,7 @@ function CatModeloHomologado() {
                 }
             }
         },
+        { name: 'anio_modelo_sri', label: 'Año Modelo' },
         { name: 'descripcion_homologacion', label: 'Descripción' },
         { name: 'usuario_crea', label: 'Usuario Crea' },
         { name: 'fecha_creacion', label: 'Fecha Creación' },
@@ -263,7 +264,9 @@ function CatModeloHomologado() {
                                 <Autocomplete
                                     fullWidth
                                     options={modelosSriActivos}
-                                    getOptionLabel={(option) => option?.nombre_modelo || ''}
+                                    getOptionLabel={(option) =>
+                                        `${option?.nombre_modelo ?? ''} (${option?.anio_modelo ?? ''})`
+                                    }
                                     value={modeloSri}
                                     onChange={(e, newValue) => setModeloSri(newValue)}
                                     renderInput={(params) => <TextField {...params} label="Modelo SRI" />}

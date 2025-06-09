@@ -16,6 +16,13 @@ export default function SelectorChasis({ chasis, selectedChasisId, onSelect }) {
 
     const selectedItem = chasis.find(c => c.codigo_chasis === selectedChasisId);
     const chasisLabel = selectedItem ? `${selectedItem.codigo_chasis}` : '';
+    const [searchText, setSearchText] = useState('');
+
+    const filteredChasis = chasis.filter(item =>
+        Object.values(item).some(value =>
+            String(value).toLowerCase().includes(searchText.toLowerCase())
+        )
+    );
 
     return (
         <Grid item xs={6}>
@@ -39,6 +46,15 @@ export default function SelectorChasis({ chasis, selectedChasisId, onSelect }) {
                     </IconButton>
                 </DialogTitle>
                 <DialogContent>
+                    <TextField
+                        label="Buscar"
+                        variant="outlined"
+                        size="small"
+                        fullWidth
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        sx={{ mb: 2 }}
+                    />
                     <Table size="small">
                         <TableHead>
                             <TableRow>
@@ -55,7 +71,7 @@ export default function SelectorChasis({ chasis, selectedChasisId, onSelect }) {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {chasis.map((item) => (
+                            {filteredChasis.map((item) => (
                                 <TableRow key={item.codigo_chasis} hover>
                                     <TableCell>{item.codigo_chasis}</TableCell>
                                     <TableCell>{item.aros_rueda_delantera}</TableCell>

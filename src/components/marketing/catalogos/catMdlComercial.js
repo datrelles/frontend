@@ -443,7 +443,9 @@ function CatModeloComercial() {
                         <Grid item xs={12}>
                             <Autocomplete
                                 options={homologados}
-                                getOptionLabel={(option) => option?.nombre_modelo_sri || ''}
+                                getOptionLabel={(option) =>
+                                    `${option?.nombre_modelo_sri ?? ''} (${option?.anio_modelo_sri ?? ''})`
+                                }
                                 value={selectedHomologado}
                                 onChange={(e, v) => {
                                     handleChange('codigo_modelo_homologado', v ? v.codigo_modelo_homologado : '');
@@ -451,6 +453,7 @@ function CatModeloComercial() {
                                 }}
                                 renderInput={(params) => <TextField {...params} label="Modelo Homologado" />}
                             />
+
 
                         </Grid>
                         <Grid item xs={6}><TextField fullWidth label="Nombre Modelo Comercial" value={form.nombre_modelo || ''} onChange={(e) => handleChange('nombre_modelo', e.target.value.toUpperCase())} /></Grid>

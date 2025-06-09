@@ -17,6 +17,14 @@ export default function SelectorMotor({ motores, tiposMotor, selectedMotorId, on
     const selectedItem = motores.find(m => m.codigo_motor === selectedMotorId);
     const motorLabel = selectedItem ? selectedItem.nombre_motor : '';
 
+    const [searchText, setSearchText] = useState('');
+
+    const filteredMotor = motores.filter(item =>
+        Object.values(item).some(value =>
+            String(value).toLowerCase().includes(searchText.toLowerCase())
+        )
+    );
+
     return (
         <Grid item xs={6}>
             <Box display="flex" alignItems="center">
@@ -39,6 +47,15 @@ export default function SelectorMotor({ motores, tiposMotor, selectedMotorId, on
                     </IconButton>
                 </DialogTitle>
                 <DialogContent>
+                    <TextField
+                        label="Buscar"
+                        variant="outlined"
+                        size="small"
+                        fullWidth
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        sx={{ mb: 2 }}
+                    />
                     <Table size="small">
                         <TableHead>
                             <TableRow>
@@ -55,7 +72,7 @@ export default function SelectorMotor({ motores, tiposMotor, selectedMotorId, on
                         </TableHead>
 
                         <TableBody>
-                            {motores.map((motor) => {
+                            {filteredMotor.map((motor) =>  {
                                 const tipo = tiposMotor.find(t => t.codigo_tipo_motor === motor.codigo_tipo_motor);
                                 return (
                                     <TableRow key={`${motor.codigo_motor}-${motor.codigo_tipo_motor}`} hover>

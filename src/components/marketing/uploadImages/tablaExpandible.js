@@ -16,7 +16,7 @@ export default function CatModeloVersionExpandible({
                                                        motores = [],
                                                        tiposMotor = [],
                                                        chasis = [],
-                                                       imagenes = [],
+                                                       //imagenes = [],
                                                        onEdit
                                                    }) {
     const [imagenModal, setImagenModal] = useState(null);
@@ -26,7 +26,7 @@ export default function CatModeloVersionExpandible({
     const getDetalleMotor = (codigo) => motores.find(m => m.codigo_motor === codigo);
     const getTipoMotor = (codigo) => tiposMotor.find(t => t.codigo_tipo_motor === codigo);
     const getDetalleChasis = (codigo) => chasis.find(c => c.codigo_chasis === codigo);
-    const getImagen = (codigo) => imagenes.find(img => img.codigo_imagen === codigo)?.path_imagen;
+   //const getImagen = (codigo) => imagenes.find(img => img.codigo_imagen === codigo)?.path_imagen;
 
     const renderDetailTable = (section, headers, values) => (
         <>
@@ -64,7 +64,7 @@ export default function CatModeloVersionExpandible({
         const detalleMotor = getDetalleMotor(row.codigo_motor);
         const tipoMotor = getTipoMotor(row.codigo_tipo_motor);
         const detalleChasis = getDetalleChasis(row.codigo_chasis);
-        const pathImagen = row.path_imagen || getImagen(row.codigo_imagen);
+       // const pathImagen = row.path_imagen || getImagen(row.codigo_imagen);
 
         return (
             <Box margin={2}>
@@ -158,10 +158,10 @@ export default function CatModeloVersionExpandible({
                 ) : 'N/A'
             }
         },
-        { name: 'nombre_marca', label: 'MARCA' },
+        { name: 'nombre_marca', label: 'MARCA MODELO' },
         { name: 'nombre_version', label: 'VERSIÓN' },
         { name: 'nombre_color', label: 'COLOR' },
-        { name: 'anio_modelo_version', label: 'AÑO' },
+        { name: 'anio_modelo_version', label: 'AÑO MODELO' },
         { name: 'precio_producto_modelo', label: 'PRECIO PRODUCTO' },
         { name: 'precio_venta_distribuidor', label: 'PRECIO DISTRIBUIDOR' },
         {
