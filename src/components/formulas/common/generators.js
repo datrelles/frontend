@@ -161,3 +161,26 @@ export const createFunctionCustomBodyRender = (fn, ...args) => ({
 export const createTooltipCustomBodyRender = () => ({
   customBodyRender: (value) => <CustomTooltip texto={value} />,
 });
+
+export const createMTColumn = (
+  header,
+  field = null,
+  onUpdateCell = null,
+  children = null,
+  bgColor = null
+) => {
+  if (header === null) throw new Error("La columna debe tener un título");
+  if (field === null && children === null) {
+    throw new Error("La columna debe tener un campo o columnas anidadas");
+  }
+  if (field !== null && children !== null) {
+    throw new Error("La columna solo debe tener un campo o columnas anidadas");
+  }
+  return {
+    header,
+    ...(field ? { field } : {}),
+    ...(onUpdateCell ? { onUpdateCell } : {}),
+    ...(children ? { children } : {}),
+    ...(bgColor ? { bgColor } : {}),
+  };
+};
