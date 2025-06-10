@@ -16,6 +16,13 @@ export default function SelectorElectronica({ electronica, selectedElectronicaId
 
     const selectedItem = electronica.find(e => e.codigo_electronica === selectedElectronicaId);
     const electronicaLabel = selectedItem ? `${selectedItem.codigo_electronica}` : '';
+    const [searchText, setSearchText] = useState('');
+
+    const filteredElectronica = electronica.filter(item =>
+        Object.values(item).some(value =>
+            String(value).toLowerCase().includes(searchText.toLowerCase())
+        )
+    );
 
     return (
         <Grid item xs={6}>
@@ -39,6 +46,15 @@ export default function SelectorElectronica({ electronica, selectedElectronicaId
                     </IconButton>
                 </DialogTitle>
                 <DialogContent>
+                    <TextField
+                        label="Buscar"
+                        variant="outlined"
+                        size="small"
+                        fullWidth
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        sx={{ mb: 2 }}
+                    />
                     <Table size="small">
                         <TableHead>
                             <TableRow>
@@ -53,7 +69,7 @@ export default function SelectorElectronica({ electronica, selectedElectronicaId
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {electronica.map((item) => (
+                            {filteredElectronica.map((item)  => (
                                 <TableRow key={item.codigo_electronica} hover>
                                     <TableCell>{item.codigo_electronica}</TableCell>
                                     <TableCell>{item.capacidad_combustible}</TableCell>
