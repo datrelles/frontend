@@ -8,6 +8,7 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
+import {Grid} from "@material-ui/core";
 
 const getUnidadCampo = (campo) => {
     const camposMM = ['altura_total', 'longitud_total', 'ancho_total'];
@@ -61,15 +62,49 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
                     borderBottom: '1px solid lightgray'
                 }}
             >
-                {[modeloBase, ...comparables].map((m, i) => (
-                    <Box key={i} textAlign="center">
-                        <Typography variant="subtitle2" fontWeight="bold">{m.nombre_modelo_comercial}</Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>{m.nombre_marca}</Typography>
-                        <img src={encodeURI(m.path_imagen)} alt={m.nombre_modelo_comercial} style={{ width: 300, height: 'auto' }} />
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>Precio Venta Cliente</Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>$ {m.precio_producto_modelo}</Typography>
-                    </Box>
-                ))}
+                <Grid container spacing={2} justifyContent="center">
+                    {[modeloBase, ...comparables].map((m, i) => (
+                        <Grid item key={i}>
+                            <Box
+                                display="flex"
+                                flexDirection="column"
+                                alignItems="center"
+                                justifyContent="flex-start"
+                                sx={{ minWidth: 300 }}
+                            >
+                                <Typography variant="subtitle2" fontWeight="bold">
+                                    {m.nombre_modelo_comercial}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                    {m.nombre_marca}
+                                </Typography>
+
+                                <Box
+                                    sx={{
+                                        height: 250,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        mb: 1
+                                    }}
+                                >
+                                    <img
+                                        src={encodeURI(m.path_imagen)}
+                                        alt={m.nombre_modelo_comercial}
+                                        style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
+                                    />
+                                </Box>
+
+                                <Typography variant="body2" color="text.secondary">
+                                    Precio Venta Cliente
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    ${" "}{m.precio_producto_modelo}
+                                </Typography>
+                            </Box>
+                        </Grid>
+                    ))}
+                </Grid>
             </Box>
             <DialogContent dividers sx={{ maxHeight: '75vh' }}>
                 {Object.entries(categoriesAgrupadas).map(([categoria, campos]) => (
