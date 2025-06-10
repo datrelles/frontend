@@ -70,13 +70,36 @@ import { CreditoDirectoManager } from "./components/ventas/approveCredit";
 import { SellManagerB2B } from "./components/ventas/b2bCaseManager";
 import { AdminTallerUsuarios } from "./components/garantias/adminTallerUsuarios/adminTallerUsuarios";
 import { OpagoManager } from "./components/garantias/laborCase/laborCase";
+import  CatChasis from "./components/marketing/catalogos/catChasis";
+import  CatDimensionesPeso from "./components/marketing/catalogos/catDimensionesPeso";
+import  CatElectronica from "./components/marketing/catalogos/catElectronica";
+import  CatMotor from "./components/marketing/catalogos/catMotor";
+import  CatColor from "./components/marketing/catalogos/catColor";
+import  CatImagenes from "./components/marketing/catalogos/catImagenes";
+import  CatTransmision from "./components/marketing/catalogos/catTransmision";
+import  CatCanal from "./components/marketing/catalogos/catCanal";
+import  CatMarca from "./components/marketing/catalogos/catMarca";
+import  CatMarcRepuesto from "./components/marketing/catalogos/catMarcRepuesto";
+import  CatPdrExterno from "./components/marketing/catalogos/catPdrExterno";
+import  CatVersion from "./components/marketing/catalogos/catVersion";
+import  CatLinea from "./components/marketing/catalogos/catLinea";
+import  CatModSri from "./components/marketing/catalogos/catModSri";
+import  CatMdlHomologado from "./components/marketing/catalogos/catMdlHomologado";
+import  CatMatriculacionMarca from "./components/marketing/catalogos/catMatriculacionMarca";
+import  CatMdlComercial from "./components/marketing/catalogos/catMdlComercial";
+import  MdlVersionRepuesto from "./components/marketing/catalogos/mdlVersionRepuesto";
+import  ClienteCanal from "./components/marketing/catalogos/clienteCanal";
+import  CatSegmento from "./components/marketing/catalogos/catSegmento";
+import  ModeloVersion from "./components/marketing/catalogos/modeloVersion";
+import  BenchModelos from "./components/marketing/benchModelo/benchModelos";
+import  BenchRepuestos from "./components/marketing/benchRepuesto/benchRepuestos";
 
 ///SellManagerB2B
 const API = process.env.REACT_APP_API;
 function App() {
   const {  removeToken, setToken } = useToken();
 
-  const [authorizedSystems, setAuthorizedSystems] = useState(['IMP', 'REP', 'GAR', 'PBI','CON', 'IN', 'FIN', 'VE', 'LOG', 'RET']);
+  const [authorizedSystems, setAuthorizedSystems] = useState(['IMP', 'REP', 'GAR', 'PBI','CON', 'IN', 'FIN', 'VE', 'LOG', 'RET','MKT']);
 
 
   const {jwt, userShineray,enterpriseShineray, flag, temporalFlag, logout}=useAuthContext();
@@ -202,6 +225,29 @@ function App() {
                   <Route exact path="/transEcommerce" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><TransEcommerce/></Protected>}/>
                   <Route exact path="/approve_credit" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><CreditoDirectoManager/></Protected>}/>
                   <Route exact path="/invoice_b2b" element={<Protected isLoggedIn={authorizedSystems.includes('VE')}><SellManagerB2B/></Protected>}/>
+                  <Route exact path="/catalogo_chasis" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatChasis/></Protected>}/>
+                  <Route exact path="/catalogo_dim_peso" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatDimensionesPeso/></Protected>}/>
+                  <Route exact path="/catalogo_electronica" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatElectronica/></Protected>}/>
+                  <Route exact path="/catalogo_motor" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatMotor/></Protected>}/>
+                  <Route exact path="/catalogo_color" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatColor/></Protected>}/>
+                  <Route exact path="/catalogo_imagenes" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatImagenes/></Protected>}/>
+                  <Route exact path="/catalogo_transmision" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatTransmision/></Protected>}/>
+                  <Route exact path="/catalogo_canal" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatCanal/></Protected>}/>
+                  <Route exact path="/catalogo_marca_rep" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatMarcRepuesto/></Protected>}/>
+                  <Route exact path="/catalogo_prod_externo" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatPdrExterno/></Protected>}/>
+                  <Route exact path="/catalogo_version" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatVersion/></Protected>}/>
+                  <Route exact path="/catalogo_marca" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatMarca/></Protected>}/>
+                  <Route exact path="/catalogo_linea" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatLinea/></Protected>}/>
+                  <Route exact path="/catalogo_sri" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatModSri/></Protected>}/>
+                  <Route exact path="/modelo_homologado" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatMdlHomologado/></Protected>}/>
+                  <Route exact path="/matriculacion_marca" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatMatriculacionMarca/></Protected>}/>
+                  <Route exact path="/catalogo_modelo_comercial" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatMdlComercial/></Protected>}/>
+                  <Route exact path="/catalogo_modelo_repuesto" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><MdlVersionRepuesto/></Protected>}/>
+                  <Route exact path="/cliente_canal" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><ClienteCanal/></Protected>}/>
+                  <Route exact path="/catalogo_segmento" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatSegmento/></Protected>}/>
+                  <Route exact path="/modelo_version" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><ModeloVersion/></Protected>}/>
+                  <Route exact path="/modelo_compatible" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><BenchModelos/></Protected>}/>
+                  <Route exact path="/repuesto_compatible" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><BenchRepuestos/></Protected>}/>
                   <Route exact path="/settings" element={<Settings/>}></Route>
                 </Routes>
               </>            
