@@ -19,6 +19,7 @@ import {
 import BtnNuevo from "../formulas/common/btn-nuevo";
 import Tabla from "../formulas/common/tabla";
 import MultiLevelTable from "../formulas/common/multilevel-table";
+import { makeStyles } from "@material-ui/core/styles";
 
 export default function PresupuestoCantidades() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
@@ -68,6 +69,8 @@ export default function PresupuestoCantidades() {
   );
   const [productoTabla, setProductoTabla] = useState([]);
   const [columnasTabla, setColumnasTabla] = useState(columnasFijas);
+  const [productoTablaX, setProductoTablaX] = useState([]);
+  const [columnasTablaX, setColumnasTablaX] = useState([]);
 
   const getMenus = async () => {
     try {
@@ -75,6 +78,64 @@ export default function PresupuestoCantidades() {
     } catch (err) {
       toast.error(err.message);
     }
+  };
+
+  const handleMulti = () => {
+    const columnasProyeccion = [
+      createMTColumn("Ventas Clientes", "ventas_cli"),
+      createMTColumn("Ventas MASSLINE", "ventas_mass"),
+    ];
+    const curYear = new Date().getFullYear();
+    const iter = mesesProyeccion / 12;
+    let producto = [];
+    for (const modelo of modelos) {
+      for (const cliente of clientes) {
+        producto.push({
+          // cod_cliente: cliente.cod_cliente,
+          cliente: cliente.agrupa_cliente
+            ? cliente.nombre_agrupacion
+            : cliente.nombre_imprime,
+          // cod_modelo: modelo.codigo,
+          modelo: modelo.nombre,
+        });
+      }
+    }
+    console.log("X prod", producto);
+    let columnas = [
+      createMTColumn("Cliente", "cliente"),
+      createMTColumn("Modelo", "modelo"),
+    ];
+    for (let i = 1; i <= iter; i++) {
+      const proyYear = curYear + i - 1;
+      for (let mes = 1; mes <= 12; mes++) {
+        const nuevasColumnas = columnasProyeccion.map((col) =>
+          createMTColumn(
+            `${col.header} ${proyYear} ${mes}`,
+            `${col.field}_${proyYear}_${mes}`
+          )
+        );
+        const colGrupo = createMTColumn(
+          `${mes}-${curYear}`,
+          undefined,
+          undefined,
+          nuevasColumnas
+        );
+        console.log("X colGrupo", colGrupo);
+        columnas = columnas.concat(colGrupo);
+        console.log("X columnas", columnas);
+        producto = producto.map((fila) => {
+          const filaActualizada = { ...fila };
+          nuevasColumnas.forEach((col) => {
+            filaActualizada[col.field] = "-";
+          });
+          return filaActualizada;
+        });
+      }
+    }
+    console.log("X cols", columnas);
+    console.log("Y prod", producto);
+    setColumnasTablaX(columnas);
+    setProductoTablaX(producto);
   };
 
   const handleProyectar = () => {
@@ -129,6 +190,7 @@ export default function PresupuestoCantidades() {
     }
     setColumnasTabla(columnas);
     setProductoTabla(producto);
+    handleMulti();
   };
 
   async function getClientesModelos() {
@@ -344,7 +406,7 @@ export default function PresupuestoCantidades() {
     //   field: "hireDate",
     //   onUpdateCell: handleUpdateCell,
     // },
-    createMTColumn("Fecha Contratación", "hireDate", handleUpdateCell),
+    createMTColumn("Fecha Contratación", "hireDate"),
   ];
 
   const test = (
@@ -364,6 +426,23 @@ export default function PresupuestoCantidades() {
     </div>
   );
 
+  const X = (
+    <div
+      style={{
+        maxWidth: "95%",
+        margin: "20px auto",
+        border: "1px solid #ccc",
+        padding: "15px",
+      }}
+    >
+      <MultiLevelTable
+        data={productoTablaX}
+        columns={columnasTablaX}
+        fixedColumnsCount={2}
+      />
+    </div>
+  );
+
   useEffect(() => {
     document.title = "Presupuesto de Cantidades";
     getMenus();
@@ -371,6 +450,8 @@ export default function PresupuestoCantidades() {
   }, []);
 
   return (
-    <MainComponent components={[header, selectMeses, btnNuevo, tabla, test]} />
+    <MainComponent
+      components={[header, selectMeses, btnNuevo, tabla, test, X]}
+    />
   );
 }

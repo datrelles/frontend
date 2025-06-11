@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -37,6 +37,8 @@ const useStyles = makeStyles({
     fontWeight: "bold",
     borderBottom: `1px solid #e0e0e0`,
     borderRight: `1px solid #e0e0e0`,
+    textAlign: "center",
+    verticalAlign: "middle",
     "&:last-child": {
       borderRight: "none",
     },
@@ -53,6 +55,8 @@ const useStyles = makeStyles({
   dataCell: (props) => ({
     borderBottom: `1px solid #e0e0e0`,
     borderRight: `1px solid #e0e0e0`,
+    textAlign: "center",
+    verticalAlign: "middle",
     "&:last-child": {
       borderRight: "none",
     },
@@ -106,7 +110,12 @@ export default function MultiLevelTable({
     (c) => c.onClickCell || c.onUpdateCell
   );
 
-  const classes = useStyles({ hasClickableHeader, hasClickableCell });
+  const styleProps = useMemo(
+    () => ({ hasClickableHeader, hasClickableCell }),
+    [hasClickableHeader, hasClickableCell]
+  );
+
+  const classes = useStyles(styleProps);
 
   const DEFAULT_HEADER_COLOR = "#FF3A3A";
 
@@ -174,32 +183,27 @@ export default function MultiLevelTable({
   };
 
   // Función recursiva para obtener todas las filas de encabezado
-  const getHeaderRows = (headerDefs, level = 0) => {
-    // Eliminado currentFlatIndex si no se usa directamente
-    let currentLevelCells = [];
-    let nextLevelDefs = [];
-    let headerRows = [];
+  const getHeaderRows = (headerDefs) => {
+    const rows = [];
+    const maxDepth = getHeaderDepth(headerDefs);
 
-    headerDefs.forEach((def) => {
-      const colSpan = calculateColSpan(def);
-      if (colSpan === 0) return;
+    const fillRows = (defs, level = 0) => {
+      if (!rows[level]) rows[level] = [];
 
-      const headerBgColor = def.bgColor || DEFAULT_HEADER_COLOR;
-      const onClickHeader = def.onClickHeader || null;
+      defs.forEach((def) => {
+        const colSpan = calculateColSpan(def);
+        const rowSpan = def.children ? 1 : maxDepth - level;
 
-      let isCellSticky = false;
-      let cellLeftPosition = "auto";
+        const headerBgColor = def.bgColor || DEFAULT_HEADER_COLOR;
+        const onClickHeader = def.onClickHeader || null;
 
-      if (fixedColumnsCount > 0) {
-        // Un encabezado (de grupo o de dato) es sticky si TODAS las columnas de datos planas que abarca
-        // están entre las columnas fijas (definidas por fixedTopLevelColumnDefs).
         const containedFlatColumns = getFlatDataColumns([def]);
-        isCellSticky =
+        const isCellSticky =
           containedFlatColumns.length > 0 &&
           containedFlatColumns.every(isFlatColumnFixed);
 
+        let cellLeftPosition = "auto";
         if (isCellSticky) {
-          // Para un encabezado de grupo, su posición 'left' se basa en la primera columna plana *fija* que contiene.
           const firstFixedFlatColInGroup =
             containedFlatColumns.find(isFlatColumnFixed);
           if (firstFixedFlatColInGroup) {
@@ -209,49 +213,50 @@ export default function MultiLevelTable({
             cellLeftPosition = getStickyLeftPosition(firstFixedFlatColIndex);
           }
         }
+
+        rows[level].push(
+          <TableCell
+            key={`${def.header || def.field}-${level}`}
+            colSpan={colSpan}
+            rowSpan={rowSpan}
+            align="center"
+            className={classes.headerCell}
+            style={{
+              backgroundColor: headerBgColor,
+              left: cellLeftPosition,
+              ...(isCellSticky && { position: "sticky" }),
+              ...(isCellSticky && { backgroundColor: headerBgColor }),
+            }}
+            {...(def.field && {
+              ref: (el) => (headerCellRefs.current[def.field] = el),
+            })}
+            {...(onClickHeader && { onClick: onClickHeader })}
+          >
+            {def.header}
+          </TableCell>
+        );
+
+        if (def.children) {
+          fillRows(def.children, level + 1);
+        }
+      });
+    };
+
+    fillRows(headerDefs);
+
+    return rows.map((row, idx) => (
+      <TableRow key={`header-row-${idx}`}>{row}</TableRow>
+    ));
+  };
+
+  // Función auxiliar: calcula profundidad máxima del encabezado
+  const getHeaderDepth = (cols) => {
+    return cols.reduce((max, col) => {
+      if (col.children) {
+        return Math.max(max, 1 + getHeaderDepth(col.children));
       }
-
-      currentLevelCells.push(
-        <TableCell
-          key={def.header || def.field}
-          colSpan={colSpan}
-          align="center"
-          className={classes.headerCell}
-          style={{
-            backgroundColor: headerBgColor,
-            left: cellLeftPosition,
-            ...(isCellSticky && { position: "sticky" }),
-            ...(isCellSticky && {
-              backgroundColor: headerBgColor || "#f5f5f5",
-            }),
-          }}
-          // Asigna la ref solo a las celdas de datos finales en el encabezado
-          // Esto es crucial para que `useEffect` pueda medir sus anchos.
-          {...(def.field && {
-            ref: (el) => (headerCellRefs.current[def.field] = el),
-          })}
-          {...(onClickHeader && { onClick: onClickHeader })}
-        >
-          {def.header}
-        </TableCell>
-      );
-
-      if (def.children) {
-        nextLevelDefs = nextLevelDefs.concat(def.children);
-      }
-    });
-
-    headerRows.push(
-      <TableRow key={`header-row-${level}`}>{currentLevelCells}</TableRow>
-    );
-
-    const childLevelRows = [];
-    if (nextLevelDefs.length > 0) {
-      childLevelRows.push(...getHeaderRows(nextLevelDefs, level + 1));
-    }
-    headerRows.push(...childLevelRows);
-
-    return headerRows;
+      return Math.max(max, 1);
+    }, 0);
   };
 
   if (flatDataColumns.length === 0) {

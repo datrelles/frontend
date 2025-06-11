@@ -176,6 +176,9 @@ export const createMTColumn = (
   if (field !== null && children !== null) {
     throw new Error("La columna solo debe tener un campo o columnas anidadas");
   }
+  if (children !== null && onUpdateCell !== null) {
+    throw new Error("Si hay columnas anidadas no puede actualizarse el campo");
+  }
   return {
     header,
     ...(field ? { field } : {}),
