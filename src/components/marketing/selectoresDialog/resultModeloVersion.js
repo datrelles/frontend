@@ -1,7 +1,7 @@
 import React from 'react';
 import {
     Typography, Table, TableHead, TableRow, TableCell,
-    TableBody, Accordion, AccordionSummary, AccordionDetails, Box, Grid
+    TableBody, Accordion, AccordionSummary, AccordionDetails, Box
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
@@ -12,9 +12,6 @@ const getUnidadCampo = (campo) => {
     const camposKG = ['peso_seco'];
     return camposMM.includes(campo) ? 'mm' : camposKG.includes(campo) ? 'kg' : '';
 };
-
-
-
 
 const ResumenComparacion = ({ resultado, bloques }) => {
     if (!resultado?.comparables?.length) return null;
@@ -53,8 +50,6 @@ const ResumenComparacion = ({ resultado, bloques }) => {
             <Typography variant="h6" align="center" gutterBottom fontWeight="bold">
                 RESUMEN DETALLADO
             </Typography>
-
-
             {Object.entries(categoriesAgrupadas).map(([categoria, campos]) => (
                 <Accordion key={categoria} defaultExpanded>
                     <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />} sx={{ backgroundColor: 'firebrick', color: 'white' }}>

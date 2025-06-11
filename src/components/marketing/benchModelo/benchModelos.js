@@ -27,6 +27,8 @@ function CompararModelos()  {
     const [selectedImagen, setSelectedImagen] = useState(null);
     const lineaAutomotriz = lineas.find((l) => l.nombre_linea?.toUpperCase() === 'AUTOMOTRIZ');
     const [comparacionActiva, setComparacionActiva] = useState(false);
+    const [bloquearInputs, setBloquearInputs] = useState(false);
+
 
 
     const lineasFiltradas = lineaAutomotriz
@@ -86,6 +88,8 @@ function CompararModelos()  {
         }
 
         setLoading(true);
+        setBloquearInputs(true);
+
         try {
             const res = await fetch(`${API}/bench_model/comparar_modelos`, {
                 method: 'POST',
@@ -107,6 +111,8 @@ function CompararModelos()  {
             enqueueSnackbar("Error al comparar los modelos", { variant: "error" });
         } finally {
             setLoading(false);
+            setBloquearInputs(true);
+
         }
     };
 
@@ -181,29 +187,19 @@ function CompararModelos()  {
         link.remove();
     };
 
-    useEffect(() => {
-        const cargarDatos = async () => {
-            try {
-                await getMenus();
-                await fetchLineas();
-                await fetchImagenData();
-            } catch (err) {
-                console.error("Error cargando datos iniciales:", err);
-            }
-        };
-        cargarDatos();
-    }, []);
-
     const handleLineaChange = async (index, linea) => {
         const nuevosBloques = [...bloques];
         nuevosBloques[index] = { linea, segmento: null, marca: null, modelo: null };
-        setBloques(nuevosBloques);
 
-        setModelosPorBloque(prev => {
-            const copia = [...prev];
-            copia[index] = [];
-            return copia;
-        });
+        if (index === 0) {
+            for (let i = 1; i < nuevosBloques.length; i++) {
+                if (!nuevosBloques[i].linea) {
+                    nuevosBloques[i].linea = linea;
+                }
+            }
+        }
+
+        setBloques(nuevosBloques);
 
         const resSeg = await fetch(`${API}/bench_model/get_segmentos_por_linea/${linea.codigo_linea}`, {
             headers: { Authorization: 'Bearer ' + jwt }
@@ -212,12 +208,35 @@ function CompararModelos()  {
         setSegmentosPorBloque(prev => {
             const copia = [...prev];
             copia[index] = dataSeg;
+
+            if (index === 0) {
+                for (let i = 1; i < nuevosBloques.length; i++) {
+                    if (!bloques[i].linea) copia[i] = dataSeg;
+                }
+            }
+
+            return copia;
+        });
+
+        setModelosPorBloque(prev => {
+            const copia = [...prev];
+            copia[index] = [];
+            if (index === 0) {
+                for (let i = 1; i < nuevosBloques.length; i++) {
+                    if (!bloques[i].linea) copia[i] = [];
+                }
+            }
             return copia;
         });
 
         setMarcasPorBloque(prev => {
             const copia = [...prev];
             copia[index] = [];
+            if (index === 0) {
+                for (let i = 1; i < nuevosBloques.length; i++) {
+                    if (!bloques[i].linea) copia[i] = [];
+                }
+            }
             return copia;
         });
     };
@@ -227,26 +246,77 @@ function CompararModelos()  {
         nuevosBloques[index].segmento = segmento;
         nuevosBloques[index].marca = null;
         nuevosBloques[index].modelo = null;
+
+        if (index === 0) {
+            for (let i = 1; i < nuevosBloques.length; i++) {
+                if (
+                    nuevosBloques[i].linea?.codigo_linea === nuevosBloques[0].linea?.codigo_linea &&
+                    !nuevosBloques[i].segmento
+                ) {
+                    nuevosBloques[i].segmento = segmento;
+                }
+            }
+        }
+
         setBloques(nuevosBloques);
 
         const linea = nuevosBloques[index].linea;
-
         const res = await fetch(`${API}/bench_model/get_marcas_por_linea_segmento?codigo_linea=${linea.codigo_linea}&nombre_segmento=${encodeURIComponent(segmento.nombre_segmento)}`, {
             headers: { Authorization: 'Bearer ' + jwt }
         });
-
         const data = await res.json();
         setMarcasPorBloque(prev => {
             const copia = [...prev];
             copia[index] = data;
+            if (index === 0) {
+                for (let i = 1; i < nuevosBloques.length; i++) {
+                    if (
+                        nuevosBloques[i].linea?.codigo_linea === nuevosBloques[0].linea?.codigo_linea &&
+                        nuevosBloques[i].segmento?.nombre_segmento === segmento.nombre_segmento
+                    ) {
+                        copia[i] = data;
+                    }
+                }
+            }
             return copia;
         });
 
         setModelosPorBloque(prev => {
             const copia = [...prev];
             copia[index] = [];
+            if (index === 0) {
+                for (let i = 1; i < nuevosBloques.length; i++) {
+                    if (
+                        nuevosBloques[i].linea?.codigo_linea === nuevosBloques[0].linea?.codigo_linea &&
+                        nuevosBloques[i].segmento?.nombre_segmento === segmento.nombre_segmento
+                    ) {
+                        copia[i] = [];
+                    }
+                }
+            }
             return copia;
         });
+
+        if (index === 0) {
+            const marcaShineray = data.find(m => m.nombre_marca?.toUpperCase().trim() === "SHINERAY");
+            if (marcaShineray && !nuevosBloques[0].marca) {
+                const nuevosBloquesConMarca = [...nuevosBloques];
+                nuevosBloquesConMarca[0].marca = marcaShineray;
+                setBloques(nuevosBloquesConMarca);
+
+                const resModelos = await fetch(`${API}/bench_model/get_modelos_por_linea_segmento_marca?codigo_linea=${linea.codigo_linea}&nombre_segmento=${encodeURIComponent(segmento.nombre_segmento)}&codigo_marca=${marcaShineray.codigo_marca}`, {
+                    headers: { Authorization: 'Bearer ' + jwt }
+                });
+                const modelosData = await resModelos.json();
+                console.log('Modelos para SHINERAY:', modelosData);
+
+                setModelosPorBloque(prev => {
+                    const copia = [...prev];
+                    copia[0] = modelosData;
+                    return copia;
+                });
+            }
+        }
     };
 
     const handleMarcasChange = async (index, marca) => {
@@ -275,6 +345,19 @@ function CompararModelos()  {
         actualizados[index].modelo = modelo;
         setBloques(actualizados);
     };
+
+    useEffect(() => {
+        const cargarDatos = async () => {
+            try {
+                await getMenus();
+                await fetchLineas();
+                await fetchImagenData();
+            } catch (err) {
+                console.error("Error cargando datos iniciales:", err);
+            }
+        };
+        cargarDatos();
+    }, []);
 
     return (
         <>
@@ -324,6 +407,9 @@ function CompararModelos()  {
                                                     />
                                                 )}
                                             </Box>
+
+
+
                                             <Autocomplete
                                                 size="small"
                                                 options={lineasFiltradas}
@@ -331,7 +417,10 @@ function CompararModelos()  {
                                                 getOptionLabel={(op) => op?.nombre_linea || ''}
                                                 onChange={(e, v) => handleLineaChange(index, v)}
                                                 renderInput={(params) => <TextField {...params} label="Línea" sx={textFieldSmallSx} />}
+                                                disabled={bloquearInputs || index !== 0}
                                             />
+
+
                                             <Autocomplete
                                                 size="small"
                                                 options={segmentosPorBloque[index] || []}
@@ -339,8 +428,10 @@ function CompararModelos()  {
                                                 getOptionLabel={(op) => op?.nombre_segmento || ''}
                                                 onChange={(e, v) => handleSegmentoChange(index, v)}
                                                 renderInput={(params) => <TextField {...params} label="Segmento" sx={textFieldSmallSx} />}
-                                                disabled={!bloque.linea}
+                                                disabled={bloquearInputs || index !== 0 || !bloque.linea}
                                             />
+
+
                                             <Autocomplete
                                                 size="small"
                                                 options={marcasPorBloque[index] || []}
@@ -348,8 +439,9 @@ function CompararModelos()  {
                                                 getOptionLabel={(op) => op?.nombre_marca || ''}
                                                 onChange={(e, v) => handleMarcasChange(index, v)}
                                                 renderInput={(params) => <TextField {...params} label="Marca" sx={textFieldSmallSx} />}
-                                                disabled={!bloque.segmento}
+                                                disabled={bloquearInputs || !bloque.segmento}
                                             />
+
                                             <Autocomplete
                                                 size="small"
                                                 options={modelosPorBloque[index] || []}
@@ -357,8 +449,9 @@ function CompararModelos()  {
                                                 getOptionLabel={(op) => op?.nombre_modelo_comercial || ''}
                                                 onChange={(e, v) => handleModeloChange(index, v)}
                                                 renderInput={(params) => <TextField {...params} label="Modelo" sx={textFieldSmallSx} />}
-                                                disabled={!bloque.marca}
+                                                disabled={bloquearInputs || !bloque.marca}
                                             />
+
                                         </Box>
                                     </Grid>
                                 );
@@ -387,8 +480,9 @@ function CompararModelos()  {
                             <Button
                                 variant="outlined"
                                 onClick={() => {
-                                    setComparacionActiva(false); // <-- ¡Primero esto!
+                                    setComparacionActiva(false);
                                     setResultado(null);
+                                    setBloquearInputs(false);
                                     setBloques(Array(numeroModelos).fill().map(() => ({
                                         linea: null,
                                         segmento: null,
