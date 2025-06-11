@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -8,7 +8,7 @@ import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
 import { makeStyles } from "@material-ui/core/styles";
 
-// --- Funciones auxiliares (fuera del componente para evitar re-declaración) ---
+// --- Funciones auxiliares ---
 const calculateColSpan = (headerDef) => {
   if (headerDef.field) {
     return 1;
@@ -31,45 +31,57 @@ const getFlatDataColumns = (headerDefs) => {
   return flatColumns;
 };
 
-// --- Definición de los estilos ---
+const getMaxDepth = (headers) => {
+  let max = 1;
+  headers.forEach((h) => {
+    if (h.children) {
+      max = Math.max(max, 1 + getMaxDepth(h.children));
+    }
+  });
+  return max;
+};
+
+// --- Definición de estilos ---
 const useStyles = makeStyles({
-  headerCell: (props) => ({
+  headerCellBase: {
     fontWeight: "bold",
-    borderBottom: `1px solid #e0e0e0`,
-    borderRight: `1px solid #e0e0e0`,
-    textAlign: "center",
-    verticalAlign: "middle",
+    borderTop: `2px solid #000000`,
+    borderBottom: `2px solid #000000`,
+    borderRight: `2px solid #000000`,
     "&:last-child": {
-      borderRight: "none",
+      borderRight: `2px solid #e0e0e0`,
     },
-    cursor: props.hasClickableHeader ? "pointer" : "default",
+    cursor: "default",
     transition: "background-color 0.2s ease-in-out",
-    "&:hover": {
-      backgroundColor: props.hasClickableHeader
-        ? "rgba(0, 0, 0, 0.05)"
-        : "inherit",
-    },
     position: "sticky",
     zIndex: 10,
-  }),
-  dataCell: (props) => ({
-    borderBottom: `1px solid #e0e0e0`,
-    borderRight: `1px solid #e0e0e0`,
+    backgroundColor: "#FF3A3A",
     textAlign: "center",
-    verticalAlign: "middle",
+  },
+  clickableHeader: {
+    cursor: "pointer",
+    "&:hover": {
+      backgroundColor: "rgba(0,0,0,0.05)",
+    },
+  },
+  dataCellBase: {
+    borderBottom: `1px dashed #000000`,
+    borderRight: `1px solid #000000`,
     "&:last-child": {
       borderRight: "none",
     },
-    cursor: props.hasClickableCell ? "pointer" : "default",
+    cursor: "default",
     transition: "background-color 0.2s ease-in-out",
-    "&:hover": {
-      backgroundColor: props.hasClickableCell
-        ? "rgba(0, 0, 0, 0.03)"
-        : "inherit",
-    },
     position: "sticky",
     zIndex: 1,
-  }),
+    textAlign: "center",
+  },
+  clickableCell: {
+    cursor: "pointer",
+    "&:hover": {
+      backgroundColor: "rgba(0,0,0,0.03)",
+    },
+  },
   editableInput: {
     width: "100%",
     boxSizing: "border-box",
@@ -86,14 +98,6 @@ const useStyles = makeStyles({
   },
 });
 
-/**
- * Componente de tabla con columnas multinivel, edición en línea y columnas iniciales fijas.
- * La prop 'fixedColumnsCount' ahora se refiere al número de grupos/columnas de nivel superior a fijar.
- *
- * @param {Array<object>} props.data - Array de objetos de datos para el cuerpo de la tabla.
- * @param {Array<object>} props.columns - Array que define los encabezados y su estructura de agrupación.
- * @param {number} [props.fixedColumnsCount=0] - El número de grupos/columnas de nivel superior a mantener fijas.
- */
 export default function MultiLevelTable({
   data,
   columns,
@@ -101,48 +105,25 @@ export default function MultiLevelTable({
 }) {
   const flatDataColumns = getFlatDataColumns(columns);
 
-  const hasClickableHeader = columns.some(
-    (c) =>
-      c.onClickHeader ||
-      (c.children && c.children.some((child) => child.onClickHeader))
-  );
-  const hasClickableCell = flatDataColumns.some(
-    (c) => c.onClickCell || c.onUpdateCell
-  );
-
-  const styleProps = useMemo(
-    () => ({ hasClickableHeader, hasClickableCell }),
-    [hasClickableHeader, hasClickableCell]
-  );
-
-  const classes = useStyles(styleProps);
-
-  const DEFAULT_HEADER_COLOR = "#FF3A3A";
+  const classes = useStyles();
 
   const [editingCell, setEditingCell] = useState(null);
   const [editingValue, setEditingValue] = useState("");
   const [columnWidths, setColumnWidths] = useState({});
   const headerCellRefs = useRef({});
 
-  // --- NUEVA LÓGICA PARA COLUMNAS FIJAS POR GRUPO SUPERIOR ---
-  // 1. Obtener las definiciones de columnas/grupos de nivel superior que serán fijas
+  // --- Sticky columns logic ---
   const fixedTopLevelColumnDefs = columns.slice(0, fixedColumnsCount);
-  // 2. Obtener TODAS las columnas de datos planas que pertenecen a esos grupos/columnas fijas
   const allFixedFlatDataColumns = getFlatDataColumns(fixedTopLevelColumnDefs);
-  // 3. Crear un Set para una búsqueda rápida de los 'field' de las columnas planas fijas
   const fixedFlatColumnFields = new Set(
     allFixedFlatDataColumns.map((c) => c.field)
   );
 
-  // Función auxiliar para verificar si una columna de datos plana específica es fija
   const isFlatColumnFixed = (colDef) => fixedFlatColumnFields.has(colDef.field);
-  // --- FIN NUEVA LÓGICA ---
 
   useEffect(() => {
-    // Solo medimos y aplicamos si hay columnas fijas definidas (fixedColumnsCount > 0)
     if (fixedColumnsCount > 0) {
       const newWidths = {};
-      // Iteramos solo sobre las columnas planas que se supone que son fijas
       allFixedFlatDataColumns.forEach((colDef) => {
         const ref = headerCellRefs.current[colDef.field];
         if (ref && ref.offsetWidth) {
@@ -156,107 +137,93 @@ export default function MultiLevelTable({
         setColumnWidths(newWidths);
       }
     }
-  }, [allFixedFlatDataColumns, fixedColumnsCount, columnWidths]); // Dependencias actualizadas
+  }, [allFixedFlatDataColumns, fixedColumnsCount, columnWidths]);
 
-  // Función para calcular la posición 'left' de las celdas fijas
   const getStickyLeftPosition = (flatColIndex) => {
     const currentFlatColDef = flatDataColumns[flatColIndex];
-
-    // Si la columna actual no es una de las que deben ser fijas, o fixedColumnsCount es 0, no es sticky
     if (fixedColumnsCount === 0 || !isFlatColumnFixed(currentFlatColDef)) {
       return "auto";
     }
 
     let left = 0;
-    // Suma los anchos de TODAS las columnas planas PRECEDENTES que también son fijas
     for (let i = 0; i < flatColIndex; i++) {
       const prevColDef = flatDataColumns[i];
       if (isFlatColumnFixed(prevColDef)) {
-        if (columnWidths[prevColDef.field]) {
-          left += columnWidths[prevColDef.field];
-        } else {
-          left += 120; // Fallback para anchos no medidos aún
-        }
+        left += columnWidths[prevColDef.field] || 120;
       }
     }
     return `${left}px`;
   };
 
-  // Función recursiva para obtener todas las filas de encabezado
-  const getHeaderRows = (headerDefs) => {
-    const rows = [];
-    const maxDepth = getHeaderDepth(headerDefs);
+  // --- Función getHeaderRows corregida con rowspan y sticky ---
+  const getHeaderRows = (headers, level = 0, maxDepth = null) => {
+    if (maxDepth === null) {
+      maxDepth = getMaxDepth(headers);
+    }
 
-    const fillRows = (defs, level = 0) => {
-      if (!rows[level]) rows[level] = [];
+    const cells = [];
+    const nextLevelHeaders = [];
 
-      defs.forEach((def) => {
-        const colSpan = calculateColSpan(def);
-        const rowSpan = def.children ? 1 : maxDepth - level;
+    headers.forEach((header) => {
+      const colSpan = calculateColSpan(header);
+      const hasChildren = header.children && header.children.length > 0;
+      const rowSpan = hasChildren ? 1 : maxDepth - level;
 
-        const headerBgColor = def.bgColor || DEFAULT_HEADER_COLOR;
-        const onClickHeader = def.onClickHeader || null;
+      // Sticky y left si corresponde
+      const containedFlatColumns = getFlatDataColumns([header]);
+      const isSticky =
+        containedFlatColumns.length > 0 &&
+        containedFlatColumns.every(isFlatColumnFixed);
 
-        const containedFlatColumns = getFlatDataColumns([def]);
-        const isCellSticky =
-          containedFlatColumns.length > 0 &&
-          containedFlatColumns.every(isFlatColumnFixed);
-
-        let cellLeftPosition = "auto";
-        if (isCellSticky) {
-          const firstFixedFlatColInGroup =
-            containedFlatColumns.find(isFlatColumnFixed);
-          if (firstFixedFlatColInGroup) {
-            const firstFixedFlatColIndex = flatDataColumns.findIndex(
-              (c) => c.field === firstFixedFlatColInGroup.field
-            );
-            cellLeftPosition = getStickyLeftPosition(firstFixedFlatColIndex);
-          }
+      let left = "auto";
+      if (isSticky) {
+        const firstFixedFlatColInGroup =
+          containedFlatColumns.find(isFlatColumnFixed);
+        if (firstFixedFlatColInGroup) {
+          const firstIndex = flatDataColumns.findIndex(
+            (c) => c.field === firstFixedFlatColInGroup.field
+          );
+          left = getStickyLeftPosition(firstIndex);
         }
-
-        rows[level].push(
-          <TableCell
-            key={`${def.header || def.field}-${level}`}
-            colSpan={colSpan}
-            rowSpan={rowSpan}
-            align="center"
-            className={classes.headerCell}
-            style={{
-              backgroundColor: headerBgColor,
-              left: cellLeftPosition,
-              ...(isCellSticky && { position: "sticky" }),
-              ...(isCellSticky && { backgroundColor: headerBgColor }),
-            }}
-            {...(def.field && {
-              ref: (el) => (headerCellRefs.current[def.field] = el),
-            })}
-            {...(onClickHeader && { onClick: onClickHeader })}
-          >
-            {def.header}
-          </TableCell>
-        );
-
-        if (def.children) {
-          fillRows(def.children, level + 1);
-        }
-      });
-    };
-
-    fillRows(headerDefs);
-
-    return rows.map((row, idx) => (
-      <TableRow key={`header-row-${idx}`}>{row}</TableRow>
-    ));
-  };
-
-  // Función auxiliar: calcula profundidad máxima del encabezado
-  const getHeaderDepth = (cols) => {
-    return cols.reduce((max, col) => {
-      if (col.children) {
-        return Math.max(max, 1 + getHeaderDepth(col.children));
       }
-      return Math.max(max, 1);
-    }, 0);
+
+      cells.push(
+        <TableCell
+          key={header.header || header.field}
+          align="center"
+          colSpan={colSpan}
+          rowSpan={rowSpan}
+          className={`${classes.headerCellBase} ${
+            header.onClickHeader ? classes.clickableHeader : ""
+          }`}
+          style={{
+            backgroundColor: header.bgColor || "#FF3A3A",
+            position: isSticky ? "sticky" : undefined,
+            left: isSticky ? left : undefined,
+            zIndex: isSticky ? 11 : undefined,
+          }}
+          {...(header.field && {
+            ref: (el) => (headerCellRefs.current[header.field] = el),
+          })}
+          {...(header.onClickHeader && { onClick: header.onClickHeader })}
+        >
+          {header.header}
+        </TableCell>
+      );
+
+      if (hasChildren) {
+        nextLevelHeaders.push(...header.children);
+      }
+    });
+
+    if (nextLevelHeaders.length === 0) {
+      return [<TableRow key={`header-row-${level}`}>{cells}</TableRow>];
+    } else {
+      return [
+        <TableRow key={`header-row-${level}`}>{cells}</TableRow>,
+        ...getHeaderRows(nextLevelHeaders, level + 1, maxDepth),
+      ];
+    }
   };
 
   if (flatDataColumns.length === 0) {
@@ -275,18 +242,14 @@ export default function MultiLevelTable({
         aria-label="custom multi-level grouped table"
         style={{ minWidth: flatDataColumns.length * 120 }}
       >
-        <TableHead>
-          {getHeaderRows(columns)}
-          {/* Llama a la función para renderizar los encabezados */}
-        </TableHead>
+        <TableHead>{getHeaderRows(columns)}</TableHead>
         <TableBody>
-          {/* <-- Mantenemos la corrección de validación aquí */}
           {data.length === 0 ? (
             <TableRow>
               <TableCell
                 colSpan={flatDataColumns.length}
                 align="center"
-                className={classes.dataCell}
+                className={classes.dataCellBase}
               >
                 No hay datos para mostrar.
               </TableCell>
@@ -295,7 +258,6 @@ export default function MultiLevelTable({
             data.map((row, rowIndex) => (
               <TableRow key={rowIndex}>
                 {flatDataColumns.map((colDef, colIndex) => {
-                  // colIndex es el índice plano de la columna actual
                   const onClickCell = colDef.onClickCell || null;
                   const onUpdateCell = colDef.onUpdateCell || null;
 
@@ -330,20 +292,23 @@ export default function MultiLevelTable({
                     }
                   };
 
-                  // Determinar si la celda de datos actual debe ser sticky
-                  const isCellSticky = isFlatColumnFixed(colDef);
-                  const leftPosition = isCellSticky
+                  const isSticky = isFlatColumnFixed(colDef);
+                  const leftPosition = isSticky
                     ? getStickyLeftPosition(colIndex)
                     : "auto";
 
                   return (
                     <TableCell
                       key={colDef.field}
-                      className={classes.dataCell}
+                      className={`${classes.dataCellBase} ${
+                        onClickCell || onUpdateCell ? classes.clickableCell : ""
+                      }`}
                       style={{
                         left: leftPosition,
-                        ...(isCellSticky && { position: "sticky" }),
-                        backgroundColor: isCellSticky ? "#fafafa" : "inherit",
+                        position: isSticky ? "sticky" : undefined,
+                        backgroundColor: isSticky ? "#fafafa" : "inherit",
+                        zIndex: isSticky ? 5 : undefined,
+                        textAlign: "center",
                       }}
                       {...(onClickCell || onUpdateCell
                         ? { onClick: handleCellClick }
