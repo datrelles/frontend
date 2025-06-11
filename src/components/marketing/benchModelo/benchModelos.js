@@ -29,8 +29,6 @@ function CompararModelos()  {
     const [comparacionActiva, setComparacionActiva] = useState(false);
     const [bloquearInputs, setBloquearInputs] = useState(false);
 
-
-
     const lineasFiltradas = lineaAutomotriz
         ? lineas.filter((l) => l.codigo_linea_padre === lineaAutomotriz.codigo_linea)
         : [];
@@ -112,7 +110,6 @@ function CompararModelos()  {
         } finally {
             setLoading(false);
             setBloquearInputs(true);
-
         }
     };
 
@@ -193,12 +190,14 @@ function CompararModelos()  {
 
         if (index === 0) {
             for (let i = 1; i < nuevosBloques.length; i++) {
-                if (!nuevosBloques[i].linea) {
-                    nuevosBloques[i].linea = linea;
-                }
+                nuevosBloques[i] = {
+                    linea,
+                    segmento: null,
+                    marca: null,
+                    modelo: null
+                };
             }
         }
-
         setBloques(nuevosBloques);
 
         const resSeg = await fetch(`${API}/bench_model/get_segmentos_por_linea/${linea.codigo_linea}`, {
@@ -210,8 +209,8 @@ function CompararModelos()  {
             copia[index] = dataSeg;
 
             if (index === 0) {
-                for (let i = 1; i < nuevosBloques.length; i++) {
-                    if (!bloques[i].linea) copia[i] = dataSeg;
+                for (let i = 1; i < copia.length; i++) {
+                    copia[i] = [];
                 }
             }
 
@@ -222,10 +221,9 @@ function CompararModelos()  {
             const copia = [...prev];
             copia[index] = [];
             if (index === 0) {
-                for (let i = 1; i < nuevosBloques.length; i++) {
-                    if (!bloques[i].linea) copia[i] = [];
-                }
+                for (let i = 1; i < copia.length; i++) copia[i] = [];
             }
+
             return copia;
         });
 
@@ -233,10 +231,9 @@ function CompararModelos()  {
             const copia = [...prev];
             copia[index] = [];
             if (index === 0) {
-                for (let i = 1; i < nuevosBloques.length; i++) {
-                    if (!bloques[i].linea) copia[i] = [];
-                }
+                for (let i = 1; i < copia.length; i++) copia[i] = [];
             }
+
             return copia;
         });
     };
@@ -250,10 +247,11 @@ function CompararModelos()  {
         if (index === 0) {
             for (let i = 1; i < nuevosBloques.length; i++) {
                 if (
-                    nuevosBloques[i].linea?.codigo_linea === nuevosBloques[0].linea?.codigo_linea &&
-                    !nuevosBloques[i].segmento
+                    nuevosBloques[i].linea?.codigo_linea === nuevosBloques[0].linea?.codigo_linea
                 ) {
                     nuevosBloques[i].segmento = segmento;
+                    nuevosBloques[i].marca = null;
+                    nuevosBloques[i].modelo = null;
                 }
             }
         }
@@ -407,9 +405,6 @@ function CompararModelos()  {
                                                     />
                                                 )}
                                             </Box>
-
-
-
                                             <Autocomplete
                                                 size="small"
                                                 options={lineasFiltradas}
@@ -419,8 +414,6 @@ function CompararModelos()  {
                                                 renderInput={(params) => <TextField {...params} label="Línea" sx={textFieldSmallSx} />}
                                                 disabled={bloquearInputs || index !== 0}
                                             />
-
-
                                             <Autocomplete
                                                 size="small"
                                                 options={segmentosPorBloque[index] || []}
@@ -430,8 +423,6 @@ function CompararModelos()  {
                                                 renderInput={(params) => <TextField {...params} label="Segmento" sx={textFieldSmallSx} />}
                                                 disabled={bloquearInputs || index !== 0 || !bloque.linea}
                                             />
-
-
                                             <Autocomplete
                                                 size="small"
                                                 options={marcasPorBloque[index] || []}
@@ -441,7 +432,6 @@ function CompararModelos()  {
                                                 renderInput={(params) => <TextField {...params} label="Marca" sx={textFieldSmallSx} />}
                                                 disabled={bloquearInputs || !bloque.segmento}
                                             />
-
                                             <Autocomplete
                                                 size="small"
                                                 options={modelosPorBloque[index] || []}
@@ -451,12 +441,10 @@ function CompararModelos()  {
                                                 renderInput={(params) => <TextField {...params} label="Modelo" sx={textFieldSmallSx} />}
                                                 disabled={bloquearInputs || !bloque.marca}
                                             />
-
                                         </Box>
                                     </Grid>
                                 );
                             })}
-
                         </Grid>
                         <Box mt={2} display="flex" gap={2}>
                             <Button variant="contained" color="primary" onClick={handleComparar} sx={{
