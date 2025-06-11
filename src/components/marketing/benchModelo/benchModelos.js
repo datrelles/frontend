@@ -21,7 +21,6 @@ function CompararModelos()  {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const [lineas, setLineas] = useState([]);
-    const [modelos, setModelos] = useState([]);
     const [imagenModal, setImagenModal] = useState(null);
     const [openModalImagen, setOpenModalImagen] = useState(false);
     const [selectedImagen, setSelectedImagen] = useState(null);
@@ -162,6 +161,7 @@ function CompararModelos()  {
     };
 
     const exportarExcel = async () => {
+        const modelos = bloques.map(b => b.modelo).filter(Boolean);
         const res = await fetch(`${API}/bench_model/exportar_comparacion_xlsx`, {
             method: 'POST',
             headers: {
