@@ -103,6 +103,7 @@ export default function PresupuestoCantidades() {
           nuevasColumnas.forEach((col) => {
             filaActualizada[col.field] = "-";
           });
+          filaActualizada.tooltip = "xd asdsa asd sad asd dsa\nY\nZ";
           return filaActualizada;
         });
       }
