@@ -1,14 +1,11 @@
 import React from 'react';
 import {
-    Dialog, DialogTitle, DialogContent, DialogActions,
     Typography, Table, TableHead, TableRow, TableCell,
-    TableBody, Button, Accordion, AccordionSummary,
-    AccordionDetails, Box
+    TableBody, Accordion, AccordionSummary, AccordionDetails, Box, Grid
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
-import {Grid} from "@material-ui/core";
 
 const getUnidadCampo = (campo) => {
     const camposMM = ['altura_total', 'longitud_total', 'ancho_total'];
@@ -16,12 +13,15 @@ const getUnidadCampo = (campo) => {
     return camposMM.includes(campo) ? 'mm' : camposKG.includes(campo) ? 'kg' : '';
 };
 
-const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
+
+
+
+const ResumenComparacion = ({ resultado, bloques }) => {
     if (!resultado?.comparables?.length) return null;
 
-    const modeloBase = modelos.find(m => m.codigo_modelo_version === resultado.base);
+    const modeloBase = bloques[0]?.modelo;
     const comparables = resultado.comparables.map(c => {
-        const modelo = modelos.find(m => m.codigo_modelo_version === c.modelo_version);
+        const modelo = bloques.find(b => b.modelo?.codigo_modelo_version === c.modelo_version)?.modelo;
         return { ...modelo, detalles: c.mejor_en };
     });
 
@@ -44,160 +44,94 @@ const DialogResumenComparacion = ({ open, onClose, resultado, modelos }) => {
             }
         }
     }
+
     const MAX_COMPARABLES = 4;
     const placeholdersCount = MAX_COMPARABLES - comparables.length;
 
     return (
-        <Dialog open={open} onClose={onClose} fullWidth maxWidth={false} sx={{ '& .MuiDialog-paper': { width: '100vw' } }}>
-            <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold' }}>RESUMEN DETALLADO</DialogTitle>
-            <Box
-                display="flex"
-                justifyContent="space-evenly"
-                mb={3}
-                sx={{
-                    position: 'sticky',
-                    top: 0,
-                    zIndex: 1000,
-                    backgroundColor: 'white',
-                    borderBottom: '1px solid lightgray'
-                }}
-            >
-                <Grid container spacing={2} justifyContent="center">
-                    {[modeloBase, ...comparables].map((m, i) => (
-                        <Grid item key={i}>
-                            <Box
-                                display="flex"
-                                flexDirection="column"
-                                alignItems="center"
-                                justifyContent="flex-start"
-                                sx={{ minWidth: 300 }}
-                            >
-                                <Typography variant="subtitle2" fontWeight="bold">
-                                    {m.nombre_modelo_comercial}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                    {m.nombre_marca}
-                                </Typography>
+        <Box mt={4} px={2}>
+            <Typography variant="h6" align="center" gutterBottom fontWeight="bold">
+                RESUMEN DETALLADO
+            </Typography>
 
-                                <Box
-                                    sx={{
-                                        height: 250,
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        mb: 1
-                                    }}
-                                >
-                                    <img
-                                        src={encodeURI(m.path_imagen)}
-                                        alt={m.nombre_modelo_comercial}
-                                        style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
-                                    />
-                                </Box>
 
-                                <Typography variant="body2" color="text.secondary">
-                                    Precio Venta Cliente
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    ${" "}{m.precio_producto_modelo}
-                                </Typography>
-                            </Box>
-                        </Grid>
-                    ))}
-                </Grid>
-            </Box>
-            <DialogContent dividers sx={{ maxHeight: '75vh' }}>
-                {Object.entries(categoriesAgrupadas).map(([categoria, campos]) => (
-                    <Accordion key={categoria} defaultExpanded>
-                        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />} sx={{ backgroundColor: 'firebrick', color: 'white' }}>
-                            <Typography sx={{ textTransform: 'capitalize' }}>{categoria}</Typography>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            <Table size="small">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell sx={{ fontWeight: 'bold' }} >CAMPO</TableCell>
-                                        <TableCell>
-                                            <Box >
-                                                <Typography fontWeight="bold">
-                                                    {modeloBase.nombre_modelo_comercial}
-                                                </Typography>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    {modeloBase.nombre_marca}
-                                                </Typography>
-                                            </Box>
-                                        </TableCell>
-                                        {comparables.map((m, i) => (
-                                            <React.Fragment key={i}>
+            {Object.entries(categoriesAgrupadas).map(([categoria, campos]) => (
+                <Accordion key={categoria} defaultExpanded>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />} sx={{ backgroundColor: 'firebrick', color: 'white' }}>
+                        <Typography sx={{ textTransform: 'capitalize' }}>{categoria}</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <Table size="small">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell sx={{ fontWeight: 'bold' }}>CAMPO</TableCell>
+                                    <TableCell>
+                                        <Typography fontWeight="bold">
+                                            {modeloBase?.nombre_modelo_comercial || 'Base'}
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary">
+                                            {modeloBase?.nombre_marca}
+                                        </Typography>
+                                    </TableCell>
+                                    {comparables.map((m, i) => (
+                                        <React.Fragment key={i}>
+                                            <TableCell>
+                                                <Typography fontWeight="bold">{m?.nombre_modelo_comercial}</Typography>
+                                                <Typography variant="body2" color="text.secondary">{m?.nombre_marca}</Typography>
+                                            </TableCell>
+                                            <TableCell><strong>Comparativo</strong></TableCell>
+                                        </React.Fragment>
+                                    ))}
+                                    {[...Array(placeholdersCount)].map((_, i) => (
+                                        <React.Fragment key={`ph-head-${i}`}>
+                                            <TableCell />
+                                            <TableCell />
+                                        </React.Fragment>
+                                    ))}
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {Object.entries(campos).map(([campo, data], i) => (
+                                    <TableRow key={i}>
+                                        <TableCell>{campo.replace(/_/g, ' ').toUpperCase()}</TableCell>
+                                        <TableCell>{data.base} {getUnidadCampo(campo)}</TableCell>
+                                        {data.comparables.map((comp, j) => (
+                                            <React.Fragment key={j}>
+                                                <TableCell>{comp.valor ? `${comp.valor} ${getUnidadCampo(campo)}` : ''}</TableCell>
                                                 <TableCell>
-                                                    <Box >
-                                                        <Typography fontWeight="bold">{m.nombre_modelo_comercial}</Typography>
-                                                        <Typography variant="body2" color="text.secondary">{m.nombre_marca}</Typography>
-                                                    </Box>
+                                                    {comp.estado === 'mejor' ? (
+                                                        <ThumbUpIcon sx={{ color: '#2e7d32' }} />
+                                                    ) : comp.estado === 'peor' ? (
+                                                        <ThumbDownIcon sx={{ color: '#d32f2f' }} />
+                                                    ) : comp.estado === 'diferente' ? (
+                                                        <Box display="flex" gap={0.5}>
+                                                            <ThumbUpIcon sx={{ color: '#b300ac', fontSize: 20 }} />
+                                                            <ThumbDownIcon sx={{ color: '#b300ac', fontSize: 20 }} />
+                                                        </Box>
+                                                    ) : (
+                                                        <Box display="flex" gap={0.5}>
+                                                            <ThumbUpIcon sx={{ color: '#ff9800', fontSize: 20 }} />
+                                                            <ThumbUpIcon sx={{ color: '#ff9800', fontSize: 20 }} />
+                                                        </Box>
+                                                    )}
                                                 </TableCell>
-                                                <TableCell><strong>Comparativo</strong></TableCell>
                                             </React.Fragment>
                                         ))}
                                         {[...Array(placeholdersCount)].map((_, i) => (
-                                            <React.Fragment key={`ph-head-${i}`}>
+                                            <React.Fragment key={`ph-body-${i}`}>
                                                 <TableCell />
                                                 <TableCell />
                                             </React.Fragment>
                                         ))}
                                     </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {Object.entries(campos).map(([campo, data], i) => (
-                                        <TableRow key={i}>
-                                            <TableCell>{campo.replace(/_/g, ' ').toUpperCase()}</TableCell>
-                                            <TableCell>{data.base} {getUnidadCampo(campo)}</TableCell>
-                                            {data.comparables.map((comp, j) => (
-                                                <React.Fragment key={j}>
-                                                    <TableCell>{comp.valor ? `${comp.valor} ${getUnidadCampo(campo)}` : ''}</TableCell>
-                                                    <TableCell>
-                                                        {comp.estado === 'mejor' ? (
-                                                            <ThumbUpIcon sx={{ color: '#2e7d32' }} />
-                                                        ) : comp.estado === 'peor' ? (
-                                                            <ThumbDownIcon sx={{ color: '#d32f2f' }} />
-                                                        ) : comp.estado === 'diferente' ? (
-                                                            <Box display="flex"   gap={0.5}>
-                                                                <ThumbUpIcon sx={{ color: '#b300ac', fontSize: 20 }} />
-                                                                <ThumbDownIcon sx={{ color: '#b300ac', fontSize: 20 }} />
-                                                            </Box>
-                                                        ) : (
-                                                            <Box display="flex"   gap={0.5}>
-                                                                <ThumbUpIcon sx={{ color: '#ff9800', fontSize: 20 }} />
-                                                                <ThumbUpIcon sx={{ color: '#ff9800', fontSize: 20 }} />
-                                                            </Box>
-                                                        )}
-                                                    </TableCell>
-                                                </React.Fragment>
-                                            ))}
-                                            {[...Array(placeholdersCount)].map((_, i) => (
-                                                <React.Fragment key={`ph-body-${i}`}>
-                                                    <TableCell />
-                                                    <TableCell />
-                                                </React.Fragment>
-                                            ))}
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </AccordionDetails>
-                    </Accordion>
-                ))}
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={onClose} sx={{
-                    backgroundColor: 'firebrick',
-                    color: '#fff',
-                    fontSize: '12px',
-                    '&:hover': {
-                        backgroundColor: '#b22222' } }}>Cerrar
-                </Button>
-            </DialogActions>
-        </Dialog>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </AccordionDetails>
+                </Accordion>
+            ))}
+        </Box>
     );
 };
 
-export default DialogResumenComparacion;
+export default ResumenComparacion;

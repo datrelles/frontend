@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
-    Box, Button, Grid, Table, TableHead,
-    TableRow, TableCell, TableBody, ButtonGroup, Dialog, DialogTitle,
-    DialogContent, DialogActions, Checkbox, TextField, Autocomplete, TableContainer
+    Box, Button, Grid, ButtonGroup, Dialog, DialogTitle,
+    DialogContent, DialogActions, TextField, Autocomplete
 } from '@mui/material';
 import { useAuthContext } from "../../../context/authContext";
 import { toast } from "react-toastify";
@@ -10,45 +9,82 @@ import {enqueueSnackbar, SnackbarProvider} from "notistack";
 import LoadingCircle from "../../contabilidad/loader";
 import Navbar0 from "../../Navbar0";
 import { useNavigate } from "react-router-dom";
-import DialogResumenComparacion from "../selectoresDialog/resultModeloVersion";
-import {createTheme, ThemeProvider} from "@mui/material/styles";
-import MUIDataTable from "mui-datatables";
+import ResumenComparacion from "../selectoresDialog/resultModeloVersion";
 
 const API = process.env.REACT_APP_API;
 
 function CompararModelos()  {
 
-    const [modeloBase, setModeloBase] = useState(null);
-    const [comparables, setComparables] = useState([]);
     const [resultado, setResultado] = useState(null);
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const [menus, setMenus] = useState([]);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const [openResumenDialog, setOpenResumenDialog] = useState(false);
     const [lineas, setLineas] = useState([]);
-    const [segmentos, setSegmentos] = useState([]);
-    const [lineaSeleccionada, setLineaSeleccionada] = useState('');
-    const [segmentoSeleccionado, setSegmentoSeleccionado] = useState('');
     const [modelos, setModelos] = useState([]);
     const [imagenModal, setImagenModal] = useState(null);
     const [openModalImagen, setOpenModalImagen] = useState(false);
     const [selectedImagen, setSelectedImagen] = useState(null);
-    const [filtro, setFiltro] = useState('');
     const lineaAutomotriz = lineas.find((l) => l.nombre_linea?.toUpperCase() === 'AUTOMOTRIZ');
+    const [comparacionActiva, setComparacionActiva] = useState(false);
+
 
     const lineasFiltradas = lineaAutomotriz
         ? lineas.filter((l) => l.codigo_linea_padre === lineaAutomotriz.codigo_linea)
         : [];
 
+    const numeroModelos = 5;
 
-    const toggleResumenDialog = () => setOpenResumenDialog(prev => !prev);
+    const [bloques, setBloques] = useState(
+        Array(numeroModelos).fill().map(() => ({
+            linea: null,
+            segmento: null,
+            modelo: null,
+            marca: null
+        }))
+    );
+
+    const [segmentosPorBloque, setSegmentosPorBloque] = useState(
+        Array(numeroModelos).fill([])
+    );
+
+    const [modelosPorBloque, setModelosPorBloque] = useState(
+        Array(numeroModelos).fill([])
+    );
+    const [marcasPorBloque, setMarcasPorBloque] = useState(
+        Array(numeroModelos).fill([])
+    );
+
+    const textFieldSmallSx = {
+        width: 260,
+        '& .MuiInputBase-root': {
+            fontSize: '11px',
+            height: 32,
+            paddingY: 0
+        },
+        '& .MuiInputLabel-root': {
+            fontSize: '11px'
+        }
+    };
 
     const handleComparar = async () => {
-        if (!modeloBase || comparables.length === 0) {
+        const modeloBase = bloques[0]?.modelo;
+        const comparables = bloques.slice(1).map(b => b.modelo).filter(Boolean);
+
+        if (!modeloBase?.codigo_modelo_version || comparables.length === 0) {
             enqueueSnackbar("Debes seleccionar un modelo base y al menos un comparable", { variant: 'warning' });
             return;
         }
+
+        const codigosComparables = comparables
+            .map(m => m.codigo_modelo_version)
+            .filter((id, index, self) => id !== modeloBase.codigo_modelo_version && self.indexOf(id) === index);
+
+        if (codigosComparables.length === 0) {
+            enqueueSnackbar("Los modelos comparables deben ser diferentes entre sí y al modelo base", { variant: 'warning' });
+            return;
+        }
+
         setLoading(true);
         try {
             const res = await fetch(`${API}/bench_model/comparar_modelos`, {
@@ -58,18 +94,22 @@ function CompararModelos()  {
                     "Authorization": "Bearer " + jwt
                 },
                 body: JSON.stringify({
-                    modelo_base: parseInt(modeloBase),
-                    comparables: comparables.map(Number)
+                    modelo_base: modeloBase.codigo_modelo_version,
+                    comparables: codigosComparables
                 })
             });
+
             const data = await res.json();
             setResultado(data);
+            setComparacionActiva(true);
+
         } catch (error) {
             enqueueSnackbar("Error al comparar los modelos", { variant: "error" });
         } finally {
             setLoading(false);
         }
     };
+
     const fetchImagenData = async () => {
         try {
             const res = await fetch(`${API}/bench/get_imagenes`, {
@@ -105,37 +145,7 @@ function CompararModelos()  {
             toast.error('Error cargando menús');
         }
     };
-    const handleLineaChange = async (codigo) => {
-        setLineaSeleccionada(codigo);
-        setSegmentoSeleccionado('');
-        setModelos([]);
 
-        const res = await fetch(`${API}/bench_model/get_segmentos_por_linea/${codigo}`, {
-            headers: { Authorization: 'Bearer ' + jwt }
-        });
-        const data = await res.json();
-        setSegmentos(data);
-    };
-
-    const handleSegmentoChange = async (codigoLinea, nombreSegmento) => {
-        setSegmentoSeleccionado(nombreSegmento);
-        setModeloBase(null);
-        setComparables([]);
-        setResultado(null);
-
-        const res = await fetch(`${API}/bench_model/get_modelos_por_linea_segmento?codigo_linea=${codigoLinea}&nombre_segmento=${nombreSegmento}`, {
-            headers: { Authorization: 'Bearer ' + jwt }
-        });
-
-        const data = await res.json();
-
-        if (Array.isArray(data)) {
-            setModelos(data);
-        } else {
-            setModelos([]);
-            enqueueSnackbar("Error cargando modelos", { variant: "error" });
-        }
-    };
     const fetchLineas = async () => {
         try {
             const res = await fetch(`${API}/bench/get_lineas`, {
@@ -147,40 +157,7 @@ function CompararModelos()  {
             enqueueSnackbar('Error cargando datos', { variant: 'error' });
         }
     };
-    const handleChange = (campo, valor) => {
-        if (!valor) return;
 
-        if (campo === 'codigo_linea') {
-            setLineaSeleccionada(valor.codigo_linea);
-            setSegmentoSeleccionado('');
-            setModelos([]);
-            handleLineaChange(valor.codigo_linea);
-        } else if (campo === 'codigo_segmento') {
-            setSegmentoSeleccionado(valor);
-            handleSegmentoChange(lineaSeleccionada, valor);
-        }
-    };
-    const dataResumen = resultado?.comparables.map((item) => {
-        const modelo = modelos.find(m => m.codigo_modelo_version === item.modelo_version);
-
-        const mejoras = Object.entries(item.mejor_en || {})
-            .flatMap(([_, detalles]) =>
-                detalles.filter(d => d.estado === 'mejor').map(d => d.campo)
-            );
-
-        const diferencias = Object.entries(item.diferente_en || {})
-            .flatMap(([_, detalles]) =>
-                detalles.filter(d => d.estado === 'diferente').map(d => d.campo)
-            );
-
-        return {
-            nombre_modelo_comercial: modelo?.nombre_modelo_comercial || `Modelo ${item.nombre_modelo_comercial}`,
-            nombre_marca: modelo?.nombre_marca || `Marca ${item.modelo_version}`,
-            nombre_version: modelo?.nombre_version || `Versión ${item.modelo_version}`,
-            mejor_en: mejoras.join(', ').replace(/_/g, ' ').toUpperCase(),
-            diferente_en: diferencias.join(', ').replace(/_/g, ' ').toUpperCase()
-        };
-    });
     const exportarExcel = async () => {
         const res = await fetch(`${API}/bench_model/exportar_comparacion_xlsx`, {
             method: 'POST',
@@ -217,81 +194,87 @@ function CompararModelos()  {
         cargarDatos();
     }, []);
 
-    const handleToggleComparable = (id) => {
-        if (comparables.includes(id)) {
-            setComparables(prev => prev.filter(val => val !== id));
-        } else if (comparables.length <= 4) {
-            setComparables(prev => [...prev, id]);
-        } else {
-            enqueueSnackbar("Solo puedes seleccionar hasta 4 modelos", { variant: "warning" });
-        }
-    };
+    const handleLineaChange = async (index, linea) => {
+        const nuevosBloques = [...bloques];
+        nuevosBloques[index] = { linea, segmento: null, marca: null, modelo: null };
+        setBloques(nuevosBloques);
 
-    const columns = [
-        { name: "nombre_modelo_comercial", label: "Modelo Comercia" },
-        { name: "nombre_marca", label: "Marca" },
-        { name: "nombre_version", label: "Versión" },
-        { name: "mejor_en", label: "Características técnicas en las que es mejor" },
-        { name: "diferente_en", label: "Características técnicas en las que es diferente" },
-
-    ];
-
-    const options = {
-        responsive: 'standard',
-        selectableRows: 'none',
-        pagination: false,
-        rowsPerPageOptions: [],
-        download: false,
-        print: false,
-        viewColumns: false,
-        filter: false,
-        search: false,
-        textLabels: {
-            body: {
-                noMatch: "Lo siento, no se encontraron registros",
-                toolTip: "Ordenar"
-            },
-            pagination: {
-                next: "Siguiente",
-                previous: "Anterior",
-                rowsPerPage: "Filas por página:",
-                displayRows: "de"
-            }
-        }
-    };
-
-    const getMuiTheme = () =>
-        createTheme({
-            components: {
-                MuiTableCell: {
-                    styleOverrides: {
-                        root: {
-                            paddingLeft: '3px', paddingRight: '3px', paddingTop: '0px', paddingBottom: '0px',
-                            backgroundColor: '#00000', whiteSpace: 'normal', flex: 1,
-                            borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontSize: '14px'
-
-                        },
-                        head: {
-                            backgroundColor: 'firebrick', color: '#ffffff', fontWeight: 'bold',
-                            paddingLeft: '0px', paddingRight: '0px', fontSize: '12px'
-                        },
-                    }
-                },
-                MUIDataTableToolbar: {
-                    styleOverrides: {
-                        root: {
-                            justifyContent: 'center'
-                        },
-                        titleText: {
-                            width: '100%',
-                            textAlign: 'right',
-                            fontWeight: 'bold',
-                            fontSize: '22px'
-                        }
-                    }
-                }
-            }
+        setModelosPorBloque(prev => {
+            const copia = [...prev];
+            copia[index] = [];
+            return copia;
         });
+
+        const resSeg = await fetch(`${API}/bench_model/get_segmentos_por_linea/${linea.codigo_linea}`, {
+            headers: { Authorization: 'Bearer ' + jwt }
+        });
+        const dataSeg = await resSeg.json();
+        setSegmentosPorBloque(prev => {
+            const copia = [...prev];
+            copia[index] = dataSeg;
+            return copia;
+        });
+
+        setMarcasPorBloque(prev => {
+            const copia = [...prev];
+            copia[index] = [];
+            return copia;
+        });
+    };
+
+    const handleSegmentoChange = async (index, segmento) => {
+        const nuevosBloques = [...bloques];
+        nuevosBloques[index].segmento = segmento;
+        nuevosBloques[index].marca = null;
+        nuevosBloques[index].modelo = null;
+        setBloques(nuevosBloques);
+
+        const linea = nuevosBloques[index].linea;
+
+        const res = await fetch(`${API}/bench_model/get_marcas_por_linea_segmento?codigo_linea=${linea.codigo_linea}&nombre_segmento=${encodeURIComponent(segmento.nombre_segmento)}`, {
+            headers: { Authorization: 'Bearer ' + jwt }
+        });
+
+        const data = await res.json();
+        setMarcasPorBloque(prev => {
+            const copia = [...prev];
+            copia[index] = data;
+            return copia;
+        });
+
+        setModelosPorBloque(prev => {
+            const copia = [...prev];
+            copia[index] = [];
+            return copia;
+        });
+    };
+
+    const handleMarcasChange = async (index, marca) => {
+        const nuevosBloques = [...bloques];
+        nuevosBloques[index].marca = marca;
+        nuevosBloques[index].modelo = null;
+        setBloques(nuevosBloques);
+
+        const linea = nuevosBloques[index].linea;
+        const segmento = nuevosBloques[index].segmento;
+
+        const res = await fetch(`${API}/bench_model/get_modelos_por_linea_segmento_marca?codigo_linea=${linea.codigo_linea}&nombre_segmento=${encodeURIComponent(segmento.nombre_segmento)}&codigo_marca=${marca.codigo_marca}`, {
+            headers: { Authorization: 'Bearer ' + jwt }
+        });
+
+        const data = await res.json();
+        setModelosPorBloque(prev => {
+            const copia = [...prev];
+            copia[index] = data;
+            return copia;
+        });
+    };
+
+    const handleModeloChange = (index, modelo) => {
+        const actualizados = [...bloques];
+        actualizados[index].modelo = modelo;
+        setBloques(actualizados);
+    };
 
     return (
         <>
@@ -304,157 +287,83 @@ function CompararModelos()  {
                             <Button onClick={() => navigate(-1)}>Catálogos</Button>
                         </ButtonGroup>
                     </Box>
-                    <Box padding={4}>
-                        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold' }} >COMPARAR MODELOS COMERCIALES</DialogTitle>
-                        <Grid container spacing={2} >
-                            <Grid item xs={1.5}>
-                                <Autocomplete
-                                    options={lineasFiltradas}
-                                    getOptionLabel={(option) => option?.nombre_linea || ''}
-                                    value={lineasFiltradas.find(l => l.codigo_linea === lineaSeleccionada) || null}
-                                    onChange={(e, v) => handleChange('codigo_linea', v)}
-                                    renderInput={(params) => <TextField {...params} label="Línea" />}
-                                />
-                            </Grid>
-                            <Grid item xs={1.5}>
-                                <Autocomplete
-                                    options={segmentos}
-                                    getOptionLabel={(option) => option?.nombre_segmento || ''}
-                                    value={segmentos.find(s => s.nombre_segmento === segmentoSeleccionado) || null}
-                                    onChange={(e, v) => handleChange('codigo_segmento', v?.nombre_segmento)}
-                                    renderInput={(params) => <TextField {...params} label="Segmento" />}
-                                    disabled={!lineaSeleccionada}
-                                />
-                            </Grid>
-                            <Grid item xs={2.5}>
-                                <Autocomplete
-                                    options={modelos}
-                                    getOptionLabel={(option) => option.nombre_modelo_comercial}
-                                    value={modelos.find(m => m.codigo_modelo_version === modeloBase) || null}
-                                    onChange={(e, v) => setModeloBase(v ? v.codigo_modelo_version : null)}
-                                    renderInput={(params) => <TextField {...params} label="Modelo Base" />}
-                                />
-                            </Grid>
-                            <Grid item xs={6.5} sx={{ display: 'flex', flexDirection: 'column' }}>
-                                <Table size="small" sx={{ tableLayout: 'fixed', minWidth: '100%' }}>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell
-                                                colSpan={6}
-                                                sx={{
-                                                    fontWeight: 'bold',
-                                                    textAlign: 'center',
-                                                    backgroundColor: '#f5f5f5',
-                                                    position: 'sticky',
-                                                    top: 0,
-                                                    zIndex: 2,
-                                                    padding: '4px'
-                                                }}>Seleccione modelos comparables (máx. 4)
-                                            </TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableRow>
-                                        <TableCell colSpan={6} sx={{ padding: '4px', backgroundColor: '#fafafa' }}>
-                                            <TextField
-                                                fullWidth
-                                                variant="outlined"
-                                                size="small"
-                                                placeholder="Buscar por modelo, marca, versión..."
-                                                value={filtro}
-                                                onChange={(e) => setFiltro(e.target.value)}
-                                            />
-                                        </TableCell>
-                                    </TableRow>
-                                </Table>
-                                    <TableContainer
-                                        sx={{
-                                            maxHeight: 185,
+                    <Box padding={2}>
+                        <Grid container spacing={2} justifyContent="center">
+                            {bloques.map((bloque, index) => {
+                                if (comparacionActiva && index > 0 && !bloque.modelo) return null;
+                                return (
+                                    <Grid key={index} item xs={12} sm={6} md={2.4}>
+                                        <Box sx={{
                                             border: '1px solid #ccc',
-                                            borderRadius: 1,
-                                            overflowY: 'auto'
+                                            borderRadius: 2,
+                                            p: 1,
+                                            textAlign: 'center',
+                                            minHeight: 150,
+                                            width: 290,
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            justifyContent: 'space-between',
+                                            mb: 1
                                         }}>
-                                        <Table stickyHeader size="small" sx={{ tableLayout: 'fixed', minWidth: '100%' }}>
-                                            <TableHead>
-                                                <TableRow>
-                                                    <TableCell
-                                                        sx={{
-                                                            width: '36px',
-                                                            padding: '4px',
-                                                            textAlign: 'center',
-                                                            backgroundColor: '#fff',
-                                                            position: 'sticky',
-                                                            top: 0,
-                                                            zIndex: 1
-                                                        }}
+                                            <Box mt={1} fontSize="10px">
+                                                <strong>MARCA: </strong>{bloque.modelo?.nombre_marca}<br />
+                                                <strong>MODELO: </strong> {bloque.modelo?.nombre_modelo_comercial}<br/>
+                                                <strong>PRECIO VENTA CLIENTE: </strong> $ {bloque.modelo?.precio_producto_modelo}<br/>
+                                            </Box>
+                                            <Box sx={{
+                                                height: 150,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}>
+                                                {bloque.modelo?.path_imagen && (
+                                                    <img
+                                                        src={bloque.modelo.path_imagen}
+                                                        alt="modelo"
+                                                        style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
                                                     />
-                                                    <TableCell sx={{ backgroundColor: '#fff', position: 'sticky', top: 0, zIndex: 1 }}>
-                                                        <strong>Modelo</strong>
-                                                    </TableCell>
-                                                    <TableCell sx={{ backgroundColor: '#fff', position: 'sticky', top: 0, zIndex: 1, padding: '4px' }}>
-                                                        <strong>Modelo Comercial</strong>
-                                                    </TableCell>
-                                                    <TableCell sx={{ backgroundColor: '#fff', position: 'sticky', top: 0, zIndex: 1 }}>
-                                                        <strong>Marca</strong>
-                                                    </TableCell>
-                                                    <TableCell sx={{ backgroundColor: '#fff', position: 'sticky', top: 0, zIndex: 1 }}>
-                                                        <strong>Versión</strong>
-                                                    </TableCell>
-                                                    <TableCell sx={{
-                                                            backgroundColor: '#fff',
-                                                            position: 'sticky',
-                                                            top: 0,
-                                                            zIndex: 1,
-                                                            textAlign: 'center'}}>
-                                                        <strong>Año</strong>
-                                                    </TableCell>
-                                                    <TableCell sx={{ backgroundColor: '#fff', position: 'sticky', top: 0, zIndex: 1 }}>
-                                                        <strong>Imágen</strong>
-                                                    </TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody>
-                                                {modelos
-                                                    .filter((m) => m.codigo_modelo_version !== modeloBase)
-                                                    .filter((m) =>
-                                                        [m.nombre_modelo_version, m.nombre_modelo_comercial, m.nombre_marca, m.nombre_version]
-                                                            .some(campo =>
-                                                                campo?.toLowerCase().includes(filtro.toLowerCase())
-                                                            )
-                                                    )
-                                                    .map((m) => (
-                                                        <TableRow key={m.codigo_modelo_version}>
-                                                            <TableCell sx={{ width: '36px', padding: '4px', textAlign: 'center' }}>
-                                                                <Checkbox
-                                                                    checked={comparables.includes(m.codigo_modelo_version)}
-                                                                    onChange={() => handleToggleComparable(m.codigo_modelo_version)}
-                                                                    disabled={
-                                                                        !comparables.includes(m.codigo_modelo_version) &&
-                                                                        comparables.length >= 4
-                                                                    }
-                                                                    size="small"
-                                                                />
-                                                            </TableCell>
-                                                            <TableCell>{m.nombre_modelo_version}</TableCell>
-                                                            <TableCell>{m.nombre_modelo_comercial}</TableCell>
-                                                            <TableCell>{m.nombre_marca}</TableCell>
-                                                            <TableCell sx={{padding: '1px'}}>{m.nombre_version}</TableCell>
-                                                            <TableCell sx={{ textAlign: 'center' }}>{m.anio_modelo_version}</TableCell>
-                                                            <TableCell sx={{ textAlign: 'center' }}>
-                                                                <Button
-                                                                    variant="outlined"
-                                                                    size="small"
-                                                                    onClick={() => {
-                                                                        setSelectedImagen(m.path_imagen);
-                                                                        setOpenModalImagen(true);
-                                                                    }}>Ver
-                                                                </Button>
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    ))}
-                                            </TableBody>
-                                        </Table>
-                                    </TableContainer>
-                            </Grid>
+                                                )}
+                                            </Box>
+                                            <Autocomplete
+                                                size="small"
+                                                options={lineasFiltradas}
+                                                value={bloque.linea}
+                                                getOptionLabel={(op) => op?.nombre_linea || ''}
+                                                onChange={(e, v) => handleLineaChange(index, v)}
+                                                renderInput={(params) => <TextField {...params} label="Línea" sx={textFieldSmallSx} />}
+                                            />
+                                            <Autocomplete
+                                                size="small"
+                                                options={segmentosPorBloque[index] || []}
+                                                value={bloque.segmento}
+                                                getOptionLabel={(op) => op?.nombre_segmento || ''}
+                                                onChange={(e, v) => handleSegmentoChange(index, v)}
+                                                renderInput={(params) => <TextField {...params} label="Segmento" sx={textFieldSmallSx} />}
+                                                disabled={!bloque.linea}
+                                            />
+                                            <Autocomplete
+                                                size="small"
+                                                options={marcasPorBloque[index] || []}
+                                                value={bloque.marca}
+                                                getOptionLabel={(op) => op?.nombre_marca || ''}
+                                                onChange={(e, v) => handleMarcasChange(index, v)}
+                                                renderInput={(params) => <TextField {...params} label="Marca" sx={textFieldSmallSx} />}
+                                                disabled={!bloque.segmento}
+                                            />
+                                            <Autocomplete
+                                                size="small"
+                                                options={modelosPorBloque[index] || []}
+                                                value={bloque.modelo}
+                                                getOptionLabel={(op) => op?.nombre_modelo_comercial || ''}
+                                                onChange={(e, v) => handleModeloChange(index, v)}
+                                                renderInput={(params) => <TextField {...params} label="Modelo" sx={textFieldSmallSx} />}
+                                                disabled={!bloque.marca}
+                                            />
+                                        </Box>
+                                    </Grid>
+                                );
+                            })}
+
                         </Grid>
                         <Box mt={2} display="flex" gap={2}>
                             <Button variant="contained" color="primary" onClick={handleComparar} sx={{
@@ -465,60 +374,40 @@ function CompararModelos()  {
                                     backgroundColor: '#b22222'
                                 }}} >COMPARAR MODELOS
                             </Button>
-                            {resultado?.comparables?.length > 0 && (
-                                <>
-                                    <Button
-                                        variant="outlined"
-                                        onClick={toggleResumenDialog}
-                                        sx={{
-                                            backgroundColor: 'firebrick',
-                                            color: '#fff',
-                                            fontSize: '12px',
-                                            '&:hover': { backgroundColor: '#b22222' }
-                                        }}>VER RESUMEN DETALLADO
-                                    </Button>
-                                    <Button
-                                        variant="outlined"
-                                        onClick={exportarExcel}
-                                        sx={{
-                                            backgroundColor: 'green',
-                                            color: '#fff',
-                                            fontSize: '12px',
-                                            '&:hover': { backgroundColor: '#1b5e20' }
-                                        }}>Exportar
-                                    </Button>
-                                </>
-                            )}
+                            <Button
+                                variant="outlined"
+                                onClick={exportarExcel}
+                                sx={{
+                                    backgroundColor: 'green',
+                                    color: '#fff',
+                                    fontSize: '12px',
+                                    '&:hover': { backgroundColor: '#1b5e20' }
+                                }}>Exportar
+                            </Button>
                             <Button
                                 variant="outlined"
                                 onClick={() => {
-                                    setModeloBase(null);
-                                    setComparables([]);
-                                    setLineaSeleccionada('');
-                                    setSegmentoSeleccionado('');
-                                    setModelos([]);
-                                    setSegmentos([]);
+                                    setComparacionActiva(false); // <-- ¡Primero esto!
                                     setResultado(null);
+                                    setBloques(Array(numeroModelos).fill().map(() => ({
+                                        linea: null,
+                                        segmento: null,
+                                        modelo: null
+                                    })));
+                                    setSegmentosPorBloque(Array(numeroModelos).fill([]));
+                                    setModelosPorBloque(Array(numeroModelos).fill([]));
                                 }}
                                 sx={{
                                     backgroundColor: '#535353',
                                     color: '#fff',
                                     fontSize: '12px',
-                                    '&:hover': {
-                                        backgroundColor: '#535353'
-                                    }
-                                }}>Nueva Consulta
+                                    '&:hover': { backgroundColor: '#535353' }
+                                }}
+                            >
+                                Nueva Consulta
                             </Button>
                         </Box>
-                        <DialogResumenComparacion
-                            open={openResumenDialog}
-                            onClose={toggleResumenDialog}
-                            resultado={resultado}
-                            modelos={modelos}
-                        />
-                        <ThemeProvider theme={getMuiTheme()}>
-                            <MUIDataTable title="Resumen por modelo"  data={dataResumen} columns={columns} options={options}/>
-                        </ThemeProvider>
+                        <ResumenComparacion resultado={resultado} bloques={bloques} />
                         <Dialog open={openModalImagen} onClose={() => setOpenModalImagen(false)} maxWidth="md" fullWidth>
                             <DialogTitle>Vista de Imagen</DialogTitle>
                             <DialogContent>
