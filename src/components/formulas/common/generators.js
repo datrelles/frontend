@@ -162,28 +162,59 @@ export const createTooltipCustomBodyRender = () => ({
   customBodyRender: (value) => <CustomTooltip texto={value} />,
 });
 
-export const createMTColumn = (
-  header,
+export const createOnUpdateCell =
+  (fn) => (newValue, rowData, columnDefinition) => {
+    console.log(
+      "Actualizando fila",
+      rowData,
+      "Columna",
+      columnDefinition,
+      "Nuevo valor",
+      newValue
+    );
+    return fn(newValue, rowData, columnDefinition);
+  };
+
+export const createOnClickCell = (fn) => (rowData, columnDefinition) => {
+  console.log(
+    `Clic en la celda del campo: ${columnDefinition.field}, Valor: ${
+      rowData[columnDefinition.field]
+    }`
+  );
+  return fn(rowData, columnDefinition);
+};
+
+export const createMTColumn = ({
+  header = null,
   field = null,
+  bgColor = "#FF3A3A",
+  hidden = false,
   onUpdateCell = null,
+  onClickCell = null,
   children = null,
-  bgColor = null
-) => {
-  if (header === null) throw new Error("La columna debe tener un título");
-  if (field === null && children === null) {
+  context = {},
+}) => {
+  if (!header && !hidden) throw new Error("La columna debe tener un título");
+  if (!field && !children) {
     throw new Error("La columna debe tener un campo o columnas anidadas");
   }
-  if (field !== null && children !== null) {
+  if (field && children?.length) {
     throw new Error("La columna solo debe tener un campo o columnas anidadas");
   }
-  if (children !== null && onUpdateCell !== null) {
+  if (children?.length && hidden) {
+    throw new Error("El grupo de columnas anidadas debe ser visible");
+  }
+  if (children?.length && onUpdateCell !== null) {
     throw new Error("Si hay columnas anidadas no puede actualizarse el campo");
   }
   return {
-    header,
+    ...(header ? { header } : {}),
     ...(field ? { field } : {}),
+    bgColor,
+    hidden,
     ...(onUpdateCell ? { onUpdateCell } : {}),
+    ...(onClickCell ? { onClickCell } : {}), //(rowData, columnDefinition) => {}
     ...(children ? { children } : {}),
-    ...(bgColor ? { bgColor } : {}),
+    context,
   };
 };

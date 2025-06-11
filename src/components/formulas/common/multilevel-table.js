@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -23,7 +23,9 @@ const getFlatDataColumns = (headerDefs) => {
   let flatColumns = [];
   headerDefs.forEach((def) => {
     if (def.field) {
-      flatColumns.push(def);
+      if (!def.hidden) {
+        flatColumns.push(def);
+      }
     } else if (def.children) {
       flatColumns = flatColumns.concat(getFlatDataColumns(def.children));
     }
@@ -113,7 +115,11 @@ export default function MultiLevelTable({
   const headerCellRefs = useRef({});
 
   // --- Sticky columns logic ---
-  const fixedTopLevelColumnDefs = columns.slice(0, fixedColumnsCount);
+  const visibleTopLevelColumns = columns.filter((col) => !col.hidden);
+  const fixedTopLevelColumnDefs = visibleTopLevelColumns.slice(
+    0,
+    fixedColumnsCount
+  );
   const allFixedFlatDataColumns = getFlatDataColumns(fixedTopLevelColumnDefs);
   const fixedFlatColumnFields = new Set(
     allFixedFlatDataColumns.map((c) => c.field)
@@ -165,6 +171,7 @@ export default function MultiLevelTable({
     const nextLevelHeaders = [];
 
     headers.forEach((header) => {
+      if (header.hidden) return;
       const colSpan = calculateColSpan(header);
       const hasChildren = header.children && header.children.length > 0;
       const rowSpan = hasChildren ? 1 : maxDepth - level;
@@ -197,7 +204,7 @@ export default function MultiLevelTable({
             header.onClickHeader ? classes.clickableHeader : ""
           }`}
           style={{
-            backgroundColor: header.bgColor || "#FF3A3A",
+            backgroundColor: header.bgColor,
             position: isSticky ? "sticky" : undefined,
             left: isSticky ? left : undefined,
             zIndex: isSticky ? 11 : undefined,
