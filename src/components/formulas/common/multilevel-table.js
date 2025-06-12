@@ -170,7 +170,7 @@ export default function MultiLevelTable({
     const cells = [];
     const nextLevelHeaders = [];
 
-    headers.forEach((header) => {
+    headers.forEach((header, headerIndex) => {
       if (header.hidden) return;
       const colSpan = calculateColSpan(header);
       const hasChildren = header.children && header.children.length > 0;
@@ -196,7 +196,7 @@ export default function MultiLevelTable({
 
       cells.push(
         <TableCell
-          key={header.header || header.field}
+          key={`${header.header || header.field} ${headerIndex}`}
           align="center"
           colSpan={colSpan}
           rowSpan={rowSpan}

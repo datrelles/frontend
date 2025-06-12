@@ -7,6 +7,8 @@ import MainComponent from "../formulas/common/main-component";
 import CustomSelect from "../formulas/common/custom-select";
 import {
   DefaultMesesProyeccion,
+  Enum,
+  Meses,
   MesesProyeccion,
 } from "../formulas/common/enum";
 import {
@@ -87,14 +89,14 @@ export default function PresupuestoCantidades() {
       for (let mes = 1; mes <= 12; mes++) {
         const nuevasColumnas = columnasProyeccion.map((col) =>
           createMTColumn({
-            header: `${col.header} ${proyYear} ${mes}`,
+            header: `${col.header} ${proyYear}`,
             field: `${col.field}_${proyYear}_${mes}`,
             onUpdateCell: handleUpdateCell,
             context: { proyYear, mes },
           })
         );
         const colGrupo = createMTColumn({
-          header: `${mes}-${curYear}`,
+          header: `${Enum.getLabel(Meses, `${mes}`)}-${proyYear}`,
           children: nuevasColumnas,
         });
         columnas = columnas.concat(colGrupo);
@@ -103,7 +105,6 @@ export default function PresupuestoCantidades() {
           nuevasColumnas.forEach((col) => {
             filaActualizada[col.field] = "-";
           });
-          filaActualizada.tooltip = "xd asdsa asd sad asd dsa\nY\nZ";
           return filaActualizada;
         });
       }

@@ -19,7 +19,11 @@ export default function TableTooltip({ title, children }) {
 
   return hasTooltip ? (
     <Tooltip
-      title={<Typography sx={{ whiteSpace: "pre-line" }}>{title}</Typography>}
+      title={
+        <Typography sx={{ whiteSpace: "pre-line", fontSize: "0.75rem" }}>
+          {title}
+        </Typography>
+      }
       arrow
       placement="right"
       enterDelay={0}

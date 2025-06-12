@@ -94,6 +94,21 @@ export const CaracteresFormula = {
   FORMULA: new Enum("@"),
 };
 
+export const Meses = {
+  ENERO: new Enum("1", "ENERO"),
+  FEBRERO: new Enum("2", "FEBRERO"),
+  MARZO: new Enum("3", "MARZO"),
+  ABRIL: new Enum("4", "ABRIL"),
+  MAYO: new Enum("5", "MAYO"),
+  JUNIO: new Enum("6", "JUNIO"),
+  JULIO: new Enum("7", "JULIO"),
+  AGOSTO: new Enum("8", "AGOSTO"),
+  SEPTIEMBRE: new Enum("9", "SEPTIEMBRE"),
+  OCTUBRE: new Enum("10", "OCTUBRE"),
+  NOVIEMBRE: new Enum("11", "NOVIEMBRE"),
+  DICIEMBRE: new Enum("12", "DICIEMBRE"),
+};
+
 export const MesesProyeccion = {
   "12_MESES": new Enum("12", "12 MESES"),
   "24_MESES": new Enum("24", "24 MESES"),
