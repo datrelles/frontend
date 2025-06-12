@@ -5,9 +5,52 @@ import {
   TiposRetorno,
 } from "../components/formulas/common/enum";
 
+export function validarTipoRetornoYConvertir(tipo_retorno, valor) {
+  let parsedValue;
+  if (valor === undefined || valor === null || valor === "") {
+    throw new Error("No ingresó ningún valor");
+  }
+  switch (tipo_retorno) {
+    case TiposRetorno.NUMERO:
+      const numeroRegex = /^-?\d+(\.\d+)?$/;
+      if (!numeroRegex.test(valor)) {
+        throw new Error(`Número inválido: ${valor}`);
+      }
+      parsedValue = parseFloat(valor);
+      if (Number.isNaN(parsedValue)) {
+        throw new Error(`Número inválido: ${valor}`);
+      }
+      break;
+    case TiposRetorno.FECHA:
+      if (!validarFecha(valor)) {
+        throw new Error(`Fecha inválida: : ${valor}`);
+      }
+      parsedValue = valor;
+      break;
+    case TiposRetorno.TEXTO:
+      parsedValue = valor;
+      break;
+    default:
+      throw new Error("Tipo de retorno inválido");
+  }
+  return parsedValue;
+}
+
 export function validarCedulaRUC(valor) {
   const regex = /^(?:\d{13}|\d{9}-\d|\d{10})$/;
   return regex.test(valor);
+}
+
+export function validarFecha(valor) {
+  const regex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+  if (!regex.test(valor)) return false;
+  const [year, month, day] = valor.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  );
 }
 
 export function formatearFechaHora(valor) {

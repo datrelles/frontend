@@ -1,5 +1,7 @@
+import { validarTipoRetornoYConvertir } from "../../../helpers/modulo-formulas";
 import CustomTooltip from "./custom-tooltip";
-import { ColoresFondo, TiposSeleccionTabla } from "./enum";
+import { ColoresFondo, TiposRetorno, TiposSeleccionTabla } from "./enum";
+import { toast } from "react-toastify";
 
 export function createEmptyItem(xs, id) {
   return {
@@ -163,7 +165,8 @@ export const createTooltipCustomBodyRender = () => ({
 });
 
 export const createOnUpdateCell =
-  (fn) => (newValue, rowData, columnDefinition) => {
+  (fn, tipo_retorno = TiposRetorno.NUMERO) =>
+  (newValue, rowData, columnDefinition) => {
     console.log(
       "Actualizando fila",
       rowData,
@@ -172,7 +175,14 @@ export const createOnUpdateCell =
       "Nuevo valor",
       newValue
     );
-    return fn(newValue, rowData, columnDefinition);
+    let parsedValue;
+    try {
+      parsedValue = validarTipoRetornoYConvertir(tipo_retorno, newValue);
+    } catch (err) {
+      toast.error(err.message);
+      parsedValue = rowData[columnDefinition.field];
+    }
+    return fn(parsedValue, rowData, columnDefinition);
   };
 
 export const createOnClickCell = (fn) => (rowData, columnDefinition) => {
