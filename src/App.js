@@ -75,8 +75,9 @@ import Parametros from "./components/formulas/parametros";
 import ParametrosProceso from "./components/formulas/parametros-proceso";
 import FactoresCalculo from "./components/formulas/factores-calculo";
 import Funciones from "./components/formulas/funciones";
-import PresupuestoCantidades from "./components/importaciones/presupuesto-cantidades";
 import Clientes from "./components/formulas/clientes";
+import PresupuestoCantidades from "./components/importaciones/presupuesto-cantidades";
+import CoberturaModelo from "./components/importaciones/cobertura-modelo";
 
 ///SellManagerB2B
 const API = process.env.REACT_APP_API;
@@ -710,7 +711,7 @@ function App() {
                 path="/cobertura-modelo"
                 element={
                   <Protected isLoggedIn={authorizedSystems.includes("IMP")}>
-                    <PresupuestoCantidades />
+                    <CoberturaModelo />
                   </Protected>
                 }
               ></Route>
