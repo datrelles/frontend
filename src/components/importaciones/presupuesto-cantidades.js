@@ -1,5 +1,5 @@
 import { toast } from "react-toastify";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useAuthContext } from "../../context/authContext";
 import API from "../../services/modulo-formulas";
 import Header from "../formulas/common/header";
@@ -38,9 +38,9 @@ const getFlatDataColumns = (headerDefs) => {
   return flatColumns;
 };
 
-const obtenerFilasConsolidadas = (columnas, producto) => {
-  let consolidados = producto.filter((fila) => fila.es_consolidado);
-  const filasDatos = producto.filter((fila) => !fila.es_consolidado);
+const obtenerFilasConsolidadas = (columnas, filas) => {
+  let consolidados = filas.filter((fila) => fila.es_consolidado);
+  const filasDatos = filas.filter((fila) => !fila.es_consolidado);
   consolidados = consolidados.map((con) => {
     const conActualizado = { ...con };
     getFlatDataColumns(columnas)
@@ -52,11 +52,11 @@ const obtenerFilasConsolidadas = (columnas, producto) => {
       });
     return conActualizado;
   });
-  return producto.map((pro) => {
-    if (pro.es_consolidado) {
-      return consolidados.find((con) => con.cod_modelo === pro.cod_modelo);
+  return filas.map((fila) => {
+    if (fila.es_consolidado) {
+      return consolidados.find((con) => con.cod_modelo === fila.cod_modelo);
     } else {
-      return pro;
+      return fila;
     }
   });
 };
@@ -75,8 +75,9 @@ export default function PresupuestoCantidades() {
   const [mesesProyeccion, setMesesProyeccion] = useState(
     DefaultMesesProyeccion
   );
-  const [productoTabla, setProductoTabla] = useState([]);
   const [columnasTabla, setColumnasTabla] = useState([]);
+  const columnasTablaRef = useRef(columnasTabla);
+  const [filasTabla, setFilasTabla] = useState([]);
 
   const getMenus = async () => {
     try {
@@ -88,24 +89,29 @@ export default function PresupuestoCantidades() {
 
   const handleUpdateCell = createOnUpdateCell(
     (newValue, rowData, columnDefinition) => {
-      setProductoTabla((prev) =>
-        prev.map((pro) =>
-          pro.cod_cliente === rowData.cod_cliente &&
-          pro.cod_modelo === rowData.cod_modelo
-            ? { ...pro, [columnDefinition.field]: newValue }
-            : pro
-        )
-      );
+      setFilasTabla((prev) => {
+        const filasActualizadas = prev.map((fila) => ({
+          ...fila,
+          ...(fila.cod_cliente === rowData.cod_cliente &&
+          fila.cod_modelo === rowData.cod_modelo
+            ? { [columnDefinition.field]: newValue }
+            : {}),
+        }));
+        return obtenerFilasConsolidadas(
+          columnasTablaRef.current,
+          filasActualizadas
+        );
+      });
     }
   );
 
   const handleProyectar = () => {
     const curYear = new Date().getFullYear();
     const iter = mesesProyeccion / 12;
-    let producto = [];
+    let filas = [];
     for (const modelo of modelos) {
       for (const cliente of clientes) {
-        producto.push({
+        filas.push({
           cod_cliente: cliente.cod_cliente,
           cliente: cliente.agrupa_cliente
             ? cliente.nombre_agrupacion
@@ -114,7 +120,7 @@ export default function PresupuestoCantidades() {
           modelo: modelo.nombre,
         });
       }
-      producto.push({
+      filas.push({
         es_consolidado: true,
         es_editable: false,
         cod_modelo: modelo.codigo,
@@ -144,7 +150,7 @@ export default function PresupuestoCantidades() {
           children: nuevasColumnas,
         });
         columnas = columnas.concat(colGrupo);
-        producto = producto.map((fila) => {
+        filas = filas.map((fila) => {
           const filaActualizada = { ...fila };
           nuevasColumnas.forEach((col) => {
             if (fila.es_consolidado) {
@@ -158,7 +164,7 @@ export default function PresupuestoCantidades() {
       }
     }
     setColumnasTabla(columnas);
-    setProductoTabla(obtenerFilasConsolidadas(columnas, producto));
+    setFilasTabla(obtenerFilasConsolidadas(columnas, filas));
   };
 
   async function getClientesModelos() {
@@ -199,7 +205,7 @@ export default function PresupuestoCantidades() {
       }}
     >
       <MultiLevelTable
-        data={productoTabla}
+        data={filasTabla}
         columns={columnasTabla}
         fixedColumnsCount={2}
       />
@@ -211,6 +217,10 @@ export default function PresupuestoCantidades() {
     getMenus();
     getClientesModelos();
   }, []);
+
+  useEffect(() => {
+    columnasTablaRef.current = columnasTabla;
+  }, [columnasTabla]);
 
   return <MainComponent components={[header, selectMeses, btnNuevo, tabla]} />;
 }
