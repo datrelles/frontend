@@ -273,7 +273,7 @@ export default function MultiLevelTable({
                     editingCell?.field === colDef.field;
 
                   const handleCellClick = () => {
-                    if (onUpdateCell) {
+                    if (onUpdateCell && (row.es_editable ?? true)) {
                       setEditingCell({ rowIndex, field: colDef.field });
                       setEditingValue(row[colDef.field]);
                     }

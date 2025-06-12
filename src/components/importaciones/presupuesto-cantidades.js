@@ -24,6 +24,43 @@ const columnasProyeccion = [
   createMTColumn({ header: "Ventas MASSLINE", field: "ventas_mass" }),
 ];
 
+const getFlatDataColumns = (headerDefs) => {
+  let flatColumns = [];
+  headerDefs.forEach((def) => {
+    if (def.field) {
+      if (!def.hidden) {
+        flatColumns.push(def);
+      }
+    } else if (def.children) {
+      flatColumns = flatColumns.concat(getFlatDataColumns(def.children));
+    }
+  });
+  return flatColumns;
+};
+
+const actualizarFilasConsolidadas = (columnas, producto) => {
+  let consolidados = producto.filter((fila) => fila.es_consolidado);
+  const filasDatos = producto.filter((fila) => !fila.es_consolidado);
+  consolidados = consolidados.map((con) => {
+    const conActualizado = { ...con };
+    getFlatDataColumns(columnas)
+      .filter((col) => col.field !== "cliente" && col.field !== "modelo")
+      .forEach((col) => {
+        conActualizado[col.field] = filasDatos
+          .filter((fila) => fila.cod_modelo === con.cod_modelo)
+          .reduce((acum, actual) => acum + parseFloat(actual[col.field]), 0);
+      });
+    return conActualizado;
+  });
+  return producto.map((pro) => {
+    if (pro.es_consolidado) {
+      return consolidados.find((con) => con.cod_modelo === pro.cod_modelo);
+    } else {
+      return pro;
+    }
+  });
+};
+
 export default function PresupuestoCantidades() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
     useAuthContext();
@@ -77,6 +114,13 @@ export default function PresupuestoCantidades() {
           modelo: modelo.nombre,
         });
       }
+      producto.push({
+        es_consolidado: true,
+        es_editable: false,
+        cod_modelo: modelo.codigo,
+        modelo: modelo.nombre,
+        cliente: "CONSOLIDADO",
+      });
     }
     let columnas = [
       createMTColumn({ field: "cod_cliente", hidden: true }),
@@ -103,14 +147,18 @@ export default function PresupuestoCantidades() {
         producto = producto.map((fila) => {
           const filaActualizada = { ...fila };
           nuevasColumnas.forEach((col) => {
-            filaActualizada[col.field] = "-";
+            if (fila.es_consolidado) {
+              filaActualizada[col.field] = 0;
+            } else {
+              filaActualizada[col.field] = Math.floor(Math.random() * 1000 - 1); //"-" al inicio y en caso de no tener valor
+            }
           });
           return filaActualizada;
         });
       }
     }
     setColumnasTabla(columnas);
-    setProductoTabla(producto);
+    setProductoTabla(actualizarFilasConsolidadas(columnas, producto));
   };
 
   async function getClientesModelos() {
