@@ -38,7 +38,7 @@ const getFlatDataColumns = (headerDefs) => {
   return flatColumns;
 };
 
-const actualizarFilasConsolidadas = (columnas, producto) => {
+const obtenerFilasConsolidadas = (columnas, producto) => {
   let consolidados = producto.filter((fila) => fila.es_consolidado);
   const filasDatos = producto.filter((fila) => !fila.es_consolidado);
   consolidados = consolidados.map((con) => {
@@ -158,7 +158,7 @@ export default function PresupuestoCantidades() {
       }
     }
     setColumnasTabla(columnas);
-    setProductoTabla(actualizarFilasConsolidadas(columnas, producto));
+    setProductoTabla(obtenerFilasConsolidadas(columnas, producto));
   };
 
   async function getClientesModelos() {
