@@ -95,6 +95,19 @@ function CatDimensionesPeso() {
 
     }, [])
 
+    const sanitizeDimensiones = (item) => {
+        const reemplazo = (val) =>
+            val === null || val === undefined || val === '' ? 'N/A' : val;
+
+        return {
+            ...item,
+            altura_total: reemplazo(item.altura_total),
+            longitud_total: reemplazo(item.longitud_total),
+            ancho_total: reemplazo(item.ancho_total),
+            peso_seco: reemplazo(item.peso_seco),
+        };
+    };
+
     const fetchDimensionesData = async () => {
         try {
             const res = await fetch(`${API}/bench/get_dimensiones`, {
@@ -106,7 +119,8 @@ function CatDimensionesPeso() {
             });
             const data = await res.json();
             if (res.ok) {
-                setCabeceras(data); // <- carga los datos en la tabla
+                const dataSanitizada = data.map(sanitizeDimensiones);
+                setCabeceras(dataSanitizada);
             } else {
                 enqueueSnackbar(data.error || "Error al obtener data de dimensiones", { variant: "error" });
             }
@@ -152,12 +166,12 @@ function CatDimensionesPeso() {
     };
 
     const columns = [
-        { name: "codigo_dim_peso", label: "Código" },
+
         { name: "altura_total", label: "Altura total" },
         { name: "longitud_total", label: "Longitud total" },
         { name: "ancho_total", label: "Ancho total" },
         { name: "peso_seco", label: "Peso Seco" },
-        { name: "usuario_crea", label: "Usuario Crea" },
+        //{ name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
             name: "acciones",

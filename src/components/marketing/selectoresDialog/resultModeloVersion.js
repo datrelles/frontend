@@ -45,6 +45,10 @@ const ResumenComparacion = ({ resultado, bloques }) => {
     const MAX_COMPARABLES = 4;
     const placeholdersCount = MAX_COMPARABLES - comparables.length;
 
+    const safeText = (value, unidad = '') =>
+        value !== undefined && value !== null && value !== '' ? `${value} ${unidad}` : 'N/A';
+
+
     return (
         <Box mt={4} px={2}>
             <Typography variant="h6" align="center" gutterBottom fontWeight="bold">
@@ -89,10 +93,10 @@ const ResumenComparacion = ({ resultado, bloques }) => {
                                 {Object.entries(campos).map(([campo, data], i) => (
                                     <TableRow key={i}>
                                         <TableCell>{campo.replace(/_/g, ' ').toUpperCase()}</TableCell>
-                                        <TableCell>{data.base} {getUnidadCampo(campo)}</TableCell>
+                                        <TableCell>{safeText(data.base, getUnidadCampo(campo))}</TableCell>
                                         {data.comparables.map((comp, j) => (
                                             <React.Fragment key={j}>
-                                                <TableCell>{comp.valor ? `${comp.valor} ${getUnidadCampo(campo)}` : ''}</TableCell>
+                                                <TableCell>{safeText(comp.valor, getUnidadCampo(campo))}</TableCell>
                                                 <TableCell>
                                                     {comp.estado === 'mejor' ? (
                                                         <ThumbUpIcon sx={{ color: '#2e7d32' }} />

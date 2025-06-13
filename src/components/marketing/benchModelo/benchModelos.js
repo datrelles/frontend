@@ -32,6 +32,15 @@ function CompararModelos()  {
         ? lineas.filter((l) => l.codigo_linea_padre === lineaAutomotriz.codigo_linea)
         : [];
 
+    const lineaPadre = lineas.find(
+        (l) => l.nombre_linea?.toUpperCase() === "AUTOMOTRIZ"
+    );
+
+    const lineasHijas = lineas.filter(
+        (l) => l.codigo_linea_padre === lineaPadre?.codigo_linea
+    );
+
+
     const numeroModelos = 5;
 
     const [bloques, setBloques] = useState(
@@ -407,11 +416,13 @@ function CompararModelos()  {
                                             </Box>
                                             <Autocomplete
                                                 size="small"
-                                                options={lineasFiltradas}
+                                                options={lineasHijas}
                                                 value={bloque.linea}
                                                 getOptionLabel={(op) => op?.nombre_linea || ''}
                                                 onChange={(e, v) => handleLineaChange(index, v)}
-                                                renderInput={(params) => <TextField {...params} label="Línea" sx={textFieldSmallSx} />}
+                                                renderInput={(params) => (
+                                                    <TextField {...params} label="Línea" sx={textFieldSmallSx} />
+                                                )}
                                                 disabled={bloquearInputs || index !== 0}
                                             />
                                             <Autocomplete

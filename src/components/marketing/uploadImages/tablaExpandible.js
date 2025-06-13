@@ -27,6 +27,8 @@ export default function CatModeloVersionExpandible({
     const getTipoMotor = (codigo) => tiposMotor.find(t => t.codigo_tipo_motor === codigo);
     const getDetalleChasis = (codigo) => chasis.find(c => c.codigo_chasis === codigo);
    //const getImagen = (codigo) => imagenes.find(img => img.codigo_imagen === codigo)?.path_imagen;
+    const safeValue = (val, suffix = '') => val !== undefined && val !== null ? `${val}${suffix}` : 'N/A';
+
 
     const renderDetailTable = (section, headers, values) => (
         <>
@@ -114,11 +116,13 @@ export default function CatModeloVersionExpandible({
                         {renderDetailTable("ELECTRÓNICA",
                             [
                                 "TABLERO",
+                                "CAPACIDAD COMBUSTIBLE",
                                 "LUCES DELANTERAS",
                                 "LUCES TRASERAS",
                                 "VELOCIDAD MÁXIMA",
                                 "GARANTÍA"], [
                             detalleElectronica?.tablero,
+                            detalleElectronica?.capacidad_combustible,
                             detalleElectronica?.luces_delanteras,
                             detalleElectronica?.luces_posteriores,
                             detalleElectronica?.velocidad_maxima,
@@ -129,12 +133,15 @@ export default function CatModeloVersionExpandible({
                                 "ALTURA TOTAL",
                                 "PESO SECO",
                                 "LONGITUD TOTAL",
-                                "ANCHO TOTAL"], [
-                            detalleDimensiones?.altura_total + ' mm',
-                            detalleDimensiones?.peso_seco + ' kg',
-                            detalleDimensiones?.longitud_total + ' mm',
-                            detalleDimensiones?.ancho_total + ' mm'
-                        ])}
+                                "ANCHO TOTAL"
+                            ],
+                            [
+                                safeValue(detalleDimensiones?.altura_total, ' mm'),
+                                safeValue(detalleDimensiones?.peso_seco, ' kg'),
+                                safeValue(detalleDimensiones?.longitud_total, ' mm'),
+                                safeValue(detalleDimensiones?.ancho_total, ' mm')
+                            ]
+                        )}
                         {renderDetailTable("TRANSMISIÓN", ["CAJA DE CAMBIOS"], [
                             detalleTransmission?.caja_cambios
                         ])}
@@ -146,7 +153,8 @@ export default function CatModeloVersionExpandible({
 
     const columns = [
         { name: 'nombre_modelo_version', label: 'MODELO' },
-        { name: 'nombre_producto', label: 'PRODUCTO' },
+       // { name: 'nombre_producto', label: 'PRODUCTO' },
+        { name: 'nombre_marca', label: 'MARCA MODELO' },
         { name: 'nombre_empresa', label: 'EMPRESA' },
         {
             name: 'path_imagen', label: 'IMAGEN', options: {
@@ -158,7 +166,6 @@ export default function CatModeloVersionExpandible({
                 ) : 'N/A'
             }
         },
-        { name: 'nombre_marca', label: 'MARCA MODELO' },
         { name: 'nombre_version', label: 'VERSIÓN' },
         { name: 'nombre_color', label: 'COLOR' },
         { name: 'anio_modelo_version', label: 'AÑO MODELO' },

@@ -24,6 +24,8 @@ export default function SelectorDimensiones({ dimensiones, selectedDimensionesId
         )
     );
 
+    const safeValue = (val) => val !== undefined && val !== null && val !== '' ? val : 'N/A';
+
     return (
         <Grid item xs={6}>
             <Box display="flex" alignItems="center">
@@ -69,11 +71,11 @@ export default function SelectorDimensiones({ dimensiones, selectedDimensionesId
                         <TableBody>
                             {filteredDimensiones.map((item) =>  (
                                 <TableRow key={item.codigo_dim_peso} hover>
-                                    <TableCell>{item.codigo_dim_peso}</TableCell>
-                                    <TableCell>{item.altura_total}</TableCell>
-                                    <TableCell>{item.longitud_total}</TableCell>
-                                    <TableCell>{item.ancho_total}</TableCell>
-                                    <TableCell>{item.peso_seco}</TableCell>
+                                    <TableCell>{safeValue(item.codigo_dim_peso)}</TableCell>
+                                    <TableCell>{safeValue(item.altura_total)}</TableCell>
+                                    <TableCell>{safeValue(item.longitud_total)}</TableCell>
+                                    <TableCell>{safeValue(item.ancho_total)}</TableCell>
+                                    <TableCell>{safeValue(item.peso_seco)}</TableCell>
                                     <TableCell>
                                         <Button size="small" onClick={() => {
                                             onSelect(item.codigo_dim_peso);

@@ -201,7 +201,7 @@ function CatProductoExterno() {
             }
         },
         { name: "descripcion_producto", label: "Descripción Producto" },
-        { name: "usuario_crea", label: "Usuario Crea" },
+        //{ name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
             name: "acciones",

@@ -228,7 +228,7 @@ function CatModeloVersionRepuesto() {
     };
 
     const columns = [
-        { name: 'codigo_mod_vers_repuesto', label: 'CÓDIGO' },
+        //{ name: 'codigo_mod_vers_repuesto', label: 'CÓDIGO' },
         { name: 'nombre_item', label: 'CATEGORÍA' },
         { name: 'nombre_producto', label: 'PRODUCTO' },
         { name: 'nombre_empresa', label: 'EMPRESA' },

@@ -143,7 +143,7 @@ function CatCanal() {
             }
         },
         { name: "descripcion_canal", label: "Descripción Canal" },
-        { name: "usuario_crea", label: "Usuario Crea" },
+        //{ name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
             name: "acciones",
