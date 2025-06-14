@@ -4,7 +4,7 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import { useNavigate } from "react-router-dom";
 
-export default function Header({ menus }) {
+export default function Header({ menus, modulos = true }) {
   const navigate = useNavigate();
   return (
     <>
@@ -19,15 +19,17 @@ export default function Header({ menus }) {
           },
         }}
       >
-        <ButtonGroup variant="text" aria-label="text button group">
-          <Button
-            onClick={() => {
-              navigate("/dashboard");
-            }}
-          >
-            Módulos
-          </Button>
-        </ButtonGroup>
+        {modulos && (
+          <ButtonGroup variant="text" aria-label="text button group">
+            <Button
+              onClick={() => {
+                navigate("/dashboard");
+              }}
+            >
+              Módulos
+            </Button>
+          </ButtonGroup>
+        )}
       </Box>
     </>
   );

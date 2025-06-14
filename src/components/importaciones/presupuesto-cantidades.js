@@ -12,12 +12,15 @@ import {
   MesesProyeccion,
 } from "../formulas/common/enum";
 import {
+  createCustomComponentItem,
   createDefaultSetter,
+  createEmptyItem,
   createMTColumn,
   createOnUpdateCell,
 } from "../formulas/common/generators";
 import BtnNuevo from "../formulas/common/btn-nuevo";
 import MultiLevelTable from "../formulas/common/multilevel-table";
+import CustomGrid from "../formulas/common/custom-grid";
 
 const columnasProyeccion = [
   createMTColumn({ header: "Ventas Clientes", field: "ventas_cli" }),
@@ -180,7 +183,7 @@ export default function PresupuestoCantidades() {
     }
   }
 
-  const header = <Header menus={menus} />;
+  const header = <Header menus={menus} modulos={false} />;
 
   const selectMeses = (
     <CustomSelect
@@ -191,9 +194,17 @@ export default function PresupuestoCantidades() {
     />
   );
 
-  const btnNuevo = (
+  const btnProyectar = (
     <BtnNuevo onClick={handleProyectar} texto="Proyectar" icon={false} />
   );
+
+  const itemsOpcionesProyeccion = [
+    createCustomComponentItem(2, "meses", selectMeses),
+    createCustomComponentItem(2, "btnProyectar", btnProyectar),
+    createEmptyItem(8, "relleno_proyeccion"),
+  ];
+
+  const opcionesProyeccion = <CustomGrid items={itemsOpcionesProyeccion} />;
 
   const tabla = (
     <div
@@ -222,5 +233,5 @@ export default function PresupuestoCantidades() {
     columnasTablaRef.current = columnasTabla;
   }, [columnasTabla]);
 
-  return <MainComponent components={[header, selectMeses, btnNuevo, tabla]} />;
+  return <MainComponent components={[header, opcionesProyeccion, tabla]} />;
 }
