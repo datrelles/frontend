@@ -43,20 +43,16 @@ const getMaxDepth = (headers) => {
   return max;
 };
 
-// --- Definición de estilos ---
 const useStyles = makeStyles({
+  table: {
+    borderCollapse: "separate",
+    borderSpacing: 0,
+  },
   headerCellBase: {
     fontWeight: "bold",
-    borderTop: `2px solid #000000`,
-    borderBottom: `2px solid #000000`,
-    borderRight: `2px solid #000000`,
-    "&:last-child": {
-      borderRight: `2px solid #e0e0e0`,
-    },
     cursor: "default",
     transition: "background-color 0.2s ease-in-out",
-    position: "sticky",
-    zIndex: 10,
+    zIndex: 20,
     backgroundColor: "#FF3A3A",
     textAlign: "center",
   },
@@ -67,11 +63,6 @@ const useStyles = makeStyles({
     },
   },
   dataCellBase: {
-    borderBottom: `1px dashed #000000`,
-    borderRight: `1px solid #000000`,
-    "&:last-child": {
-      borderRight: "none",
-    },
     cursor: "default",
     transition: "background-color 0.2s ease-in-out",
     position: "sticky",
@@ -96,7 +87,9 @@ const useStyles = makeStyles({
   },
   tableContainer: {
     width: "100%",
-    overflowX: "auto",
+    height: "500px",
+    overflow: "auto",
+    backgroundColor: "#ffffff",
   },
 });
 
@@ -106,15 +99,14 @@ export default function MultiLevelTable({
   fixedColumnsCount = 0,
 }) {
   const flatDataColumns = getFlatDataColumns(columns);
-
   const classes = useStyles();
-
   const [editingCell, setEditingCell] = useState(null);
   const [editingValue, setEditingValue] = useState("");
   const [columnWidths, setColumnWidths] = useState({});
   const headerCellRefs = useRef({});
+  const headerRowRefs = useRef({});
+  const [headerRowHeights, setHeaderRowHeights] = useState([]);
 
-  // --- Sticky columns logic ---
   const visibleTopLevelColumns = columns.filter((col) => !col.hidden);
   const fixedTopLevelColumnDefs = visibleTopLevelColumns.slice(
     0,
@@ -145,12 +137,26 @@ export default function MultiLevelTable({
     }
   }, [allFixedFlatDataColumns, fixedColumnsCount, columnWidths]);
 
+  useEffect(() => {
+    const heights = [];
+    let currentHeight = 0;
+    for (let i = 0; i < getMaxDepth(columns); i++) {
+      const rowRef = headerRowRefs.current[`header-row-${i}`];
+      if (rowRef) {
+        heights[i] = currentHeight;
+        currentHeight += rowRef.offsetHeight;
+      }
+    }
+    if (JSON.stringify(heights) !== JSON.stringify(headerRowHeights)) {
+      setHeaderRowHeights(heights);
+    }
+  }, [columns, headerRowHeights]);
+
   const getStickyLeftPosition = (flatColIndex) => {
     const currentFlatColDef = flatDataColumns[flatColIndex];
     if (fixedColumnsCount === 0 || !isFlatColumnFixed(currentFlatColDef)) {
       return "auto";
     }
-
     let left = 0;
     for (let i = 0; i < flatColIndex; i++) {
       const prevColDef = flatDataColumns[i];
@@ -161,27 +167,24 @@ export default function MultiLevelTable({
     return `${left}px`;
   };
 
-  // --- Función getHeaderRows corregida con rowspan y sticky ---
   const getHeaderRows = (headers, level = 0, maxDepth = null) => {
     if (maxDepth === null) {
       maxDepth = getMaxDepth(headers);
     }
-
     const cells = [];
     const nextLevelHeaders = [];
+
+    const currentTop = headerRowHeights[level] || 0;
 
     headers.forEach((header, headerIndex) => {
       if (header.hidden) return;
       const colSpan = calculateColSpan(header);
       const hasChildren = header.children && header.children.length > 0;
       const rowSpan = hasChildren ? 1 : maxDepth - level;
-
-      // Sticky y left si corresponde
       const containedFlatColumns = getFlatDataColumns([header]);
       const isSticky =
         containedFlatColumns.length > 0 &&
         containedFlatColumns.every(isFlatColumnFixed);
-
       let left = "auto";
       if (isSticky) {
         const firstFixedFlatColInGroup =
@@ -193,7 +196,6 @@ export default function MultiLevelTable({
           left = getStickyLeftPosition(firstIndex);
         }
       }
-
       cells.push(
         <TableCell
           key={`${header.header || header.field} ${headerIndex}`}
@@ -204,30 +206,53 @@ export default function MultiLevelTable({
             header.onClickHeader ? classes.clickableHeader : ""
           }`}
           style={{
-            backgroundColor: header.bgColor,
-            position: isSticky ? "sticky" : undefined,
+            backgroundColor: header.bgColor || "#FF3A3A",
+            position: "sticky",
             left: isSticky ? left : undefined,
-            zIndex: isSticky ? 11 : undefined,
+            top: `${currentTop}px`,
+            zIndex: isSticky ? 22 : 21,
+            borderTop: `2px solid #000000`,
+            borderRight: `2px solid #000000`,
+            // Borde inferior: SOLO si no tiene hijos (es la última fila de la jerarquía)
+            // O si rowSpan > 1 (es una celda que abarca múltiples filas hasta el final)
+            // Si tiene hijos, su 'borderBottom' será el 'borderTop' de sus hijos, para evitar doble grosor.
+            borderBottom:
+              hasChildren && rowSpan === 1 ? `none` : `2px solid #000000`,
+            "&:lastChild": {
+              borderRight: `2px solid #e0e0e0`,
+            },
+            backgroundClip: "padding-box",
           }}
           {...(header.field && {
             ref: (el) => (headerCellRefs.current[header.field] = el),
           })}
           {...(header.onClickHeader && { onClick: header.onClickHeader })}
         >
-          {header.header}
+          {header.header || header.field || ""}
         </TableCell>
       );
-
       if (hasChildren) {
         nextLevelHeaders.push(...header.children);
       }
     });
 
     if (nextLevelHeaders.length === 0) {
-      return [<TableRow key={`header-row-${level}`}>{cells}</TableRow>];
+      return [
+        <TableRow
+          ref={(el) => (headerRowRefs.current[`header-row-${level}`] = el)}
+          key={`header-row-${level}`}
+        >
+          {cells}
+        </TableRow>,
+      ];
     } else {
       return [
-        <TableRow key={`header-row-${level}`}>{cells}</TableRow>,
+        <TableRow
+          ref={(el) => (headerRowRefs.current[`header-row-${level}`] = el)}
+          key={`header-row-${level}`}
+        >
+          {cells}
+        </TableRow>,
         ...getHeaderRows(nextLevelHeaders, level + 1, maxDepth),
       ];
     }
@@ -247,7 +272,7 @@ export default function MultiLevelTable({
     <TableContainer component={Paper} className={classes.tableContainer}>
       <Table
         aria-label="custom multi-level grouped table"
-        style={{ minWidth: flatDataColumns.length * 120 }}
+        className={classes.table}
       >
         <TableHead>{getHeaderRows(columns)}</TableHead>
         <TableBody>
@@ -257,6 +282,14 @@ export default function MultiLevelTable({
                 colSpan={flatDataColumns.length}
                 align="center"
                 className={classes.dataCellBase}
+                style={{
+                  borderBottom: `1px dashed #000000`,
+                  backgroundColor: "#ffffff",
+                  backgroundClip: "padding-box",
+                  borderRight: `1px solid #000000`,
+                  borderLeft: `1px solid #000000`,
+                  borderTop: `2px solid #000000`,
+                }}
               >
                 No hay datos para mostrar.
               </TableCell>
@@ -267,11 +300,9 @@ export default function MultiLevelTable({
                 {flatDataColumns.map((colDef, colIndex) => {
                   const onClickCell = colDef.onClickCell || null;
                   const onUpdateCell = colDef.onUpdateCell || null;
-
                   const isEditing =
                     editingCell?.rowIndex === rowIndex &&
                     editingCell?.field === colDef.field;
-
                   const handleCellClick = () => {
                     if (onUpdateCell && (row.es_editable ?? true)) {
                       setEditingCell({ rowIndex, field: colDef.field });
@@ -281,7 +312,6 @@ export default function MultiLevelTable({
                       onClickCell(row, colDef);
                     }
                   };
-
                   const handleKeyDown = (event) => {
                     if (event.key === "Enter") {
                       if (onUpdateCell) {
@@ -292,17 +322,59 @@ export default function MultiLevelTable({
                       setEditingCell(null);
                     }
                   };
-
                   const handleBlur = () => {
                     if (isEditing && onUpdateCell) {
                       setEditingCell(null);
                     }
                   };
-
                   const isSticky = isFlatColumnFixed(colDef);
                   const leftPosition = isSticky
                     ? getStickyLeftPosition(colIndex)
                     : "auto";
+
+                  // Definición del borde inferior de las celdas de datos
+                  let borderBottomStyle = `1px dashed #000000`;
+                  let borderTopStyle =
+                    rowIndex === 0 ? `1px dashed #000000` : undefined;
+
+                  // SIMULACIÓN DE BORDE DASHED CON BACKGROUND-IMAGE PARA CELDAS FIJAS
+                  // Esto evita que las partes transparentes del borde dashed dejen ver el contenido de abajo
+                  let customBackgroundForDashedBorder = {};
+                  if (isSticky) {
+                    // Para celdas fijas, el borde inferior se simula con un gradiente
+                    // para evitar el efecto de "filtrado".
+                    // El gradiente crea un patrón de líneas y espacios opacos.
+                    borderBottomStyle = "none"; // Eliminamos el borde CSS nativo
+                    customBackgroundForDashedBorder = {
+                      backgroundImage: `repeating-linear-gradient(90deg, #000 0, #000 2px, transparent 2px, transparent 4px)`, // Ajusta tamaño y color
+                      backgroundSize: "100% 1px", // 1px de alto para la línea
+                      backgroundRepeat: "no-repeat",
+                      backgroundPosition: "bottom", // Colocar en la parte inferior
+                    };
+
+                    // Hacemos lo mismo para el borde superior si es la primera fila de datos y es fija
+                    if (rowIndex === 0) {
+                      borderTopStyle = "none";
+                      customBackgroundForDashedBorder = {
+                        ...customBackgroundForDashedBorder,
+                        backgroundImage: `${
+                          customBackgroundForDashedBorder.backgroundImage
+                            ? customBackgroundForDashedBorder.backgroundImage +
+                              ", "
+                            : ""
+                        }repeating-linear-gradient(90deg, #000 0, #000 2px, transparent 2px, transparent 4px)`,
+                        backgroundSize: `100% 1px, ${
+                          customBackgroundForDashedBorder.backgroundSize ||
+                          "100% 1px"
+                        }`,
+                        backgroundPosition: `top, ${
+                          customBackgroundForDashedBorder.backgroundPosition ||
+                          "bottom"
+                        }`,
+                        backgroundRepeat: `no-repeat`,
+                      };
+                    }
+                  }
 
                   return (
                     <TableCell
@@ -313,9 +385,17 @@ export default function MultiLevelTable({
                       style={{
                         left: leftPosition,
                         position: isSticky ? "sticky" : undefined,
-                        backgroundColor: isSticky ? "#fafafa" : "inherit",
-                        zIndex: isSticky ? 5 : undefined,
+                        backgroundColor: isSticky ? "#fafafa" : "#ffffff",
+                        zIndex: isSticky ? 11 : 1, // Z-index más alto para celdas de datos fijas
                         textAlign: "center",
+                        borderBottom: borderBottomStyle,
+                        borderRight: `1px solid #000000`,
+                        borderLeft:
+                          colIndex === 0 ? `1px solid #000000` : undefined,
+                        borderTop: borderTopStyle,
+                        backgroundClip: "padding-box",
+                        // Aplicar la simulación de borde dashed con background-image si es necesario
+                        ...customBackgroundForDashedBorder,
                       }}
                       {...(onClickCell || onUpdateCell
                         ? { onClick: handleCellClick }
