@@ -207,20 +207,11 @@ export default function PresupuestoCantidades() {
   const opcionesProyeccion = <CustomGrid items={itemsOpcionesProyeccion} />;
 
   const tabla = (
-    <div
-      style={{
-        maxWidth: "95%",
-        margin: "20px auto",
-        border: "1px solid #ccc",
-        padding: "15px",
-      }}
-    >
-      <MultiLevelTable
-        data={filasTabla}
-        columns={columnasTabla}
-        fixedColumnsCount={2}
-      />
-    </div>
+    <MultiLevelTable
+      data={filasTabla}
+      columns={columnasTabla}
+      fixedColumnsCount={2}
+    />
   );
 
   useEffect(() => {

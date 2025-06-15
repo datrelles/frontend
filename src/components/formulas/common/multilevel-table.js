@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -55,6 +55,9 @@ const useStyles = makeStyles({
     zIndex: 20,
     backgroundColor: "#FF3A3A",
     textAlign: "center",
+    fontSize: "clamp(0.6rem, 1.4vw, 0.9rem)",
+    padding: "clamp(1px, 0.5vw, 3px) clamp(3px, 0.9vw, 7px)", // Ajuste de padding vertical en cabeceras
+    lineHeight: "1.2", // Ajuste de interlineado en cabeceras
   },
   clickableHeader: {
     cursor: "pointer",
@@ -68,6 +71,8 @@ const useStyles = makeStyles({
     position: "sticky",
     zIndex: 1,
     textAlign: "center",
+    fontSize: "clamp(0.55rem, 1.1vw, 0.85rem)",
+    padding: "clamp(1px, 0.4vw, 3px) clamp(3px, 0.7vw, 7px)", // Ajuste de padding vertical en celdas de datos
   },
   clickableCell: {
     cursor: "pointer",
@@ -87,7 +92,6 @@ const useStyles = makeStyles({
   },
   tableContainer: {
     width: "100%",
-    height: "500px",
     overflow: "auto",
     backgroundColor: "#ffffff",
   },
@@ -106,6 +110,8 @@ export default function MultiLevelTable({
   const headerCellRefs = useRef({});
   const headerRowRefs = useRef({});
   const [headerRowHeights, setHeaderRowHeights] = useState([]);
+  const tableContainerRef = useRef(null);
+  const [tableHeight, setTableHeight] = useState("500px");
 
   const visibleTopLevelColumns = columns.filter((col) => !col.hidden);
   const fixedTopLevelColumnDefs = visibleTopLevelColumns.slice(
@@ -118,6 +124,23 @@ export default function MultiLevelTable({
   );
 
   const isFlatColumnFixed = (colDef) => fixedFlatColumnFields.has(colDef.field);
+
+  useLayoutEffect(() => {
+    const calculateAndSetTableHeight = () => {
+      if (tableContainerRef.current) {
+        const rect = tableContainerRef.current.getBoundingClientRect();
+        const availableHeight = window.innerHeight - rect.top;
+        setTableHeight(`${availableHeight}px`);
+      }
+    };
+
+    calculateAndSetTableHeight();
+    window.addEventListener("resize", calculateAndSetTableHeight);
+
+    return () => {
+      window.removeEventListener("resize", calculateAndSetTableHeight);
+    };
+  }, [columns, data]);
 
   useEffect(() => {
     if (fixedColumnsCount > 0) {
@@ -213,9 +236,6 @@ export default function MultiLevelTable({
             zIndex: isSticky ? 22 : 21,
             borderTop: `2px solid #000000`,
             borderRight: `2px solid #000000`,
-            // Borde inferior: SOLO si no tiene hijos (es la última fila de la jerarquía)
-            // O si rowSpan > 1 (es una celda que abarca múltiples filas hasta el final)
-            // Si tiene hijos, su 'borderBottom' será el 'borderTop' de sus hijos, para evitar doble grosor.
             borderBottom:
               hasChildren && rowSpan === 1 ? `none` : `2px solid #000000`,
             "&:lastChild": {
@@ -262,14 +282,19 @@ export default function MultiLevelTable({
     return (
       <Paper>
         <p style={{ padding: "20px", textAlign: "center" }}>
-          No se definieron columnas de datos.
+          No hay datos para mostrar.
         </p>
       </Paper>
     );
   }
 
   return (
-    <TableContainer component={Paper} className={classes.tableContainer}>
+    <TableContainer
+      component={Paper}
+      className={classes.tableContainer}
+      ref={tableContainerRef}
+      style={{ maxHeight: tableHeight }}
+    >
       <Table
         aria-label="custom multi-level grouped table"
         className={classes.table}
@@ -332,27 +357,20 @@ export default function MultiLevelTable({
                     ? getStickyLeftPosition(colIndex)
                     : "auto";
 
-                  // Definición del borde inferior de las celdas de datos
                   let borderBottomStyle = `1px dashed #000000`;
                   let borderTopStyle =
                     rowIndex === 0 ? `1px dashed #000000` : undefined;
 
-                  // SIMULACIÓN DE BORDE DASHED CON BACKGROUND-IMAGE PARA CELDAS FIJAS
-                  // Esto evita que las partes transparentes del borde dashed dejen ver el contenido de abajo
                   let customBackgroundForDashedBorder = {};
                   if (isSticky) {
-                    // Para celdas fijas, el borde inferior se simula con un gradiente
-                    // para evitar el efecto de "filtrado".
-                    // El gradiente crea un patrón de líneas y espacios opacos.
-                    borderBottomStyle = "none"; // Eliminamos el borde CSS nativo
+                    borderBottomStyle = "none";
                     customBackgroundForDashedBorder = {
-                      backgroundImage: `repeating-linear-gradient(90deg, #000 0, #000 2px, transparent 2px, transparent 4px)`, // Ajusta tamaño y color
-                      backgroundSize: "100% 1px", // 1px de alto para la línea
+                      backgroundImage: `repeating-linear-gradient(90deg, #000 0, #000 2px, transparent 2px, transparent 4px)`,
+                      backgroundSize: "100% 1px",
                       backgroundRepeat: "no-repeat",
-                      backgroundPosition: "bottom", // Colocar en la parte inferior
+                      backgroundPosition: "bottom",
                     };
 
-                    // Hacemos lo mismo para el borde superior si es la primera fila de datos y es fija
                     if (rowIndex === 0) {
                       borderTopStyle = "none";
                       customBackgroundForDashedBorder = {
@@ -386,7 +404,7 @@ export default function MultiLevelTable({
                         left: leftPosition,
                         position: isSticky ? "sticky" : undefined,
                         backgroundColor: isSticky ? "#fafafa" : "#ffffff",
-                        zIndex: isSticky ? 11 : 1, // Z-index más alto para celdas de datos fijas
+                        zIndex: isSticky ? 11 : 1,
                         textAlign: "center",
                         borderBottom: borderBottomStyle,
                         borderRight: `1px solid #000000`,
@@ -394,7 +412,6 @@ export default function MultiLevelTable({
                           colIndex === 0 ? `1px solid #000000` : undefined,
                         borderTop: borderTopStyle,
                         backgroundClip: "padding-box",
-                        // Aplicar la simulación de borde dashed con background-image si es necesario
                         ...customBackgroundForDashedBorder,
                       }}
                       {...(onClickCell || onUpdateCell
