@@ -95,6 +95,7 @@ export default function PresupuestoCantidades() {
           bgColor: par.parametro.color,
           header: par.parametro.nombre,
           field: par.cod_parametro,
+          tooltip: par.parametro.descripcion,
         }));
       setParametrosProceso(parametrosProceso);
     } catch (err) {
@@ -164,6 +165,7 @@ export default function PresupuestoCantidades() {
             onUpdateCell: handleUpdateCell,
             context: { proyYear, mes },
             es_vertical: col.es_vertical,
+            tooltip: col.tooltip,
           })
         );
         const colGrupo = createMTColumn({

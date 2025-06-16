@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useLayoutEffect } from "react";
+import { useState, useEffect, useRef, useLayoutEffect, useMemo } from "react"; // Añadido useMemo
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -47,7 +47,7 @@ const useStyles = makeStyles({
   table: {
     borderCollapse: "separate",
     borderSpacing: 0,
-    tableLayout: "auto", // Asegura que la tabla ajuste el ancho de las columnas según el contenido
+    tableLayout: "auto",
   },
   headerCellBase: {
     fontWeight: "bold",
@@ -92,8 +92,7 @@ const useStyles = makeStyles({
     textAlign: "center",
     fontSize: "clamp(0.45375rem, 0.9075vw, 0.70125rem)",
     padding: "clamp(1px, 0.4vw, 3px) clamp(3px, 0.7vw, 7px)",
-    // Propiedad importante para que la celda se ajuste al contenido
-    whiteSpace: "nowrap", // Evita que el contenido de la celda se rompa en varias líneas
+    whiteSpace: "nowrap",
   },
   clickableCell: {
     cursor: "pointer",
@@ -112,9 +111,6 @@ const useStyles = makeStyles({
     textAlign: "inherit",
     minHeight: "25px",
     lineHeight: "normal",
-    // Estas propiedades deberían venir de la celda, no del input, si queremos que la celda se expanda:
-    // whiteSpace: "nowrap", // Esto es para que el texto dentro del input no se rompa
-    // overflow: "auto", // Si el input es más grande que la celda, tendrá scroll interno
   },
   tableContainer: {
     width: "100%",
@@ -132,7 +128,6 @@ export default function MultiLevelTable({
   columns,
   fixedColumnsCount = 0,
 }) {
-  const flatDataColumns = getFlatDataColumns(columns);
   const classes = useStyles();
   const [editingCell, setEditingCell] = useState(null);
   const [editingValue, setEditingValue] = useState("");
@@ -144,14 +139,24 @@ export default function MultiLevelTable({
   const [tableHeight, setTableHeight] = useState("500px");
   const [hoveredCell, setHoveredCell] = useState(null);
 
-  const visibleTopLevelColumns = columns.filter((col) => !col.hidden);
-  const fixedTopLevelColumnDefs = visibleTopLevelColumns.slice(
-    0,
-    fixedColumnsCount
+  // Memorizar flatDataColumns
+  const flatDataColumns = useMemo(() => getFlatDataColumns(columns), [columns]);
+
+  const visibleTopLevelColumns = useMemo(
+    () => columns.filter((col) => !col.hidden),
+    [columns]
   );
-  const allFixedFlatDataColumns = getFlatDataColumns(fixedTopLevelColumnDefs);
-  const fixedFlatColumnFields = new Set(
-    allFixedFlatDataColumns.map((c) => c.field)
+  const fixedTopLevelColumnDefs = useMemo(
+    () => visibleTopLevelColumns.slice(0, fixedColumnsCount),
+    [visibleTopLevelColumns, fixedColumnsCount]
+  );
+  const allFixedFlatDataColumns = useMemo(
+    () => getFlatDataColumns(fixedTopLevelColumnDefs),
+    [fixedTopLevelColumnDefs]
+  );
+  const fixedFlatColumnFields = useMemo(
+    () => new Set(allFixedFlatDataColumns.map((c) => c.field)),
+    [allFixedFlatDataColumns]
   );
 
   const isFlatColumnFixed = (colDef) => fixedFlatColumnFields.has(colDef.field);
@@ -171,7 +176,7 @@ export default function MultiLevelTable({
     return () => {
       window.removeEventListener("resize", calculateAndSetTableHeight);
     };
-  }, [columns, data]);
+  }, [columns, data]); // 'data' y 'columns' si afectan la altura general del contenedor
 
   useEffect(() => {
     if (fixedColumnsCount > 0) {
@@ -181,8 +186,10 @@ export default function MultiLevelTable({
         allFixedFlatDataColumns.forEach((colDef) => {
           const ref = headerCellRefs.current[colDef.field];
           if (ref && ref.offsetWidth) {
-            if (newWidths[colDef.field] !== ref.offsetWidth) {
-              newWidths[colDef.field] = ref.offsetWidth;
+            // Comparar con un pequeño umbral si los valores son flotantes, o redondear
+            const currentWidth = Math.round(ref.offsetWidth);
+            if (newWidths[colDef.field] !== currentWidth) {
+              newWidths[colDef.field] = currentWidth;
               needsUpdate = true;
             }
           }
@@ -197,26 +204,35 @@ export default function MultiLevelTable({
       };
 
       updateColumnWidths();
+      // Eliminar el setTimeout si no es estrictamente necesario o gestionar con debounce
       const timeoutId = setTimeout(updateColumnWidths, 100);
 
       return () => clearTimeout(timeoutId);
     }
-  }, [allFixedFlatDataColumns, fixedColumnsCount]);
+  }, [allFixedFlatDataColumns, fixedColumnsCount]); // Dependencias estables
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const heights = [];
     let currentHeight = 0;
-    for (let i = 0; i < getMaxDepth(columns); i++) {
+    const maxDepth = getMaxDepth(columns);
+    for (let i = 0; i < maxDepth; i++) {
       const rowRef = headerRowRefs.current[`header-row-${i}`];
       if (rowRef) {
-        heights[i] = currentHeight;
-        currentHeight += rowRef.offsetHeight;
+        // Redondear offsetHeight para evitar problemas de flotantes
+        heights[i] = Math.round(currentHeight);
+        currentHeight += Math.round(rowRef.offsetHeight);
       }
     }
-    if (JSON.stringify(heights) !== JSON.stringify(headerRowHeights)) {
+
+    // Comparación robusta de arrays
+    const heightsChanged =
+      heights.length !== headerRowHeights.length ||
+      heights.some((h, i) => h !== headerRowHeights[i]);
+
+    if (heightsChanged) {
       setHeaderRowHeights(heights);
     }
-  }, [columns, headerRowHeights]);
+  }, [columns]); // Depende solo de 'columns'
 
   const getStickyLeftPosition = (flatColIndex) => {
     const currentFlatColDef = flatDataColumns[flatColIndex];
@@ -285,6 +301,8 @@ export default function MultiLevelTable({
         hoveredCell?.colIndex
       );
 
+      const headerTooltipTitle = header.tooltip || "";
+
       cells.push(
         <TableCell
           key={`${
@@ -318,13 +336,15 @@ export default function MultiLevelTable({
           })}
           {...(header.onClickHeader && { onClick: header.onClickHeader })}
         >
-          {header.es_vertical ? (
-            <span className={classes.verticalText}>
-              {header.header || header.field || ""}
-            </span>
-          ) : (
-            header.header || header.field || ""
-          )}
+          <TableTooltip title={headerTooltipTitle}>
+            {header.es_vertical ? (
+              <span className={classes.verticalText}>
+                {header.header || header.field || ""}
+              </span>
+            ) : (
+              header.header || header.field || ""
+            )}
+          </TableTooltip>
         </TableCell>
       );
       if (hasChildren) {
@@ -489,8 +509,7 @@ export default function MultiLevelTable({
                         borderTop: borderTopStyle,
                         backgroundClip: "padding-box",
                         ...customBackgroundForDashedBorder,
-                        // Nuevo estilo condicional para minWidth
-                        minWidth: isEditing ? "100px" : undefined, // Ajusta este valor según sea necesario
+                        minWidth: isEditing ? "100px" : undefined,
                       }}
                       {...(onClickCell || onUpdateCell
                         ? { onClick: handleCellClick }
