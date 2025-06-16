@@ -10,6 +10,7 @@ import {
   Enum,
   Meses,
   MesesProyeccion,
+  TiposRetorno,
 } from "../formulas/common/enum";
 import {
   createCustomComponentItem,
@@ -23,6 +24,7 @@ import MultiLevelTable, {
   getFlatDataColumns,
 } from "../formulas/common/multilevel-table";
 import CustomGrid from "../formulas/common/custom-grid";
+import { validarTipoRetornoYConvertir } from "../../helpers/modulo-formulas";
 
 const COD_PROCESO_PRESUP_CANT = "PRESCANT";
 
@@ -36,7 +38,19 @@ const obtenerFilasConsolidadas = (columnas, filas) => {
       .forEach((col) => {
         conActualizado[col.field] = filasDatos
           .filter((fila) => fila.cod_modelo === con.cod_modelo)
-          .reduce((acum, actual) => acum + parseFloat(actual[col.field]), 0);
+          .reduce((acum, actual) => {
+            try {
+              return (
+                acum +
+                validarTipoRetornoYConvertir(
+                  TiposRetorno.NUMERO,
+                  actual[col.field]
+                )
+              );
+            } catch (err) {
+              return 0;
+            }
+          }, 0);
       });
     return conActualizado;
   });
@@ -180,7 +194,7 @@ export default function PresupuestoCantidades() {
             if (fila.es_consolidado) {
               filaActualizada[col.field] = 0;
             } else {
-              filaActualizada[col.field] = Math.floor(Math.random() * 1000 - 1); //"-" al inicio y en caso de no tener valor
+              filaActualizada[col.field] = "-";
             }
           });
           return filaActualizada;
