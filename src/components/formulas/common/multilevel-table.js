@@ -54,32 +54,29 @@ const useStyles = makeStyles({
     transition: "background-color 0.2s ease-in-out",
     zIndex: 20,
     textAlign: "center",
-    fontSize: "clamp(0.6rem, 1.4vw, 0.9rem)",
+    fontSize: "clamp(0.495rem, 1.155vw, 0.7425rem)",
     padding: "clamp(1px, 0.5vw, 3px) clamp(3px, 0.9vw, 7px)",
     lineHeight: "1.2",
     "&.vertical-header": {
       height: "120px",
       minWidth: "30px",
-      padding: "0", // Importante: resetear padding en la celda
-      verticalAlign: "middle", // Se puede mantener, aunque el absolute lo anula para el texto
-      position: "relative", // Necesario para que el span absoluto se posicione correctamente
-      overflow: "hidden", // Recorta cualquier desbordamiento
+      padding: "0",
+      position: "relative",
+      overflow: "hidden",
     },
   },
-  // verticalTextContainer ha sido ELIMINADO para simplificar
   verticalText: {
-    position: "absolute", // Posicionar el span directamente
+    position: "absolute",
     top: "50%",
     left: "50%",
-    transform: "translate(-50%, -50%) rotate(-90deg)", // Centrar y rotar
-    transformOrigin: "center center", // Asegurar la rotación desde el centro
-    whiteSpace: "normal", // ¡CLAVE para el wrap de texto!
-    // Calculamos el ancho disponible para el texto antes de rotar:
-    // 100px (alto de la celda) - 3px (padding en un lado) - 3px (padding en el otro lado)
-    width: "calc(100px - 6px)",
-    height: "auto", // La altura se ajustará automáticamente según el contenido envuelto
-    textAlign: "center", // Centrar el texto dentro de su nueva "columna"
-    boxSizing: "border-box", // Asegura que el padding se incluya en el width definido
+    transform: "translate(-50%, -50%) rotate(-90deg)",
+    transformOrigin: "center center",
+    whiteSpace: "normal",
+    width: "calc(120px - 2 * clamp(1px, 0.5vw, 3px))",
+    height: "auto",
+    textAlign: "center",
+    boxSizing: "border-box",
+    padding: "clamp(1px, 0.5vw, 3px) 0",
   },
   clickableHeader: {
     cursor: "pointer",
@@ -93,7 +90,7 @@ const useStyles = makeStyles({
     position: "sticky",
     zIndex: 1,
     textAlign: "center",
-    fontSize: "clamp(0.55rem, 1.1vw, 0.85rem)",
+    fontSize: "clamp(0.45375rem, 0.9075vw, 0.70125rem)",
     padding: "clamp(1px, 0.4vw, 3px) clamp(3px, 0.7vw, 7px)",
   },
   clickableCell: {
@@ -166,21 +163,33 @@ export default function MultiLevelTable({
 
   useEffect(() => {
     if (fixedColumnsCount > 0) {
-      const newWidths = {};
-      allFixedFlatDataColumns.forEach((colDef) => {
-        const ref = headerCellRefs.current[colDef.field];
-        if (ref && ref.offsetWidth) {
-          newWidths[colDef.field] = ref.offsetWidth;
+      const updateColumnWidths = () => {
+        const newWidths = {};
+        let needsUpdate = false;
+        allFixedFlatDataColumns.forEach((colDef) => {
+          const ref = headerCellRefs.current[colDef.field];
+          if (ref && ref.offsetWidth) {
+            if (newWidths[colDef.field] !== ref.offsetWidth) {
+              newWidths[colDef.field] = ref.offsetWidth;
+              needsUpdate = true;
+            }
+          }
+        });
+
+        if (
+          needsUpdate ||
+          Object.keys(newWidths).length !== Object.keys(columnWidths).length
+        ) {
+          setColumnWidths(newWidths);
         }
-      });
-      if (
-        Object.keys(newWidths).length > 0 &&
-        JSON.stringify(newWidths) !== JSON.stringify(columnWidths)
-      ) {
-        setColumnWidths(newWidths);
-      }
+      };
+
+      updateColumnWidths();
+      const timeoutId = setTimeout(updateColumnWidths, 100);
+
+      return () => clearTimeout(timeoutId);
     }
-  }, [allFixedFlatDataColumns, fixedColumnsCount, columnWidths]);
+  }, [allFixedFlatDataColumns, fixedColumnsCount]);
 
   useEffect(() => {
     const heights = [];
@@ -206,7 +215,7 @@ export default function MultiLevelTable({
     for (let i = 0; i < flatColIndex; i++) {
       const prevColDef = flatDataColumns[i];
       if (isFlatColumnFixed(prevColDef)) {
-        left += columnWidths[prevColDef.field] || 120;
+        left += columnWidths[prevColDef.field] || 0;
       }
     }
     return `${left}px`;
@@ -271,7 +280,6 @@ export default function MultiLevelTable({
           {...(header.onClickHeader && { onClick: header.onClickHeader })}
         >
           {header.es_vertical ? (
-            // Directamente el span, no el div verticalTextContainer
             <span className={classes.verticalText}>
               {header.header || header.field || ""}
             </span>
