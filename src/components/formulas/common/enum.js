@@ -38,18 +38,18 @@ export const PaquetesBD = {
 export const DefaultPaqueteBD = PaquetesBD.FORMULAS.key;
 
 export const ColoresHex = {
-  VERDE: new Enum("4CAF50", "VERDE"),
-  AMARILLO: new Enum("FFEB3B", "AMARILLO"),
-  ROJO: new Enum("F44336", "ROJO"),
+  GRIS: new Enum("c6c6c6", "GRIS"),
+  VERDE: new Enum("a0ff7f", "VERDE"),
+  MENTA: new Enum("9fffbc", "MENTA"),
+  ROJO: new Enum("ff907f", "ROJO"),
+  ROSA: new Enum("ff80ab", "ROSA"),
+  AMARILLO: new Enum("fdfc80", "AMARILLO"),
+  NARANJA: new Enum("ffad68", "NARANJA"),
+  DURAZNO: new Enum("ffcf91", "DURAZNO"),
   AZUL: new Enum("2196F3", "AZUL"),
-  GRIS: new Enum("9E9E9E", "GRIS"),
-  NARANJA: new Enum("FF9800", "NARANJA"),
-  CIAN: new Enum("00BCD4", "CIAN"),
-  MORADO: new Enum("9C27B0", "MORADO"),
-  ROSA: new Enum("E91E63", "ROSA"),
-  MENTA: new Enum("8BC34A", "MENTA"),
-  AZUL_OSCURO: new Enum("3F51B5", "AZUL OSCURO"),
-  CAFE: new Enum("795548", "CAFE"),
+  CELESTE: new Enum("99f3ff", "CELESTE"),
+  MORADO: new Enum("f098ff", "MORADO"),
+  CAFE: new Enum("b58e80", "CAFE"),
 };
 
 export const DefaultColorHex = ColoresHex.GRIS;
