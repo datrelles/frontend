@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useLayoutEffect, useMemo } from "react"; // Añadido useMemo
+import { useState, useEffect, useRef, useLayoutEffect, useMemo } from "react";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -139,7 +139,6 @@ export default function MultiLevelTable({
   const [tableHeight, setTableHeight] = useState("500px");
   const [hoveredCell, setHoveredCell] = useState(null);
 
-  // Memorizar flatDataColumns
   const flatDataColumns = useMemo(() => getFlatDataColumns(columns), [columns]);
 
   const visibleTopLevelColumns = useMemo(
@@ -176,7 +175,7 @@ export default function MultiLevelTable({
     return () => {
       window.removeEventListener("resize", calculateAndSetTableHeight);
     };
-  }, [columns, data]); // 'data' y 'columns' si afectan la altura general del contenedor
+  }, [columns, data]);
 
   useEffect(() => {
     if (fixedColumnsCount > 0) {
@@ -186,7 +185,6 @@ export default function MultiLevelTable({
         allFixedFlatDataColumns.forEach((colDef) => {
           const ref = headerCellRefs.current[colDef.field];
           if (ref && ref.offsetWidth) {
-            // Comparar con un pequeño umbral si los valores son flotantes, o redondear
             const currentWidth = Math.round(ref.offsetWidth);
             if (newWidths[colDef.field] !== currentWidth) {
               newWidths[colDef.field] = currentWidth;
@@ -204,12 +202,11 @@ export default function MultiLevelTable({
       };
 
       updateColumnWidths();
-      // Eliminar el setTimeout si no es estrictamente necesario o gestionar con debounce
       const timeoutId = setTimeout(updateColumnWidths, 100);
 
       return () => clearTimeout(timeoutId);
     }
-  }, [allFixedFlatDataColumns, fixedColumnsCount]); // Dependencias estables
+  }, [allFixedFlatDataColumns, fixedColumnsCount]);
 
   useLayoutEffect(() => {
     const heights = [];
@@ -218,13 +215,11 @@ export default function MultiLevelTable({
     for (let i = 0; i < maxDepth; i++) {
       const rowRef = headerRowRefs.current[`header-row-${i}`];
       if (rowRef) {
-        // Redondear offsetHeight para evitar problemas de flotantes
         heights[i] = Math.round(currentHeight);
         currentHeight += Math.round(rowRef.offsetHeight);
       }
     }
 
-    // Comparación robusta de arrays
     const heightsChanged =
       heights.length !== headerRowHeights.length ||
       heights.some((h, i) => h !== headerRowHeights[i]);
@@ -232,7 +227,7 @@ export default function MultiLevelTable({
     if (heightsChanged) {
       setHeaderRowHeights(heights);
     }
-  }, [columns]); // Depende solo de 'columns'
+  }, [columns]);
 
   const getStickyLeftPosition = (flatColIndex) => {
     const currentFlatColDef = flatDataColumns[flatColIndex];
@@ -490,11 +485,14 @@ export default function MultiLevelTable({
                     }
                   }
 
+                  const isCellClickable =
+                    onClickCell || (onUpdateCell && (row.es_editable ?? true));
+
                   return (
                     <TableCell
                       key={colDef.field}
                       className={`${classes.dataCellBase} ${
-                        onClickCell || onUpdateCell ? classes.clickableCell : ""
+                        isCellClickable ? classes.clickableCell : ""
                       } ${isHighlighted ? classes.highlightedCell : ""}`}
                       style={{
                         left: leftPosition,
