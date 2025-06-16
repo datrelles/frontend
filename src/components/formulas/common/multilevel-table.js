@@ -19,7 +19,7 @@ const calculateColSpan = (headerDef) => {
   );
 };
 
-const getFlatDataColumns = (headerDefs) => {
+export const getFlatDataColumns = (headerDefs) => {
   let flatColumns = [];
   headerDefs.forEach((def) => {
     if (def.field) {
@@ -53,13 +53,12 @@ const useStyles = makeStyles({
     cursor: "default",
     transition: "background-color 0.2s ease-in-out",
     zIndex: 20,
-    backgroundColor: "#FF3A3A",
     textAlign: "center",
     fontSize: "clamp(0.6rem, 1.4vw, 0.9rem)",
     padding: "clamp(1px, 0.5vw, 3px) clamp(3px, 0.9vw, 7px)",
     lineHeight: "1.2",
     "&.vertical-header": {
-      height: "100px",
+      height: "120px",
       minWidth: "30px",
       padding: "0", // Importante: resetear padding en la celda
       verticalAlign: "middle", // Se puede mantener, aunque el absolute lo anula para el texto
@@ -252,7 +251,7 @@ export default function MultiLevelTable({
             header.onClickHeader ? classes.clickableHeader : ""
           } ${header.es_vertical ? "vertical-header" : ""}`}
           style={{
-            backgroundColor: header.bgColor || "#FF3A3A",
+            backgroundColor: `#${header.bgColor}`,
             position: "sticky",
             left: isSticky ? left : undefined,
             top: `${currentTop}px`,

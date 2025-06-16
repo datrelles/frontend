@@ -1,6 +1,11 @@
 import { validarTipoRetornoYConvertir } from "../../../helpers/modulo-formulas";
 import CustomTooltip from "./custom-tooltip";
-import { ColoresFondo, TiposRetorno, TiposSeleccionTabla } from "./enum";
+import {
+  ColoresFondo,
+  ColoresHex,
+  TiposRetorno,
+  TiposSeleccionTabla,
+} from "./enum";
 import { toast } from "react-toastify";
 
 export function createEmptyItem(xs, id) {
@@ -197,7 +202,7 @@ export const createOnClickCell = (fn) => (rowData, columnDefinition) => {
 export const createMTColumn = ({
   header = null,
   field = null,
-  bgColor = "#FF3A3A",
+  bgColor = ColoresHex.GRIS.key,
   hidden = false,
   onUpdateCell = null,
   onClickCell = null,

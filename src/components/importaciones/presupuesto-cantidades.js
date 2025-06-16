@@ -19,33 +19,12 @@ import {
   createOnUpdateCell,
 } from "../formulas/common/generators";
 import BtnNuevo from "../formulas/common/btn-nuevo";
-import MultiLevelTable from "../formulas/common/multilevel-table";
+import MultiLevelTable, {
+  getFlatDataColumns,
+} from "../formulas/common/multilevel-table";
 import CustomGrid from "../formulas/common/custom-grid";
 
-const columnasProyeccion = [
-  createMTColumn({
-    header: "Ventas Clientes",
-    field: "ventas_cli",
-  }),
-  createMTColumn({
-    header: "Ventas MASSLINE",
-    field: "ventas_mass",
-  }),
-];
-
-const getFlatDataColumns = (headerDefs) => {
-  let flatColumns = [];
-  headerDefs.forEach((def) => {
-    if (def.field) {
-      if (!def.hidden) {
-        flatColumns.push(def);
-      }
-    } else if (def.children) {
-      flatColumns = flatColumns.concat(getFlatDataColumns(def.children));
-    }
-  });
-  return flatColumns;
-};
+const COD_PROCESO_PRESUP_CANT = "PRESCANT";
 
 const obtenerFilasConsolidadas = (columnas, filas) => {
   let consolidados = filas.filter((fila) => fila.es_consolidado);
@@ -84,6 +63,7 @@ export default function PresupuestoCantidades() {
   const [mesesProyeccion, setMesesProyeccion] = useState(
     DefaultMesesProyeccion
   );
+  const [parametrosProceso, setParametrosProceso] = useState([]);
   const [columnasTabla, setColumnasTabla] = useState([]);
   const columnasTablaRef = useRef(columnasTabla);
   const [filasTabla, setFilasTabla] = useState([]);
@@ -96,6 +76,30 @@ export default function PresupuestoCantidades() {
     }
   };
 
+  async function getDatosIniciales() {
+    try {
+      const [resClientes, resModelos, resParametrosProceso] = await Promise.all(
+        [
+          APIService.getClientesProyecciones(),
+          APIService.getModelosMotosProyecciones(),
+          APIService.getParametrosPorProceso(COD_PROCESO_PRESUP_CANT),
+        ]
+      );
+      setClientes(resClientes);
+      setModelos(resModelos);
+      const parametrosProceso = resParametrosProceso
+        .filter((par) => par.estado && par.parametro.estado)
+        .map((par) => ({
+          ...par,
+          bgColor: par.parametro.color,
+          header: par.parametro.nombre,
+          field: par.cod_parametro,
+        }));
+      setParametrosProceso(parametrosProceso);
+    } catch (err) {
+      toast.error(err.message);
+    }
+  }
   const handleUpdateCell = createOnUpdateCell(
     (newValue, rowData, columnDefinition) => {
       setFilasTabla((prev) => {
@@ -150,10 +154,11 @@ export default function PresupuestoCantidades() {
     for (let i = 1; i <= iter; i++) {
       const proyYear = curYear + i - 1;
       for (let mes = 1; mes <= 12; mes++) {
-        const nuevasColumnas = columnasProyeccion.map((col) =>
+        const nuevasColumnas = parametrosProceso.map((col) =>
           createMTColumn({
-            header: `${col.header} ${proyYear}`,
+            header: `${col.header}`,
             field: `${col.field}_${proyYear}_${mes}`,
+            bgColor: col.bgColor,
             onUpdateCell: handleUpdateCell,
             context: { proyYear, mes },
             es_vertical: col.es_vertical,
@@ -181,19 +186,6 @@ export default function PresupuestoCantidades() {
     setColumnasTabla(columnas);
     setFilasTabla(obtenerFilasConsolidadas(columnas, filas));
   };
-
-  async function getClientesModelos() {
-    try {
-      const [resClientes, resModelos] = await Promise.all([
-        APIService.getClientesProyecciones(),
-        APIService.getModelosMotosProyecciones(),
-      ]);
-      setClientes(resClientes);
-      setModelos(resModelos);
-    } catch (err) {
-      toast.error(err.message);
-    }
-  }
 
   const header = <Header menus={menus} modulos={false} />;
 
@@ -229,7 +221,7 @@ export default function PresupuestoCantidades() {
   useEffect(() => {
     document.title = "Presupuesto de Cantidades";
     getMenus();
-    getClientesModelos();
+    getDatosIniciales();
   }, []);
 
   useEffect(() => {
