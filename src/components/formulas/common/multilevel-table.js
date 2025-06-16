@@ -114,6 +114,10 @@ const useStyles = makeStyles({
     overflow: "auto",
     backgroundColor: "#ffffff",
   },
+  highlightedCell: {
+    backgroundColor: "#FF0000 !important",
+    color: "white !important", // Color del texto blanco para las celdas resaltadas
+  },
 });
 
 export default function MultiLevelTable({
@@ -131,6 +135,7 @@ export default function MultiLevelTable({
   const [headerRowHeights, setHeaderRowHeights] = useState([]);
   const tableContainerRef = useRef(null);
   const [tableHeight, setTableHeight] = useState("500px");
+  const [hoveredCell, setHoveredCell] = useState(null);
 
   const visibleTopLevelColumns = columns.filter((col) => !col.hidden);
   const fixedTopLevelColumnDefs = visibleTopLevelColumns.slice(
@@ -221,17 +226,34 @@ export default function MultiLevelTable({
     return `${left}px`;
   };
 
+  const getAbsoluteFlatColumnIndex = (header) => {
+    const flatColumnsUnderHeader = getFlatDataColumns([header]);
+    if (flatColumnsUnderHeader.length === 0) return -1;
+
+    return flatDataColumns.findIndex(
+      (flatCol) => flatCol.field === flatColumnsUnderHeader[0].field
+    );
+  };
+
+  const isHeaderHighlighted = (header, hoveredColIndex) => {
+    if (!hoveredCell || !header.field) return false;
+
+    const absoluteFlatIndex = getAbsoluteFlatColumnIndex(header);
+    return absoluteFlatIndex === hoveredColIndex;
+  };
+
   const getHeaderRows = (headers, level = 0, maxDepth = null) => {
     if (maxDepth === null) {
-      maxDepth = getMaxDepth(headers);
+      maxDepth = getMaxDepth(columns);
     }
     const cells = [];
     const nextLevelHeaders = [];
 
     const currentTop = headerRowHeights[level] || 0;
 
-    headers.forEach((header, headerIndex) => {
+    headers.forEach((header) => {
       if (header.hidden) return;
+
       const colSpan = calculateColSpan(header);
       const hasChildren = header.children && header.children.length > 0;
       const rowSpan = hasChildren ? 1 : maxDepth - level;
@@ -250,15 +272,25 @@ export default function MultiLevelTable({
           left = getStickyLeftPosition(firstIndex);
         }
       }
+
+      const shouldHighlightHeader = isHeaderHighlighted(
+        header,
+        hoveredCell?.colIndex
+      );
+
       cells.push(
         <TableCell
-          key={`${header.header || header.field} ${headerIndex}`}
+          key={`${
+            header.header || header.field
+          }-${level}-${getAbsoluteFlatColumnIndex(header)}`}
           align="center"
           colSpan={colSpan}
           rowSpan={rowSpan}
           className={`${classes.headerCellBase} ${
             header.onClickHeader ? classes.clickableHeader : ""
-          } ${header.es_vertical ? "vertical-header" : ""}`}
+          } ${header.es_vertical ? "vertical-header" : ""} ${
+            shouldHighlightHeader ? classes.highlightedCell : ""
+          }`}
           style={{
             backgroundColor: `#${header.bgColor}`,
             position: "sticky",
@@ -293,26 +325,20 @@ export default function MultiLevelTable({
       }
     });
 
-    if (nextLevelHeaders.length === 0) {
-      return [
-        <TableRow
-          ref={(el) => (headerRowRefs.current[`header-row-${level}`] = el)}
-          key={`header-row-${level}`}
-        >
-          {cells}
-        </TableRow>,
-      ];
-    } else {
-      return [
-        <TableRow
-          ref={(el) => (headerRowRefs.current[`header-row-${level}`] = el)}
-          key={`header-row-${level}`}
-        >
-          {cells}
-        </TableRow>,
-        ...getHeaderRows(nextLevelHeaders, level + 1, maxDepth),
-      ];
+    const rows = [
+      <TableRow
+        ref={(el) => (headerRowRefs.current[`header-row-${level}`] = el)}
+        key={`header-row-${level}`}
+      >
+        {cells}
+      </TableRow>,
+    ];
+
+    if (nextLevelHeaders.length > 0) {
+      rows.push(...getHeaderRows(nextLevelHeaders, level + 1, maxDepth));
     }
+
+    return rows;
   };
 
   if (flatDataColumns.length === 0) {
@@ -365,6 +391,12 @@ export default function MultiLevelTable({
                   const isEditing =
                     editingCell?.rowIndex === rowIndex &&
                     editingCell?.field === colDef.field;
+
+                  const isHighlighted =
+                    (hoveredCell?.rowIndex === rowIndex &&
+                      hoveredCell?.colIndex === colIndex) ||
+                    (hoveredCell?.rowIndex === rowIndex && colIndex === 0);
+
                   const handleCellClick = () => {
                     if (onUpdateCell && (row.es_editable ?? true)) {
                       setEditingCell({ rowIndex, field: colDef.field });
@@ -436,7 +468,7 @@ export default function MultiLevelTable({
                       key={colDef.field}
                       className={`${classes.dataCellBase} ${
                         onClickCell || onUpdateCell ? classes.clickableCell : ""
-                      }`}
+                      } ${isHighlighted ? classes.highlightedCell : ""}`}
                       style={{
                         left: leftPosition,
                         position: isSticky ? "sticky" : undefined,
@@ -454,6 +486,14 @@ export default function MultiLevelTable({
                       {...(onClickCell || onUpdateCell
                         ? { onClick: handleCellClick }
                         : {})}
+                      onMouseEnter={() =>
+                        setHoveredCell({
+                          rowIndex,
+                          colIndex,
+                          field: colDef.field,
+                        })
+                      }
+                      onMouseLeave={() => setHoveredCell(null)}
                     >
                       {isEditing && onUpdateCell ? (
                         <input
