@@ -57,6 +57,7 @@ export default function PresupuestoCantidades() {
     [jwt]
   );
 
+  const [datosCargados, setDatosCargados] = useState(false);
   const [menus, setMenus] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [modelos, setModelos] = useState([]);
@@ -100,6 +101,7 @@ export default function PresupuestoCantidades() {
       toast.error(err.message);
     }
   }
+
   const handleUpdateCell = createOnUpdateCell(
     (newValue, rowData, columnDefinition) => {
       setFilasTabla((prev) => {
@@ -199,7 +201,12 @@ export default function PresupuestoCantidades() {
   );
 
   const btnProyectar = (
-    <BtnNuevo onClick={handleProyectar} texto="Proyectar" icon={false} />
+    <BtnNuevo
+      onClick={handleProyectar}
+      texto="Proyectar"
+      icon={false}
+      disabled={!datosCargados}
+    />
   );
 
   const itemsOpcionesProyeccion = [
@@ -227,6 +234,18 @@ export default function PresupuestoCantidades() {
   useEffect(() => {
     columnasTablaRef.current = columnasTabla;
   }, [columnasTabla]);
+
+  useEffect(() => {
+    if (
+      clientes.length > 0 &&
+      modelos.length > 0 &&
+      parametrosProceso.length > 0
+    ) {
+      setDatosCargados(true);
+    } else {
+      setDatosCargados(false);
+    }
+  }, [clientes, modelos, parametrosProceso]);
 
   return <MainComponent components={[header, opcionesProyeccion, tabla]} />;
 }
