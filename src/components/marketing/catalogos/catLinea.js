@@ -160,7 +160,7 @@ function CatLinea() {
             }
         },
         { name: "descripcion_linea", label: "Descripción" },
-        { name: "usuario_crea", label: "Usuario Crea" },
+        //{ name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
             name: "acciones",

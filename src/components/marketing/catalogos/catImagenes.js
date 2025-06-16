@@ -124,10 +124,10 @@ function CatImagen() {
     };
 
     const columns = [
-        { name: "codigo_imagen", label: "Código" },
+        { name: "descripcion_imagen", label: "Descripción Imagen" },
         {
             name: "path_imagen",
-            label: "Imagen",
+            label: "IMAGEN REFERENCIAL",
             options: {
                 customBodyRender: (value) => (
                     <Button
@@ -143,8 +143,7 @@ function CatImagen() {
                 )
             }
         },
-        { name: "descripcion_imagen", label: "Descripción Imagen" },
-        { name: "usuario_crea", label: "Usuario Crea" },
+        //{ name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
             name: "acciones",

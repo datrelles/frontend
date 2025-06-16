@@ -99,6 +99,21 @@ function CatElectronica() {
 
     }, [])
 
+    const sanitizeElectronica = (item) => {
+        const reemplazo = (val) =>
+            val === null || val === undefined || val === '' ? 'N/A' : val;
+
+        return {
+            ...item,
+            capacidad_combustible: reemplazo(item.capacidad_combustible),
+            tablero: reemplazo(item.tablero),
+            luces_delanteras: reemplazo(item.luces_delanteras),
+            luces_posteriores: reemplazo(item.luces_posteriores),
+            garantia: reemplazo(item.garantia),
+            velocidad_maxima: reemplazo(item.velocidad_maxima),
+        };
+    };
+
     const fetchElectronicaData = async () => {
         try {
             const res = await fetch(`${API}/bench/get_electronica`, {
@@ -110,7 +125,8 @@ function CatElectronica() {
             });
             const data = await res.json();
             if (res.ok) {
-                setCabeceras(data); // <- carga los datos en la tabla
+                const dataSanitizada = data.map(sanitizeElectronica);
+                setCabeceras(dataSanitizada);
             } else {
                 enqueueSnackbar(data.error || "Error al obtener data de electrónica", { variant: "error" });
             }
@@ -120,14 +136,14 @@ function CatElectronica() {
     };
 
     const columns = [
-        { name: "codigo_electronica", label: "Código" },
+
         { name: "capacidad_combustible", label: "Capacidad combustible" },
         { name: "tablero", label: "Tablero" },
         { name: "luces_delanteras", label: "Luces delanteras" },
         { name: "luces_posteriores", label: "Luces posteriores" },
         { name: "garantia", label: "Garantía" },
         { name: "velocidad_maxima", label: "Velocidad maxima" },
-        { name: "usuario_crea", label: "Usuario Crea" },
+        //{ name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
             name: "acciones",

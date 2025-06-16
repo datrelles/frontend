@@ -229,7 +229,7 @@ function CatMotor() {
     }, [])
 
     const columns = [
-        { name: 'codigo_motor', label: 'Código' },
+       // { name: 'codigo_motor', label: 'Código' },
         { name: "nombre_tipo_motor", label: "Tipo de Motor" },
         { name: 'nombre_motor', label: 'Nombre Motor' },
         { name: 'cilindrada', label: 'Cilindrada' },
@@ -239,7 +239,7 @@ function CatMotor() {
         { name: 'arranque', label: 'Arranque' },
         { name: 'sistema_refrigeracion', label: 'Sistema de Refrigeración' },
         { name: 'descripcion_motor', label: 'Descripción' },
-        { name: 'usuario_crea', label: 'Usuario Crea' },
+        //{ name: 'usuario_crea', label: 'Usuario Crea' },
         { name: 'fecha_creacion', label: 'Fecha Creación' },
         {
             name: 'acciones',

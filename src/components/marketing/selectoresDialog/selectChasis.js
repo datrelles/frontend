@@ -24,6 +24,9 @@ export default function SelectorChasis({ chasis, selectedChasisId, onSelect }) {
         )
     );
 
+    const safeValue = (val) => val !== undefined && val !== null && val !== '' ? val : 'N/A';
+
+
     return (
         <Grid item xs={6}>
             <Box display="flex" alignItems="center">
@@ -73,15 +76,15 @@ export default function SelectorChasis({ chasis, selectedChasisId, onSelect }) {
                         <TableBody>
                             {filteredChasis.map((item) => (
                                 <TableRow key={item.codigo_chasis} hover>
-                                    <TableCell>{item.codigo_chasis}</TableCell>
-                                    <TableCell>{item.aros_rueda_delantera}</TableCell>
-                                    <TableCell>{item.aros_rueda_posterior}</TableCell>
-                                    <TableCell>{item.neumatico_delantero}</TableCell>
-                                    <TableCell>{item.neumatico_trasero}</TableCell>
-                                    <TableCell>{item.suspension_delantera}</TableCell>
-                                    <TableCell>{item.suspension_trasera}</TableCell>
-                                    <TableCell>{item.frenos_delanteros}</TableCell>
-                                    <TableCell>{item.frenos_traseros}</TableCell>
+                                    <TableCell>{safeValue(item.codigo_chasis)}</TableCell>
+                                    <TableCell>{safeValue(item.aros_rueda_delantera)}</TableCell>
+                                    <TableCell>{safeValue(item.aros_rueda_posterior)}</TableCell>
+                                    <TableCell>{safeValue(item.neumatico_delantero)}</TableCell>
+                                    <TableCell>{safeValue(item.neumatico_trasero)}</TableCell>
+                                    <TableCell>{safeValue(item.suspension_delantera)}</TableCell>
+                                    <TableCell>{safeValue(item.suspension_trasera)}</TableCell>
+                                    <TableCell>{safeValue(item.frenos_delanteros)}</TableCell>
+                                    <TableCell>{safeValue(item.frenos_traseros)}</TableCell>
                                     <TableCell>
                                         <Button size="small" onClick={() => {
                                             onSelect(item.codigo_chasis);

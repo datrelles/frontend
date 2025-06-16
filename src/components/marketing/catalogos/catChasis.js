@@ -113,6 +113,25 @@ function CatChasis() {
 
     }, [])
 
+
+    const sanitizeChasis = (item) => {
+        const reemplazo = (val) =>
+            val === null || val === undefined || val === '' ? 'N/A' : val;
+
+        return {
+            ...item,
+            aros_rueda_delantera: reemplazo(item.aros_rueda_delantera),
+            aros_rueda_posterior: reemplazo(item.aros_rueda_posterior),
+            neumatico_delantero: reemplazo(item.neumatico_delantero),
+            neumatico_trasero: reemplazo(item.neumatico_trasero),
+            suspension_delantera: reemplazo(item.suspension_delantera),
+            suspension_trasera: reemplazo(item.suspension_trasera),
+            frenos_delanteros: reemplazo(item.frenos_delanteros),
+            frenos_traseros: reemplazo(item.frenos_traseros),
+        };
+    };
+
+
     const fetchChasisData = async () => {
         try {
             const res = await fetch(`${API}/bench/get_chasis`, {
@@ -124,7 +143,8 @@ function CatChasis() {
             });
             const data = await res.json();
             if (res.ok) {
-                setCabeceras(data); // <- carga los datos en la tabla
+                const dataSanitizada = data.map(sanitizeChasis);
+                setCabeceras(dataSanitizada);
             } else {
                 enqueueSnackbar(data.error || "Error al obtener data de chasis", { variant: "error" });
             }
@@ -132,6 +152,7 @@ function CatChasis() {
             enqueueSnackbar("Error de conexión", { variant: "error" });
         }
     };
+
 
     const handleUploadExcel = (e) => {
         const file = e.target.files[0];
@@ -169,7 +190,7 @@ function CatChasis() {
     };
 
     const columns = [
-        { name: "codigo_chasis", label: "Código" },
+
         { name: "aros_rueda_posterior", label: "Aros Rueda Posterior" },
         { name: "aros_rueda_delantera", label: "Aros Rueda Delantera" },
         { name: "neumatico_delantero", label: "Neumático Delantero" },
@@ -178,7 +199,7 @@ function CatChasis() {
         { name: "suspension_trasera", label: "Suspensión Trasera" },
         { name: "frenos_delanteros", label: "Frenos Delanteros" },
         { name: "frenos_traseros", label: "Frenos Traseros" },
-        { name: "usuario_crea", label: "Usuario Crea" },
+       // { name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
             name: "acciones",

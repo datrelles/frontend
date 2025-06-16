@@ -116,7 +116,7 @@ function CatVersion() {
     };
 
     const columns = [
-        { name: "codigo_version", label: "Código" },
+        //{ name: "codigo_version", label: "Código" },
         { name: "nombre_version", label: "Versión" },
         {
             name: "estado_version",
@@ -141,7 +141,7 @@ function CatVersion() {
             }
         },
         { name: "descripcion_version", label: "Descripción" },
-        { name: "usuario_crea", label: "Usuario Crea" },
+        //{ name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
             name: "acciones",

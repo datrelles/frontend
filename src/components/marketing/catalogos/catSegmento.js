@@ -222,7 +222,7 @@ function CatSegmento() {
     };
 
     const columns = [
-        { name: 'codigo_segmento', label: 'CÓDIGO' },
+        //{ name: 'codigo_segmento', label: 'CÓDIGO' },
         { name: 'nombre_linea_padre', label: 'LINEA PRINCIPAL' },
         { name: 'nombre_linea', label: 'LINEA' },
         { name: 'nombre_segmento', label: 'SEGMENTO' },
