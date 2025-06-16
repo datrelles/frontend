@@ -39,17 +39,14 @@ const obtenerFilasConsolidadas = (columnas, filas) => {
         conActualizado[col.field] = filasDatos
           .filter((fila) => fila.cod_modelo === con.cod_modelo)
           .reduce((acum, actual) => {
+            let valor = 0;
             try {
-              return (
-                acum +
-                validarTipoRetornoYConvertir(
-                  TiposRetorno.NUMERO,
-                  actual[col.field]
-                )
+              valor = validarTipoRetornoYConvertir(
+                TiposRetorno.NUMERO,
+                actual[col.field]
               );
-            } catch (err) {
-              return 0;
-            }
+            } catch (err) {}
+            return acum + valor;
           }, 0);
       });
     return conActualizado;
