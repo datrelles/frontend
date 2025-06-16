@@ -6,6 +6,7 @@ import Header from "../formulas/common/header";
 import MainComponent from "../formulas/common/main-component";
 import CustomSelect from "../formulas/common/custom-select";
 import {
+  CARACTER_RELLENO,
   DefaultMesesProyeccion,
   Enum,
   Meses,
@@ -114,8 +115,8 @@ export default function PresupuestoCantidades() {
     }
   }
 
-  const handleUpdateCell = createOnUpdateCell(
-    (newValue, rowData, columnDefinition) => {
+  const handleUpdateCell = createOnUpdateCell({
+    fn: (newValue, rowData, columnDefinition) => {
       setFilasTabla((prev) => {
         const filasActualizadas = prev.map((fila) => ({
           ...fila,
@@ -129,8 +130,8 @@ export default function PresupuestoCantidades() {
           filasActualizadas
         );
       });
-    }
-  );
+    },
+  });
 
   const handleProyectar = () => {
     const curYear = new Date().getFullYear();
@@ -191,7 +192,7 @@ export default function PresupuestoCantidades() {
             if (fila.es_consolidado) {
               filaActualizada[col.field] = 0;
             } else {
-              filaActualizada[col.field] = "-";
+              filaActualizada[col.field] = CARACTER_RELLENO;
             }
           });
           return filaActualizada;

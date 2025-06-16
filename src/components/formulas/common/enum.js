@@ -123,3 +123,5 @@ export const ModelosCliente = {
 };
 
 export const DefaultModeloCliente = ModelosCliente.CLI1.key;
+
+export const CARACTER_RELLENO = "-";

@@ -1,6 +1,7 @@
 import { validarTipoRetornoYConvertir } from "../../../helpers/modulo-formulas";
 import CustomTooltip from "./custom-tooltip";
 import {
+  CARACTER_RELLENO,
   ColoresFondo,
   ColoresHex,
   TiposRetorno,
@@ -170,7 +171,7 @@ export const createTooltipCustomBodyRender = () => ({
 });
 
 export const createOnUpdateCell =
-  (fn, tipo_retorno = TiposRetorno.NUMERO) =>
+  ({ fn, tipo_retorno = TiposRetorno.NUMERO }) =>
   (newValue, rowData, columnDefinition) => {
     console.log(
       "Actualizando fila",
@@ -181,11 +182,15 @@ export const createOnUpdateCell =
       newValue
     );
     let parsedValue;
-    try {
-      parsedValue = validarTipoRetornoYConvertir(tipo_retorno, newValue);
-    } catch (err) {
-      toast.error(err.message);
-      parsedValue = rowData[columnDefinition.field];
+    if (newValue === null || newValue === "") {
+      parsedValue = CARACTER_RELLENO;
+    } else {
+      try {
+        parsedValue = validarTipoRetornoYConvertir(tipo_retorno, newValue);
+      } catch (err) {
+        toast.error(err.message);
+        parsedValue = rowData[columnDefinition.field];
+      }
     }
     return fn(parsedValue, rowData, columnDefinition);
   };
