@@ -47,6 +47,7 @@ const useStyles = makeStyles({
   table: {
     borderCollapse: "separate",
     borderSpacing: 0,
+    tableLayout: "auto", // Asegura que la tabla ajuste el ancho de las columnas según el contenido
   },
   headerCellBase: {
     fontWeight: "bold",
@@ -87,11 +88,12 @@ const useStyles = makeStyles({
   dataCellBase: {
     cursor: "default",
     transition: "background-color 0.2s ease-in-out",
-    position: "sticky",
     zIndex: 1,
     textAlign: "center",
     fontSize: "clamp(0.45375rem, 0.9075vw, 0.70125rem)",
     padding: "clamp(1px, 0.4vw, 3px) clamp(3px, 0.7vw, 7px)",
+    // Propiedad importante para que la celda se ajuste al contenido
+    whiteSpace: "nowrap", // Evita que el contenido de la celda se rompa en varias líneas
   },
   clickableCell: {
     cursor: "pointer",
@@ -103,11 +105,16 @@ const useStyles = makeStyles({
     width: "100%",
     boxSizing: "border-box",
     border: `1px solid #1976d2`,
-    padding: "8px",
+    padding: "4px 8px",
     borderRadius: "4px",
     fontFamily: "Roboto, Helvetica, Arial, sans-serif",
     fontSize: "inherit",
     textAlign: "inherit",
+    minHeight: "25px",
+    lineHeight: "normal",
+    // Estas propiedades deberían venir de la celda, no del input, si queremos que la celda se expanda:
+    // whiteSpace: "nowrap", // Esto es para que el texto dentro del input no se rompa
+    // overflow: "auto", // Si el input es más grande que la celda, tendrá scroll interno
   },
   tableContainer: {
     width: "100%",
@@ -116,7 +123,7 @@ const useStyles = makeStyles({
   },
   highlightedCell: {
     backgroundColor: "#FF0000 !important",
-    color: "white !important", // Color del texto blanco para las celdas resaltadas
+    color: "white !important",
   },
 });
 
@@ -482,6 +489,8 @@ export default function MultiLevelTable({
                         borderTop: borderTopStyle,
                         backgroundClip: "padding-box",
                         ...customBackgroundForDashedBorder,
+                        // Nuevo estilo condicional para minWidth
+                        minWidth: isEditing ? "100px" : undefined, // Ajusta este valor según sea necesario
                       }}
                       {...(onClickCell || onUpdateCell
                         ? { onClick: handleCellClick }
