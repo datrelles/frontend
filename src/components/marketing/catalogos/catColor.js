@@ -110,9 +110,9 @@ function CatColor() {
     };
 
     const columns = [
-        { name: "codigo_color_bench", label: "Código" },
+
         { name: "nombre_color", label: "Nombre color" },
-        { name: "usuario_crea", label: "Usuario Crea" },
+        //{ name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
             name: "acciones",

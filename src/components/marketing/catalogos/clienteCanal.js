@@ -181,7 +181,7 @@ function ClienteCanal() {
     };
 
     const columns = [
-        { name: 'codigo_cliente_canal', label: 'CÓDIGO' },
+       // { name: 'codigo_cliente_canal', label: 'CÓDIGO' },
         { name: 'nombre_canal', label: 'CANAL' },
         { name: 'descripcion_cliente_canal', label: 'CLIENTE' },
         { name: 'codigo_mod_vers_repuesto', label: 'MODELO VERSION REPUESTO' },

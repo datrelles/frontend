@@ -115,7 +115,7 @@ function CatTransmision() {
         { name: "codigo_transmision", label: "Código" },
         { name: "caja_cambios", label: "Caja de cambios" },
         { name: "descripcion_transmision", label: "Descripción Transmisión" },
-        { name: "usuario_crea", label: "Usuario Crea" },
+        //{ name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
             name: "acciones",

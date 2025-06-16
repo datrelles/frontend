@@ -116,7 +116,7 @@ function CatMarcaRepuesto() {
     };
 
     const columns = [
-        { name: "codigo_marca_rep", label: "Código" },
+        //{ name: "codigo_marca_rep", label: "Código" },
         { name: "nombre_comercial", label: "Nombre Comercial" },
         {
             name: "estado_marca_rep",
@@ -141,7 +141,7 @@ function CatMarcaRepuesto() {
             }
         },
         { name: "nombre_fabricante", label: "Nombre Fabricante" },
-        { name: "usuario_crea", label: "Usuario Crea" },
+        //{ name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
             name: "acciones",

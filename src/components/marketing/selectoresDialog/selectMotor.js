@@ -24,6 +24,7 @@ export default function SelectorMotor({ motores, tiposMotor, selectedMotorId, on
             String(value).toLowerCase().includes(searchText.toLowerCase())
         )
     );
+    const safeValue = (val) => val !== undefined && val !== null && val !== '' ? val : 'N/A';
 
     return (
         <Grid item xs={6}>
@@ -76,14 +77,14 @@ export default function SelectorMotor({ motores, tiposMotor, selectedMotorId, on
                                 const tipo = tiposMotor.find(t => t.codigo_tipo_motor === motor.codigo_tipo_motor);
                                 return (
                                     <TableRow key={`${motor.codigo_motor}-${motor.codigo_tipo_motor}`} hover>
-                                        <TableCell>{motor.nombre_motor}</TableCell>
-                                        <TableCell>{tipo?.nombre_tipo || ''}</TableCell>
-                                        <TableCell>{motor.cilindrada}</TableCell>
-                                        <TableCell>{motor.caballos_fuerza}</TableCell>
-                                        <TableCell>{motor.torque_maximo}</TableCell>
-                                        <TableCell>{motor.sistema_combustible}</TableCell>
-                                        <TableCell>{motor.arranque}</TableCell>
-                                        <TableCell>{motor.sistema_refrigeracion}</TableCell>
+                                        <TableCell>{safeValue(motor.nombre_motor)}</TableCell>
+                                        <TableCell>{safeValue(tipo?.nombre_tipo || '')}</TableCell>
+                                        <TableCell>{safeValue(motor.cilindrada)}</TableCell>
+                                        <TableCell>{safeValue(motor.caballos_fuerza)}</TableCell>
+                                        <TableCell>{safeValue(motor.torque_maximo)}</TableCell>
+                                        <TableCell>{safeValue(motor.sistema_combustible)}</TableCell>
+                                        <TableCell>{safeValue(motor.arranque)}</TableCell>
+                                        <TableCell>{safeValue(motor.sistema_refrigeracion)}</TableCell>
                                         <TableCell>
                                             <Button size="small" onClick={() => {
                                                 onSelect({

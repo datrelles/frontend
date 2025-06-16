@@ -23,6 +23,7 @@ export default function SelectorElectronica({ electronica, selectedElectronicaId
             String(value).toLowerCase().includes(searchText.toLowerCase())
         )
     );
+    const safeValue = (val) => val !== undefined && val !== null && val !== '' ? val : 'N/A';
 
     return (
         <Grid item xs={6}>
@@ -71,13 +72,13 @@ export default function SelectorElectronica({ electronica, selectedElectronicaId
                         <TableBody>
                             {filteredElectronica.map((item)  => (
                                 <TableRow key={item.codigo_electronica} hover>
-                                    <TableCell>{item.codigo_electronica}</TableCell>
-                                    <TableCell>{item.capacidad_combustible}</TableCell>
-                                    <TableCell>{item.tablero}</TableCell>
-                                    <TableCell>{item.luces_delanteras}</TableCell>
-                                    <TableCell>{item.luces_posteriores}</TableCell>
-                                    <TableCell>{item.garantia}</TableCell>
-                                    <TableCell>{item.velocidad_maxima}</TableCell>
+                                    <TableCell>{safeValue(item.codigo_electronica)}</TableCell>
+                                    <TableCell>{safeValue(item.capacidad_combustible)}</TableCell>
+                                    <TableCell>{safeValue(item.tablero)}</TableCell>
+                                    <TableCell>{safeValue(item.luces_delanteras)}</TableCell>
+                                    <TableCell>{safeValue(item.luces_posteriores)}</TableCell>
+                                    <TableCell>{safeValue(item.garantia)}</TableCell>
+                                    <TableCell>{safeValue(item.velocidad_maxima)}</TableCell>
                                     <TableCell>
                                         <Button size="small" onClick={() => {
                                             onSelect(item.codigo_electronica);
