@@ -56,8 +56,31 @@ const useStyles = makeStyles({
     backgroundColor: "#FF3A3A",
     textAlign: "center",
     fontSize: "clamp(0.6rem, 1.4vw, 0.9rem)",
-    padding: "clamp(1px, 0.5vw, 3px) clamp(3px, 0.9vw, 7px)", // Ajuste de padding vertical en cabeceras
-    lineHeight: "1.2", // Ajuste de interlineado en cabeceras
+    padding: "clamp(1px, 0.5vw, 3px) clamp(3px, 0.9vw, 7px)",
+    lineHeight: "1.2",
+    "&.vertical-header": {
+      height: "100px",
+      minWidth: "30px",
+      padding: "0", // Importante: resetear padding en la celda
+      verticalAlign: "middle", // Se puede mantener, aunque el absolute lo anula para el texto
+      position: "relative", // Necesario para que el span absoluto se posicione correctamente
+      overflow: "hidden", // Recorta cualquier desbordamiento
+    },
+  },
+  // verticalTextContainer ha sido ELIMINADO para simplificar
+  verticalText: {
+    position: "absolute", // Posicionar el span directamente
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%) rotate(-90deg)", // Centrar y rotar
+    transformOrigin: "center center", // Asegurar la rotación desde el centro
+    whiteSpace: "normal", // ¡CLAVE para el wrap de texto!
+    // Calculamos el ancho disponible para el texto antes de rotar:
+    // 100px (alto de la celda) - 3px (padding en un lado) - 3px (padding en el otro lado)
+    width: "calc(100px - 6px)",
+    height: "auto", // La altura se ajustará automáticamente según el contenido envuelto
+    textAlign: "center", // Centrar el texto dentro de su nueva "columna"
+    boxSizing: "border-box", // Asegura que el padding se incluya en el width definido
   },
   clickableHeader: {
     cursor: "pointer",
@@ -72,7 +95,7 @@ const useStyles = makeStyles({
     zIndex: 1,
     textAlign: "center",
     fontSize: "clamp(0.55rem, 1.1vw, 0.85rem)",
-    padding: "clamp(1px, 0.4vw, 3px) clamp(3px, 0.7vw, 7px)", // Ajuste de padding vertical en celdas de datos
+    padding: "clamp(1px, 0.4vw, 3px) clamp(3px, 0.7vw, 7px)",
   },
   clickableCell: {
     cursor: "pointer",
@@ -227,7 +250,7 @@ export default function MultiLevelTable({
           rowSpan={rowSpan}
           className={`${classes.headerCellBase} ${
             header.onClickHeader ? classes.clickableHeader : ""
-          }`}
+          } ${header.es_vertical ? "vertical-header" : ""}`}
           style={{
             backgroundColor: header.bgColor || "#FF3A3A",
             position: "sticky",
@@ -248,7 +271,14 @@ export default function MultiLevelTable({
           })}
           {...(header.onClickHeader && { onClick: header.onClickHeader })}
         >
-          {header.header || header.field || ""}
+          {header.es_vertical ? (
+            // Directamente el span, no el div verticalTextContainer
+            <span className={classes.verticalText}>
+              {header.header || header.field || ""}
+            </span>
+          ) : (
+            header.header || header.field || ""
+          )}
         </TableCell>
       );
       if (hasChildren) {

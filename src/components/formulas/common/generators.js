@@ -202,6 +202,7 @@ export const createMTColumn = ({
   onUpdateCell = null,
   onClickCell = null,
   children = null,
+  es_vertical = true,
   context = {},
 }) => {
   if (!header && !hidden) throw new Error("La columna debe tener un título");
@@ -223,8 +224,9 @@ export const createMTColumn = ({
     bgColor,
     hidden,
     ...(onUpdateCell ? { onUpdateCell } : {}),
-    ...(onClickCell ? { onClickCell } : {}), //(rowData, columnDefinition) => {}
+    ...(onClickCell ? { onClickCell } : {}),
     ...(children ? { children } : {}),
+    es_vertical,
     context,
   };
 };

@@ -23,8 +23,14 @@ import MultiLevelTable from "../formulas/common/multilevel-table";
 import CustomGrid from "../formulas/common/custom-grid";
 
 const columnasProyeccion = [
-  createMTColumn({ header: "Ventas Clientes", field: "ventas_cli" }),
-  createMTColumn({ header: "Ventas MASSLINE", field: "ventas_mass" }),
+  createMTColumn({
+    header: "Ventas Clientes",
+    field: "ventas_cli",
+  }),
+  createMTColumn({
+    header: "Ventas MASSLINE",
+    field: "ventas_mass",
+  }),
 ];
 
 const getFlatDataColumns = (headerDefs) => {
@@ -133,9 +139,13 @@ export default function PresupuestoCantidades() {
     }
     let columnas = [
       createMTColumn({ field: "cod_cliente", hidden: true }),
-      createMTColumn({ header: "Cliente", field: "cliente" }),
-      createMTColumn({ header: "Modelo", field: "modelo" }),
+      createMTColumn({
+        header: "Cliente",
+        field: "cliente",
+        es_vertical: false,
+      }),
       createMTColumn({ field: "cod_modelo", hidden: true }),
+      createMTColumn({ header: "Modelo", field: "modelo", es_vertical: false }),
     ];
     for (let i = 1; i <= iter; i++) {
       const proyYear = curYear + i - 1;
@@ -146,11 +156,13 @@ export default function PresupuestoCantidades() {
             field: `${col.field}_${proyYear}_${mes}`,
             onUpdateCell: handleUpdateCell,
             context: { proyYear, mes },
+            es_vertical: col.es_vertical,
           })
         );
         const colGrupo = createMTColumn({
           header: `${Enum.getLabel(Meses, `${mes}`)}-${proyYear}`,
           children: nuevasColumnas,
+          es_vertical: false,
         });
         columnas = columnas.concat(colGrupo);
         filas = filas.map((fila) => {
