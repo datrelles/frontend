@@ -190,7 +190,7 @@ function CatChasis() {
     };
 
     const columns = [
-
+        { name: "codigo_chasis", label: "Código Chasis" },
         { name: "aros_rueda_posterior", label: "Aros Rueda Posterior" },
         { name: "aros_rueda_delantera", label: "Aros Rueda Delantera" },
         { name: "neumatico_delantero", label: "Neumático Delantero" },

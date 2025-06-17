@@ -28,10 +28,6 @@ function CompararModelos()  {
     const [comparacionActiva, setComparacionActiva] = useState(false);
     const [bloquearInputs, setBloquearInputs] = useState(false);
 
-    const lineasFiltradas = lineaAutomotriz
-        ? lineas.filter((l) => l.codigo_linea_padre === lineaAutomotriz.codigo_linea)
-        : [];
-
     const lineaPadre = lineas.find(
         (l) => l.nombre_linea?.toUpperCase() === "AUTOMOTRIZ"
     );

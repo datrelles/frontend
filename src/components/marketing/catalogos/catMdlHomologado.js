@@ -128,7 +128,7 @@ function CatModeloHomologado() {
     };
 
     const columns = [
-        //{ name: 'codigo_modelo_homologado', label: 'Código Homologado' },
+        { name: 'codigo_modelo_homologado', label: 'Código Homologado' },
         {
             name: 'codigo_modelo_sri',
             label: 'Nombre Modelo SRI',
