@@ -32,10 +32,10 @@ export const Operadores = {
 };
 
 export const PaquetesBD = {
-  FORMULAS: new Enum("PK_FORMULAS", "FÓRMULAS"),
+  PROCESOS: new Enum("PK_PROCESOS", "PROCESOS"),
 };
 
-export const DefaultPaqueteBD = PaquetesBD.FORMULAS.key;
+export const DefaultPaqueteBD = PaquetesBD.PROCESOS.key;
 
 export const ColoresHex = {
   GRIS: new Enum("c6c6c6", "GRIS"),
