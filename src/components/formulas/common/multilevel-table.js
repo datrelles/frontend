@@ -55,7 +55,7 @@ const useStyles = makeStyles({
     transition: "background-color 0.2s ease-in-out",
     zIndex: 20,
     textAlign: "center",
-    fontSize: "clamp(0.495rem, 1.155vw, 0.7425rem)",
+    fontSize: "clamp(0.55rem, 1.25vw, 0.8rem)",
     padding: "clamp(1px, 0.5vw, 3px) clamp(3px, 0.9vw, 7px)",
     lineHeight: "1.2",
     "&.vertical-header": {
@@ -90,7 +90,7 @@ const useStyles = makeStyles({
     transition: "background-color 0.2s ease-in-out",
     zIndex: 1,
     textAlign: "center",
-    fontSize: "clamp(0.45375rem, 0.9075vw, 0.70125rem)",
+    fontSize: "clamp(0.55rem, 1.25vw, 0.8rem)",
     padding: "clamp(1px, 0.4vw, 3px) clamp(3px, 0.7vw, 7px)",
     whiteSpace: "nowrap",
   },
