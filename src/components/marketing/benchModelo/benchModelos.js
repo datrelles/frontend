@@ -24,18 +24,17 @@ function CompararModelos()  {
     const [imagenModal, setImagenModal] = useState(null);
     const [openModalImagen, setOpenModalImagen] = useState(false);
     const [selectedImagen, setSelectedImagen] = useState(null);
-    const lineaAutomotriz = lineas.find((l) => l.nombre_linea?.toUpperCase() === 'AUTOMOTRIZ');
     const [comparacionActiva, setComparacionActiva] = useState(false);
     const [bloquearInputs, setBloquearInputs] = useState(false);
 
     const lineaPadre = lineas.find(
         (l) => l.nombre_linea?.toUpperCase() === "AUTOMOTRIZ"
     );
-
     const lineasHijas = lineas.filter(
-        (l) => l.codigo_linea_padre === lineaPadre?.codigo_linea
+        (l) =>
+            l.codigo_linea_padre === lineaPadre?.codigo_linea &&
+            l.nombre_linea?.toUpperCase() !== "AUTOMOTRIZ"
     );
-
 
     const numeroModelos = 5;
 
