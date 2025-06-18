@@ -346,6 +346,21 @@ function CompararModelos()  {
     };
 
     useEffect(() => {
+        const cargarDatos = async () => {
+            try {
+                await getMenus();
+                await fetchLineas(); // esto cargará `lineas`
+                await fetchImagenData();
+            } catch (err) {
+                console.error("Error cargando datos iniciales:", err);
+            }
+        };
+
+        cargarDatos();
+    }, []);
+
+
+    useEffect(() => {
         const cargarLineasConSegmentos = async () => {
             const automotriz = lineas.find(l => l.nombre_linea?.toUpperCase() === "AUTOMOTRIZ");
             if (!automotriz) return;
@@ -373,18 +388,6 @@ function CompararModelos()  {
         if (lineas.length > 0) {
             cargarLineasConSegmentos();
         }
-
-        const cargarDatos = async () => {
-            try {
-                await getMenus();
-                await fetchLineas();
-                await fetchImagenData();
-            } catch (err) {
-                console.error("Error cargando datos iniciales:", err);
-            }
-        };
-
-        cargarDatos();
     }, [lineas]);
 
     return (
