@@ -310,7 +310,6 @@ function CompararModelos()  {
                     headers: { Authorization: 'Bearer ' + jwt }
                 });
                 const modelosData = await resModelos.json();
-                console.log('Modelos para SHINERAY:', modelosData);
 
                 setModelosPorBloque(prev => {
                     const copia = [...prev];

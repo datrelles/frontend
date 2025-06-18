@@ -19,7 +19,7 @@ import SelectorChasis from "../selectoresDialog/selectChasis";
 import SelectorDimensiones from "../selectoresDialog/selectDimensiones";
 import SelectorMotor from "../selectoresDialog/selectMotor";
 import SelectorElectronica from "../selectoresDialog/selectElectronica";
-import { NumericFormat } from 'react-number-format';
+import { NumericRender } from "../functions";
 
 
 
@@ -760,28 +760,26 @@ function CatModeloVersion() {
                                     handleChange('anio_modelo_version', e.target.value)} />
                                 </Grid>
                                 <Grid item xs={6}>
-                                    <NumericFormat
+                                    <TextField
                                         label="Precio Producto Modelo"
-                                        customInput={TextField}
-                                        thousandSeparator="."
-                                        decimalSeparator=","
-                                        decimalScale={2}
-                                        fixedDecimalScale
                                         value={form.precio_producto_modelo}
-                                        onValueChange={(values) => handleChange('precio_producto_modelo', values.floatValue)}
+                                        onChange={(e) => {
+                                            const raw = e.target.value;
+                                            const formatted = raw.replace(/[^\d.,]/g, '');
+                                            handleChange('precio_producto_modelo', formatted);
+                                        }}
                                         fullWidth
                                     />
                                 </Grid>
                                 <Grid item xs={6}>
-                                    <NumericFormat
+                                    <TextField
                                         label="Precio Venta Distribuidor"
-                                        customInput={TextField}
-                                        thousandSeparator="."
-                                        decimalSeparator=","
-                                        decimalScale={2}
-                                        fixedDecimalScale
                                         value={form.precio_venta_distribuidor}
-                                        onValueChange={(values) => handleChange('precio_venta_distribuidor', values.floatValue)}
+                                        onChange={(e) => {
+                                            const raw = e.target.value;
+                                            const formatted = raw.replace(/[^\d.,]/g, '');
+                                            handleChange('precio_venta_distribuidor', formatted);
+                                        }}
                                         fullWidth
                                     />
                                 </Grid>
