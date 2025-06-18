@@ -166,7 +166,7 @@ function CatDimensionesPeso() {
     };
 
     const columns = [
-
+        { name: "codigo_dim_peso", label: "Código" },
         { name: "altura_total", label: "Altura total" },
         { name: "longitud_total", label: "Longitud total" },
         { name: "ancho_total", label: "Ancho total" },

@@ -136,7 +136,7 @@ function CatElectronica() {
     };
 
     const columns = [
-
+        { name: "codigo_electronica", label: "Código" },
         { name: "capacidad_combustible", label: "Capacidad combustible" },
         { name: "tablero", label: "Tablero" },
         { name: "luces_delanteras", label: "Luces delanteras" },

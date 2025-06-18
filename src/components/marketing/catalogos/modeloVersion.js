@@ -19,6 +19,8 @@ import SelectorChasis from "../selectoresDialog/selectChasis";
 import SelectorDimensiones from "../selectoresDialog/selectDimensiones";
 import SelectorMotor from "../selectoresDialog/selectMotor";
 import SelectorElectronica from "../selectoresDialog/selectElectronica";
+import { NumericFormat } from 'react-number-format';
+
 
 
 const API = process.env.REACT_APP_API;
@@ -549,6 +551,36 @@ function CatModeloVersion() {
         }
     };
 
+    const handleUploadExcel = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        fetch(`${API}/bench/insert_modelo_version_masivo`, {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + jwt
+            },
+            body: formData
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.insertados) {
+                    enqueueSnackbar(`Modelos insertados: ${data.insertados}`, { variant: "success" });
+                }
+                if (data.errores?.length > 0) {
+                    console.error("Errores:", data.errores);
+                    enqueueSnackbar(`Errores en ${data.errores.length} fila(s)`, { variant: "error" });
+                }
+                fetchModeloVersion();
+            })
+            .catch(err => {
+                console.error("Error al subir archivo:", err);
+                enqueueSnackbar("Error de conexión o servidor", { variant: "error" });
+            });
+    };
     return (
         <>
         {loading ? (
@@ -725,20 +757,32 @@ function CatModeloVersion() {
                                     TextField fullWidth
                                               label="Año" type="number"
                                               value={form.anio_modelo_version || ''} onChange={(e) =>
-                                    handleChange('anio_modelo_version', e.target.value)} /></Grid>
-
+                                    handleChange('anio_modelo_version', e.target.value)} />
+                                </Grid>
                                 <Grid item xs={6}>
-                                    <TextField label="Precio Producto Modelo"
-                                               type="number" value={form.precio_producto_modelo}
-                                               onChange={(e) =>
-                                                   handleChange('precio_producto_modelo', e.target.value)} fullWidth
+                                    <NumericFormat
+                                        label="Precio Producto Modelo"
+                                        customInput={TextField}
+                                        thousandSeparator="."
+                                        decimalSeparator=","
+                                        decimalScale={2}
+                                        fixedDecimalScale
+                                        value={form.precio_producto_modelo}
+                                        onValueChange={(values) => handleChange('precio_producto_modelo', values.floatValue)}
+                                        fullWidth
                                     />
                                 </Grid>
                                 <Grid item xs={6}>
-                                    <TextField label="Precio Venta Distribuidor"
-                                               type="number" value={form.precio_venta_distribuidor}
-                                               onChange={(e) =>
-                                                   handleChange('precio_venta_distribuidor', e.target.value)} fullWidth
+                                    <NumericFormat
+                                        label="Precio Venta Distribuidor"
+                                        customInput={TextField}
+                                        thousandSeparator="."
+                                        decimalSeparator=","
+                                        decimalScale={2}
+                                        fixedDecimalScale
+                                        value={form.precio_venta_distribuidor}
+                                        onValueChange={(values) => handleChange('precio_venta_distribuidor', values.floatValue)}
+                                        fullWidth
                                     />
                                 </Grid>
                                 <Grid item xs={12}>
@@ -758,7 +802,6 @@ function CatModeloVersion() {
                                         )}
                                     />
                                 </Grid>
-
                                 <Grid item xs={6}>
                                     <TextField
                                         label="Marca"
@@ -767,14 +810,12 @@ function CatModeloVersion() {
                                         disabled
                                     />
                                 </Grid>
-
                                 <Grid item xs={7}>
                                     <Autocomplete
                                         options={clienteCanal}
                                         getOptionLabel={(option) =>
                                             `${option.codigo_cliente_canal} - ${option.nombre_canal} - ${option.descripcion_cliente_canal} - ${option.nombre_producto}`
                                         }
-
                                         value={selectedClienteCanal}
                                         isOptionEqualToValue={(opt, val) => opt.codigo_cliente_canal === val?.codigo_cliente_canal}
                                         onChange={(e, v) => {
@@ -809,7 +850,6 @@ function CatModeloVersion() {
                                         value={selectedProducto?.nombre_empresa || ''}
                                         fullWidth disabled />
                                 </Grid>
-
                                 <Grid item xs={6}>
                                     <TextField
                                         label="Versión"
@@ -821,6 +861,10 @@ function CatModeloVersion() {
                         <DialogActions>
                             <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                             <Button onClick={handleInsertOrUpdate} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedItem ? 'Actualizar' : 'Guardar'}</Button>
+                            <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
+                                Cargar Excel
+                                <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                            </Button>
                         </DialogActions>
                     </Dialog>
                 </div>

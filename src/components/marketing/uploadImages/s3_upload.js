@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useRef } from "react";
 import axios from "axios";
 import { Button } from "@mui/material";
 import {useAuthContext} from "../../../context/authContext";
@@ -11,6 +11,9 @@ const ImageUploader = ({ onUploadComplete }) => {
     const {jwt} = useAuthContext();
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [uploading, setUploading] = useState(false);
+    const fileInputRef = useRef(null);
+
+
 
     const handleFileChange = (e) => {
         setSelectedFiles(Array.from(e.target.files));
@@ -31,7 +34,14 @@ const ImageUploader = ({ onUploadComplete }) => {
             });
 
             const result = await res.json();
-            if (!res.ok) throw new Error(result.error || "Error generando URL firmada");
+
+            if (!res.ok) {
+                console.error("Error al generar url firmada:", result.error);
+                toast.error(result.error || "Error guardando imagen");
+                return;
+            }
+
+            toast.success("Imagen registrada correctamente");
 
             const { uploadUrl, publicUrl } = result;
 
@@ -67,9 +77,13 @@ const ImageUploader = ({ onUploadComplete }) => {
 
             const result = await res.json();
 
-            if (!res.ok) throw new Error(result.error || "Error guardando en base");
-            toast.success("Imagen registrada correctamente");
+            if (!res.ok) {
+                console.error("Error guardando URL en base:", result.error);
+                toast.error(result.error || "Error guardando imagen");
+                return;
+            }
 
+            toast.success("Imagen registrada correctamente");
 
         } catch (error) {
             console.error("Error guardando URL en base:", error);
@@ -88,6 +102,10 @@ const ImageUploader = ({ onUploadComplete }) => {
                 await guardarImagenEnBase(url, file.name);
             }
         }
+        setSelectedFiles([]);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = null;
+        }
 
         setUploading(false);
         onUploadComplete(urls);
@@ -101,6 +119,7 @@ const ImageUploader = ({ onUploadComplete }) => {
                     accept="image/*"
                     multiple
                     onChange={handleFileChange}
+                    ref={fileInputRef}
                     style={{ display: 'none' }}
                     id="upload-input"
                 />

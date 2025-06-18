@@ -169,8 +169,30 @@ export default function CatModeloVersionExpandible({
         { name: 'nombre_version', label: 'VERSIÓN' },
         { name: 'nombre_color', label: 'COLOR' },
         { name: 'anio_modelo_version', label: 'AÑO MODELO' },
-        { name: 'precio_producto_modelo', label: 'PRECIO PRODUCTO' },
-        { name: 'precio_venta_distribuidor', label: 'PRECIO DISTRIBUIDOR' },
+        {
+            name: 'precio_producto_modelo',
+            label: 'PRECIO PRODUCTO',
+            options: {
+                customBodyRender: (value) =>
+                    new Intl.NumberFormat("es-EC", {
+                        style: "decimal",
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }).format(value)
+            }
+        },
+        {
+            name: 'precio_venta_distribuidor',
+            label: 'PRECIO DISTRIBUIDOR',
+            options: {
+                customBodyRender: (value) =>
+                    new Intl.NumberFormat("es-EC", {
+                        style: "decimal",
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }).format(value)
+            }
+        },
         {
             name: 'acciones', label: 'ACCIONES', options: {
                 customBodyRenderLite: (dataIndex) => (
