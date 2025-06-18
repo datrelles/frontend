@@ -7,6 +7,7 @@ import {
 import { Edit as EditIcon } from '@mui/icons-material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import MUIDataTable from 'mui-datatables';
+import {NumericRender} from "../functions";
 
 export default function CatModeloVersionExpandible({
                                                        cabeceras,
@@ -154,7 +155,7 @@ export default function CatModeloVersionExpandible({
     const columns = [
         { name: 'nombre_modelo_version', label: 'MODELO' },
        // { name: 'nombre_producto', label: 'PRODUCTO' },
-        { name: 'nombre_marca', label: 'MARCA MODELO' },
+        { name: 'nombre_marca', label: 'MARCA' },
         { name: 'nombre_empresa', label: 'EMPRESA' },
         {
             name: 'path_imagen', label: 'IMAGEN', options: {
@@ -173,25 +174,15 @@ export default function CatModeloVersionExpandible({
             name: 'precio_producto_modelo',
             label: 'PRECIO PRODUCTO',
             options: {
-                customBodyRender: (value) =>
-                    new Intl.NumberFormat("es-EC", {
-                        style: "decimal",
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    }).format(value)
-            }
+                customBodyRender: (value) => NumericRender(value),
+            },
         },
         {
             name: 'precio_venta_distribuidor',
             label: 'PRECIO DISTRIBUIDOR',
             options: {
-                customBodyRender: (value) =>
-                    new Intl.NumberFormat("es-EC", {
-                        style: "decimal",
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    }).format(value)
-            }
+                customBodyRender: (value) => NumericRender(value),
+            },
         },
         {
             name: 'acciones', label: 'ACCIONES', options: {
