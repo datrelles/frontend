@@ -118,7 +118,7 @@ function CatModSri() {
     };
 
     const columns = [
-        //{ name: "codigo_modelo_sri", label: "Código" },
+        { name: "codigo_modelo_sri", label: "Código" },
         { name: "nombre_modelo", label: "Nombre Modelo" },
         { name: "anio_modelo", label: "Año de Modelo" },
         { name: "cod_mdl_importacion", label: "Código Importación" },
