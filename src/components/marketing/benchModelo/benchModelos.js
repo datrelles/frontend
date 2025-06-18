@@ -27,14 +27,6 @@ function CompararModelos()  {
     const [comparacionActiva, setComparacionActiva] = useState(false);
     const [bloquearInputs, setBloquearInputs] = useState(false);
 
-    const lineaPadre = lineas.find(
-        (l) => l.nombre_linea?.toUpperCase() === "AUTOMOTRIZ"
-    );
-    const lineasHijas = lineas.filter(
-        (l) =>
-            l.codigo_linea_padre === lineaPadre?.codigo_linea &&
-            l.nombre_linea?.toUpperCase() !== "AUTOMOTRIZ"
-    );
 
     const numeroModelos = 5;
 
@@ -57,6 +49,8 @@ function CompararModelos()  {
     const [marcasPorBloque, setMarcasPorBloque] = useState(
         Array(numeroModelos).fill([])
     );
+
+    const [lineasDisponiblesConSegmentos, setLineasDisponiblesConSegmentos] = useState([]);
 
     const textFieldSmallSx = {
         width: 260,
@@ -210,7 +204,11 @@ function CompararModelos()  {
         const dataSeg = await resSeg.json();
         setSegmentosPorBloque(prev => {
             const copia = [...prev];
-            copia[index] = dataSeg;
+
+            copia[index] = dataSeg.map(seg => ({
+                ...seg,
+                codigo_linea: linea.codigo_linea
+            }));
 
             if (index === 0) {
                 for (let i = 1; i < copia.length; i++) {
@@ -348,6 +346,34 @@ function CompararModelos()  {
     };
 
     useEffect(() => {
+        const cargarLineasConSegmentos = async () => {
+            const automotriz = lineas.find(l => l.nombre_linea?.toUpperCase() === "AUTOMOTRIZ");
+            if (!automotriz) return;
+
+            const hijas = lineas.filter(l => l.codigo_linea_padre === automotriz.codigo_linea);
+            const lineasValidas = [];
+
+            for (const l of hijas) {
+                try {
+                    const res = await fetch(`${API}/bench_model/get_segmentos_por_linea/${l.codigo_linea}`, {
+                        headers: { Authorization: 'Bearer ' + jwt }
+                    });
+                    const segmentos = await res.json();
+                    if (Array.isArray(segmentos) && segmentos.length > 0) {
+                        lineasValidas.push(l);
+                    }
+                } catch (error) {
+                    console.error(`Error al cargar segmentos para línea ${l.nombre_linea}:`, error);
+                }
+            }
+
+            setLineasDisponiblesConSegmentos(lineasValidas);
+        };
+
+        if (lineas.length > 0) {
+            cargarLineasConSegmentos();
+        }
+
         const cargarDatos = async () => {
             try {
                 await getMenus();
@@ -357,8 +383,9 @@ function CompararModelos()  {
                 console.error("Error cargando datos iniciales:", err);
             }
         };
+
         cargarDatos();
-    }, []);
+    }, [lineas]);
 
     return (
         <>
@@ -410,15 +437,17 @@ function CompararModelos()  {
                                             </Box>
                                             <Autocomplete
                                                 size="small"
-                                                options={lineasHijas}
+                                                options={lineasDisponiblesConSegmentos}
                                                 value={bloque.linea}
                                                 getOptionLabel={(op) => op?.nombre_linea || ''}
+                                                isOptionEqualToValue={(option, value) => option.codigo_linea === value?.codigo_linea}
                                                 onChange={(e, v) => handleLineaChange(index, v)}
                                                 renderInput={(params) => (
                                                     <TextField {...params} label="Línea" sx={textFieldSmallSx} />
                                                 )}
                                                 disabled={bloquearInputs || index !== 0}
                                             />
+
                                             <Autocomplete
                                                 size="small"
                                                 options={segmentosPorBloque[index] || []}
