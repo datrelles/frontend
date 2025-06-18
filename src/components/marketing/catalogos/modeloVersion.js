@@ -19,7 +19,7 @@ import SelectorChasis from "../selectoresDialog/selectChasis";
 import SelectorDimensiones from "../selectoresDialog/selectDimensiones";
 import SelectorMotor from "../selectoresDialog/selectMotor";
 import SelectorElectronica from "../selectoresDialog/selectElectronica";
-import { NumericRender } from "../functions";
+import * as XLSX from "xlsx";
 
 
 
@@ -62,6 +62,7 @@ function CatModeloVersion() {
     const [modeloVersionesRepuestos, setModeloVersionesRepuestos] = useState([]);
     const [imagenModal, setImagenModal] = useState(null);
     const [openModalImagen, setOpenModalImagen] = useState(false);
+    const [erroresCarga, setErroresCarga] = useState([]);
     const [form, setForm] = useState({
         codigo_modelo_version: '',
         codigo_dim_peso: '',
@@ -551,36 +552,58 @@ function CatModeloVersion() {
         }
     };
 
-    const handleUploadExcel = (e) => {
+    const handleUploadExcel = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        const formData = new FormData();
-        formData.append("file", file);
+        try {
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                const data = new Uint8Array(event.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
 
-        fetch(`${API}/bench/insert_modelo_version_masivo`, {
-            method: "POST",
-            headers: {
-                "Authorization": "Bearer " + jwt
-            },
-            body: formData
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.insertados) {
-                    enqueueSnackbar(`Modelos insertados: ${data.insertados}`, { variant: "success" });
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+                const response = await fetch(`${API}/bench/insert_modelo_version_masivo`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + jwt,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(jsonData),
+                });
+
+                const result = await response.json();
+
+                if (result.insertados) {
+                    enqueueSnackbar(`Modelos insertados: ${result.insertados}`, { variant: 'success' });
                 }
-                if (data.errores?.length > 0) {
-                    console.error("Errores:", data.errores);
-                    enqueueSnackbar(`Errores en ${data.errores.length} fila(s)`, { variant: "error" });
+                if (result.errores?.length > 0) {
+                    console.error("Errores:", result.errores);
+
+                    const erroresDetallados = result.errores
+                        .map(err => `Fila ${err.fila}: ${err.error}`)
+                        .join('\n');
+
+                    enqueueSnackbar(`Errores en ${result.errores.length} fila(s):\n${erroresDetallados}`, {
+                        variant: 'error',
+                        autoHideDuration: 8000,
+                    });
+
+                    setErroresCarga(result.errores);
                 }
                 fetchModeloVersion();
-            })
-            .catch(err => {
-                console.error("Error al subir archivo:", err);
-                enqueueSnackbar("Error de conexión o servidor", { variant: "error" });
-            });
+            };
+
+            reader.readAsArrayBuffer(file);
+        } catch (err) {
+            console.error("Error al procesar archivo:", err);
+            enqueueSnackbar("Error al leer o enviar el archivo", { variant: "error" });
+        }
     };
+
     return (
         <>
         {loading ? (
