@@ -156,6 +156,7 @@ export default function ParametrosProceso() {
       fecha_calculo_fin: fechaFin,
     })
       .then((res) => {
+        setFormula(shapeFormula);
         toast.success(res);
         setOpenUpdateDatos(false);
         getParametrosDetail();
@@ -248,7 +249,7 @@ export default function ParametrosProceso() {
     );
     setCodParametro(codParametro);
     setFormula(
-      formulas.find((f) => f.cod_formula === formula.cod_formula) ??
+      formulas.find((f) => f.cod_formula === parametro.cod_formula) ??
         shapeFormula
     );
     setFechaInicio(formatearFechaInput(parametro.fecha_calculo_inicio));
