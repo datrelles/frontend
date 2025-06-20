@@ -348,4 +348,11 @@ export default class API {
       this.#headers
     );
   });
+
+  getProyeccion = this.#errorHandler(async (version, proceso) => {
+    return await axios.get(
+      `${this.#URL}/versiones/${version}/procesos/${proceso}/proyeccion`,
+      this.#headers
+    );
+  });
 }

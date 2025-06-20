@@ -28,6 +28,7 @@ import CustomGrid from "../formulas/common/custom-grid";
 import { validarTipoRetornoYConvertir } from "../../helpers/modulo-formulas";
 
 const COD_PROCESO_PRESUP_CANT = "PRESCANT";
+const COD_VERSION = 1;
 
 const obtenerFilasConsolidadas = (columnas, filas) => {
   let consolidados = filas.filter((fila) => fila.es_consolidado);
@@ -133,7 +134,11 @@ export default function PresupuestoCantidades() {
     },
   });
 
-  const handleProyectar = () => {
+  const handleProyectar = async () => {
+    const proyeccion = await APIService.getProyeccion(
+      COD_VERSION,
+      COD_PROCESO_PRESUP_CANT
+    );
     const curYear = new Date().getFullYear();
     const iter = mesesProyeccion / 12;
     let filas = [];
@@ -144,6 +149,7 @@ export default function PresupuestoCantidades() {
           cliente: cliente.agrupa_cliente
             ? cliente.nombre_agrupacion
             : cliente.nombre_imprime,
+          cod_marca: modelo.codigo_marca,
           cod_modelo: modelo.codigo,
           modelo: modelo.nombre,
         });
@@ -151,6 +157,7 @@ export default function PresupuestoCantidades() {
       filas.push({
         es_consolidado: true,
         es_editable: false,
+        cod_marca: modelo.codigo_marca,
         cod_modelo: modelo.codigo,
         modelo: modelo.nombre,
         cliente: "CONSOLIDADO",
@@ -167,21 +174,21 @@ export default function PresupuestoCantidades() {
       createMTColumn({ header: "Modelo", field: "modelo", es_vertical: false }),
     ];
     for (let i = 1; i <= iter; i++) {
-      const proyYear = curYear + i - 1;
+      const anio = curYear + i - 1;
       for (let mes = 1; mes <= 12; mes++) {
         const nuevasColumnas = parametrosProceso.map((col) =>
           createMTColumn({
             header: `${col.header}`,
-            field: `${col.field}_${proyYear}_${mes}`,
+            field: `${col.field}_${anio}_${mes}`,
             bgColor: col.bgColor,
             onUpdateCell: handleUpdateCell,
-            context: { proyYear, mes },
+            context: { cod_parametro: col.cod_parametro, anio, mes },
             es_vertical: col.es_vertical,
             tooltip: col.tooltip,
           })
         );
         const colGrupo = createMTColumn({
-          header: `${Enum.getLabel(Meses, `${mes}`)}-${proyYear}`,
+          header: `${Enum.getLabel(Meses, `${mes}`)}-${anio}`,
           children: nuevasColumnas,
           es_vertical: false,
         });
@@ -192,7 +199,17 @@ export default function PresupuestoCantidades() {
             if (fila.es_consolidado) {
               filaActualizada[col.field] = 0;
             } else {
-              filaActualizada[col.field] = CARACTER_RELLENO;
+              const celda = proyeccion.find(
+                (pro) =>
+                  pro.cod_parametro === col.context.cod_parametro &&
+                  pro.cod_modelo_comercial === filaActualizada.cod_modelo &&
+                  pro.cod_marca === filaActualizada.cod_marca &&
+                  pro.cod_cliente === filaActualizada.cod_cliente &&
+                  pro.anio === col.context.anio &&
+                  pro.mes === col.context.mes
+              );
+              const valor = celda.numero || celda.texto || celda.fecha;
+              filaActualizada[col.field] = valor || CARACTER_RELLENO;
             }
           });
           return filaActualizada;
