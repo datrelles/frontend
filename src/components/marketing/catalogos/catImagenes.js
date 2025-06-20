@@ -18,6 +18,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import ImageUploader from "../uploadImages/s3_upload";
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 const API = process.env.REACT_APP_API;
 
@@ -266,14 +267,9 @@ function CatImagen() {
                                         }}
                                     />
                                 </Box>
-                                <Button
-                                    onClick={fetchImagenData}
-                                    style={{
-                                        backgroundColor: "firebrick",
-                                        color: "white",
-                                        height: '37px'
-                                    }}>Listar
-                                </Button>
+                                <IconButton onClick={fetchImagenData} style={{ color: 'firebrick' }}>
+                                    <RefreshIcon />
+                                </IconButton>
                             </Box>
                         </Box>
                         <ThemeProvider theme={getMuiTheme()}>

@@ -18,7 +18,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
-
+import RefreshIcon from '@mui/icons-material/Refresh';
 import * as XLSX from "xlsx";
 
 const API = process.env.REACT_APP_API;
@@ -265,10 +265,15 @@ function CatMarcaRepuesto() {
                             setDialogOpen(true);
                         }}
                         style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}
-                    >
-                        Insertar Nuevo
+                    >Insertar Nuevo
                     </Button>
-                    <Button onClick={fetchMarcaData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
+                    <Button variant="contained" component="label" style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}
+                    >Cargar Excel
+                        <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                    </Button>
+                    <IconButton onClick={fetchMarcaData} style={{ color: 'firebrick' }}>
+                        <RefreshIcon />
+                    </IconButton>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
@@ -297,10 +302,6 @@ function CatMarcaRepuesto() {
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                         <Button onClick={handleInsertMarca} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedMarca ? 'Actualizar' : 'Guardar'}</Button>
-                        <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
-                            Cargar Excel
-                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
-                        </Button>
                     </DialogActions>
                 </Dialog>
             </div>

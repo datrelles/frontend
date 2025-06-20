@@ -18,6 +18,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 import * as XLSX from "xlsx";
 
@@ -268,7 +269,13 @@ function CatVersion() {
                     >
                         Insertar Nuevo
                     </Button>
-                    <Button onClick={fetchVersionData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
+                    <Button variant="contained" component="label" style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>
+                        Cargar Excel
+                        <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                    </Button>
+                    <IconButton onClick={fetchVersionData} style={{ color: 'firebrick' }}>
+                        <RefreshIcon />
+                    </IconButton>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
@@ -297,10 +304,6 @@ function CatVersion() {
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                         <Button onClick={handleInsertVersion} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedVersion ? 'Actualizar' : 'Guardar'}</Button>
-                        <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
-                            Cargar Excel
-                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
-                        </Button>
                     </DialogActions>
                 </Dialog>
             </div>

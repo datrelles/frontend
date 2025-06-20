@@ -18,6 +18,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import * as XLSX from "xlsx";
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 const API = process.env.REACT_APP_API;
 
@@ -330,7 +331,13 @@ function CatModeloVersionRepuesto() {
                         setDialogOpen(true);
                     } }
                             style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}>Insertar Nuevo</Button>
-                    <Button onClick={fetchModeloVersRepuesto} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
+                    <Button variant="contained" component="label" style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>
+                        Cargar Excel
+                        <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                    </Button>
+                    <IconButton onClick={fetchModeloVersRepuesto} style={{ color: 'firebrick' }}>
+                        <RefreshIcon />
+                    </IconButton>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
@@ -422,10 +429,6 @@ function CatModeloVersionRepuesto() {
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                         <Button onClick={handleInsertOrUpdate} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedItem ? 'Actualizar' : 'Guardar'}</Button>
-                        <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
-                            Cargar Excel
-                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
-                        </Button>
                     </DialogActions>
                 </Dialog>
             </div>

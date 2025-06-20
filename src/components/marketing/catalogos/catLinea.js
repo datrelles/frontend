@@ -19,6 +19,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import * as XLSX from "xlsx";
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 const API = process.env.REACT_APP_API;
 
@@ -81,8 +82,6 @@ function CatLinea() {
         }
     };
 
-
-
     const getMenus = async () => {
         try {
             const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`, {
@@ -104,7 +103,6 @@ function CatLinea() {
         getMenus();
         fetchLineaData();
     }, []);
-
 
     const fetchLineaData = async () => {
         try {
@@ -287,7 +285,13 @@ function CatLinea() {
                     }} style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}>
                         Insertar Nuevo
                     </Button>
-                    <Button onClick={fetchLineaData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
+                    <Button variant="contained" component="label" style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>
+                        Cargar Excel
+                        <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                    </Button>
+                    <IconButton onClick={fetchLineaData} style={{ color: 'firebrick' }}>
+                        <RefreshIcon />
+                    </IconButton>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
@@ -336,10 +340,6 @@ function CatLinea() {
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                         <Button onClick={handleInsertLinea} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>
                             {selectedLinea ? 'Actualizar' : 'Guardar'}
-                        </Button>
-                        <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
-                            Cargar Excel
-                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
                         </Button>
                     </DialogActions>
                 </Dialog>

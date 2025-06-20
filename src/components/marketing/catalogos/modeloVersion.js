@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Navbar0 from "../../Navbar0";
 import Grid from '@mui/material/Grid';
 import LoadingCircle from "../../contabilidad/loader";
-import {Autocomplete, TextField} from '@mui/material';
+import {Autocomplete, IconButton, TextField} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
@@ -20,7 +20,7 @@ import SelectorDimensiones from "../selectoresDialog/selectDimensiones";
 import SelectorMotor from "../selectoresDialog/selectMotor";
 import SelectorElectronica from "../selectoresDialog/selectElectronica";
 import * as XLSX from "xlsx";
-
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 
 const API = process.env.REACT_APP_API;
@@ -359,7 +359,6 @@ function CatModeloVersion() {
         }
     };
 
-
     useEffect(() => {
         getMenus();
         fetchModeloVersion();
@@ -679,8 +678,15 @@ function CatModeloVersion() {
                             fetchVersiones();
                             setDialogOpen(true);
                         } }
-                                style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}>Insertar Nuevo</Button>
-                        <Button onClick={fetchModeloVersion} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
+                                style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}>Insertar Nuevo
+                        </Button>
+                        <Button variant="contained" component="label" style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>
+                            Cargar Excel
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                        </Button>
+                        <IconButton onClick={fetchModeloVersion} style={{ color: 'firebrick' }}>
+                            <RefreshIcon />
+                        </IconButton>
                     </Box>
                     <CatModeloVersionExpandible
                         cabeceras={cabeceras}
@@ -882,10 +888,6 @@ function CatModeloVersion() {
                         <DialogActions>
                             <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                             <Button onClick={handleInsertOrUpdate} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedItem ? 'Actualizar' : 'Guardar'}</Button>
-                            <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
-                                Cargar Excel
-                                <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
-                            </Button>
                         </DialogActions>
                     </Dialog>
                 </div>

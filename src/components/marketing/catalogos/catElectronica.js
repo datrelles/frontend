@@ -18,6 +18,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import * as XLSX from "xlsx";
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 const API = process.env.REACT_APP_API;
 
@@ -278,8 +279,13 @@ function CatElectronica() {
                     >
                         Insertar Nuevo
                     </Button>
-
-                    <Button onClick={fetchElectronicaData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
+                    <Button variant="contained" component="label" style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>
+                        Cargar Excel
+                        <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                    </Button>
+                    <IconButton onClick={fetchElectronicaData} style={{ color: 'firebrick' }}>
+                        <RefreshIcon />
+                    </IconButton>
                 </Box>
 
                 <ThemeProvider theme={getMuiTheme()}>
@@ -301,10 +307,6 @@ function CatElectronica() {
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                         <Button onClick={handleInsertElectronica} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedElectronica ? 'Actualizar' : 'Guardar'}</Button>
-                        <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
-                            Cargar Excel
-                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
-                        </Button>
                     </DialogActions>
                 </Dialog>
             </div>

@@ -17,6 +17,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 import * as XLSX from "xlsx";
 import GlobalLoading from "../selectoresDialog/GlobalLoading";
@@ -514,8 +515,11 @@ function CatModeloComercial() {
                     setEstadoModelo('');
                     setDialogOpen(true);
                 } }
-                        style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}>Insertar Nuevo</Button>
-                <Button onClick={fetchModeloComercial} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
+                        style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Insertar Nuevo</Button>
+                <Button variant="contained" component="label" style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>
+                    Cargar Excel
+                    <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                </Button>
                 <Button
                     variant="contained"
                     component="label"
@@ -524,6 +528,9 @@ function CatModeloComercial() {
                     ACTUALIZAR MASIVO
                     <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
                 </Button>
+                <IconButton onClick={fetchModeloComercial} style={{ color: 'firebrick' }}>
+                    <RefreshIcon />
+                </IconButton>
             </Box>
             <ThemeProvider theme={getMuiTheme()}>
                 <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
@@ -575,10 +582,6 @@ function CatModeloComercial() {
                 <DialogActions>
                     <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                     <Button onClick={handleInsert} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedItem ? 'Actualizar' : 'Guardar'}</Button>
-                    <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
-                        Cargar Excel
-                        <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
-                    </Button>
                 </DialogActions>
             </Dialog>
         </div>

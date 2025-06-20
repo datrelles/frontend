@@ -5,8 +5,7 @@ import Navbar0 from "../../Navbar0";
 import MUIDataTable from "mui-datatables";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
-import LoadingCircle from "../../contabilidad/loader";
-import {IconButton, TextField, Autocomplete, CircularProgress} from '@mui/material';
+import {IconButton, TextField, Autocomplete} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
@@ -18,11 +17,8 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import * as XLSX from "xlsx";
-import {Backdrop} from "@material-ui/core";
-import Typography from "@mui/material/Typography";
-import {createPortal} from "react-dom";
 import GlobalLoading from "../selectoresDialog/GlobalLoading";
-
+import RefreshIcon from '@mui/icons-material/Refresh';
 const API = process.env.REACT_APP_API;
 
 function CatMotor() {
@@ -334,7 +330,10 @@ function CatMotor() {
                 </Box>
                 <Box>
                     <Button onClick={() => { setSelectedMotor(null); setForm({}); setDialogOpen(true); }} style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}>Insertar Motor</Button>
-                    <Button onClick={fetchMotoresData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar Motor</Button>
+                    <Button variant="contained" component="label" style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>
+                        Cargar Excel
+                        <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                    </Button>
                     <Button
                         variant="contained"
                         component="label"
@@ -343,6 +342,9 @@ function CatMotor() {
                         ACTUALIZAR MASIVO
                         <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
                     </Button>
+                    <IconButton onClick={fetchMotoresData} style={{ color: 'firebrick' }}>
+                        <RefreshIcon />
+                    </IconButton>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
@@ -379,10 +381,6 @@ function CatMotor() {
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                         <Button onClick={handleInsertMotor} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedMotor ? 'Actualizar' : 'Guardar'}</Button>
-                        <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
-                            Cargar Excel
-                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
-                        </Button>
                     </DialogActions>
                 </Dialog>
             </div>

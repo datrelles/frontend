@@ -19,6 +19,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import * as XLSX from "xlsx";
 import GlobalLoading from "../selectoresDialog/GlobalLoading";
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 const API = process.env.REACT_APP_API;
 
@@ -339,9 +340,16 @@ function CatChasis() {
                         }}
                         style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}
                     >
-                        Insertar Nuevo
+                        INSERTAR NUEVO
                     </Button>
-                    <Button onClick={fetchChasisData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
+                    <Button
+                        variant="contained"
+                        component="label"
+                        style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}
+                    >
+                        INSERTAR MASIVO
+                        <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                    </Button>
                     <Button
                         variant="contained"
                         component="label"
@@ -350,6 +358,10 @@ function CatChasis() {
                         ACTUALIZAR MASIVO
                         <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
                     </Button>
+                    <IconButton onClick={fetchChasisData} style={{ color: 'firebrick' }}>
+                        <RefreshIcon />
+                    </IconButton>
+
                 </Box>
 
                 <ThemeProvider theme={getMuiTheme()}>
@@ -399,10 +411,7 @@ function CatChasis() {
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                         <Button onClick={handleInsertChasis} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedChasis ? 'Actualizar' : 'Guardar'}</Button>
-                        <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
-                            Insertar Masivo
-                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
-                        </Button>
+
                     </DialogActions>
                 </Dialog>
             </div>

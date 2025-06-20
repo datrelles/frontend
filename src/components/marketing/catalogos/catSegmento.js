@@ -18,7 +18,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import * as XLSX from "xlsx";
 import GlobalLoading from "../selectoresDialog/GlobalLoading";
-
+import RefreshIcon from '@mui/icons-material/Refresh';
 const API = process.env.REACT_APP_API;
 
 function CatSegmento() {
@@ -280,7 +280,6 @@ function CatSegmento() {
         reader.readAsBinaryString(file);
     };
 
-
     const columns = [
         { name: 'codigo_segmento', label: 'CÓDIGO' },
         { name: 'nombre_linea_padre', label: 'LINEA PRINCIPAL' },
@@ -406,7 +405,10 @@ function CatSegmento() {
                         setDialogOpen(true);
                     } }
                             style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}>Insertar Nuevo</Button>
-                    <Button onClick={fetchSegmentos} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
+                    <Button variant="contained" component="label"  style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>
+                        Cargar Excel
+                        <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                    </Button>
                     <Button
                         variant="contained"
                         component="label"
@@ -415,6 +417,9 @@ function CatSegmento() {
                         ACTUALIZAR MASIVO
                         <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
                     </Button>
+                    <IconButton onClick={fetchSegmentos} style={{ color: 'firebrick' }}>
+                        <RefreshIcon />
+                    </IconButton>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
@@ -515,10 +520,6 @@ function CatSegmento() {
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                         <Button onClick={handleInsertOrUpdate} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedItem ? 'Actualizar' : 'Guardar'}</Button>
-                        <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
-                            Cargar Excel
-                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
-                        </Button>
                     </DialogActions>
                 </Dialog>
             </div>
