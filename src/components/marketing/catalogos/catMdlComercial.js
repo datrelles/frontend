@@ -20,6 +20,7 @@ import DialogActions from "@mui/material/DialogActions";
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 
 import * as XLSX from "xlsx";
+import GlobalLoading from "../selectoresDialog/GlobalLoading";
 
 const API = process.env.REACT_APP_API;
 
@@ -38,6 +39,7 @@ function CatModeloComercial() {
     const [selectedHomologado, setSelectedHomologado] = useState(null);
     const [estadoModelo, setEstadoModelo] = useState('');
     const [marcasActivas, setMarcasActivas] = useState([]);
+    const [loadingGlobal, setLoadingGlobal] = useState(false);
     const [form, setForm] = useState({
         codigo_marca: '',
         nombre_marca: '',
@@ -191,6 +193,100 @@ function CatModeloComercial() {
 
             } catch (error) {
                 enqueueSnackbar(error.message || "Error durante la lectura del archivo", { variant: "error" });
+            }
+        };
+
+        reader.readAsBinaryString(file);
+    };
+
+    const handleUploadExcelUpdate = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async (evt) => {
+            const data = evt.target.result;
+            const workbook = XLSX.read(data, { type: "binary" });
+            const sheetName = workbook.SheetNames[0];
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+            setLoadingGlobal(true);
+
+            try {
+                const processedRows = rows.map((row, index) => {
+                    const codigo_modelo_comercial = parseInt(row.codigo_modelo_comercial);
+                    const nombre_marca = (row.nombre_marca || "").toString().trim();
+                    const nombre_modelo_sri = (row.nombre_modelo_sri || "").toString().trim();
+                    const nombre_modelo = (row.nombre_modelo || "").toString().trim();
+                    const anio_modelo = parseInt(row.anio_modelo);
+                    const estado_raw = (row.estado_modelo || "").toString().trim().toLowerCase();
+
+                    if (
+                        isNaN(codigo_modelo_comercial) ||
+                        !nombre_marca ||
+                        !nombre_modelo_sri ||
+                        !nombre_modelo ||
+                        isNaN(anio_modelo)
+                    ) {
+                        throw new Error(`Fila ${index + 2}: Datos obligatorios faltantes.`);
+                    }
+
+                    const estado_modelo = estado_raw === "activo" ? 1 : estado_raw === "inactivo" ? 0 : null;
+                    if (estado_modelo === null) {
+                        throw new Error(`Fila ${index + 2}: Estado debe ser 'ACTIVO' o 'INACTIVO'.`);
+                    }
+
+                    const homologado = homologados.find(
+                        h =>
+                            (h.nombre_modelo_sri ?? "")
+                                .toString()
+                                .trim()
+                                .toLowerCase() === nombre_modelo_sri.toLowerCase()
+                    );
+
+                    if (!homologado) {
+                        throw new Error(`Fila ${index + 2}: Modelo homologado '${nombre_modelo_sri}' no encontrado.`);
+                    }
+
+                    return {
+                        codigo_modelo_comercial,
+                        nombre_marca,
+                        codigo_modelo_homologado: homologado.codigo_modelo_homologado,
+                        nombre_modelo,
+                        anio_modelo,
+                        estado_modelo
+                    };
+                });
+
+                const res = await fetch(`${API}/bench/update_modelos_comerciales_masivo`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + jwt,
+                    },
+                    body: JSON.stringify(processedRows)
+                });
+
+                const responseData = await res.json();
+
+                if (res.ok) {
+                    enqueueSnackbar(responseData.message || "Actualización masiva exitosa", { variant: "success" });
+
+                    if (responseData.duplicados?.length > 0) {
+                        enqueueSnackbar(`${responseData.duplicados.length} duplicado(s) omitido(s)`, { variant: "warning" });
+                    }
+
+                    if (responseData.errores?.length > 0) {
+                        enqueueSnackbar(`${responseData.errores.length} fila(s) con error`, { variant: "error" });
+                    }
+
+                    fetchModeloComercial();
+                } else {
+                    enqueueSnackbar(responseData.error || "Error en la actualización", { variant: "error" });
+                }
+
+            } catch (error) {
+                enqueueSnackbar("Error inesperado durante la carga", { variant: "error" });
+            } finally {
+                setLoadingGlobal(false);
             }
         };
 
@@ -397,7 +493,8 @@ function CatModeloComercial() {
         });
 
     return (
-        <>{loading ? (<LoadingCircle />) : (
+        <>
+            <GlobalLoading open={loadingGlobal} />
             <div style={{ marginTop: '150px', width: "100%" }}>
                 <Navbar0 menus={menus} />
                 <Box>
@@ -422,11 +519,18 @@ function CatModeloComercial() {
                 } }
                         style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}>Insertar Nuevo</Button>
                 <Button onClick={fetchModeloComercial} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
+                <Button
+                    variant="contained"
+                    component="label"
+                    style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}
+                >
+                    ACTUALIZAR MASIVO
+                    <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
+                </Button>
             </Box>
             <ThemeProvider theme={getMuiTheme()}>
                 <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
             </ThemeProvider>
-
             <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                 <DialogTitle>{selectedItem ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                 <DialogContent>
@@ -453,12 +557,9 @@ function CatModeloComercial() {
                                 }}
                                 renderInput={(params) => <TextField {...params} label="Modelo Homologado" />}
                             />
-
-
                         </Grid>
                         <Grid item xs={6}><TextField fullWidth label="Nombre Modelo Comercial" value={form.nombre_modelo || ''} onChange={(e) => handleChange('nombre_modelo', e.target.value.toUpperCase())} /></Grid>
                         <Grid item xs={3}><TextField fullWidth label="Año" type="number" value={form.anio_modelo || ''} onChange={(e) => handleChange('anio_modelo', e.target.value)} /></Grid>
-
                         <Grid item xs={3}>
                             <FormControl fullWidth>
                                 <InputLabel id="estado-modelo-label">Estado</InputLabel>
@@ -485,7 +586,8 @@ function CatModeloComercial() {
                 </DialogActions>
             </Dialog>
         </div>
-    )}</>);
+        </>
+    );
 }
 
 export default function IntegrationNotistack() {

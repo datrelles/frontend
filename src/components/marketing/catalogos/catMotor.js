@@ -6,7 +6,7 @@ import MUIDataTable from "mui-datatables";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import LoadingCircle from "../../contabilidad/loader";
-import { IconButton, TextField, Autocomplete } from '@mui/material';
+import {IconButton, TextField, Autocomplete, CircularProgress} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
@@ -18,6 +18,10 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import * as XLSX from "xlsx";
+import {Backdrop} from "@material-ui/core";
+import Typography from "@mui/material/Typography";
+import {createPortal} from "react-dom";
+import GlobalLoading from "../selectoresDialog/GlobalLoading";
 
 const API = process.env.REACT_APP_API;
 
@@ -30,7 +34,8 @@ function CatMotor() {
     const [selectedMotor, setSelectedMotor] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [menus, setMenus] = useState([]);
-    const [loading] = useState(false);
+    const [loadingGlobal, setLoadingGlobal] = useState(false);
+
 
     const [form, setForm] = useState({
         codigo_tipo_motor: null,
@@ -192,6 +197,50 @@ function CatMotor() {
         reader.readAsBinaryString(file);
     };
 
+    const handleUploadExcelUpdate = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async (evt) => {
+            const data = evt.target.result;
+            const workbook = XLSX.read(data, { type: "binary" });
+            const sheetName = workbook.SheetNames[0];
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
+            setLoadingGlobal(true);
+
+            try {
+                const res = await fetch(`${API}/bench/update_motor_masivo`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + jwt,
+                    },
+                    body: JSON.stringify(rows)
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    enqueueSnackbar(`Motores actualizados: ${result.actualizados}`, { variant: "success" });
+
+                    if (result.errores?.length > 0) {
+                        enqueueSnackbar(`Errores en ${result.errores.length} fila(s)`, { variant: "warning" });
+                        console.warn("Errores:", result.errores);
+                    }
+                    fetchMotoresData();
+                } else {
+                    enqueueSnackbar(result.error || "Error al actualizar motores", { variant: "error" });
+                }
+            } catch (error) {
+                enqueueSnackbar("Error inesperado durante la carga", { variant: "error" });
+            } finally {
+                setLoadingGlobal(false);
+            }
+        };
+
+        reader.readAsBinaryString(file);
+    };
+
     const openEditDialog = (rowData) => {
         setSelectedMotor(rowData);
         setForm({
@@ -229,7 +278,7 @@ function CatMotor() {
     }, [])
 
     const columns = [
-       // { name: 'codigo_motor', label: 'Código' },
+        { name: 'codigo_motor', label: 'Código' },
         { name: "nombre_tipo_motor", label: "Tipo de Motor" },
         { name: 'nombre_motor', label: 'Nombre Motor' },
         { name: 'cilindrada', label: 'Cilindrada' },
@@ -273,8 +322,9 @@ function CatMotor() {
     });
 
     return (
-        <>{loading ? <LoadingCircle /> : (
-            <div style={{ marginTop: '150px', width: "100%" }}>
+        <>
+            <GlobalLoading open={loadingGlobal} />
+            <div style={{ marginTop: '150px', width: '100%' }}>
                 <Navbar0 menus={menus} />
                 <Box>
                     <ButtonGroup variant="text">
@@ -285,11 +335,18 @@ function CatMotor() {
                 <Box>
                     <Button onClick={() => { setSelectedMotor(null); setForm({}); setDialogOpen(true); }} style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}>Insertar Motor</Button>
                     <Button onClick={fetchMotoresData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar Motor</Button>
+                    <Button
+                        variant="contained"
+                        component="label"
+                        style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}
+                    >
+                        ACTUALIZAR MASIVO
+                        <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
+                    </Button>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
                 </ThemeProvider>
-
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selectedMotor ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
@@ -329,7 +386,7 @@ function CatMotor() {
                     </DialogActions>
                 </Dialog>
             </div>
-        )}</>
+        </>
     );
 }
 

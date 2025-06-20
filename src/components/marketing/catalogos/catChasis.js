@@ -18,6 +18,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import * as XLSX from "xlsx";
+import GlobalLoading from "../selectoresDialog/GlobalLoading";
 
 const API = process.env.REACT_APP_API;
 
@@ -31,7 +32,6 @@ function CatChasis() {
     const [suspPost, setSuspPost] = useState('');
     const [frenoDel, setFrenoDel] = useState('');
     const [frenoPost, setFrenoPost] = useState('');
-    const [loading] = useState(false);
     const [cabeceras, setCabeceras] = useState([]);
     const [menus, setMenus] = useState([]);
     const [selectedChasis, setSelectedChasis] = useState(null);
@@ -41,6 +41,7 @@ function CatChasis() {
     const [neuPost, setNeuPost] = useState('');
     const [errorNeuDel, setErrorNeuDel] = useState(false);
     const [errorNeuPost, setErrorNeuPost] = useState(false);
+    const [loadingGlobal, setLoadingGlobal] = useState(false);
 
 
     const handleInsertChasis = async () => {
@@ -189,6 +190,50 @@ function CatChasis() {
         reader.readAsBinaryString(file);
     };
 
+    const handleUploadExcelUpdate = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async (evt) => {
+            const data = evt.target.result;
+            const workbook = XLSX.read(data, { type: "binary" });
+            const sheetName = workbook.SheetNames[0];
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
+            setLoadingGlobal(true);
+
+            try {
+                const res = await fetch(`${API}/bench/update_chasis_masivo`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + jwt,
+                    },
+                    body: JSON.stringify(rows)
+                });
+
+                const responseData = await res.json();
+                if (res.ok) {
+                    enqueueSnackbar(`Chasis actualizados: ${responseData.actualizados}`, { variant: "success" });
+
+                    if (responseData.errores?.length > 0) {
+                        enqueueSnackbar(`Errores en ${responseData.errores.length} fila(s)`, { variant: "warning" });
+                    }
+
+                    fetchChasisData();
+                } else {
+                    enqueueSnackbar(responseData.error || "Error al actualizar", { variant: "error" });
+                }
+            } catch (error) {
+                enqueueSnackbar("Error inesperado durante la carga", { variant: "error" });
+            } finally {
+                setLoadingGlobal(false);
+            }
+        };
+
+        reader.readAsBinaryString(file);
+    };
+
+
     const columns = [
         { name: "codigo_chasis", label: "Código Chasis" },
         { name: "aros_rueda_posterior", label: "Aros Rueda Posterior" },
@@ -267,7 +312,8 @@ function CatChasis() {
         });
 
     return (
-        <>{loading ? (<LoadingCircle />) : (
+        <>
+            <GlobalLoading open={loadingGlobal} />
             <div style={{ marginTop: '150px', width: "100%" }}>
                 <Navbar0 menus={menus} />
                 <Box>
@@ -296,6 +342,14 @@ function CatChasis() {
                         Insertar Nuevo
                     </Button>
                     <Button onClick={fetchChasisData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
+                    <Button
+                        variant="contained"
+                        component="label"
+                        style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}
+                    >
+                        ACTUALIZAR MASIVO
+                        <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
+                    </Button>
                 </Box>
 
                 <ThemeProvider theme={getMuiTheme()}>
@@ -346,13 +400,13 @@ function CatChasis() {
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                         <Button onClick={handleInsertChasis} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedChasis ? 'Actualizar' : 'Guardar'}</Button>
                         <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
-                            Cargar Excel
+                            Insertar Masivo
                             <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
                         </Button>
                     </DialogActions>
                 </Dialog>
             </div>
-        )}</>
+        </>
     );
 }
 

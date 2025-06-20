@@ -200,29 +200,46 @@ function CatSegmento() {
     const handleUploadExcel = (e) => {
         const file = e.target.files[0];
         const reader = new FileReader();
+
         reader.onload = async (evt) => {
             try {
                 const wb = XLSX.read(evt.target.result, { type: 'binary' });
                 const sheet = wb.Sheets[wb.SheetNames[0]];
                 const rows = XLSX.utils.sheet_to_json(sheet);
+
                 const res = await fetch(`${API}/bench/insert_segmento`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
-                    body: JSON.stringify({ repuestos: rows })
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + jwt
+                    },
+                    body: JSON.stringify(rows)
                 });
+
                 const json = await res.json();
-                if (res.ok) enqueueSnackbar(json.message, { variant: 'success' });
-                else enqueueSnackbar(json.error || 'Error en carga', { variant: 'error' });
-                fetchSegmentos();
+
+                if (res.ok) {
+                    enqueueSnackbar(json.message || 'Segmentos cargados', { variant: 'success' });
+                    if (json.errores?.length > 0) {
+                        enqueueSnackbar(`${json.errores.length} fila(s) con error`, { variant: 'error' });
+                        console.warn("Errores:", json.errores);
+                    }
+                    fetchSegmentos();
+                } else {
+                    enqueueSnackbar(json.error || 'Error en carga', { variant: 'error' });
+                }
+
             } catch (err) {
                 enqueueSnackbar('Error procesando archivo', { variant: 'error' });
             }
         };
+
         reader.readAsBinaryString(file);
     };
 
+
     const columns = [
-        //{ name: 'codigo_segmento', label: 'CÓDIGO' },
+        { name: 'codigo_segmento', label: 'CÓDIGO' },
         { name: 'nombre_linea_padre', label: 'LINEA PRINCIPAL' },
         { name: 'nombre_linea', label: 'LINEA' },
         { name: 'nombre_segmento', label: 'SEGMENTO' },
@@ -393,7 +410,7 @@ function CatSegmento() {
                                         labelId="estado-segmento-label"
                                         value={form.estado_segmento}
                                         onChange={(e) => handleChange('estado_segmento', e.target.value)}
-                                    >
+                                        variant="outlined">
                                         <MenuItem value={1}>ACTIVO</MenuItem>
                                         <MenuItem value={0}>INACTIVO</MenuItem>
                                     </Select>
