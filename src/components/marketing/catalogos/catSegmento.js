@@ -18,6 +18,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import * as XLSX from "xlsx";
+import GlobalLoading from "../selectoresDialog/GlobalLoading";
 
 const API = process.env.REACT_APP_API;
 
@@ -35,6 +36,7 @@ function CatSegmento() {
     const [selectedLineaPadre, setSelectedLineaPadre] = useState(null);
     const [cabeceras, setCabeceras] = useState([]);
     const [loading] = useState(false);
+    const [loadingGlobal, setLoadingGlobal] = useState(false);
     const [form, setForm] = useState({
         codigo_segmento: '',
         codigo_linea: '',
@@ -237,6 +239,49 @@ function CatSegmento() {
         reader.readAsBinaryString(file);
     };
 
+    const handleUploadExcelUpdate = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async (evt) => {
+            try {
+                const wb = XLSX.read(evt.target.result, { type: 'binary' });
+                const sheet = wb.Sheets[wb.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(sheet);
+                setLoadingGlobal(true);
+
+                const res = await fetch(`${API}/bench/update_segmentos_masivo`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + jwt
+                    },
+                    body: JSON.stringify(rows)
+                });
+
+                const json = await res.json();
+
+                if (res.ok) {
+                    enqueueSnackbar(json.message || 'Segmentos cargados', { variant: 'success' });
+                    if (json.errores?.length > 0) {
+                        enqueueSnackbar(`${json.errores.length} fila(s) con error`, { variant: 'error' });
+                        console.warn("Errores:", json.errores);
+                    }
+                    fetchSegmentos();
+                } else {
+                    enqueueSnackbar(json.error || 'Error en carga', { variant: 'error' });
+                }
+
+            } catch (error) {
+                enqueueSnackbar("Error inesperado durante la carga", { variant: "error" });
+            } finally {
+                setLoadingGlobal(false);
+            }
+        };
+
+        reader.readAsBinaryString(file);
+    };
+
 
     const columns = [
         { name: 'codigo_segmento', label: 'CÓDIGO' },
@@ -330,7 +375,8 @@ function CatSegmento() {
     });
 
     return (
-        <>{loading ? (<LoadingCircle />) : (
+        <>
+            <GlobalLoading open={loadingGlobal} />
             <div style={{ marginTop: '150px', width: "100%" }}>
                 <Navbar0 menus={menus} />
                 <Box>
@@ -363,6 +409,14 @@ function CatSegmento() {
                     } }
                             style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}>Insertar Nuevo</Button>
                     <Button onClick={fetchSegmentos} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
+                    <Button
+                        variant="contained"
+                        component="label"
+                        style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}
+                    >
+                        ACTUALIZAR MASIVO
+                        <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
+                    </Button>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
@@ -470,7 +524,8 @@ function CatSegmento() {
                     </DialogActions>
                 </Dialog>
             </div>
-        )}</>);
+        </>
+    );
 }
 
 export default function IntegrationNotistackWrapper() {
