@@ -118,19 +118,25 @@ export default function PresupuestoCantidades() {
 
   const handleUpdateCell = createOnUpdateCell({
     fn: (newValue, rowData, columnDefinition) => {
-      setFilasTabla((prev) => {
-        const filasActualizadas = prev.map((fila) => ({
-          ...fila,
-          ...(fila.cod_cliente === rowData.cod_cliente &&
-          fila.cod_modelo === rowData.cod_modelo
-            ? { [columnDefinition.field]: newValue }
-            : {}),
-        }));
-        return obtenerFilasConsolidadas(
-          columnasTablaRef.current,
-          filasActualizadas
-        );
-      });
+      APIService.updateProyeccion(
+        COD_VERSION,
+        COD_PROCESO_PRESUP_CANT,
+        columnDefinition.context.cod_parametro,
+        rowData.cod_modelo,
+        rowData.cod_marca,
+        rowData.cod_cliente,
+        columnDefinition.context.anio,
+        columnDefinition.context.mes,
+        {
+          numero: validarTipoRetornoYConvertir(TiposRetorno.NUMERO, newValue),
+        }
+      )
+        .then((_) => {
+          handleProyectar();
+        })
+        .catch((err) => {
+          toast.error(err.message);
+        });
     },
   });
 

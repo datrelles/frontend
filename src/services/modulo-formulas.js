@@ -351,8 +351,30 @@ export default class API {
 
   getProyeccion = this.#errorHandler(async (version, proceso) => {
     return await axios.get(
-      `${this.#URL}/versiones/${version}/procesos/${proceso}/proyeccion`,
+      `${this.#URL}/versiones/${version}/proyecciones/procesos/${proceso}`,
       this.#headers
     );
   });
+
+  updateProyeccion = this.#errorHandler(
+    async (
+      version,
+      proceso,
+      parametro,
+      modelo,
+      marca,
+      cliente,
+      anio,
+      mes,
+      data
+    ) => {
+      return await axios.put(
+        `${
+          this.#URL
+        }/versiones/${version}/proyecciones/procesos/${proceso}/parametros/${parametro}/modelos/${modelo}/marcas/${marca}/clientes/${cliente}/anios/${anio}/meses/${mes}`,
+        data,
+        this.#headers
+      );
+    }
+  );
 }
