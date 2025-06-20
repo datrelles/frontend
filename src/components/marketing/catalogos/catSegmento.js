@@ -5,7 +5,6 @@ import Navbar0 from "../../Navbar0";
 import MUIDataTable from "mui-datatables";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
-import LoadingCircle from "../../contabilidad/loader";
 import {Autocomplete, FormControl, IconButton, InputLabel, MenuItem, Select, TextField} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
@@ -35,7 +34,6 @@ function CatSegmento() {
     const [selectedLineas, setSelectedLineas] = useState(null);
     const [selectedLineaPadre, setSelectedLineaPadre] = useState(null);
     const [cabeceras, setCabeceras] = useState([]);
-    const [loading] = useState(false);
     const [loadingGlobal, setLoadingGlobal] = useState(false);
     const [form, setForm] = useState({
         codigo_segmento: '',

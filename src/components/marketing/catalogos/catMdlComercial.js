@@ -1,7 +1,6 @@
 import MUIDataTable from "mui-datatables";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
-import LoadingCircle from "../../contabilidad/loader";
 import {Autocomplete, IconButton, TextField} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
@@ -35,7 +34,6 @@ function CatModeloComercial() {
     const [selectedItem, setSelectedItem] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [menus, setMenus] = useState([]);
-    const [loading] = useState(false);
     const [selectedHomologado, setSelectedHomologado] = useState(null);
     const [estadoModelo, setEstadoModelo] = useState('');
     const [marcasActivas, setMarcasActivas] = useState([]);
@@ -123,6 +121,7 @@ function CatModeloComercial() {
             const workbook = XLSX.read(data, { type: "binary" });
             const sheetName = workbook.SheetNames[0];
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+            setLoadingGlobal(true);
 
             try {
                 const processedRows = rows.map((row, index) => {
@@ -149,7 +148,6 @@ function CatModeloComercial() {
                                 .trim()
                                 .toLowerCase() === nombre_modelo_sri.toLowerCase()
                     );
-
 
                     if (!homologado) {
                         throw new Error(`Fila ${index + 2}: Modelo homologado '${nombre_modelo_sri}' no encontrado.`);
@@ -185,14 +183,15 @@ function CatModeloComercial() {
                     if (responseData.errores?.length > 0) {
                         enqueueSnackbar(`${responseData.errores.length} con error(es)`, { variant: "error" });
                     }
-
                     fetchModeloComercial();
                 } else {
                     enqueueSnackbar(responseData.error || "Error en la carga", { variant: "error" });
                 }
 
             } catch (error) {
-                enqueueSnackbar(error.message || "Error durante la lectura del archivo", { variant: "error" });
+                enqueueSnackbar("Error inesperado durante la carga", { variant: "error" });
+            } finally {
+                setLoadingGlobal(false);
             }
         };
 
@@ -293,7 +292,6 @@ function CatModeloComercial() {
         reader.readAsBinaryString(file);
     };
 
-
     const openEditDialog = (row) => {
         const homologado = homologados.find(
             h => Number(h.codigo_modelo_homologado) === Number(row.codigo_modelo_homologado)
@@ -367,7 +365,6 @@ function CatModeloComercial() {
             enqueueSnackbar('Error cargando tipos de motor', { variant: 'error' });
         }
     };
-
 
     const getMenus = async () => {
         try {
@@ -572,7 +569,6 @@ function CatModeloComercial() {
                                     <MenuItem value="INACTIVO">INACTIVO</MenuItem>
                                 </Select>
                             </FormControl>
-
                         </Grid>
                     </Grid>
                 </DialogContent>
