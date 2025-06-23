@@ -19,6 +19,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import * as XLSX from "xlsx";
 import RefreshIcon from '@mui/icons-material/Refresh';
+import GlobalLoading from "../selectoresDialog/GlobalLoading";
 
 const API = process.env.REACT_APP_API;
 
@@ -37,6 +38,7 @@ function CatElectronica() {
     const [loading] = useState(false);
     const [selectedElectronica, setSelectedElectronica] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [loadingGlobal, setLoadingGlobal] = useState(false);
 
     const handleInsertElectronica = async () => {
         const url = selectedElectronica && selectedElectronica.codigo_electronica
@@ -138,12 +140,12 @@ function CatElectronica() {
 
     const columns = [
         { name: "codigo_electronica", label: "Código" },
+        { name: "velocidad_maxima", label: "Velocidad maxima" },
         { name: "capacidad_combustible", label: "Capacidad combustible" },
         { name: "tablero", label: "Tablero" },
         { name: "luces_delanteras", label: "Luces delanteras" },
         { name: "luces_posteriores", label: "Luces posteriores" },
         { name: "garantia", label: "Garantía" },
-        { name: "velocidad_maxima", label: "Velocidad maxima" },
         //{ name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
@@ -204,6 +206,70 @@ function CatElectronica() {
         reader.readAsBinaryString(file);
     };
 
+    const handleUploadExcelUpdate = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async (evt) => {
+            const data = evt.target.result;
+            const workbook = XLSX.read(data, { type: "binary" });
+            const sheetName = workbook.SheetNames[0];
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+
+            const combinaciones = new Map();
+            const duplicados = [];
+
+            rows.forEach((row, index) => {
+                const clave = `${row.velocidad_maxima}_${row.capacidad_combustible}_${row.tablero}_${row.luces_delanteras}_${row.luces_posteriores}_${row.garantia}`;
+                if (combinaciones.has(clave)) {
+                    const filaOriginal = combinaciones.get(clave);
+                    duplicados.push({ filaOriginal, filaDuplicada: index + 2, clave });
+                } else {
+                    combinaciones.set(clave, index + 2);
+                }
+            });
+
+            if (duplicados.length > 0) {
+                const msg = duplicados.map(d =>
+                    `Duplicado con clave [${d.clave}] en filas ${d.filaOriginal} y ${d.filaDuplicada}`
+                ).join('\n');
+
+                enqueueSnackbar(`Error..!! Registros duplicados detectados:\n${msg}`, {
+                    variant: "error",
+                    persist: true
+                });
+                return;
+            }
+
+            setLoadingGlobal(true);
+
+            try {
+                const res = await fetch(`${API}/bench/update_electronica_masivo`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + jwt,
+                    },
+                    body: JSON.stringify(rows)
+                });
+
+                const responseData = await res.json();
+                if (res.ok) {
+                    enqueueSnackbar("Actualización exitosa", { variant: "success" });
+                    fetchElectronicaData();
+                } else {
+                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
+                }
+            } catch (error) {
+                enqueueSnackbar("Error inesperado durante la carga", { variant: "error" });
+            } finally {
+                setLoadingGlobal(false);
+            }
+        };
+
+        reader.readAsBinaryString(file);
+    };
+
     const openEditDialog = (rowData) => {
         setSelectedElectronica(rowData);
         setCapCombustible(rowData.capacidad_combustible || '');
@@ -252,7 +318,8 @@ function CatElectronica() {
         });
 
     return (
-        <>{loading ? (<LoadingCircle />) : (
+        <>
+            <GlobalLoading open={loadingGlobal} />
             <div style={{ marginTop: '150px', width: "100%" }}>
                 <Navbar0 menus={menus} />
                 <Box>
@@ -283,6 +350,10 @@ function CatElectronica() {
                         Cargar Excel
                         <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
                     </Button>
+                    <Button variant="contained" component="label" style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>
+                        Actualización masiva
+                        <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
+                    </Button>
                     <IconButton onClick={fetchElectronicaData} style={{ color: 'firebrick' }}>
                         <RefreshIcon />
                     </IconButton>
@@ -310,7 +381,7 @@ function CatElectronica() {
                     </DialogActions>
                 </Dialog>
             </div>
-        )}</>
+        </>
     );
 }
 
