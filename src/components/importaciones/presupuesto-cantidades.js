@@ -80,6 +80,7 @@ export default function PresupuestoCantidades() {
   const [nuevaVersion, setNuevaVersion] = useState("");
   const [versiones, setVersiones] = useState([]);
   const [version, setVersion] = useState(shapeVersion);
+  const codVersionRef = useRef("");
   const [datosCargados, setDatosCargados] = useState(false);
   const [menus, setMenus] = useState([]);
   const [clientes, setClientes] = useState([]);
@@ -88,8 +89,8 @@ export default function PresupuestoCantidades() {
     DefaultMesesProyeccion
   );
   const [parametrosProceso, setParametrosProceso] = useState([]);
+  const [proyeccionCargada, setProyeccionCargada] = useState(false);
   const [columnasTabla, setColumnasTabla] = useState([]);
-  const columnasTablaRef = useRef(columnasTabla);
   const [filasTabla, setFilasTabla] = useState([]);
 
   const getMenus = async () => {
@@ -152,7 +153,7 @@ export default function PresupuestoCantidades() {
   const handleUpdateCell = createOnUpdateCell({
     fn: (newValue, rowData, columnDefinition) => {
       APIService.updateProyeccion(
-        version.cod_version,
+        codVersionRef.current,
         COD_PROCESO_PRESUP_CANT,
         columnDefinition.context.cod_parametro,
         rowData.cod_modelo,
@@ -165,7 +166,7 @@ export default function PresupuestoCantidades() {
         }
       )
         .then((_) => {
-          handleProyectar();
+          cargarProyeccion(codVersionRef.current);
         })
         .catch((err) => {
           toast.error(err.message);
@@ -282,10 +283,12 @@ export default function PresupuestoCantidades() {
       toast.warn("Proyección sin datos");
       setColumnasTabla([]);
       setFilasTabla([]);
+      setProyeccionCargada(false);
       return;
     }
     const { anio_inicio, mes_inicio, anio_fin, mes_fin, datos } = proyeccion;
     proyectar(anio_inicio, mes_inicio, anio_fin, mes_fin, datos);
+    setProyeccionCargada(true);
     toast.success("Proyección cargada");
   };
 
@@ -325,8 +328,8 @@ export default function PresupuestoCantidades() {
           setVersion(value);
           toast.info("Cargando proyección");
           cargarProyeccion(value.cod_version);
-          //disable btnProyectar
         } else {
+          setProyeccionCargada(false);
           setVersion(value ?? shapeVersion);
         }
       }}
@@ -375,7 +378,9 @@ export default function PresupuestoCantidades() {
       onClick={handleProyectar}
       texto="Proyectar"
       icon={false}
-      disabled={!datosCargados || version.cod_version === ""}
+      disabled={
+        !datosCargados || version.cod_version === "" || proyeccionCargada
+      }
     />
   );
 
@@ -421,8 +426,8 @@ export default function PresupuestoCantidades() {
   }, []);
 
   useEffect(() => {
-    columnasTablaRef.current = columnasTabla;
-  }, [columnasTabla]);
+    codVersionRef.current = version.cod_version;
+  }, [version]);
 
   useEffect(() => {
     if (
