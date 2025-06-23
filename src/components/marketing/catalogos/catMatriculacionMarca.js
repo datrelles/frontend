@@ -23,6 +23,10 @@ import {DemoContainer} from "@mui/x-date-pickers/internals/demo";
 import {DatePicker} from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 import {makeStyles} from "@mui/styles";
+import RefreshIcon from '@mui/icons-material/Refresh';
+import AddIcon from "@material-ui/icons/Add";
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import Stack from "@mui/material/Stack";;
 
 const API = process.env.REACT_APP_API;
 
@@ -263,21 +267,31 @@ function CatMatriculaMarca() {
                         <Button onClick={() => navigate(-1)}>Catálogos</Button>
                     </ButtonGroup>
                 </Box>
-                <Box>
-                    <Button onClick={() => {
-                        setSelectedItem(null);
-                        setForm({
-                            codigo_modelo_homologado: '',
-                            placa: '',
-                            fecha_matriculacion: '',
-                            fecha_facturacion: '',
-                            detalle_matriculacion: ''
-                        });
-                        setSelectedHomologado(null);
-                        setDialogOpen(true);
-                    } }
-                            style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}>Insertar Nuevo</Button>
-                    <Button onClick={fetchMatriculaMarca} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
+                <Box sx={{ mt: 2 }}>
+                    <Stack direction="row" spacing={1}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<AddIcon />}
+                            onClick={() => {
+                                setSelectedItem(null);
+                                setForm({
+                                    codigo_modelo_homologado: '',
+                                    placa: '',
+                                    fecha_matriculacion: '',
+                                    fecha_facturacion: '',
+                                    detalle_matriculacion: ''
+                                });
+                                setSelectedHomologado(null);
+                                setDialogOpen(true);
+                            } }
+                            sx={{ textTransform: 'none', fontWeight: 500,backgroundColor: 'firebrick' }}
+                        >Nuevo
+                        </Button>
+                        <IconButton onClick={fetchMatriculaMarca} style={{ color: 'firebrick' }}>
+                            <RefreshIcon />
+                        </IconButton>
+                    </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />

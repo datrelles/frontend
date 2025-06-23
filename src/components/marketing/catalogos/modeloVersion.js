@@ -21,6 +21,9 @@ import SelectorMotor from "../selectoresDialog/selectMotor";
 import SelectorElectronica from "../selectoresDialog/selectElectronica";
 import * as XLSX from "xlsx";
 import RefreshIcon from '@mui/icons-material/Refresh';
+import AddIcon from "@material-ui/icons/Add";
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import Stack from "@mui/material/Stack";
 
 
 const API = process.env.REACT_APP_API;
@@ -633,60 +636,71 @@ function CatModeloVersion() {
                             <Button onClick={() => navigate(-1)}>Catálogos</Button>
                         </ButtonGroup>
                     </Box>
-                    <Box>
-                        <Button onClick={() => {
-                            setSelectedItem(null);
-                            setForm({
-                                codigo_modelo_version: '',
-                                codigo_dim_peso: '',
-                                codigo_imagen: '',
-                                codigo_electronica: '',
-                                codigo_tipo_motor: '',
-                                codigo_motor: '',
-                                codigo_transmision: '',
-                                codigo_color_bench: '',
-                                codigo_chasis: '',
-                                codigo_modelo_comercial: '',
-                                codigo_marca: '',
-                                codigo_cliente_canal: '',
-                                codigo_canal: '',
-                                descripcion_imagen: '',
-                                nombre_canal: '',
-                                nombre_color: '',
-                                codigo_mod_vers_repuesto: '',
-                                empresa: '',
-                                cod_producto: '',
-                                codigo_version: '',
-                                nombre_modelo_version: '',
-                                nombre_version: '',
-                                anio_modelo_version: '',
-                                precio_producto_modelo: '',
-                                precio_venta_distribuidor: ''
-                            });
-                            setSelectedProducto(null);
-                            setSelectedModeloComercial(null);
-                            setSelectedVersion( null);
-                            setSelectedTipoMotor(null);
-                            setSelectedMotor( null);
-                            setSelectedElectronica( null);
-                            setSelectedChasis( null);
-                            setSelectedCanal( null);
-                            setselectedTransmision( null);
-                            setSelectedColor( null);
-                            setSelectedImagen(null);
-                            setSelectedClienteCanal(null);
-                            fetchVersiones();
-                            setDialogOpen(true);
-                        } }
-                                style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}>Insertar Nuevo
-                        </Button>
-                        <Button variant="contained" component="label" style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>
-                            Cargar Excel
-                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
-                        </Button>
-                        <IconButton onClick={fetchModeloVersion} style={{ color: 'firebrick' }}>
-                            <RefreshIcon />
-                        </IconButton>
+                    <Box sx={{ mt: 2 }}>
+                        <Stack direction="row" spacing={1}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                startIcon={<AddIcon />}
+                                onClick={() => {
+                                    setSelectedItem(null);
+                                    setForm({
+                                        codigo_modelo_version: '',
+                                        codigo_dim_peso: '',
+                                        codigo_imagen: '',
+                                        codigo_electronica: '',
+                                        codigo_tipo_motor: '',
+                                        codigo_motor: '',
+                                        codigo_transmision: '',
+                                        codigo_color_bench: '',
+                                        codigo_chasis: '',
+                                        codigo_modelo_comercial: '',
+                                        codigo_marca: '',
+                                        codigo_cliente_canal: '',
+                                        codigo_canal: '',
+                                        descripcion_imagen: '',
+                                        nombre_canal: '',
+                                        nombre_color: '',
+                                        codigo_mod_vers_repuesto: '',
+                                        empresa: '',
+                                        cod_producto: '',
+                                        codigo_version: '',
+                                        nombre_modelo_version: '',
+                                        nombre_version: '',
+                                        anio_modelo_version: '',
+                                        precio_producto_modelo: '',
+                                        precio_venta_distribuidor: ''
+                                    });
+                                    setSelectedProducto(null);
+                                    setSelectedModeloComercial(null);
+                                    setSelectedVersion( null);
+                                    setSelectedTipoMotor(null);
+                                    setSelectedMotor( null);
+                                    setSelectedElectronica( null);
+                                    setSelectedChasis( null);
+                                    setSelectedCanal( null);
+                                    setselectedTransmision( null);
+                                    setSelectedColor( null);
+                                    setSelectedImagen(null);
+                                    setSelectedClienteCanal(null);
+                                    fetchVersiones();
+                                    setDialogOpen(true);
+                                } }
+                                sx={{ textTransform: 'none', fontWeight: 500,backgroundColor: 'firebrick' }}
+                            >Nuevo
+                            </Button>
+                            <Button
+                                variant="contained"
+                                component="label"
+                                startIcon={<CloudUploadIcon />}
+                                sx={{ textTransform: 'none', fontWeight: 500,backgroundColor: 'green' }}
+                            >Insertar Masivo
+                                <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                            </Button>
+                            <IconButton onClick={fetchModeloVersion} style={{ color: 'firebrick' }}>
+                                <RefreshIcon />
+                            </IconButton>
+                        </Stack>
                     </Box>
                     <CatModeloVersionExpandible
                         cabeceras={cabeceras}

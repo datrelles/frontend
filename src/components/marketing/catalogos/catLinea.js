@@ -20,6 +20,9 @@ import DialogActions from "@mui/material/DialogActions";
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import * as XLSX from "xlsx";
 import RefreshIcon from '@mui/icons-material/Refresh';
+import AddIcon from "@material-ui/icons/Add";
+import Stack from "@mui/material/Stack";
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 const API = process.env.REACT_APP_API;
 
@@ -274,24 +277,36 @@ function CatLinea() {
                         <Button onClick={() => navigate(-1)}>Catálogos</Button>
                     </ButtonGroup>
                 </Box>
-                <Box>
-                    <Button onClick={() => {
-                        setSelectedLinea(null);
-                        setNombreLinea('');
-                        setEstadoLinea('');
-                        setDescripcionLinea('');
-                        setLineaPadreSeleccionada(null);
-                        setDialogOpen(true);
-                    }} style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}>
-                        Insertar Nuevo
-                    </Button>
-                    <Button variant="contained" component="label" style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>
-                        Cargar Excel
-                        <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
-                    </Button>
-                    <IconButton onClick={fetchLineaData} style={{ color: 'firebrick' }}>
-                        <RefreshIcon />
-                    </IconButton>
+                <Box sx={{ mt: 2 }}>
+                    <Stack direction="row" spacing={1}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<AddIcon />}
+                            onClick={() => {
+                                setSelectedLinea(null);
+                                setNombreLinea('');
+                                setEstadoLinea('');
+                                setDescripcionLinea('');
+                                setLineaPadreSeleccionada(null);
+                                setDialogOpen(true);
+                            }}
+                            sx={{ textTransform: 'none', fontWeight: 600,backgroundColor: 'firebrick' }}
+                        >Nuevo
+                        </Button>
+                        <Button
+                            variant="contained"
+                            component="label"
+                            startIcon={<CloudUploadIcon />}
+                            sx={{ textTransform: 'none', fontWeight: 600,backgroundColor: 'green' }}
+                        >Insertar Masivo
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                        </Button>
+
+                        <IconButton onClick={fetchLineaData} style={{ color: 'firebrick' }}>
+                            <RefreshIcon />
+                        </IconButton>
+                    </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />

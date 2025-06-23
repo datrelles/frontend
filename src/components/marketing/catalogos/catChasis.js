@@ -5,7 +5,6 @@ import Navbar0 from "../../Navbar0";
 import MUIDataTable from "mui-datatables";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
-import LoadingCircle from "../../contabilidad/loader";
 import {IconButton, TextField} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
@@ -20,6 +19,10 @@ import DialogActions from "@mui/material/DialogActions";
 import * as XLSX from "xlsx";
 import GlobalLoading from "../selectoresDialog/GlobalLoading";
 import RefreshIcon from '@mui/icons-material/Refresh';
+import AddIcon from "@material-ui/icons/Add";
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import Stack from "@mui/material/Stack";
+
 
 const API = process.env.REACT_APP_API;
 
@@ -37,13 +40,11 @@ function CatChasis() {
     const [menus, setMenus] = useState([]);
     const [selectedChasis, setSelectedChasis] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
-
     const [neuDel, setNeuDel] = useState('');
     const [neuPost, setNeuPost] = useState('');
     const [errorNeuDel, setErrorNeuDel] = useState(false);
     const [errorNeuPost, setErrorNeuPost] = useState(false);
     const [loadingGlobal, setLoadingGlobal] = useState(false);
-
 
     const handleInsertChasis = async () => {
         const url = selectedChasis && selectedChasis.codigo_chasis
@@ -90,7 +91,6 @@ function CatChasis() {
         return regex.test(valor.trim());
     };
 
-
     const getMenus = async () => {
         try {
             const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
@@ -115,7 +115,6 @@ function CatChasis() {
 
     }, [])
 
-
     const sanitizeChasis = (item) => {
         const reemplazo = (val) =>
             val === null || val === undefined || val === '' ? 'N/A' : val;
@@ -132,7 +131,6 @@ function CatChasis() {
             frenos_traseros: reemplazo(item.frenos_traseros),
         };
     };
-
 
     const fetchChasisData = async () => {
         try {
@@ -154,7 +152,6 @@ function CatChasis() {
             enqueueSnackbar("Error de conexión", { variant: "error" });
         }
     };
-
 
     const handleUploadExcel = (e) => {
         const file = e.target.files[0];
@@ -233,7 +230,6 @@ function CatChasis() {
 
         reader.readAsBinaryString(file);
     };
-
 
     const columns = [
         { name: "codigo_chasis", label: "Código Chasis" },
@@ -323,47 +319,48 @@ function CatChasis() {
                         <Button onClick={() => navigate(-1)}>Catálogos</Button>
                     </ButtonGroup>
                 </Box>
-
-                <Box>
-                    <Button
-                        onClick={() => {
-                            setSelectedChasis(null);
-                            setArosDel('');
-                            setArosPost('');
-                            setNeuDel('');
-                            setNeuPost('');
-                            setSuspDel('');
-                            setSuspPost('');
-                            setFrenoDel('');
-                            setFrenoPost('');
-                            setDialogOpen(true);
-                        }}
-                        style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}
-                    >
-                        INSERTAR NUEVO
-                    </Button>
-                    <Button
-                        variant="contained"
-                        component="label"
-                        style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}
-                    >
-                        INSERTAR MASIVO
-                        <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
-                    </Button>
-                    <Button
-                        variant="contained"
-                        component="label"
-                        style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}
-                    >
-                        ACTUALIZAR MASIVO
-                        <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
-                    </Button>
-                    <IconButton onClick={fetchChasisData} style={{ color: 'firebrick' }}>
-                        <RefreshIcon />
-                    </IconButton>
-
+                <Box sx={{ mt: 2 }}>
+                    <Stack direction="row" spacing={1}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<AddIcon />}
+                            onClick={() => {
+                                setSelectedChasis(null);
+                                setArosDel('');
+                                setArosPost('');
+                                setNeuDel('');
+                                setNeuPost('');
+                                setSuspDel('');
+                                setSuspPost('');
+                                setFrenoDel('');
+                                setFrenoPost('');
+                                setDialogOpen(true);
+                            }}
+                            sx={{ textTransform: 'none', fontWeight: 600,backgroundColor: 'firebrick' }}
+                        >Nuevo
+                        </Button>
+                        <Button
+                            variant="contained"
+                            component="label"
+                            startIcon={<CloudUploadIcon />}
+                            sx={{ textTransform: 'none', fontWeight: 600,backgroundColor: 'green' }}
+                        >Insertar Masivo
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                        </Button>
+                        <Button
+                            variant="contained"
+                            component="label"
+                            startIcon={<EditIcon />}
+                            sx={{ textTransform: 'none', fontWeight: 600,backgroundColor: 'littleseashell' }}
+                        >Actualizar Masivo
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
+                        </Button>
+                        <IconButton onClick={fetchChasisData} style={{ color: 'firebrick' }}>
+                            <RefreshIcon />
+                        </IconButton>
+                    </Stack>
                 </Box>
-
                 <ThemeProvider theme={getMuiTheme()}>
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
                 </ThemeProvider>

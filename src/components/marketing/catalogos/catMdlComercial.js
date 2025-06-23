@@ -21,6 +21,10 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 
 import * as XLSX from "xlsx";
 import GlobalLoading from "../selectoresDialog/GlobalLoading";
+import AddIcon from "@material-ui/icons/Add";
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import Stack from "@mui/material/Stack";
+
 
 const API = process.env.REACT_APP_API;
 
@@ -501,90 +505,109 @@ function CatModeloComercial() {
                         <Button onClick={() => navigate(-1)}>Catálogos</Button>
                     </ButtonGroup>
                 </Box>
-            <Box>
-                <Button onClick={() => {
-                    setSelectedItem(null);
-                    setForm({
-                        nombre_marca: '',
-                        codigo_modelo_homologado: '',
-                        nombre_modelo: '',
-                        anio_modelo: '',
-                        estado_modelo: ''
-                    });
-                    setSelectedHomologado(null);
-                    setEstadoModelo('');
-                    setDialogOpen(true);
-                } }
-                        style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Insertar Nuevo</Button>
-                <Button variant="contained" component="label" style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>
-                    Cargar Excel
-                    <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
-                </Button>
-                <Button
-                    variant="contained"
-                    component="label"
-                    style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}
-                >
-                    ACTUALIZAR MASIVO
-                    <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
-                </Button>
-                <IconButton onClick={fetchModeloComercial} style={{ color: 'firebrick' }}>
-                    <RefreshIcon />
-                </IconButton>
-            </Box>
-            <ThemeProvider theme={getMuiTheme()}>
-                <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
-            </ThemeProvider>
-            <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
-                <DialogTitle>{selectedItem ? 'Actualizar' : 'Nuevo'}</DialogTitle>
-                <DialogContent>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                            <Autocomplete
-                                freeSolo
-                                options={marcasActivas.map(m => m.nombre_marca)}
-                                value={form.nombre_marca || ''}
-                                onInputChange={(e, v) => handleChange('nombre_marca', v)}
-                                renderInput={(params) => <TextField {...params} label="Marca" />}
-                            />
+                <Box sx={{ mt: 2 }}>
+                    <Stack direction="row" spacing={1}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<AddIcon />}
+                            onClick={() => {
+                                setSelectedItem(null);
+                                setForm({
+                                    nombre_marca: '',
+                                    codigo_modelo_homologado: '',
+                                    nombre_modelo: '',
+                                    anio_modelo: '',
+                                    estado_modelo: ''
+                                });
+                                setSelectedHomologado(null);
+                                setEstadoModelo('');
+                                setDialogOpen(true);
+                            }}
+                            sx={{ textTransform: 'none', fontWeight: 600,backgroundColor: 'firebrick' }}
+                        >Nuevo
+                        </Button>
+                        <Button
+                            variant="contained"
+                            component="label"
+                            startIcon={<CloudUploadIcon />}
+                            sx={{ textTransform: 'none', fontWeight: 600,backgroundColor: 'green' }}
+                        >Insertar Masivo
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                        </Button>
+                        <Button
+                            variant="contained"
+                            component="label"
+                            startIcon={<EditIcon />}
+                            sx={{ textTransform: 'none', fontWeight: 600,backgroundColor: 'littleseashell' }}
+                        >Actualizar Masivo
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
+                        </Button>
+                        <IconButton onClick={fetchModeloComercial} style={{ color: 'firebrick' }}>
+                            <RefreshIcon />
+                        </IconButton>
+                    </Stack>
+                </Box>
+                <ThemeProvider theme={getMuiTheme()}>
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
+                </ThemeProvider>
+                <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
+                    <DialogTitle>{selectedItem ? 'Actualizar' : 'Nuevo'}</DialogTitle>
+                    <DialogContent>
+                        <Grid container spacing={2}>
+                            <Grid item xs={12}>
+                                <Autocomplete
+                                    freeSolo
+                                    options={marcasActivas.map(m => m.nombre_marca)}
+                                    value={form.nombre_marca || ''}
+                                    onInputChange={(e, v) => handleChange('nombre_marca', v)}
+                                    renderInput={(params) => <TextField {...params} label="Marca"/>}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Autocomplete
+                                    options={homologados}
+                                    getOptionLabel={(option) =>
+                                        `${option?.nombre_modelo_sri ?? ''} (${option?.anio_modelo_sri ?? ''})`
+                                    }
+                                    value={selectedHomologado}
+                                    onChange={(e, v) => {
+                                        handleChange('codigo_modelo_homologado', v ? v.codigo_modelo_homologado : '');
+                                        setSelectedHomologado(v);
+                                    }}
+                                    renderInput={(params) => <TextField {...params} label="Modelo Homologado"/>}
+                                />
+                            </Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Nombre Modelo Comercial"
+                                                         value={form.nombre_modelo || ''}
+                                                         onChange={(e) => handleChange('nombre_modelo', e.target.value.toUpperCase())}/></Grid>
+                            <Grid item xs={3}><TextField fullWidth label="Año" type="number"
+                                                         value={form.anio_modelo || ''}
+                                                         onChange={(e) => handleChange('anio_modelo', e.target.value)}/></Grid>
+                            <Grid item xs={3}>
+                                <FormControl fullWidth>
+                                    <InputLabel id="estado-modelo-label">Estado</InputLabel>
+                                    <Select
+                                        labelId="estado-modelo-label"
+                                        value={estadoModelo}
+                                        onChange={(e) => setEstadoModelo(e.target.value.toUpperCase())}
+                                        variant="outlined">
+                                        <MenuItem value="ACTIVO">ACTIVO</MenuItem>
+                                        <MenuItem value="INACTIVO">INACTIVO</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Grid>
                         </Grid>
-                        <Grid item xs={12}>
-                            <Autocomplete
-                                options={homologados}
-                                getOptionLabel={(option) =>
-                                    `${option?.nombre_modelo_sri ?? ''} (${option?.anio_modelo_sri ?? ''})`
-                                }
-                                value={selectedHomologado}
-                                onChange={(e, v) => {
-                                    handleChange('codigo_modelo_homologado', v ? v.codigo_modelo_homologado : '');
-                                    setSelectedHomologado(v);
-                                }}
-                                renderInput={(params) => <TextField {...params} label="Modelo Homologado" />}
-                            />
-                        </Grid>
-                        <Grid item xs={6}><TextField fullWidth label="Nombre Modelo Comercial" value={form.nombre_modelo || ''} onChange={(e) => handleChange('nombre_modelo', e.target.value.toUpperCase())} /></Grid>
-                        <Grid item xs={3}><TextField fullWidth label="Año" type="number" value={form.anio_modelo || ''} onChange={(e) => handleChange('anio_modelo', e.target.value)} /></Grid>
-                        <Grid item xs={3}>
-                            <FormControl fullWidth>
-                                <InputLabel id="estado-modelo-label">Estado</InputLabel>
-                                <Select
-                                    labelId="estado-modelo-label"
-                                    value={estadoModelo}
-                                    onChange={(e) => setEstadoModelo(e.target.value.toUpperCase())}
-                                 variant="outlined">
-                                    <MenuItem value="ACTIVO">ACTIVO</MenuItem>
-                                    <MenuItem value="INACTIVO">INACTIVO</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Grid>
-                    </Grid>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                    <Button onClick={handleInsert} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedItem ? 'Actualizar' : 'Guardar'}</Button>
-                </DialogActions>
-            </Dialog>
-        </div>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
+                        <Button onClick={handleInsert} variant="contained" style={{
+                            backgroundColor: 'firebrick',
+                            color: 'white'
+                        }}>{selectedItem ? 'Actualizar' : 'Guardar'}</Button>
+                    </DialogActions>
+                </Dialog>
+            </div>
         </>
     );
 }

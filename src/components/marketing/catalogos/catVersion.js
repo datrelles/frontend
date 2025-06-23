@@ -21,6 +21,10 @@ import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 
 import * as XLSX from "xlsx";
+import AddIcon from "@material-ui/icons/Add";
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import Stack from "@mui/material/Stack";
+
 
 const API = process.env.REACT_APP_API;
 
@@ -256,26 +260,34 @@ function CatVersion() {
                         <Button onClick={() => navigate(-1)}>Catálogos</Button>
                     </ButtonGroup>
                 </Box>
-                <Box>
-                    <Button
-                        onClick={() => {
-                            setSelectedVersion(null);
-                            setNombreVersion('');
-                            setEstadoVersion('');
-                            setdescripcionVersion('');
-                            setDialogOpen(true);
-                        }}
-                        style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}
-                    >
-                        Insertar Nuevo
-                    </Button>
-                    <Button variant="contained" component="label" style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>
-                        Cargar Excel
-                        <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
-                    </Button>
-                    <IconButton onClick={fetchVersionData} style={{ color: 'firebrick' }}>
-                        <RefreshIcon />
-                    </IconButton>
+                <Box sx={{ mt: 2 }}>
+                    <Stack direction="row" spacing={1}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<AddIcon />}
+                            onClick={() => {
+                                setSelectedVersion(null);
+                                setNombreVersion('');
+                                setEstadoVersion('');
+                                setdescripcionVersion('');
+                                setDialogOpen(true);
+                            }}
+                            sx={{ textTransform: 'none', fontWeight: 500,backgroundColor: 'firebrick' }}
+                        >Nuevo
+                        </Button>
+                        <Button
+                            variant="contained"
+                            component="label"
+                            startIcon={<CloudUploadIcon />}
+                            sx={{ textTransform: 'none', fontWeight: 500,backgroundColor: 'green' }}
+                        >Insertar Masivo
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                        </Button>
+                        <IconButton onClick={fetchVersionData} style={{ color: 'firebrick' }}>
+                            <RefreshIcon />
+                        </IconButton>
+                    </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
