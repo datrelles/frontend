@@ -19,16 +19,22 @@ import {
   createEmptyItem,
   createMTColumn,
   createOnUpdateCell,
+  createTextFieldItem,
 } from "../formulas/common/generators";
 import BtnNuevo from "../formulas/common/btn-nuevo";
+import BtnCancelar from "../formulas/common/btn-cancelar";
 import MultiLevelTable, {
   getFlatDataColumns,
 } from "../formulas/common/multilevel-table";
 import CustomGrid from "../formulas/common/custom-grid";
 import { validarTipoRetornoYConvertir } from "../../helpers/modulo-formulas";
+import AutocompleteObject from "../formulas/common/autocomplete-objects";
 
 const COD_PROCESO_PRESUP_CANT = "PRESCANT";
-const COD_VERSION = 1;
+const shapeVersion = {
+  cod_version: "",
+  nombre: "Seleccione",
+};
 
 const obtenerFilasConsolidadas = (columnas, filas) => {
   let consolidados = filas.filter((fila) => fila.es_consolidado);
@@ -70,6 +76,10 @@ export default function PresupuestoCantidades() {
     [jwt]
   );
 
+  const [crearNuevaVersion, setCrearNuevaVersion] = useState(false);
+  const [nuevaVersion, setNuevaVersion] = useState("");
+  const [versiones, setVersiones] = useState([]);
+  const [version, setVersion] = useState(shapeVersion);
   const [datosCargados, setDatosCargados] = useState(false);
   const [menus, setMenus] = useState([]);
   const [clientes, setClientes] = useState([]);
@@ -85,6 +95,29 @@ export default function PresupuestoCantidades() {
   const getMenus = async () => {
     try {
       setMenus(await APIService.getMenus());
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleCrearVersion = (e) => {
+    e.preventDefault();
+    APIService.createVersion({
+      nombre: nuevaVersion,
+    })
+      .then((res) => {
+        toast.success(res);
+        setNuevaVersion("");
+        setCrearNuevaVersion(false);
+        getVersiones();
+        setVersion(shapeVersion);
+      })
+      .catch((err) => toast.error(err.message));
+  };
+
+  const getVersiones = async () => {
+    try {
+      setVersiones(await APIService.getVersiones());
     } catch (err) {
       toast.error(err.message);
     }
@@ -119,7 +152,7 @@ export default function PresupuestoCantidades() {
   const handleUpdateCell = createOnUpdateCell({
     fn: (newValue, rowData, columnDefinition) => {
       APIService.updateProyeccion(
-        COD_VERSION,
+        version.cod_version,
         COD_PROCESO_PRESUP_CANT,
         columnDefinition.context.cod_parametro,
         rowData.cod_modelo,
@@ -141,8 +174,9 @@ export default function PresupuestoCantidades() {
   });
 
   const handleProyectar = async () => {
+    //aqui ejecutar SP EJECUTAR_PROYECCION
     const proyeccion = await APIService.getProyeccion(
-      COD_VERSION,
+      version.cod_version,
       COD_PROCESO_PRESUP_CANT
     );
     const curYear = new Date().getFullYear();
@@ -226,7 +260,47 @@ export default function PresupuestoCantidades() {
     setFilasTabla(obtenerFilasConsolidadas(columnas, filas));
   };
 
+  const autocompleteVersiones = (
+    <AutocompleteObject
+      id="Versión"
+      value={version}
+      optionId="cod_version"
+      shape={shapeVersion}
+      options={versiones}
+      optionLabel="nombre"
+      onChange={(e, value) => {
+        setVersion(value ?? shapeVersion);
+      }}
+    />
+  );
+
   const header = <Header menus={menus} modulos={false} />;
+
+  const btnNuevaVersion = (
+    <BtnNuevo
+      onClick={() => {
+        setCrearNuevaVersion(true);
+      }}
+      texto="Nueva versión"
+    />
+  );
+
+  const btnCancelar = (
+    <BtnCancelar
+      onClick={() => {
+        setCrearNuevaVersion(false);
+      }}
+    />
+  );
+
+  const btnCrearVersion = (
+    <BtnNuevo
+      onClick={handleCrearVersion}
+      texto="Crear versión"
+      icon={false}
+      disabled={nuevaVersion === ""}
+    />
+  );
 
   const selectMeses = (
     <CustomSelect
@@ -242,17 +316,35 @@ export default function PresupuestoCantidades() {
       onClick={handleProyectar}
       texto="Proyectar"
       icon={false}
-      disabled={!datosCargados}
+      disabled={!datosCargados || version.cod_version === ""}
     />
   );
 
-  const itemsOpcionesProyeccion = [
-    createCustomComponentItem(2, "meses", selectMeses),
-    createCustomComponentItem(2, "btnProyectar", btnProyectar),
-    createEmptyItem(8, "relleno_proyeccion"),
+  const itemsCrearVersion = [
+    createTextFieldItem(
+      6,
+      "nueva_version",
+      "Nombre versión",
+      nuevaVersion,
+      createDefaultSetter(setNuevaVersion, undefined, true)
+    ),
+    createCustomComponentItem(2, "btnCrearVersion", btnCrearVersion),
+    createCustomComponentItem(2, "btnCancelar", btnCancelar),
   ];
 
-  const opcionesProyeccion = <CustomGrid items={itemsOpcionesProyeccion} />;
+  const itemsOpcionesProyeccion = [
+    createCustomComponentItem(2, "btnNuevaVersion", btnNuevaVersion),
+    createCustomComponentItem(4, "autocomplete_version", autocompleteVersiones),
+    createCustomComponentItem(2, "meses", selectMeses),
+    createCustomComponentItem(2, "btnProyectar", btnProyectar),
+  ];
+
+  const itemsProyeccion = [
+    ...(crearNuevaVersion ? itemsCrearVersion : itemsOpcionesProyeccion),
+    createEmptyItem(2, "relleno_proyeccion"),
+  ];
+
+  const opcionesProyeccion = <CustomGrid items={itemsProyeccion} />;
 
   const tabla = (
     <MultiLevelTable
@@ -265,6 +357,7 @@ export default function PresupuestoCantidades() {
   useEffect(() => {
     document.title = "Presupuesto de Cantidades";
     getMenus();
+    getVersiones();
     getDatosIniciales();
   }, []);
 
