@@ -173,14 +173,43 @@ export default function PresupuestoCantidades() {
     },
   });
 
+  const getProyeccion = async () => {
+    try {
+      return await APIService.getProyeccion(
+        version.cod_version,
+        COD_PROCESO_PRESUP_CANT
+      );
+    } catch (err) {
+      toast.error(err.message);
+      return [];
+    }
+  };
+
   const handleProyectar = async () => {
-    //aqui ejecutar SP EJECUTAR_PROYECCION
-    const proyeccion = await APIService.getProyeccion(
-      version.cod_version,
-      COD_PROCESO_PRESUP_CANT
-    );
+    let proyeccion = await getProyeccion();
     const curYear = new Date().getFullYear();
     const iter = mesesProyeccion / 12;
+    if (proyeccion.length === 0) {
+      try {
+        await APIService.createProyeccion(
+          version.cod_version,
+          COD_PROCESO_PRESUP_CANT,
+          {
+            anio_inicio: curYear,
+            mes_inicio: 1,
+            anio_fin: curYear + iter - 1,
+            mes_fin: 12,
+          }
+        );
+        proyeccion = await getProyeccion();
+      } catch (err) {
+        toast.error(err.message);
+      }
+    }
+    if (proyeccion.length === 0) {
+      toast.error("La proyección no tiene datos");
+      return;
+    }
     let filas = [];
     for (const modelo of modelos) {
       for (const cliente of clientes) {
@@ -239,15 +268,16 @@ export default function PresupuestoCantidades() {
             if (fila.es_consolidado) {
               filaActualizada[col.field] = 0;
             } else {
-              const celda = proyeccion.find(
-                (pro) =>
-                  pro.cod_parametro === col.context.cod_parametro &&
-                  pro.cod_modelo_comercial === filaActualizada.cod_modelo &&
-                  pro.cod_marca === filaActualizada.cod_marca &&
-                  pro.cod_cliente === filaActualizada.cod_cliente &&
-                  pro.anio === col.context.anio &&
-                  pro.mes === col.context.mes
-              );
+              const celda =
+                proyeccion.find(
+                  (pro) =>
+                    pro.cod_parametro === col.context.cod_parametro &&
+                    pro.cod_modelo_comercial === filaActualizada.cod_modelo &&
+                    pro.cod_marca === filaActualizada.cod_marca &&
+                    pro.cod_cliente === filaActualizada.cod_cliente &&
+                    pro.anio === col.context.anio &&
+                    pro.mes === col.context.mes
+                ) || {};
               const valor = celda.numero || celda.texto || celda.fecha;
               filaActualizada[col.field] = valor || CARACTER_RELLENO;
             }
