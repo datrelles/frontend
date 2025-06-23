@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
 import Navbar0 from "../../Navbar0";
@@ -14,6 +13,7 @@ import { SnackbarProvider, useSnackbar } from 'notistack';
 import { useAuthContext } from "../../../context/authContext";
 import EditIcon from '@mui/icons-material/Edit';
 import DialogTitle from "@mui/material/DialogTitle";
+import { useNavigate } from 'react-router-dom';
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
@@ -29,7 +29,6 @@ import {getTableOptions, getMuiTheme } from "../muiTableConfig";
 const API = process.env.REACT_APP_API;
 
 function CatProductoExterno() {
-    const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
     const [nombreProducto, setNombreProducto] = useState('');
@@ -38,12 +37,12 @@ function CatProductoExterno() {
     const [cabeceras, setCabeceras] = useState([]);
     const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
+    const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const [selectedProducto, setSelectedProducto] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [marcaRepuesto, setMarcaRepuesto] = useState('');
     const [marcasActivas, setMarcasActivas] = useState('');
     const [marcas, setMarcas] = useState([]);
-
 
     const handleInsertProducto = async () => {
         if (!marcaRepuesto || !marcaRepuesto.codigo_marca_rep) {
@@ -262,7 +261,7 @@ function CatProductoExterno() {
                     return {
                         codigo_marca_rep: marcaObj.codigo_marca_rep,
                         nombre_producto: nombreProducto,
-                        estado_prod_externo: estadoProducto === "ACTIVO" ? 1 : 0,
+                        estado_prod_externo: estadoProducto === "activo" ? 1 : 0,
                         descripcion_producto: descripcion,
                     };
                 });
@@ -325,7 +324,6 @@ function CatProductoExterno() {
                     <Stack direction="row" spacing={1}>
                         <Button
                             variant="contained"
-                            color="primary"
                             startIcon={<AddIcon />}
                             onClick={() => {
                                 setSelectedProducto(null);
@@ -333,18 +331,45 @@ function CatProductoExterno() {
                                 setNombreProducto('');
                                 setEstadoProdExterno('');
                                 setDescripcionProducto('');
-                                setDialogOpen(true); }}
-                            sx={{ textTransform: 'none', fontWeight: 500,backgroundColor: 'firebrick' }}
-                        >Nuevo
+                                setDialogOpen(true);
+                            }}
+                            sx={{
+                                textTransform: 'none',
+                                fontWeight: 500,
+                                backgroundColor: 'firebrick',
+                                '&:hover': {
+                                    backgroundColor: 'firebrick',
+                                },
+                                '&:active': {
+                                    backgroundColor: 'firebrick',
+                                    boxShadow: 'none'
+                                }
+                            }}
+                        >
+                            Nuevo
                         </Button>
+
                         <Button
                             variant="contained"
                             component="label"
                             startIcon={<CloudUploadIcon />}
-                            sx={{ textTransform: 'none', fontWeight: 500,backgroundColor: 'green' }}
-                        >Insertar Masivo
+                            sx={{
+                                textTransform: 'none',
+                                fontWeight: 500,
+                                backgroundColor: 'green',
+                                '&:hover': {
+                                    backgroundColor: 'green',
+                                },
+                                '&:active': {
+                                    backgroundColor: 'green',
+                                    boxShadow: 'none'
+                                }
+                            }}
+                        >
+                            Insertar Masivo
                             <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
                         </Button>
+
                         <IconButton onClick={fetchProductoData} style={{ color: 'firebrick' }}>
                             <RefreshIcon />
                         </IconButton>

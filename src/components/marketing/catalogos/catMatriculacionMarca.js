@@ -250,7 +250,18 @@ function CatMatriculaMarca() {
                                 setSelectedHomologado(null);
                                 setDialogOpen(true);
                             } }
-                            sx={{ textTransform: 'none', fontWeight: 500,backgroundColor: 'firebrick' }}
+                            sx={{
+                                textTransform: 'none',
+                                fontWeight: 500,
+                                backgroundColor: 'firebrick',
+                                '&:hover': {
+                                    backgroundColor: 'firebrick',
+                                },
+                                '&:active': {
+                                    backgroundColor: 'firebrick',
+                                    boxShadow: 'none'
+                                }
+                            }}
                         >Nuevo
                         </Button>
                         <IconButton onClick={fetchMatriculaMarca} style={{ color: 'firebrick' }}>

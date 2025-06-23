@@ -310,14 +310,36 @@ function CatElectronica() {
                                 setVelocidadMaxima('');
                                 setDialogOpen(true);
                             }}
-                            sx={{ textTransform: 'none', fontWeight: 600,backgroundColor: 'firebrick' }}
+                            sx={{
+                                textTransform: 'none',
+                                fontWeight: 500,
+                                backgroundColor: 'firebrick',
+                                '&:hover': {
+                                    backgroundColor: 'firebrick',
+                                },
+                                '&:active': {
+                                    backgroundColor: 'firebrick',
+                                    boxShadow: 'none'
+                                }
+                            }}
                         >Nuevo
                         </Button>
                         <Button
                             variant="contained"
                             component="label"
                             startIcon={<CloudUploadIcon />}
-                            sx={{ textTransform: 'none', fontWeight: 600,backgroundColor: 'green' }}
+                            sx={{
+                                textTransform: 'none',
+                                fontWeight: 500,
+                                backgroundColor: 'green',
+                                '&:hover': {
+                                    backgroundColor: 'green',
+                                },
+                                '&:active': {
+                                    backgroundColor: 'green',
+                                    boxShadow: 'none'
+                                }
+                            }}
                         >Insertar Masivo
                             <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
                         </Button>
