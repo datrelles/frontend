@@ -173,43 +173,28 @@ export default function PresupuestoCantidades() {
     },
   });
 
-  const getProyeccion = async () => {
+  const getProyeccion = async (version) => {
     try {
-      return await APIService.getProyeccion(
-        version.cod_version,
-        COD_PROCESO_PRESUP_CANT
-      );
+      return await APIService.getProyeccion(version, COD_PROCESO_PRESUP_CANT);
     } catch (err) {
       toast.error(err.message);
-      return [];
+      return;
     }
   };
 
-  const handleProyectar = async () => {
-    let proyeccion = await getProyeccion();
-    const curYear = new Date().getFullYear();
-    const iter = mesesProyeccion / 12;
-    if (proyeccion.length === 0) {
-      try {
-        await APIService.createProyeccion(
-          version.cod_version,
-          COD_PROCESO_PRESUP_CANT,
-          {
-            anio_inicio: curYear,
-            mes_inicio: 1,
-            anio_fin: curYear + iter - 1,
-            mes_fin: 12,
-          }
-        );
-        proyeccion = await getProyeccion();
-      } catch (err) {
-        toast.error(err.message);
-      }
+  const postProyeccion = async (datos) => {
+    try {
+      await APIService.createProyeccion(
+        version.cod_version,
+        COD_PROCESO_PRESUP_CANT,
+        datos
+      );
+    } catch (err) {
+      toast.error(err.message);
     }
-    if (proyeccion.length === 0) {
-      toast.error("La proyección no tiene datos");
-      return;
-    }
+  };
+
+  const proyectar = (anioInicio, mesInicio, anioFin, mesFin, datos) => {
     let filas = [];
     for (const modelo of modelos) {
       for (const cliente of clientes) {
@@ -242,9 +227,10 @@ export default function PresupuestoCantidades() {
       createMTColumn({ field: "cod_modelo", hidden: true }),
       createMTColumn({ header: "Modelo", field: "modelo", es_vertical: false }),
     ];
-    for (let i = 1; i <= iter; i++) {
-      const anio = curYear + i - 1;
-      for (let mes = 1; mes <= 12; mes++) {
+    for (let anio = anioInicio; anio <= anioFin; anio++) {
+      const mesInicioAnio = anio === anioInicio ? mesInicio : 1;
+      const mesFinAnio = anio === anioFin ? mesFin : 12;
+      for (let mes = mesInicioAnio; mes <= mesFinAnio; mes++) {
         const nuevasColumnas = parametrosProceso.map((col) =>
           createMTColumn({
             header: `${col.header}`,
@@ -269,14 +255,14 @@ export default function PresupuestoCantidades() {
               filaActualizada[col.field] = 0;
             } else {
               const celda =
-                proyeccion.find(
-                  (pro) =>
-                    pro.cod_parametro === col.context.cod_parametro &&
-                    pro.cod_modelo_comercial === filaActualizada.cod_modelo &&
-                    pro.cod_marca === filaActualizada.cod_marca &&
-                    pro.cod_cliente === filaActualizada.cod_cliente &&
-                    pro.anio === col.context.anio &&
-                    pro.mes === col.context.mes
+                datos.find(
+                  (dato) =>
+                    dato.cod_parametro === col.context.cod_parametro &&
+                    dato.cod_modelo_comercial === filaActualizada.cod_modelo &&
+                    dato.cod_marca === filaActualizada.cod_marca &&
+                    dato.cod_cliente === filaActualizada.cod_cliente &&
+                    dato.anio === col.context.anio &&
+                    dato.mes === col.context.mes
                 ) || {};
               const valor = celda.numero || celda.texto || celda.fecha;
               filaActualizada[col.field] = valor || CARACTER_RELLENO;
@@ -290,6 +276,42 @@ export default function PresupuestoCantidades() {
     setFilasTabla(obtenerFilasConsolidadas(columnas, filas));
   };
 
+  const cargarProyeccion = async (version) => {
+    const proyeccion = await getProyeccion(version);
+    if (!proyeccion) {
+      toast.warn("Proyección sin datos");
+      setColumnasTabla([]);
+      setFilasTabla([]);
+      return;
+    }
+    const { anio_inicio, mes_inicio, anio_fin, mes_fin, datos } = proyeccion;
+    proyectar(anio_inicio, mes_inicio, anio_fin, mes_fin, datos);
+    toast.success("Proyección cargada");
+  };
+
+  const handleProyectar = async () => {
+    const anioInicio = new Date().getFullYear();
+    const mesInicio = 1;
+    const anioFin = anioInicio + Math.floor(mesesProyeccion / 12) - 1;
+    const mesFin = 12;
+    toast.info("Creando proyección");
+    await postProyeccion({
+      anio_inicio: anioInicio,
+      mes_inicio: mesInicio,
+      anio_fin: anioFin,
+      mes_fin: mesFin,
+    });
+    const datos = (await getProyeccion(version.cod_version))?.datos ?? [];
+    if (datos.length === 0) {
+      toast.warn("Proyección sin datos");
+      setColumnasTabla([]);
+      setFilasTabla([]);
+      return;
+    }
+    proyectar(anioInicio, mesInicio, anioFin, mesFin, datos);
+    toast.success("Proyección cargada");
+  };
+
   const autocompleteVersiones = (
     <AutocompleteObject
       id="Versión"
@@ -299,7 +321,14 @@ export default function PresupuestoCantidades() {
       options={versiones}
       optionLabel="nombre"
       onChange={(e, value) => {
-        setVersion(value ?? shapeVersion);
+        if (value) {
+          setVersion(value);
+          toast.info("Cargando proyección");
+          cargarProyeccion(value.cod_version);
+          //disable btnProyectar
+        } else {
+          setVersion(value ?? shapeVersion);
+        }
       }}
     />
   );
