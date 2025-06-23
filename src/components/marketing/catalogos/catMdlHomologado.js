@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import React, { useState, useEffect } from "react";
 import Navbar0 from "../../Navbar0";
 import MUIDataTable from "mui-datatables";
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import {ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import LoadingCircle from "../../contabilidad/loader";
 import {Autocomplete, IconButton, TextField} from '@mui/material';
@@ -21,6 +21,7 @@ import * as XLSX from "xlsx";
 import AddIcon from "@material-ui/icons/Add";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Stack from "@mui/material/Stack";
+import {getTableOptions, getMuiTheme } from "../muiTableConfig";
 
 const API = process.env.REACT_APP_API;
 
@@ -159,33 +160,6 @@ function CatModeloHomologado() {
         }
     ];
 
-    const getMuiTheme = () => createTheme({
-        components: {
-            MuiTableCell: {
-                styleOverrides: {
-                    root: { padding: '4px', fontSize: '14px', borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd' },
-                    head: { backgroundColor: 'firebrick', color: '#fff', fontWeight: 'bold', fontSize: '12px' }
-                }
-            },
-            MuiTable: { styleOverrides: { root: { borderCollapse: 'collapse' } } },
-            MuiToolbar: { styleOverrides: { regular: { minHeight: '10px' } } }
-        }
-    });
-    const options = {
-        responsive: 'standard',
-        selectableRows: 'none',
-        textLabels: {
-            body: {
-                noMatch: "Lo siento, no se encontraron registros",
-                toolTip: "Ordenar"
-            },
-            pagination: {
-                next: "Siguiente", previous: "Anterior",
-                rowsPerPage: "Filas por página:", displayRows: "de"
-            }
-        }
-    };
-
     useEffect(() => {
         getMenus();
         fetchModelosSri();
@@ -276,7 +250,7 @@ function CatModeloHomologado() {
                     </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={getTableOptions()} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selected ? 'Actualizar' : 'Nuevo'}</DialogTitle>

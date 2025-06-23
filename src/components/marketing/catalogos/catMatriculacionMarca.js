@@ -1,5 +1,5 @@
 import MUIDataTable from "mui-datatables";
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import {ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import LoadingCircle from "../../contabilidad/loader";
 import {Autocomplete, IconButton, TextField} from '@mui/material';
@@ -25,8 +25,9 @@ import dayjs from "dayjs";
 import {makeStyles} from "@mui/styles";
 import RefreshIcon from '@mui/icons-material/Refresh';
 import AddIcon from "@material-ui/icons/Add";
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import Stack from "@mui/material/Stack";;
+//import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import Stack from "@mui/material/Stack";
+import {getTableOptions, getMuiTheme } from "../muiTableConfig";
 
 const API = process.env.REACT_APP_API;
 
@@ -52,11 +53,11 @@ function CatMatriculaMarca() {
     const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
     const [selectedHomologado, setSelectedHomologado] = useState(null);
-    const [fromDate, setFromDate] = useState(dayjs().subtract(1, 'month').format('DD/MM/YYYY'));
-    const [placa, setPlaca] = useState('');
-    const [fechaMatriculacion, setFechaMatriculacion] = useState('');
-    const [fechaFacturacion, setFechaFacturacion] = useState('');
-    const [detalleMatriculacion, setDetalleMatriculacion] = useState('');
+    //const [fromDate, setFromDate] = useState(dayjs().subtract(1, 'month').format('DD/MM/YYYY'));
+    //const [placa, setPlaca] = useState('');
+    //const [fechaMatriculacion, setFechaMatriculacion] = useState('');
+    //const [fechaFacturacion, setFechaFacturacion] = useState('');
+    //const [detalleMatriculacion, setDetalleMatriculacion] = useState('');
     const classes = useStyles();
     const [form, setForm] = useState({
         codigo_modelo_homologado: '',
@@ -221,42 +222,6 @@ function CatMatriculaMarca() {
         }
     ];
 
-    const options = {
-        responsive: 'standard',
-        selectableRows: 'none',
-        textLabels: {
-            body: {
-                noMatch: "Lo siento, no se encontraron registros",
-                toolTip: "Ordenar"
-            },
-            pagination: {
-                next: "Siguiente", previous: "Anterior",
-                rowsPerPage: "Filas por página:", displayRows: "de"
-            }
-        }
-    };
-
-    const getMuiTheme = () =>
-        createTheme({
-            components: {
-                MuiTableCell: {
-                    styleOverrides: {
-                        root: {
-                            paddingLeft: '3px', paddingRight: '3px', paddingTop: '0px', paddingBottom: '0px',
-                            backgroundColor: '#00000', whiteSpace: 'nowrap', flex: 1,
-                            borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontSize: '14px'
-                        },
-                        head: {
-                            backgroundColor: 'firebrick', color: '#ffffff', fontWeight: 'bold',
-                            paddingLeft: '0px', paddingRight: '0px', fontSize: '12px'
-                        },
-                    }
-                },
-                MuiTable: { styleOverrides: { root: { borderCollapse: 'collapse' } } },
-                MuiToolbar: { styleOverrides: { regular: { minHeight: '10px' } } }
-            }
-        });
-
     return (
         <>{loading ? (<LoadingCircle />) : (
             <div style={{ marginTop: '150px', width: "100%" }}>
@@ -294,14 +259,12 @@ function CatMatriculaMarca() {
                     </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={getTableOptions()} />
                 </ThemeProvider>
-
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selectedItem ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-
                             <Grid item xs={12}>
                                 <Autocomplete
                                     options={homologados}
@@ -348,8 +311,9 @@ function CatMatriculaMarca() {
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleInsert} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedItem ? 'Actualizar' : 'Guardar'}</Button>
-
+                        <Button onClick={handleInsert} variant="contained"
+                                style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedItem ? 'Actualizar' : 'Guardar'}
+                        </Button>
                     </DialogActions>
                 </Dialog>
             </div>

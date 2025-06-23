@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
 import Navbar0 from "../../Navbar0";
 import MUIDataTable from "mui-datatables";
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import {ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import {IconButton, TextField, Autocomplete} from '@mui/material';
 import Button from '@mui/material/Button';
@@ -22,6 +22,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import AddIcon from "@material-ui/icons/Add";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Stack from "@mui/material/Stack";
+import {getTableOptions, getMuiTheme } from "../muiTableConfig";
 
 const API = process.env.REACT_APP_API;
 
@@ -35,7 +36,6 @@ function CatMotor() {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [menus, setMenus] = useState([]);
     const [loadingGlobal, setLoadingGlobal] = useState(false);
-
 
     const [form, setForm] = useState({
         codigo_tipo_motor: null,
@@ -301,26 +301,6 @@ function CatMotor() {
         }
     ];
 
-    const options = {
-        responsive: 'standard',
-        selectableRows: 'none',
-        textLabels: {
-            body: { noMatch: "Lo siento, no se encontraron registros", toolTip: "Ordenar" },
-            pagination: { next: "Siguiente", previous: "Anterior", rowsPerPage: "Filas por página:", displayRows: "de" }
-        }
-    };
-
-    const getMuiTheme = () => createTheme({
-        components: {
-            MuiTableCell: {
-                styleOverrides: {
-                    root: { padding: 2, borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontSize: '14px' },
-                    head: { backgroundColor: 'firebrick', color: '#fff', fontWeight: 'bold', fontSize: '12px' }
-                }
-            }
-        }
-    });
-
     return (
         <>
             <GlobalLoading open={loadingGlobal} />
@@ -338,7 +318,11 @@ function CatMotor() {
                             variant="contained"
                             color="primary"
                             startIcon={<AddIcon />}
-                            onClick={() => { setSelectedMotor(null); setForm({}); setDialogOpen(true); }}
+                            onClick={() => {
+                                setSelectedMotor(null);
+                                setForm({});
+                                setDialogOpen(true);
+                            }}
                             sx={{ textTransform: 'none', fontWeight: 600,backgroundColor: 'firebrick' }}
                         >Nuevo
                         </Button>
@@ -364,7 +348,7 @@ function CatMotor() {
                     </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={getTableOptions()} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selectedMotor ? 'Actualizar' : 'Nuevo'}</DialogTitle>

@@ -3,7 +3,6 @@ import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
 import Navbar0 from "../../Navbar0";
 import MUIDataTable from "mui-datatables";
-import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import LoadingCircle from "../../contabilidad/loader";
 import { IconButton, TextField } from '@mui/material';
@@ -23,6 +22,8 @@ import * as XLSX from "xlsx";
 import AddIcon from "@material-ui/icons/Add";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Stack from "@mui/material/Stack";
+import {getTableOptions, getMuiTheme } from "../muiTableConfig";
+import {ThemeProvider} from "@mui/material/styles";
 
 const API = process.env.REACT_APP_API;
 
@@ -212,42 +213,6 @@ function CatMarcaRepuesto() {
         setDialogOpen(true);
     };
 
-    const options = {
-        responsive: 'standard',
-        selectableRows: 'none',
-        textLabels: {
-            body: {
-                noMatch: "Lo siento, no se encontraron registros",
-                toolTip: "Ordenar"
-            },
-            pagination: {
-                next: "Siguiente", previous: "Anterior",
-                rowsPerPage: "Filas por página:", displayRows: "de"
-            }
-        }
-    };
-
-    const getMuiTheme = () =>
-        createTheme({
-            components: {
-                MuiTableCell: {
-                    styleOverrides: {
-                        root: {
-                            paddingLeft: '3px', paddingRight: '3px', paddingTop: '0px', paddingBottom: '0px',
-                            backgroundColor: '#00000', whiteSpace: 'nowrap', flex: 1,
-                            borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontSize: '14px'
-                        },
-                        head: {
-                            backgroundColor: 'firebrick', color: '#ffffff', fontWeight: 'bold',
-                            paddingLeft: '0px', paddingRight: '0px', fontSize: '12px'
-                        },
-                    }
-                },
-                MuiTable: { styleOverrides: { root: { borderCollapse: 'collapse' } } },
-                MuiToolbar: { styleOverrides: { regular: { minHeight: '10px' } } }
-            }
-        });
-
     return (
         <>{loading ? (<LoadingCircle />) : (
             <div style={{ marginTop: '150px', width: "100%" }}>
@@ -288,7 +253,7 @@ function CatMarcaRepuesto() {
                     </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={getTableOptions()} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selectedMarca ? 'Actualizar' : 'Nuevo'}</DialogTitle>
@@ -302,7 +267,7 @@ function CatMarcaRepuesto() {
                                         labelId="estado-marca-rep-label"
                                         value={estadoMarcaRep}
                                         onChange={(e) => setEstadoMarcaRep(e.target.value.toUpperCase())}
-                                    >
+                                        variant="outlined">
                                         <MenuItem value="ACTIVO">ACTIVO</MenuItem>
                                         <MenuItem value="INACTIVO">INACTIVO</MenuItem>
                                     </Select>

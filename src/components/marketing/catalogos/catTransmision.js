@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
 import Navbar0 from "../../Navbar0";
@@ -9,6 +8,7 @@ import LoadingCircle from "../../contabilidad/loader";
 import {IconButton, TextField} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
+import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import {SnackbarProvider, useSnackbar} from 'notistack';
 import { useAuthContext } from "../../../context/authContext";
@@ -22,17 +22,18 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import AddIcon from "@material-ui/icons/Add";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Stack from "@mui/material/Stack";
+import {getTableOptions, getMuiTheme } from "../muiTableConfig";
 
 
 const API = process.env.REACT_APP_API;
 
 function CatTransmision() {
-    const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
     const [cajaCambios, setcajaCambios] = useState('');
     const [descripcionTransmision, setdescripcionTransmision] = useState('');
     const [cabeceras, setCabeceras] = useState([]);
+    const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
     const [selectedTransmision, setSelectedTransmison] = useState(null);
@@ -180,41 +181,7 @@ function CatTransmision() {
         setDialogOpen(true);
     };
 
-    const options = {
-        responsive: 'standard',
-        selectableRows: 'none',
-        textLabels: {
-            body: {
-                noMatch: "Lo siento, no se encontraron registros",
-                toolTip: "Ordenar"
-            },
-            pagination: {
-                next: "Siguiente", previous: "Anterior",
-                rowsPerPage: "Filas por página:", displayRows: "de"
-            }
-        }
-    };
 
-    const getMuiTheme = () =>
-        createTheme({
-            components: {
-                MuiTableCell: {
-                    styleOverrides: {
-                        root: {
-                            paddingLeft: '3px', paddingRight: '3px', paddingTop: '0px', paddingBottom: '0px',
-                            backgroundColor: '#00000', whiteSpace: 'nowrap', flex: 1,
-                            borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontSize: '14px'
-                        },
-                        head: {
-                            backgroundColor: 'firebrick', color: '#ffffff', fontWeight: 'bold',
-                            paddingLeft: '0px', paddingRight: '0px', fontSize: '12px'
-                        },
-                    }
-                },
-                MuiTable: { styleOverrides: { root: { borderCollapse: 'collapse' } } },
-                MuiToolbar: { styleOverrides: { regular: { minHeight: '10px' } } }
-            }
-        });
 
     return (
         <>{loading ? (<LoadingCircle />) : (
@@ -255,7 +222,7 @@ function CatTransmision() {
                     </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={getTableOptions()} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selectedTransmision ? 'Actualizar' : 'Nuevo'}</DialogTitle>
