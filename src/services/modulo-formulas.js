@@ -364,6 +364,13 @@ export default class API {
     );
   });
 
+  deleteProyeccion = this.#errorHandler(async (version, proceso) => {
+    return await axios.delete(
+      `${this.#URL}/versiones/${version}/proyecciones/procesos/${proceso}`,
+      this.#headers
+    );
+  });
+
   updateProyeccion = this.#errorHandler(
     async (
       version,

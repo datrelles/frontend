@@ -152,6 +152,7 @@ export default function PresupuestoCantidades() {
 
   const handleUpdateCell = createOnUpdateCell({
     fn: (newValue, rowData, columnDefinition) => {
+      toast.info("Actualizando proyección");
       APIService.updateProyeccion(
         codVersionRef.current,
         COD_PROCESO_PRESUP_CANT,
@@ -180,18 +181,6 @@ export default function PresupuestoCantidades() {
     } catch (err) {
       toast.error(err.message);
       return;
-    }
-  };
-
-  const postProyeccion = async (datos) => {
-    try {
-      await APIService.createProyeccion(
-        version.cod_version,
-        COD_PROCESO_PRESUP_CANT,
-        datos
-      );
-    } catch (err) {
-      toast.error(err.message);
     }
   };
 
@@ -275,9 +264,11 @@ export default function PresupuestoCantidades() {
     }
     setColumnasTabla(columnas);
     setFilasTabla(obtenerFilasConsolidadas(columnas, filas));
+    setProyeccionCargada(true);
   };
 
   const cargarProyeccion = async (version) => {
+    toast.info("Cargando proyección");
     const proyeccion = await getProyeccion(version);
     if (!proyeccion) {
       toast.warn("Proyección sin datos");
@@ -298,21 +289,38 @@ export default function PresupuestoCantidades() {
     const anioFin = anioInicio + Math.floor(mesesProyeccion / 12) - 1;
     const mesFin = 12;
     toast.info("Creando proyección");
-    await postProyeccion({
-      anio_inicio: anioInicio,
-      mes_inicio: mesInicio,
-      anio_fin: anioFin,
-      mes_fin: mesFin,
-    });
-    const datos = (await getProyeccion(version.cod_version))?.datos ?? [];
-    if (datos.length === 0) {
-      toast.warn("Proyección sin datos");
+    try {
+      await APIService.createProyeccion(
+        version.cod_version,
+        COD_PROCESO_PRESUP_CANT,
+        {
+          anio_inicio: anioInicio,
+          mes_inicio: mesInicio,
+          anio_fin: anioFin,
+          mes_fin: mesFin,
+        }
+      );
+      cargarProyeccion(version.cod_version);
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleEliminar = async () => {
+    const eliminar = window.confirm("¿Deseas eliminar la proyección?");
+    if (!eliminar) return;
+    try {
+      await APIService.deleteProyeccion(
+        version.cod_version,
+        COD_PROCESO_PRESUP_CANT
+      );
       setColumnasTabla([]);
       setFilasTabla([]);
-      return;
+      setProyeccionCargada(false);
+      toast.success("Proyección eliminada");
+    } catch (err) {
+      toast.error(err.message);
     }
-    proyectar(anioInicio, mesInicio, anioFin, mesFin, datos);
-    toast.success("Proyección cargada");
   };
 
   const autocompleteVersiones = (
@@ -326,7 +334,6 @@ export default function PresupuestoCantidades() {
       onChange={(e, value) => {
         if (value) {
           setVersion(value);
-          toast.info("Cargando proyección");
           cargarProyeccion(value.cod_version);
         } else {
           setProyeccionCargada(false);
@@ -384,6 +391,15 @@ export default function PresupuestoCantidades() {
     />
   );
 
+  const btnEliminar = (
+    <BtnNuevo
+      onClick={handleEliminar}
+      texto="Eliminar"
+      icon={false}
+      disabled={!proyeccionCargada}
+    />
+  );
+
   const itemsCrearVersion = [
     createTextFieldItem(
       6,
@@ -394,6 +410,7 @@ export default function PresupuestoCantidades() {
     ),
     createCustomComponentItem(2, "btnCrearVersion", btnCrearVersion),
     createCustomComponentItem(2, "btnCancelar", btnCancelar),
+    createEmptyItem(2, "relleno_proyeccion"),
   ];
 
   const itemsOpcionesProyeccion = [
@@ -401,11 +418,11 @@ export default function PresupuestoCantidades() {
     createCustomComponentItem(4, "autocomplete_version", autocompleteVersiones),
     createCustomComponentItem(2, "meses", selectMeses),
     createCustomComponentItem(2, "btnProyectar", btnProyectar),
+    createCustomComponentItem(2, "btnEliminar", btnEliminar),
   ];
 
   const itemsProyeccion = [
     ...(crearNuevaVersion ? itemsCrearVersion : itemsOpcionesProyeccion),
-    createEmptyItem(2, "relleno_proyeccion"),
   ];
 
   const opcionesProyeccion = <CustomGrid items={itemsProyeccion} />;
