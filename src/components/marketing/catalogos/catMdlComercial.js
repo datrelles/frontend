@@ -233,9 +233,13 @@ function CatModeloComercial() {
                         throw new Error(`Fila ${index + 2}: Datos obligatorios faltantes.`);
                     }
 
-                    const estado_modelo = estado_raw === "activo" ? 1 : estado_raw === "inactivo" ? 0 : null;
-                    if (estado_modelo === null) {
-                        throw new Error(`Fila ${index + 2}: Estado debe ser 'ACTIVO' o 'INACTIVO'.`);
+                    let estado_modelo = null;
+                    if (estado_raw === "activo" || estado_raw === "1") {
+                        estado_modelo = 1;
+                    } else if (estado_raw === "inactivo" || estado_raw === "0") {
+                        estado_modelo = 0;
+                    } else {
+                        throw new Error(`Fila ${index + 2}: Estado debe ser 'ACTIVO', 'INACTIVO', 1 o 0.`);
                     }
 
                     const homologado = homologados.find(
@@ -403,6 +407,15 @@ function CatModeloComercial() {
         cargarDatos();
     }, []);
 
+    const camposPlantillaModelo = [
+        "codigo_modelo_comercial", "nombre_marca",
+        "nombre_modelo_sri", "nombre_modelo",
+        "anio_modelo","estado_modelo"
+    ];
+    const tableOptions = getTableOptions(cabeceras, camposPlantillaModelo, "Actualizar_modelo_comercial.xlsx");
+
+
+
     const columns = [
         { name: 'codigo_modelo_comercial', label: 'Código' },
         {
@@ -415,7 +428,7 @@ function CatModeloComercial() {
                 }
             }
         },
-        { name: 'nombre_modelo_homologado', label: 'Modelo Homologado' },
+        { name: 'nombre_modelo_sri', label: 'Modelo Homologado' },
         { name: 'nombre_modelo', label: 'Modelo Comercial' },
         { name: 'anio_modelo', label: 'Año' },
         {
@@ -535,7 +548,7 @@ function CatModeloComercial() {
                     </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={getTableOptions()} />
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={tableOptions} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selectedItem ? 'Actualizar' : 'Nuevo'}</DialogTitle>

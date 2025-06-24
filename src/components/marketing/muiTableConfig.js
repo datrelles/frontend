@@ -1,8 +1,24 @@
 import { createTheme } from '@mui/material/styles';
+import {Collapse, IconButton, TableCell, TableRow, Tooltip} from "@mui/material";
+import GetAppIcon from "@material-ui/icons/GetApp";
+import React from "react";
+import * as XLSX from "xlsx";
+import BotonExportarXLSX from "./catalogos/BotonExportarXLSX";
 
-export const getTableOptions = () => ({
+
+export const getTableOptions = (cabeceras = [], camposPlantilla = [], nombreArchivo = 'plantilla_actualizar.xlsx') => ({
     responsive: 'standard',
     selectableRows: 'none',
+    download: false,
+    rowsPerPage: 10,
+    expandableRows: false,
+    customToolbar: () => (
+        <BotonExportarXLSX
+            datos={cabeceras}
+            camposPlantilla={camposPlantilla}
+            nombreArchivo={nombreArchivo}
+        />
+    ),
     textLabels: {
         body: {
             noMatch: "Lo siento, no se encontraron registros",
@@ -13,6 +29,9 @@ export const getTableOptions = () => ({
             previous: "Anterior",
             rowsPerPage: "Filas por página:",
             displayRows: "de"
+        },
+        toolbar: {
+            downloadCsv: "Exportar CSV"
         }
     }
 });

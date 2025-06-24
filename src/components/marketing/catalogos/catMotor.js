@@ -269,6 +269,14 @@ function CatMotor() {
             toast.error('Error cargando menús');
         }
     };
+    const camposPlantillaModelo = [
+        "codigo_motor", "nombre_tipo_motor",
+        "nombre_motor", "cilindrada",
+        "caballos_fuerza","torque_maximo",
+        "sistema_combustible","arranque",
+        "sistema_refrigeracion","descripcion_motor"
+    ];
+    const tableOptions = getTableOptions(cabeceras, camposPlantillaModelo, "Actualizar_motor.xlsx");
 
     useEffect(() => {
         getMenus();
@@ -370,7 +378,7 @@ function CatMotor() {
                     </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={getTableOptions()} />
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={tableOptions} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selectedMotor ? 'Actualizar' : 'Nuevo'}</DialogTitle>

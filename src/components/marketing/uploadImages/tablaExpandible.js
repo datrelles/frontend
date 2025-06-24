@@ -1,13 +1,14 @@
-// CatModeloVersionExpandible.jsx
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     Table, TableBody, TableCell, TableRow,
-    IconButton, Collapse, Box, Typography, Button, Dialog, DialogTitle, DialogContent,
+    IconButton, Collapse, Box, Typography, Button, Dialog, DialogTitle, DialogContent, Tooltip,
 } from '@mui/material';
 import { Edit as EditIcon } from '@mui/icons-material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import MUIDataTable from 'mui-datatables';
 import {NumericRender} from "../functions";
+import GetAppIcon from '@material-ui/icons/GetApp';
+import * as XLSX from "xlsx";
 
 export default function CatModeloVersionExpandible({
                                                        cabeceras,
@@ -29,7 +30,6 @@ export default function CatModeloVersionExpandible({
     const getDetalleChasis = (codigo) => chasis.find(c => c.codigo_chasis === codigo);
    //const getImagen = (codigo) => imagenes.find(img => img.codigo_imagen === codigo)?.path_imagen;
     const safeValue = (val, suffix = '') => val !== undefined && val !== null ? `${val}${suffix}` : 'N/A';
-
 
     const renderDetailTable = (section, headers, values) => (
         <>
@@ -153,6 +153,7 @@ export default function CatModeloVersionExpandible({
     };
 
     const columns = [
+        //{ name: 'codigo_modelo_version', label: 'CÓDIGO' },
         { name: 'nombre_modelo_version', label: 'MODELO' },
        // { name: 'nombre_producto', label: 'PRODUCTO' },
         { name: 'nombre_marca', label: 'MARCA' },
@@ -194,26 +195,78 @@ export default function CatModeloVersionExpandible({
             }
         }
     ];
+    const camposPlantilla = [
+        'codigo_modelo_version',
+        'codigo_dim_peso',
+        'codigo_motor',
+        'codigo_electronica',
+        'codigo_chasis',
+        'codigo_cliente_canal',
+        'nombre_color',
+        'descripcion_imagen',
+        'caja_cambios',
+        'nombre_modelo_comercial',
+        'nombre_version',
+        'nombre_modelo_version',
+        'anio_modelo_version',
+        'precio_producto_modelo',
+        'precio_venta_distribuidor'
+    ];
+
+    const exportarCamposPlantilla = (datosOriginales) => {
+        // Filtramos cada objeto para dejar solo los campos requeridos
+        const datosFiltrados = datosOriginales.map((registro) => {
+            const nuevoRegistro = {};
+            camposPlantilla.forEach((campo) => {
+                nuevoRegistro[campo] = registro[campo] ?? '';
+            });
+            return nuevoRegistro;
+        });
+
+        const hoja = XLSX.utils.json_to_sheet(datosFiltrados);
+        const libro = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(libro, hoja, 'Plantilla');
+
+        XLSX.writeFile(libro, 'actualizar_modelos.xlsx');
+    };
+
 
     const options = {
         responsive: 'standard',
         selectableRows: 'none',
-        download: true,
+        download: false,
         rowsPerPage: 10,
         expandableRows: true,
         renderExpandableRow: (rowData, { dataIndex }) => (
             <TableRow>
                 <TableCell colSpan={12}>
-                    <Collapse
-                        in={true}>{ExpandableRow(cabeceras[dataIndex])}
+                    <Collapse in={true}>
+                        {ExpandableRow(cabeceras[dataIndex])}
                     </Collapse>
                 </TableCell>
             </TableRow>
         ),
+        customToolbar: () => (
+            <Tooltip title="Exportar CSV">
+                <IconButton onClick={() => exportarCamposPlantilla(cabeceras)}>
+                    <GetAppIcon />
+                </IconButton>
+            </Tooltip>
+        ),
         textLabels: {
-            body: { noMatch: "Lo siento, no se encontraron registros", toolTip: "Ordenar" },
-            pagination: { next: "Siguiente", previous: "Anterior", rowsPerPage: "Filas por página:", displayRows: "de" },
-            toolbar: { downloadCsv: "Exportar CSV" }
+            body: {
+                noMatch: "Lo siento, no se encontraron registros",
+                toolTip: "Ordenar"
+            },
+            pagination: {
+                next: "Siguiente",
+                previous: "Anterior",
+                rowsPerPage: "Filas por página:",
+                displayRows: "de"
+            },
+            toolbar: {
+                downloadCsv: "Exportar CSV"
+            }
         }
     };
 

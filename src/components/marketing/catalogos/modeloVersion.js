@@ -24,6 +24,8 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import AddIcon from "@material-ui/icons/Add";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Stack from "@mui/material/Stack";
+import EditIcon from '@mui/icons-material/Edit';
+import GlobalLoading from "../selectoresDialog/GlobalLoading";
 
 
 const API = process.env.REACT_APP_API;
@@ -93,6 +95,8 @@ function CatModeloVersion() {
         precio_producto_modelo: '',
         precio_venta_distribuidor: ''
     });
+
+    const [loadingGlobal, setLoadingGlobal] = useState(false);
 
     const fetchModeloVersion = async () => {
         try {
@@ -605,13 +609,61 @@ function CatModeloVersion() {
             enqueueSnackbar("Error al leer o enviar el archivo", { variant: "error" });
         }
     };
+    const handleUploadExcelUpdate = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = async (event) => {
+            setLoadingGlobal(true);
+            try {
+                const data = new Uint8Array(event.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+                const res = await fetch(`${API}/bench/update_modelo_version_masivo`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + jwt,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(jsonData),
+                });
+
+                const responseData = await res.json();
+
+                if (res.ok) {
+                    if (responseData.actualizados?.length) {
+                        enqueueSnackbar(`Modelos actualizados: ${responseData.actualizados.length}`, { variant: 'success' });
+                    }
+
+                    if (responseData.errores?.length) {
+                        enqueueSnackbar(`Errores en ${responseData.errores.length} fila(s)`, { variant: 'warning' });
+                    }
+
+                    fetchModeloVersion();
+                } else {
+                    enqueueSnackbar(responseData.error || "Error al actualizar", { variant: "error" });
+                }
+
+            } catch (error) {
+                enqueueSnackbar("Error inesperado durante la carga", { variant: "error" });
+            } finally {
+                setLoadingGlobal(false);
+            }
+        };
+
+        reader.readAsArrayBuffer(file);
+    };
+
+
 
     return (
         <>
-        {loading ? (
-            <LoadingCircle />
-        ) : (
-            <>
+            <GlobalLoading open={loadingGlobal} />
                 <Dialog open={openModalImagen} onClose={() => setOpenModalImagen(false)} maxWidth="md" fullWidth>
                     <DialogTitle>Vista de Imagen</DialogTitle>
                     <DialogContent>
@@ -718,6 +770,14 @@ function CatModeloVersion() {
                                 }}
                             >Insertar Masivo
                                 <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                            </Button>
+                            <Button
+                                variant="contained"
+                                component="label"
+                                startIcon={<EditIcon />}
+                                sx={{ textTransform: 'none', fontWeight: 600,backgroundColor: 'littleseashell' }}
+                            >Actualizar Masivo
+                                <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
                             </Button>
                             <IconButton onClick={fetchModeloVersion} style={{ color: 'firebrick' }}>
                                 <RefreshIcon />
@@ -927,8 +987,6 @@ function CatModeloVersion() {
                         </DialogActions>
                     </Dialog>
                 </div>
-            </>
-        )}
         </>
     );
 }

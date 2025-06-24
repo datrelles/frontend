@@ -283,6 +283,18 @@ function CatElectronica() {
         setDialogOpen(true);
     };
 
+    const camposPlantillaModelo = [
+        "codigo_electronica", "velocidad_maxima",
+        "capacidad_combustible", "tablero",
+        "luces_delanteras", "luces_posteriores",
+        "garantia"
+
+
+    ];
+    const tableOptions = getTableOptions(cabeceras, camposPlantillaModelo, "Actualizar_electronica.xlsx");
+
+
+
     return (
         <>
             <GlobalLoading open={loadingGlobal} />
@@ -357,7 +369,7 @@ function CatElectronica() {
                     </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={getTableOptions()} />
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={tableOptions} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selectedElectronica ? 'Actualizar' : 'Nuevo'}</DialogTitle>

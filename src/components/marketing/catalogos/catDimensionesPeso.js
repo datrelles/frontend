@@ -266,6 +266,14 @@ function CatDimensionesPeso() {
         setDialogOpen(true);
     };
 
+    const camposPlantillaModelo = [
+        "codigo_dim_peso", "peso_seco",
+        "altura_total", "longitud_total",
+        "ancho_total"
+    ];
+    const tableOptions = getTableOptions(cabeceras, camposPlantillaModelo, "Actualizar_dimensiones.xlsx");
+
+
     return (
         <>
             <GlobalLoading open={loadingGlobal} />
@@ -338,7 +346,7 @@ function CatDimensionesPeso() {
                     </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={getTableOptions()} />
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={tableOptions} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selectedDimensiones ? 'Actualizar' : 'Nuevo'}</DialogTitle>

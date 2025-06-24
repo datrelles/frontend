@@ -232,6 +232,15 @@ function CatChasis() {
         reader.readAsBinaryString(file);
     };
 
+    const camposPlantillaModelo = [
+        "codigo_chasis", "aros_rueda_delantera",
+        "aros_rueda_posterior", "neumatico_delantero",
+        "neumatico_trasero", "suspension_delantera",
+        "suspension_trasera", "frenos_delanteros",
+        "frenos_traseros"
+    ];
+    const tableOptions = getTableOptions(cabeceras, camposPlantillaModelo, "Actualizar_chasis.xlsx");
+
     const columns = [
         { name: "codigo_chasis", label: "Código Chasis" },
         { name: "aros_rueda_posterior", label: "Aros Rueda Posterior" },
@@ -349,7 +358,7 @@ function CatChasis() {
                     </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={getTableOptions()} />
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={tableOptions} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selectedChasis ? 'Actualizar' : 'Nuevo'}</DialogTitle>
