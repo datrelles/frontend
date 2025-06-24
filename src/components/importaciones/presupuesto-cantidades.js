@@ -29,6 +29,7 @@ import MultiLevelTable, {
 import CustomGrid from "../formulas/common/custom-grid";
 import { validarTipoRetornoYConvertir } from "../../helpers/modulo-formulas";
 import AutocompleteObject from "../formulas/common/autocomplete-objects";
+import CircularProgress from "@mui/material/CircularProgress";
 
 const COD_PROCESO_PRESUP_CANT = "PRESCANT";
 const shapeVersion = {
@@ -76,6 +77,7 @@ export default function PresupuestoCantidades() {
     [jwt]
   );
 
+  const [cargando, setCargando] = useState(false);
   const [crearNuevaVersion, setCrearNuevaVersion] = useState(false);
   const [nuevaVersion, setNuevaVersion] = useState("");
   const [versiones, setVersiones] = useState([]);
@@ -281,19 +283,20 @@ export default function PresupuestoCantidades() {
   };
 
   const cargarProyeccion = async (version) => {
-    toast.info("Cargando proyección");
+    setCargando(true);
     const proyeccion = await getProyeccion(version);
     if (!proyeccion) {
       toast.warn("Proyección sin datos");
       setColumnasTabla([]);
       setFilasTabla([]);
       setProyeccionCargada(false);
+      setCargando(false);
       return;
     }
     const { anio_inicio, mes_inicio, anio_fin, mes_fin, datos } = proyeccion;
     proyectar(anio_inicio, mes_inicio, anio_fin, mes_fin, datos);
     setProyeccionCargada(true);
-    toast.success("Proyección cargada");
+    setCargando(false);
   };
 
   const handleProyectar = async () => {
@@ -301,7 +304,7 @@ export default function PresupuestoCantidades() {
     const mesInicio = 1;
     const anioFin = anioInicio + Math.floor(mesesProyeccion / 12) - 1;
     const mesFin = 12;
-    toast.info("Creando proyección");
+    setCargando(true);
     try {
       await APIService.createProyeccion(
         version.cod_version,
@@ -315,6 +318,7 @@ export default function PresupuestoCantidades() {
       );
       cargarProyeccion(version.cod_version);
     } catch (err) {
+      setCargando(false);
       toast.error(err.message);
     }
   };
@@ -344,6 +348,7 @@ export default function PresupuestoCantidades() {
         setCrearNuevaVersion(true);
       }}
       texto="Nueva versión"
+      disabled={cargando}
     />
   );
 
@@ -358,6 +363,7 @@ export default function PresupuestoCantidades() {
   const autocompleteVersiones = (
     <AutocompleteObject
       id="Versión"
+      disabled={cargando}
       value={version}
       optionId="cod_version"
       shape={shapeVersion}
@@ -380,7 +386,7 @@ export default function PresupuestoCantidades() {
       onClick={handleEliminarVersion}
       texto="Eliminar"
       icon={false}
-      disabled={version.cod_version === ""}
+      disabled={cargando || version.cod_version === ""}
     />
   );
 
@@ -389,7 +395,7 @@ export default function PresupuestoCantidades() {
       onClick={handleCrearVersion}
       texto="Crear versión"
       icon={false}
-      disabled={nuevaVersion === ""}
+      disabled={cargando || nuevaVersion === ""}
     />
   );
 
@@ -399,7 +405,7 @@ export default function PresupuestoCantidades() {
       options={MesesProyeccion}
       value={mesesProyeccion}
       onChange={createDefaultSetter(setMesesProyeccion)}
-      disabled={proyeccionCargada}
+      disabled={cargando || proyeccionCargada}
     />
   );
 
@@ -409,7 +415,10 @@ export default function PresupuestoCantidades() {
       texto="Proyectar"
       icon={false}
       disabled={
-        !datosCargados || version.cod_version === "" || proyeccionCargada
+        cargando ||
+        !datosCargados ||
+        version.cod_version === "" ||
+        proyeccionCargada
       }
     />
   );
@@ -419,7 +428,7 @@ export default function PresupuestoCantidades() {
       onClick={handleEliminarProyeccion}
       texto="Eliminar"
       icon={false}
-      disabled={!proyeccionCargada}
+      disabled={cargando || !proyeccionCargada}
     />
   );
 
@@ -486,5 +495,25 @@ export default function PresupuestoCantidades() {
     }
   }, [clientes, modelos, parametrosProceso]);
 
-  return <MainComponent components={[header, opcionesProyeccion, tabla]} />;
+  return (
+    <MainComponent
+      components={[
+        header,
+        opcionesProyeccion,
+        cargando ? (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginTop: "30vh",
+            }}
+          >
+            <CircularProgress style={{ color: "red" }} />
+          </div>
+        ) : (
+          tabla
+        ),
+      ]}
+    />
+  );
 }
