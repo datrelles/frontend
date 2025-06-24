@@ -83,7 +83,7 @@ const ImageUploader = ({ onUploadComplete }) => {
                 return;
             }
 
-            toast.success("Imagen registrada correctamente");
+            //toast.success("Imagen registrada correctamente");
 
         } catch (error) {
             console.error("Error guardando URL en base:", error);
