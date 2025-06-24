@@ -185,6 +185,7 @@ export default function PresupuestoCantidades() {
           cargarProyeccion(codVersionRef.current);
         })
         .catch((err) => {
+          setCargando(false);
           toast.error(err.message);
         });
     },
