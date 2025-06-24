@@ -60,73 +60,76 @@ const ResumenComparacion = ({ resultado, bloques }) => {
                         <Typography sx={{ textTransform: 'capitalize' }}>{categoria}</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
-                        <Table size="small">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell sx={{ fontWeight: 'bold' }}>CAMPO</TableCell>
-                                    <TableCell>
-                                        <Typography fontWeight="bold">
-                                            {modeloBase?.nombre_modelo_comercial || 'Base'}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            {modeloBase?.nombre_marca}
-                                        </Typography>
-                                    </TableCell>
-                                    {comparables.map((m, i) => (
-                                        <React.Fragment key={i}>
-                                            <TableCell>
-                                                <Typography fontWeight="bold">{m?.nombre_modelo_comercial}</Typography>
-                                                <Typography variant="body2" color="text.secondary">{m?.nombre_marca}</Typography>
-                                            </TableCell>
-                                            <TableCell><strong>Comparativo</strong></TableCell>
-                                        </React.Fragment>
-                                    ))}
-                                    {[...Array(placeholdersCount)].map((_, i) => (
-                                        <React.Fragment key={`ph-head-${i}`}>
-                                            <TableCell />
-                                            <TableCell />
-                                        </React.Fragment>
-                                    ))}
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {Object.entries(campos).map(([campo, data], i) => (
-                                    <TableRow key={i}>
-                                        <TableCell>{campo.replace(/_/g, ' ').toUpperCase()}</TableCell>
-                                        <TableCell>{safeText(data.base, getUnidadCampo(campo))}</TableCell>
-                                        {data.comparables.map((comp, j) => (
-                                            <React.Fragment key={j}>
-                                                <TableCell>{safeText(comp.valor, getUnidadCampo(campo))}</TableCell>
+                        <Box sx={{ overflowX: 'auto' }}>
+                            <Table size="small" sx={{ minWidth: 600 }}>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>CAMPO</TableCell>
+                                        <TableCell>
+                                            <Typography fontWeight="bold">
+                                                {modeloBase?.nombre_modelo_comercial || 'Base'}
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                {modeloBase?.nombre_marca}
+                                            </Typography>
+                                        </TableCell>
+                                        {comparables.map((m, i) => (
+                                            <React.Fragment key={i}>
                                                 <TableCell>
-                                                    {comp.estado === 'mejor' ? (
-                                                        <ThumbUpIcon sx={{ color: '#2e7d32' }} />
-                                                    ) : comp.estado === 'peor' ? (
-                                                        <ThumbDownIcon sx={{ color: '#d32f2f' }} />
-                                                    ) : comp.estado === 'diferente' ? (
-                                                        <Box display="flex" gap={0.5}>
-                                                            <ThumbUpIcon sx={{ color: '#b300ac', fontSize: 20 }} />
-                                                            <ThumbDownIcon sx={{ color: '#b300ac', fontSize: 20 }} />
-                                                        </Box>
-                                                    ) : (
-                                                        <Box display="flex" gap={0.5}>
-                                                            <ThumbUpIcon sx={{ color: '#ff9800', fontSize: 20 }} />
-                                                            <ThumbUpIcon sx={{ color: '#ff9800', fontSize: 20 }} />
-                                                        </Box>
-                                                    )}
+                                                    <Typography fontWeight="bold">{m?.nombre_modelo_comercial}</Typography>
+                                                    <Typography variant="body2" color="text.secondary">{m?.nombre_marca}</Typography>
                                                 </TableCell>
+                                                <TableCell><strong>Comparativo</strong></TableCell>
                                             </React.Fragment>
                                         ))}
                                         {[...Array(placeholdersCount)].map((_, i) => (
-                                            <React.Fragment key={`ph-body-${i}`}>
+                                            <React.Fragment key={`ph-head-${i}`}>
                                                 <TableCell />
                                                 <TableCell />
                                             </React.Fragment>
                                         ))}
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                                </TableHead>
+                                <TableBody>
+                                    {Object.entries(campos).map(([campo, data], i) => (
+                                        <TableRow key={i}>
+                                            <TableCell>{campo.replace(/_/g, ' ').toUpperCase()}</TableCell>
+                                            <TableCell>{safeText(data.base, getUnidadCampo(campo))}</TableCell>
+                                            {data.comparables.map((comp, j) => (
+                                                <React.Fragment key={j}>
+                                                    <TableCell>{safeText(comp.valor, getUnidadCampo(campo))}</TableCell>
+                                                    <TableCell>
+                                                        {comp.estado === 'mejor' ? (
+                                                            <ThumbUpIcon sx={{ color: '#2e7d32' }} />
+                                                        ) : comp.estado === 'peor' ? (
+                                                            <ThumbDownIcon sx={{ color: '#d32f2f' }} />
+                                                        ) : comp.estado === 'diferente' ? (
+                                                            <Box display="flex" gap={0.5}>
+                                                                <ThumbUpIcon sx={{ color: '#b300ac', fontSize: 20 }} />
+                                                                <ThumbDownIcon sx={{ color: '#b300ac', fontSize: 20 }} />
+                                                            </Box>
+                                                        ) : (
+                                                            <Box display="flex" gap={0.5}>
+                                                                <ThumbUpIcon sx={{ color: '#ff9800', fontSize: 20 }} />
+                                                                <ThumbUpIcon sx={{ color: '#ff9800', fontSize: 20 }} />
+                                                            </Box>
+                                                        )}
+                                                    </TableCell>
+                                                </React.Fragment>
+                                            ))}
+                                            {[...Array(placeholdersCount)].map((_, i) => (
+                                                <React.Fragment key={`ph-body-${i}`}>
+                                                    <TableCell />
+                                                    <TableCell />
+                                                </React.Fragment>
+                                            ))}
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </Box>
                     </AccordionDetails>
+
                 </Accordion>
             ))}
         </Box>

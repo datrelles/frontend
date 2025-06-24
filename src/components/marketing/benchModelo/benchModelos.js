@@ -444,7 +444,7 @@ function CompararModelos()  {
                                                             transition: 'transform 0.3s ease-in-out',
                                                             transformOrigin: 'center center',
                                                             '&:hover': {
-                                                                transform: 'scale(3.5)',
+                                                                transform: 'scale(3)',
                                                             },
                                                         }}
                                                     />
