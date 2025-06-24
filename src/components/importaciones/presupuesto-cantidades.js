@@ -150,6 +150,19 @@ export default function PresupuestoCantidades() {
     }
   }
 
+  async function handleEliminarVersion() {
+    const eliminar = window.confirm("¿Deseas eliminar la versión?");
+    if (!eliminar) return;
+    try {
+      await APIService.deleteVersion(version.cod_version);
+      setVersion(shapeVersion);
+      getVersiones();
+      toast.success("Versión eliminada");
+    } catch (err) {
+      toast.error(err.message);
+    }
+  }
+
   const handleUpdateCell = createOnUpdateCell({
     fn: (newValue, rowData, columnDefinition) => {
       toast.info("Actualizando proyección");
@@ -306,7 +319,7 @@ export default function PresupuestoCantidades() {
     }
   };
 
-  const handleEliminar = async () => {
+  const handleEliminarProyeccion = async () => {
     const eliminar = window.confirm("¿Deseas eliminar la proyección?");
     if (!eliminar) return;
     try {
@@ -322,6 +335,25 @@ export default function PresupuestoCantidades() {
       toast.error(err.message);
     }
   };
+
+  const header = <Header menus={menus} modulos={false} />;
+
+  const btnNuevaVersion = (
+    <BtnNuevo
+      onClick={() => {
+        setCrearNuevaVersion(true);
+      }}
+      texto="Nueva versión"
+    />
+  );
+
+  const btnCancelarVersion = (
+    <BtnCancelar
+      onClick={() => {
+        setCrearNuevaVersion(false);
+      }}
+    />
+  );
 
   const autocompleteVersiones = (
     <AutocompleteObject
@@ -343,22 +375,12 @@ export default function PresupuestoCantidades() {
     />
   );
 
-  const header = <Header menus={menus} modulos={false} />;
-
-  const btnNuevaVersion = (
+  const btnEliminarVersion = (
     <BtnNuevo
-      onClick={() => {
-        setCrearNuevaVersion(true);
-      }}
-      texto="Nueva versión"
-    />
-  );
-
-  const btnCancelar = (
-    <BtnCancelar
-      onClick={() => {
-        setCrearNuevaVersion(false);
-      }}
+      onClick={handleEliminarVersion}
+      texto="Eliminar"
+      icon={false}
+      disabled={version.cod_version === ""}
     />
   );
 
@@ -377,6 +399,7 @@ export default function PresupuestoCantidades() {
       options={MesesProyeccion}
       value={mesesProyeccion}
       onChange={createDefaultSetter(setMesesProyeccion)}
+      disabled={proyeccionCargada}
     />
   );
 
@@ -391,9 +414,9 @@ export default function PresupuestoCantidades() {
     />
   );
 
-  const btnEliminar = (
+  const btnEliminarProyeccion = (
     <BtnNuevo
-      onClick={handleEliminar}
+      onClick={handleEliminarProyeccion}
       texto="Eliminar"
       icon={false}
       disabled={!proyeccionCargada}
@@ -409,16 +432,21 @@ export default function PresupuestoCantidades() {
       createDefaultSetter(setNuevaVersion, undefined, true)
     ),
     createCustomComponentItem(2, "btnCrearVersion", btnCrearVersion),
-    createCustomComponentItem(2, "btnCancelar", btnCancelar),
+    createCustomComponentItem(2, "btnCancelarVersion", btnCancelarVersion),
     createEmptyItem(2, "relleno_proyeccion"),
   ];
 
   const itemsOpcionesProyeccion = [
     createCustomComponentItem(2, "btnNuevaVersion", btnNuevaVersion),
-    createCustomComponentItem(4, "autocomplete_version", autocompleteVersiones),
+    createCustomComponentItem(3, "autocomplete_version", autocompleteVersiones),
+    createCustomComponentItem(1, "btnEliminarVersion", btnEliminarVersion),
     createCustomComponentItem(2, "meses", selectMeses),
     createCustomComponentItem(2, "btnProyectar", btnProyectar),
-    createCustomComponentItem(2, "btnEliminar", btnEliminar),
+    createCustomComponentItem(
+      2,
+      "btnEliminarProyeccion",
+      btnEliminarProyeccion
+    ),
   ];
 
   const itemsProyeccion = [

@@ -393,15 +393,22 @@ export default class API {
     }
   );
 
-  createVersion = this.#errorHandler(async (data) => {
-    return await axios.post(`${this.#URL}/versiones`, data, this.#headers);
-  });
-
   getVersion = this.#errorHandler(async (version) => {
     return await axios.get(`${this.#URL}/versiones/${version}`, this.#headers);
   });
 
   getVersiones = this.#errorHandler(async () => {
     return await axios.get(`${this.#URL}/versiones`, this.#headers);
+  });
+
+  createVersion = this.#errorHandler(async (data) => {
+    return await axios.post(`${this.#URL}/versiones`, data, this.#headers);
+  });
+
+  deleteVersion = this.#errorHandler(async (version) => {
+    return await axios.delete(
+      `${this.#URL}/versiones/${version}`,
+      this.#headers
+    );
   });
 }
