@@ -167,7 +167,7 @@ export default function PresupuestoCantidades() {
 
   const handleUpdateCell = createOnUpdateCell({
     fn: (newValue, rowData, columnDefinition) => {
-      toast.info("Actualizando proyección");
+      setCargando(true);
       APIService.updateProyeccion(
         codVersionRef.current,
         COD_PROCESO_PRESUP_CANT,
