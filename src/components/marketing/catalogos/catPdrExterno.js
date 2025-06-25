@@ -4,7 +4,6 @@ import Navbar0 from "../../Navbar0";
 import MUIDataTable from "mui-datatables";
 import {ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
-import LoadingCircle from "../../contabilidad/loader";
 import {Autocomplete, IconButton, TextField} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
@@ -24,6 +23,7 @@ import AddIcon from "@material-ui/icons/Add";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Stack from "@mui/material/Stack";
 import {getTableOptions, getMuiTheme } from "../muiTableConfig";
+import GlobalLoading from "../selectoresDialog/GlobalLoading";
 
 
 const API = process.env.REACT_APP_API;
@@ -36,13 +36,13 @@ function CatProductoExterno() {
     const [descripcionProducto, setDescripcionProducto] = useState('');
     const [cabeceras, setCabeceras] = useState([]);
     const [menus, setMenus] = useState([]);
-    const [loading] = useState(false);
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const [selectedProducto, setSelectedProducto] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [marcaRepuesto, setMarcaRepuesto] = useState('');
     const [marcasActivas, setMarcasActivas] = useState('');
     const [marcas, setMarcas] = useState([]);
+    const [loadingGlobal, setLoadingGlobal] = useState(false);
 
     const handleInsertProducto = async () => {
         if (!marcaRepuesto || !marcaRepuesto.codigo_marca_rep) {
@@ -227,7 +227,8 @@ function CatProductoExterno() {
                 const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
                 if (!rows.length) {
-                    throw new Error("El archivo Excel está vacío.");
+                    enqueueSnackbar("El archivo Excel está vacío.", { variant: "warning" });
+                    return;
                 }
 
                 const processedRows = rows.map((row, index) => {
@@ -262,7 +263,7 @@ function CatProductoExterno() {
                     const { nombre_producto, codigo_marca_rep } = processedRows[i];
                     const key = `${nombre_producto.toLowerCase()}_${codigo_marca_rep}`;
                     if (uniqueSet.has(key)) {
-                        throw new Error(`Error: El producto '${nombre_producto}' con la misma marca se repite en el Excel. Verifica fila ${i + 2}.`);
+                        enqueueSnackbar(`Error: El producto '${nombre_producto}' con la misma marca se repite en el Excel. Verifica fila ${i + 2}.`);
                     }
                     uniqueSet.add(key);
                 }
@@ -292,6 +293,87 @@ function CatProductoExterno() {
         reader.readAsBinaryString(file);
     };
 
+    const validarEstado = (valor) => {
+        const estado = String(valor).trim().toLowerCase();
+        return ["1", "0", "activo", "inactivo"].includes(estado);
+    };
+
+    const handleUploadExcelUpdate = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async (evt) => {
+            try {
+                const wb = XLSX.read(evt.target.result, { type: 'binary' });
+                const sheet = wb.Sheets[wb.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(sheet);
+
+                const rowsInvalidas = [];
+                rows.forEach((row, index) => {
+                    if (row.hasOwnProperty("estado_prod_externo") && !validarEstado(row.estado_prod_externo)) {
+                        rowsInvalidas.push(`Fila ${index + 2}: Estado inválido "${row.estado_prod_externo}"`);
+                    }
+                });
+
+                if (rowsInvalidas.length > 0) {
+                    rowsInvalidas.forEach(msg => enqueueSnackbar(msg, { variant: 'warning' }));
+                    setLoadingGlobal(false);
+                    return;
+                }
+
+                const duplicados = [];
+                const combinaciones = new Map();
+                rows.forEach((row, index) => {
+                    const clave = `${row.nombre_comercial}_${row.nombre_producto}_
+                ${row.estado_prod_externo}`;
+                    if (combinaciones.has(clave)) {
+                        const filaOriginal = combinaciones.get(clave);
+                        duplicados.push({ filaOriginal, filaDuplicada: index + 2, clave });
+                    } else {
+                        combinaciones.set(clave, index + 2);
+                    }
+                });
+
+                if (duplicados.length > 0) {
+                    const msg = duplicados.map(d =>
+                        `Duplicado con clave [${d.clave}] en filas ${d.filaOriginal} y ${d.filaDuplicada}`
+                    ).join('\n');
+
+                    enqueueSnackbar(`Error..!! Registros duplicados detectados:\n${msg}`, {
+                        variant: "error",
+                        persist: true
+                    });
+                    return;
+                }
+
+                setLoadingGlobal(true);
+
+                const res = await fetch(`${API}/bench/update_producto_externo_masivo`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + jwt
+                    },
+                    body: JSON.stringify(rows)
+                });
+
+                const responseData = await res.json();
+                if (res.ok) {
+                    enqueueSnackbar("Actualización exitosa", { variant: "success" });
+                    fetchProductoData();
+                } else {
+                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
+                }
+            } catch (error) {
+                enqueueSnackbar("Error inesperado durante la carga", { variant: "error" });
+            } finally {
+                setLoadingGlobal(false);
+            }
+        };
+
+        reader.readAsBinaryString(file);
+    };
+
     const openEditDialog = (rowData) => {
         setSelectedProducto(rowData);
         setMarcaRepuesto(marcas.find(m => m.codigo_marca_rep === rowData.codigo_marca_rep) || null);
@@ -307,7 +389,8 @@ function CatProductoExterno() {
     ];
     const tableOptions = getTableOptions(cabeceras, camposPlantillaModelo, "Actualizar_producto_externo.xlsx");
     return (
-        <>{loading ? (<LoadingCircle />) : (
+        <>
+            <GlobalLoading open={loadingGlobal} />
             <div style={{ marginTop: '150px', width: "100%" }}>
                 <Navbar0 menus={menus} />
                 <Box>
@@ -344,7 +427,6 @@ function CatProductoExterno() {
                         >
                             Nuevo
                         </Button>
-
                         <Button
                             variant="contained"
                             component="label"
@@ -365,7 +447,14 @@ function CatProductoExterno() {
                             Insertar Masivo
                             <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
                         </Button>
-
+                        <Button
+                            variant="contained"
+                            component="label"
+                            startIcon={<EditIcon />}
+                            sx={{ textTransform: 'none', fontWeight: 600,backgroundColor: 'littleseashell' }}
+                        >Actualizar Masivo
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
+                        </Button>
                         <IconButton onClick={fetchProductoData} style={{ color: 'firebrick' }}>
                             <RefreshIcon />
                         </IconButton>
@@ -400,8 +489,11 @@ function CatProductoExterno() {
                                     </Select>
                                 </FormControl>
                             </Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Descripción Producto" value={descripcionProducto} onChange={(e) => setDescripcionProducto(e.target.value.toUpperCase())} /></Grid>
-
+                            <Grid item xs={6}>
+                                <TextField fullWidth label="Descripción Producto"
+                                           value={descripcionProducto}
+                                           onChange={(e) => setDescripcionProducto(e.target.value.toUpperCase())} />
+                            </Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>
@@ -410,7 +502,7 @@ function CatProductoExterno() {
                     </DialogActions>
                 </Dialog>
             </div>
-        )}</>
+        </>
     );
 }
 
