@@ -93,6 +93,11 @@ const useStyles = makeStyles({
     fontSize: "clamp(0.55rem, 1.25vw, 0.8rem)",
     padding: "clamp(1px, 0.4vw, 3px) clamp(3px, 0.7vw, 7px)",
     whiteSpace: "nowrap",
+    height: "30px",
+    minHeight: "30px",
+    maxHeight: "30px",
+    lineHeight: "30px",
+    boxSizing: "border-box",
   },
   clickableCell: {
     cursor: "pointer",
@@ -123,6 +128,9 @@ const useStyles = makeStyles({
   },
 });
 
+const ROW_HEIGHT = 30;
+const OVERSCAN_COUNT = 5;
+
 export default function MultiLevelTable({
   data,
   columns,
@@ -138,6 +146,7 @@ export default function MultiLevelTable({
   const tableContainerRef = useRef(null);
   const [tableHeight, setTableHeight] = useState("500px");
   const [hoveredCell, setHoveredCell] = useState(null);
+  const [scrollTop, setScrollTop] = useState(0);
 
   const flatDataColumns = useMemo(() => getFlatDataColumns(columns), [columns]);
 
@@ -363,6 +372,29 @@ export default function MultiLevelTable({
     return rows;
   };
 
+  const handleScroll = (event) => {
+    setScrollTop(event.currentTarget.scrollTop);
+  };
+
+  const containerHeight = tableContainerRef.current
+    ? tableContainerRef.current.offsetHeight -
+      tableContainerRef.current.querySelector("thead").offsetHeight
+    : 0;
+  const startIndex = Math.max(
+    0,
+    Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN_COUNT
+  );
+  const endIndex = Math.min(
+    data.length,
+    Math.ceil((scrollTop + containerHeight) / ROW_HEIGHT) + OVERSCAN_COUNT
+  );
+
+  const visibleRows = data.slice(startIndex, endIndex);
+
+  const totalHeight = data.length * ROW_HEIGHT;
+  const paddingTop = startIndex * ROW_HEIGHT;
+  const paddingBottom = totalHeight - endIndex * ROW_HEIGHT;
+
   if (flatDataColumns.length === 0) {
     return (
       <Paper>
@@ -379,13 +411,14 @@ export default function MultiLevelTable({
       className={classes.tableContainer}
       ref={tableContainerRef}
       style={{ maxHeight: tableHeight }}
+      onScroll={handleScroll}
     >
       <Table
         aria-label="custom multi-level grouped table"
         className={classes.table}
       >
         <TableHead>{getHeaderRows(columns)}</TableHead>
-        <TableBody>
+        <TableBody style={{ height: totalHeight, position: "relative" }}>
           {data.length === 0 ? (
             <TableRow>
               <TableCell
@@ -405,142 +438,164 @@ export default function MultiLevelTable({
               </TableCell>
             </TableRow>
           ) : (
-            data.map((row, rowIndex) => (
-              <TableRow key={rowIndex}>
-                {flatDataColumns.map((colDef, colIndex) => {
-                  const onClickCell = colDef.onClickCell || null;
-                  const onUpdateCell = colDef.onUpdateCell || null;
-                  const isEditing =
-                    editingCell?.rowIndex === rowIndex &&
-                    editingCell?.field === colDef.field;
+            <>
+              {paddingTop > 0 && (
+                <TableRow style={{ height: paddingTop }}>
+                  <TableCell
+                    colSpan={flatDataColumns.length}
+                    style={{ padding: 0, border: "none" }}
+                  />
+                </TableRow>
+              )}
+              {visibleRows.map((row, rowIndexOffset) => {
+                const rowIndex = startIndex + rowIndexOffset;
+                return (
+                  <TableRow key={rowIndex} style={{ height: ROW_HEIGHT }}>
+                    {flatDataColumns.map((colDef, colIndex) => {
+                      const onClickCell = colDef.onClickCell || null;
+                      const onUpdateCell = colDef.onUpdateCell || null;
+                      const isEditing =
+                        editingCell?.rowIndex === rowIndex &&
+                        editingCell?.field === colDef.field;
 
-                  const isHighlighted =
-                    (hoveredCell?.rowIndex === rowIndex &&
-                      hoveredCell?.colIndex === colIndex) ||
-                    (hoveredCell?.rowIndex === rowIndex && colIndex === 0);
+                      const isHighlighted =
+                        (hoveredCell?.rowIndex === rowIndex &&
+                          hoveredCell?.colIndex === colIndex) ||
+                        (hoveredCell?.rowIndex === rowIndex && colIndex === 0);
 
-                  const handleCellClick = () => {
-                    if (onUpdateCell && (row.es_editable ?? true)) {
-                      setEditingCell({ rowIndex, field: colDef.field });
-                      setEditingValue(row[colDef.field]);
-                    }
-                    if (onClickCell && !onUpdateCell) {
-                      onClickCell(row, colDef);
-                    }
-                  };
-                  const handleKeyDown = (event) => {
-                    if (event.key === "Enter") {
-                      if (onUpdateCell) {
-                        onUpdateCell(editingValue, row, colDef);
-                      }
-                      setEditingCell(null);
-                    } else if (event.key === "Escape") {
-                      setEditingCell(null);
-                    }
-                  };
-                  const handleBlur = () => {
-                    if (isEditing && onUpdateCell) {
-                      setEditingCell(null);
-                    }
-                  };
-                  const isSticky = isFlatColumnFixed(colDef);
-                  const leftPosition = isSticky
-                    ? getStickyLeftPosition(colIndex)
-                    : "auto";
-
-                  let borderBottomStyle = `1px dashed #000000`;
-                  let borderTopStyle =
-                    rowIndex === 0 ? `1px dashed #000000` : undefined;
-
-                  let customBackgroundForDashedBorder = {};
-                  if (isSticky) {
-                    borderBottomStyle = "none";
-                    customBackgroundForDashedBorder = {
-                      backgroundImage: `repeating-linear-gradient(90deg, #000 0, #000 2px, transparent 2px, transparent 4px)`,
-                      backgroundSize: "100% 1px",
-                      backgroundRepeat: "no-repeat",
-                      backgroundPosition: "bottom",
-                    };
-
-                    if (rowIndex === 0) {
-                      borderTopStyle = "none";
-                      customBackgroundForDashedBorder = {
-                        ...customBackgroundForDashedBorder,
-                        backgroundImage: `${
-                          customBackgroundForDashedBorder.backgroundImage
-                            ? customBackgroundForDashedBorder.backgroundImage +
-                              ", "
-                            : ""
-                        }repeating-linear-gradient(90deg, #000 0, #000 2px, transparent 2px, transparent 4px)`,
-                        backgroundSize: `100% 1px, ${
-                          customBackgroundForDashedBorder.backgroundSize ||
-                          "100% 1px"
-                        }`,
-                        backgroundPosition: `top, ${
-                          customBackgroundForDashedBorder.backgroundPosition ||
-                          "bottom"
-                        }`,
-                        backgroundRepeat: `no-repeat`,
+                      const handleCellClick = () => {
+                        if (onUpdateCell && (row.es_editable ?? true)) {
+                          setEditingCell({ rowIndex, field: colDef.field });
+                          setEditingValue(row[colDef.field]);
+                        }
+                        if (onClickCell && !onUpdateCell) {
+                          onClickCell(row, colDef);
+                        }
                       };
-                    }
-                  }
+                      const handleKeyDown = (event) => {
+                        if (event.key === "Enter") {
+                          if (onUpdateCell) {
+                            onUpdateCell(editingValue, row, colDef);
+                          }
+                          setEditingCell(null);
+                        } else if (event.key === "Escape") {
+                          setEditingCell(null);
+                        }
+                      };
+                      const handleBlur = () => {
+                        if (isEditing && onUpdateCell) {
+                          setEditingCell(null);
+                        }
+                      };
+                      const isSticky = isFlatColumnFixed(colDef);
+                      const leftPosition = isSticky
+                        ? getStickyLeftPosition(colIndex)
+                        : "auto";
 
-                  const isCellClickable =
-                    onClickCell || (onUpdateCell && (row.es_editable ?? true));
+                      let borderBottomStyle = `1px dashed #000000`;
+                      let borderTopStyle =
+                        rowIndex === 0 ? `1px dashed #000000` : undefined;
 
-                  return (
-                    <TableCell
-                      key={colDef.field}
-                      className={`${classes.dataCellBase} ${
-                        isCellClickable ? classes.clickableCell : ""
-                      } ${isHighlighted ? classes.highlightedCell : ""}`}
-                      style={{
-                        left: leftPosition,
-                        position: isSticky ? "sticky" : undefined,
-                        backgroundColor: isSticky ? "#fafafa" : "#ffffff",
-                        zIndex: isSticky ? 11 : 1,
-                        textAlign: "center",
-                        borderBottom: borderBottomStyle,
-                        borderRight: `1px solid #000000`,
-                        borderLeft:
-                          colIndex === 0 ? `1px solid #000000` : undefined,
-                        borderTop: borderTopStyle,
-                        backgroundClip: "padding-box",
-                        ...customBackgroundForDashedBorder,
-                        minWidth: isEditing ? "100px" : undefined,
-                      }}
-                      {...(onClickCell || onUpdateCell
-                        ? { onClick: handleCellClick }
-                        : {})}
-                      onMouseEnter={() =>
-                        setHoveredCell({
-                          rowIndex,
-                          colIndex,
-                          field: colDef.field,
-                        })
+                      let customBackgroundForDashedBorder = {};
+                      if (isSticky) {
+                        borderBottomStyle = "none";
+                        customBackgroundForDashedBorder = {
+                          backgroundImage: `repeating-linear-gradient(90deg, #000 0, #000 2px, transparent 2px, transparent 4px)`,
+                          backgroundSize: "100% 1px",
+                          backgroundRepeat: "no-repeat",
+                          backgroundPosition: "bottom",
+                        };
+
+                        if (rowIndex === 0) {
+                          borderTopStyle = "none";
+                          customBackgroundForDashedBorder = {
+                            ...customBackgroundForDashedBorder,
+                            backgroundImage: `${
+                              customBackgroundForDashedBorder.backgroundImage
+                                ? customBackgroundForDashedBorder.backgroundImage +
+                                  ", "
+                                : ""
+                            }repeating-linear-gradient(90deg, #000 0, #000 2px, transparent 2px, transparent 4px)`,
+                            backgroundSize: `100% 1px, ${
+                              customBackgroundForDashedBorder.backgroundSize ||
+                              "100% 1px"
+                            }`,
+                            backgroundPosition: `top, ${
+                              customBackgroundForDashedBorder.backgroundPosition ||
+                              "bottom"
+                            }`,
+                            backgroundRepeat: `no-repeat`,
+                          };
+                        }
                       }
-                      onMouseLeave={() => setHoveredCell(null)}
-                    >
-                      {isEditing && onUpdateCell ? (
-                        <input
-                          type="text"
-                          value={editingValue}
-                          onChange={(e) => setEditingValue(e.target.value)}
-                          onKeyDown={handleKeyDown}
-                          onBlur={handleBlur}
-                          className={classes.editableInput}
-                          autoFocus
-                        />
-                      ) : (
-                        <TableTooltip title={row.tooltip}>
-                          {row[colDef.field]}
-                        </TableTooltip>
-                      )}
-                    </TableCell>
-                  );
-                })}
-              </TableRow>
-            ))
+
+                      const isCellClickable =
+                        onClickCell ||
+                        (onUpdateCell && (row.es_editable ?? true));
+
+                      return (
+                        <TableCell
+                          key={colDef.field}
+                          className={`${classes.dataCellBase} ${
+                            isCellClickable ? classes.clickableCell : ""
+                          } ${isHighlighted ? classes.highlightedCell : ""}`}
+                          style={{
+                            left: leftPosition,
+                            position: isSticky ? "sticky" : undefined,
+                            backgroundColor: isSticky ? "#fafafa" : "#ffffff",
+                            zIndex: isSticky ? 11 : 1,
+                            textAlign: "center",
+                            borderBottom: borderBottomStyle,
+                            borderRight: `1px solid #000000`,
+                            borderLeft:
+                              colIndex === 0 ? `1px solid #000000` : undefined,
+                            borderTop: borderTopStyle,
+                            backgroundClip: "padding-box",
+                            ...customBackgroundForDashedBorder,
+                            minWidth: isEditing ? "100px" : undefined,
+                          }}
+                          {...(onClickCell || onUpdateCell
+                            ? { onClick: handleCellClick }
+                            : {})}
+                          onMouseEnter={() =>
+                            setHoveredCell({
+                              rowIndex,
+                              colIndex,
+                              field: colDef.field,
+                            })
+                          }
+                          onMouseLeave={() => setHoveredCell(null)}
+                        >
+                          {isEditing && onUpdateCell ? (
+                            <input
+                              type="text"
+                              value={editingValue}
+                              onChange={(e) => setEditingValue(e.target.value)}
+                              onKeyDown={handleKeyDown}
+                              onBlur={handleBlur}
+                              className={classes.editableInput}
+                              autoFocus
+                            />
+                          ) : (
+                            <TableTooltip title={row.tooltip}>
+                              {row[colDef.field]}
+                            </TableTooltip>
+                          )}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                );
+              })}
+              {paddingBottom > 0 && (
+                <TableRow style={{ height: paddingBottom }}>
+                  <TableCell
+                    colSpan={flatDataColumns.length}
+                    style={{ padding: 0, border: "none" }}
+                  />
+                </TableRow>
+              )}
+            </>
           )}
         </TableBody>
       </Table>
