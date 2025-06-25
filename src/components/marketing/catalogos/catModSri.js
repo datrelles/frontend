@@ -221,6 +221,31 @@ function CatModSri() {
             const workbook = XLSX.read(data, { type: "binary" });
             const sheetName = workbook.SheetNames[0];
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+            const duplicados = [];
+            const combinaciones = new Map();
+
+            rows.forEach((row, index) => {
+                const clave = `${row.nombre_modelo}_${row.anio_modelo}`;
+                if (combinaciones.has(clave)) {
+                    const filaOriginal = combinaciones.get(clave);
+                    duplicados.push({ filaOriginal, filaDuplicada: index + 2, clave });
+                } else {
+                    combinaciones.set(clave, index + 2);
+                }
+            });
+
+            if (duplicados.length > 0) {
+                const msg = duplicados.map(d =>
+                    `Duplicado con clave [${d.clave}] en filas ${d.filaOriginal} y ${d.filaDuplicada}`
+                ).join('\n');
+
+                enqueueSnackbar(`Error..!! Registros duplicados detectados:\n${msg}`, {
+                    variant: "error",
+                    persist: true
+                });
+                return;
+            }
             setLoadingGlobal(true);
 
             const processedRows = rows.map(row => ({
@@ -242,7 +267,7 @@ function CatModSri() {
 
                 const responseData = await res.json();
                 if (res.ok) {
-                    enqueueSnackbar("Carga exitosa", { variant: "success" });
+                    enqueueSnackbar("Actualización exitosa", { variant: "success" });
                     fetchModeloData();
                 } else {
                     enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
@@ -256,6 +281,13 @@ function CatModSri() {
 
         reader.readAsBinaryString(file);
     };
+
+    const camposPlantillaModelo = [
+        "codigo_modelo_sri", "nombre_modelo",
+        "anio_modelo", "estado_modelo",
+        "cod_mdl_importacion"
+    ];
+    const tableOptions = getTableOptions(cabeceras, camposPlantillaModelo, "Actualizar_modelo_sri.xlsx");
 
     const openEditDialog = (rowData) => {
         setSelectedModelo(rowData);
@@ -338,7 +370,7 @@ function CatModSri() {
                     </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={getTableOptions()} />
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={tableOptions} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selectedModelo ? 'Actualizar' : 'Nuevo'}</DialogTitle>

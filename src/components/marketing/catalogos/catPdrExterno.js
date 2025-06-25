@@ -172,16 +172,7 @@ function CatProductoExterno() {
 
     const columns = [
         { name: "codigo_prod_externo", label: "Código Producto" },
-        {
-            name: "codigo_marca_rep",
-            label: "Marca Repuesto",
-            options: {
-                customBodyRender: (value) => {
-                    const marca = marcas.find(m => m.codigo_marca_rep === value);
-                    return marca ? marca.nombre_comercial : value;
-                }
-            }
-        },
+        { name: "nombre_comercial", label: "Marca Repuesto" },
         { name: "nombre_producto", label: "Nombre Producto" },
         {
             name: "estado_prod_externo",
@@ -310,6 +301,11 @@ function CatProductoExterno() {
         setDialogOpen(true);
     };
 
+    const camposPlantillaModelo = [
+        "codigo_prod_externo", "nombre_comercial","nombre_producto",
+        "estado_prod_externo", "descripcion_producto"
+    ];
+    const tableOptions = getTableOptions(cabeceras, camposPlantillaModelo, "Actualizar_producto_externo.xlsx");
     return (
         <>{loading ? (<LoadingCircle />) : (
             <div style={{ marginTop: '150px', width: "100%" }}>
@@ -376,7 +372,7 @@ function CatProductoExterno() {
                     </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={getTableOptions()} />
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={tableOptions} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selectedProducto ? 'Actualizar' : 'Nuevo'}</DialogTitle>

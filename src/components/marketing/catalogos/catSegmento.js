@@ -242,6 +242,12 @@ function CatSegmento() {
         reader.readAsBinaryString(file);
     };
 
+    const validarEstado = (valor) => {
+        const estado = String(valor).trim().toLowerCase();
+        return ["1", "0", "activo", "inactivo"].includes(estado);
+    };
+
+
     const handleUploadExcelUpdate = (e) => {
         const file = e.target.files[0];
         const reader = new FileReader();
@@ -251,6 +257,45 @@ function CatSegmento() {
                 const wb = XLSX.read(evt.target.result, { type: 'binary' });
                 const sheet = wb.Sheets[wb.SheetNames[0]];
                 const rows = XLSX.utils.sheet_to_json(sheet);
+
+                const rowsInvalidas = [];
+                rows.forEach((row, index) => {
+                    if (row.hasOwnProperty("estado_segmento") && !validarEstado(row.estado_segmento)) {
+                        rowsInvalidas.push(`Fila ${index + 2}: Estado inválido "${row.estado_segmento}"`);
+                    }
+                });
+
+                if (rowsInvalidas.length > 0) {
+                    rowsInvalidas.forEach(msg => enqueueSnackbar(msg, { variant: 'warning' }));
+                    setLoadingGlobal(false);
+                    return;
+                }
+
+                const duplicados = [];
+                const combinaciones = new Map();
+                rows.forEach((row, index) => {
+                    const clave = `${row.nombre_linea}_${row.nombre_segmento}_
+                ${row.nombre_modelo}_${row.estado_segmento}`;
+                    if (combinaciones.has(clave)) {
+                        const filaOriginal = combinaciones.get(clave);
+                        duplicados.push({ filaOriginal, filaDuplicada: index + 2, clave });
+                    } else {
+                        combinaciones.set(clave, index + 2);
+                    }
+                });
+
+                if (duplicados.length > 0) {
+                    const msg = duplicados.map(d =>
+                        `Duplicado con clave [${d.clave}] en filas ${d.filaOriginal} y ${d.filaDuplicada}`
+                    ).join('\n');
+
+                    enqueueSnackbar(`Error..!! Registros duplicados detectados:\n${msg}`, {
+                        variant: "error",
+                        persist: true
+                    });
+                    return;
+                }
+
                 setLoadingGlobal(true);
 
                 const res = await fetch(`${API}/bench/update_segmentos_masivo`, {
@@ -262,19 +307,13 @@ function CatSegmento() {
                     body: JSON.stringify(rows)
                 });
 
-                const json = await res.json();
-
+                const responseData = await res.json();
                 if (res.ok) {
-                    enqueueSnackbar(json.message || 'Segmentos cargados', { variant: 'success' });
-                    if (json.errores?.length > 0) {
-                        enqueueSnackbar(`${json.errores.length} fila(s) con error`, { variant: 'error' });
-                        console.warn("Errores:", json.errores);
-                    }
+                    enqueueSnackbar("Actualización exitosa", { variant: "success" });
                     fetchSegmentos();
                 } else {
-                    enqueueSnackbar(json.error || 'Error en carga', { variant: 'error' });
+                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
                 }
-
             } catch (error) {
                 enqueueSnackbar("Error inesperado durante la carga", { variant: "error" });
             } finally {
@@ -290,7 +329,7 @@ function CatSegmento() {
         { name: 'nombre_linea_padre', label: 'LINEA PRINCIPAL' },
         { name: 'nombre_linea', label: 'LINEA' },
         { name: 'nombre_segmento', label: 'SEGMENTO' },
-        { name: 'nombre_modelo_comercial', label: 'MODELO COMERCIAL' },
+        { name: 'nombre_modelo', label: 'MODELO COMERCIAL' },
         { name: 'nombre_marca', label: 'MARCA' },
         { name: 'anio_modelo', label: 'AÑO' },
         {
@@ -348,6 +387,13 @@ function CatSegmento() {
             toast.error('Error cargando menús');
         }
     };
+
+    const camposPlantillaModelo = [
+        "codigo_segmento", "nombre_linea",
+        "nombre_segmento", "nombre_modelo",
+        "estado_segmento","descripcion_segmento"
+    ];
+    const tableOptions = getTableOptions(cabeceras, camposPlantillaModelo, "Actualizar_segmento.xlsx");
 
     return (
         <>
@@ -434,7 +480,7 @@ function CatSegmento() {
                     </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={getTableOptions()} />
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={tableOptions} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selectedItem ? 'Actualizar' : 'Nuevo'}</DialogTitle>

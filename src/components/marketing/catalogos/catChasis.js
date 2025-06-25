@@ -198,6 +198,34 @@ function CatChasis() {
             const workbook = XLSX.read(data, { type: "binary" });
             const sheetName = workbook.SheetNames[0];
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
+
+            const duplicados = [];
+            const combinaciones = new Map();
+
+            rows.forEach((row, index) => {
+                const clave = `${row.aros_rueda_delantera}_${row.aros_rueda_posterior}_
+                ${row.neumatico_delantero}_${row.neumatico_trasero}_${row.suspension_delantera}_
+                ${row.suspension_trasera}_${row.frenos_delanteros}_${row.frenos_traseros}`;
+                if (combinaciones.has(clave)) {
+                    const filaOriginal = combinaciones.get(clave);
+                    duplicados.push({ filaOriginal, filaDuplicada: index + 2, clave });
+                } else {
+                    combinaciones.set(clave, index + 2);
+                }
+            });
+
+            if (duplicados.length > 0) {
+                const msg = duplicados.map(d =>
+                    `Duplicado con clave [${d.clave}] en filas ${d.filaOriginal} y ${d.filaDuplicada}`
+                ).join('\n');
+
+                enqueueSnackbar(`Error..!! Registros duplicados detectados:\n${msg}`, {
+                    variant: "error",
+                    persist: true
+                });
+                return;
+            }
+
             setLoadingGlobal(true);
 
             try {
@@ -212,15 +240,10 @@ function CatChasis() {
 
                 const responseData = await res.json();
                 if (res.ok) {
-                    enqueueSnackbar(`Chasis actualizados: ${responseData.actualizados}`, { variant: "success" });
-
-                    if (responseData.errores?.length > 0) {
-                        enqueueSnackbar(`Errores en ${responseData.errores.length} fila(s)`, { variant: "warning" });
-                    }
-
+                    enqueueSnackbar("Actualización exitosa", { variant: "success" });
                     fetchChasisData();
                 } else {
-                    enqueueSnackbar(responseData.error || "Error al actualizar", { variant: "error" });
+                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
                 }
             } catch (error) {
                 enqueueSnackbar("Error inesperado durante la carga", { variant: "error" });

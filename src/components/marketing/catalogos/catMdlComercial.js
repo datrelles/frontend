@@ -212,6 +212,31 @@ function CatModeloComercial() {
             const workbook = XLSX.read(data, { type: "binary" });
             const sheetName = workbook.SheetNames[0];
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+            const duplicados = [];
+            const combinaciones = new Map();
+
+            rows.forEach((row, index) => {
+                const clave = `${row.nombre_modelo}_${row.anio_modelo}`;
+                if (combinaciones.has(clave)) {
+                    const filaOriginal = combinaciones.get(clave);
+                    duplicados.push({ filaOriginal, filaDuplicada: index + 2, clave });
+                } else {
+                    combinaciones.set(clave, index + 2);
+                }
+            });
+
+            if (duplicados.length > 0) {
+                const msg = duplicados.map(d =>
+                    `Duplicado con clave [${d.clave}] en filas ${d.filaOriginal} y ${d.filaDuplicada}`
+                ).join('\n');
+
+                enqueueSnackbar(`Error..!! Registros duplicados detectados:\n${msg}`, {
+                    variant: "error",
+                    persist: true
+                });
+                return;
+            }
             setLoadingGlobal(true);
 
             try {
@@ -222,6 +247,8 @@ function CatModeloComercial() {
                     const nombre_modelo = (row.nombre_modelo || "").toString().trim();
                     const anio_modelo = parseInt(row.anio_modelo);
                     const estado_raw = (row.estado_modelo || "").toString().trim().toLowerCase();
+
+
 
                     if (
                         isNaN(codigo_modelo_comercial) ||
@@ -273,24 +300,14 @@ function CatModeloComercial() {
                     body: JSON.stringify(processedRows)
                 });
 
+
                 const responseData = await res.json();
-
                 if (res.ok) {
-                    enqueueSnackbar(responseData.message || "Actualización masiva exitosa", { variant: "success" });
-
-                    if (responseData.duplicados?.length > 0) {
-                        enqueueSnackbar(`${responseData.duplicados.length} duplicado(s) omitido(s)`, { variant: "warning" });
-                    }
-
-                    if (responseData.errores?.length > 0) {
-                        enqueueSnackbar(`${responseData.errores.length} fila(s) con error`, { variant: "error" });
-                    }
-
+                    enqueueSnackbar("Actualización exitosa", { variant: "success" });
                     fetchModeloComercial();
                 } else {
-                    enqueueSnackbar(responseData.error || "Error en la actualización", { variant: "error" });
+                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
                 }
-
             } catch (error) {
                 enqueueSnackbar("Error inesperado durante la carga", { variant: "error" });
             } finally {
