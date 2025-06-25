@@ -29,7 +29,7 @@ import MultiLevelTable, {
 import CustomGrid from "../formulas/common/custom-grid";
 import { validarTipoRetornoYConvertir } from "../../helpers/modulo-formulas";
 import AutocompleteObject from "../formulas/common/autocomplete-objects";
-import CircularProgress from "@mui/material/CircularProgress";
+import LoadingModal from "../formulas/common/loading-modal";
 
 const COD_PROCESO_PRESUP_CANT = "PRESCANT";
 const shapeVersion = {
@@ -473,6 +473,8 @@ export default function PresupuestoCantidades() {
     />
   );
 
+  const modalCargando = <LoadingModal esVisible={cargando} />;
+
   useEffect(() => {
     document.title = "Presupuesto de Cantidades";
     getMenus();
@@ -498,23 +500,7 @@ export default function PresupuestoCantidades() {
 
   return (
     <MainComponent
-      components={[
-        header,
-        opcionesProyeccion,
-        cargando ? (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              marginTop: "30vh",
-            }}
-          >
-            <CircularProgress style={{ color: "red" }} />
-          </div>
-        ) : (
-          tabla
-        ),
-      ]}
+      components={[header, opcionesProyeccion, tabla, modalCargando]}
     />
   );
 }
