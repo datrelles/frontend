@@ -131,6 +131,24 @@ const useStyles = makeStyles({
 const ROW_HEIGHT = 30;
 const OVERSCAN_COUNT = 5;
 
+const findParentHeaders = (headers, targetField, parents = []) => {
+  for (const header of headers) {
+    if (header.field === targetField) {
+      return [header, ...parents];
+    }
+    if (header.children) {
+      const found = findParentHeaders(header.children, targetField, [
+        header,
+        ...parents,
+      ]);
+      if (found) {
+        return found;
+      }
+    }
+  }
+  return null;
+};
+
 export default function MultiLevelTable({
   data,
   columns,
@@ -262,11 +280,13 @@ export default function MultiLevelTable({
     );
   };
 
-  const isHeaderHighlighted = (header, hoveredColIndex) => {
-    if (!hoveredCell || !header.field) return false;
-
-    const absoluteFlatIndex = getAbsoluteFlatColumnIndex(header);
-    return absoluteFlatIndex === hoveredColIndex;
+  const isHeaderHighlighted = (header, hoveredColIndex, hoveredColField) => {
+    if (!hoveredColField) return false;
+    const path = findParentHeaders(columns, hoveredColField);
+    if (!path) return false;
+    return path.some(
+      (h) => h.header === header.header && h.field === header.field
+    );
   };
 
   const getHeaderRows = (headers, level = 0, maxDepth = null) => {
@@ -302,7 +322,8 @@ export default function MultiLevelTable({
 
       const shouldHighlightHeader = isHeaderHighlighted(
         header,
-        hoveredCell?.colIndex
+        hoveredCell?.colIndex,
+        hoveredCell?.field
       );
 
       const headerTooltipTitle = header.tooltip || "";
