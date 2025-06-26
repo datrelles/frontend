@@ -64,14 +64,27 @@ const ResumenComparacion = ({ resultado, bloques }) => {
                             <Table size="small" sx={{ minWidth: 600 }}>
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell sx={{ fontWeight: 'bold' }}>CAMPO</TableCell>
-                                        <TableCell>
-                                            <Typography fontWeight="bold">
-                                                {modeloBase?.nombre_modelo_comercial || 'Base'}
-                                            </Typography>
-                                            <Typography variant="body2" color="text.secondary">
-                                                {modeloBase?.nombre_marca}
-                                            </Typography>
+                                        <TableCell
+                                            sx={{
+                                                fontWeight: 'bold',
+                                                position: 'sticky',
+                                                left: 0,
+                                                zIndex: 3,
+                                                backgroundColor: '#fff'
+                                            }}>CAMPO
+                                        </TableCell>
+                                        <TableCell
+                                            sx={{
+                                                position: 'sticky',
+                                                left: 150,
+                                                zIndex: 2,
+                                                backgroundColor: '#fff',
+                                                minWidth: 200,
+                                                borderLeft: '1px solid #ccc',
+                                                borderRight: '2px solid #ccc'
+                                            }}>
+                                            <Typography fontWeight="bold">{modeloBase?.nombre_modelo_comercial}</Typography>
+                                            <Typography variant="body2" color="text.secondary">{modeloBase?.nombre_marca}</Typography>
                                         </TableCell>
                                         {comparables.map((m, i) => (
                                             <React.Fragment key={i}>
@@ -79,7 +92,12 @@ const ResumenComparacion = ({ resultado, bloques }) => {
                                                     <Typography fontWeight="bold">{m?.nombre_modelo_comercial}</Typography>
                                                     <Typography variant="body2" color="text.secondary">{m?.nombre_marca}</Typography>
                                                 </TableCell>
-                                                <TableCell><strong>Comparativo</strong></TableCell>
+                                                <TableCell
+                                                    sx={{
+                                                        borderRight: (i < comparables.length - 1) ? '2px solid #ccc' : 'none'
+                                                    }}>
+                                                    <strong>Comparativo</strong>
+                                                </TableCell>
                                             </React.Fragment>
                                         ))}
                                         {[...Array(placeholdersCount)].map((_, i) => (
@@ -93,12 +111,36 @@ const ResumenComparacion = ({ resultado, bloques }) => {
                                 <TableBody>
                                     {Object.entries(campos).map(([campo, data], i) => (
                                         <TableRow key={i}>
-                                            <TableCell>{campo.replace(/_/g, ' ').toUpperCase()}</TableCell>
-                                            <TableCell>{safeText(data.base, getUnidadCampo(campo))}</TableCell>
+                                            <TableCell
+                                                sx={{
+                                                    position: 'sticky',
+                                                    left: 0,
+                                                    zIndex: 3,
+                                                    backgroundColor: '#fff',
+                                                    minWidth: 150,
+                                                    borderRight: '1px solid #ccc',
+                                                }}>
+                                                {campo.replace(/_/g, ' ').toUpperCase()}
+                                            </TableCell>
+                                            <TableCell
+                                                sx={{
+                                                    position: 'sticky',
+                                                    left: 150,
+                                                    zIndex: 2,
+                                                    backgroundColor: '#fff',
+                                                    minWidth: 200,
+                                                    borderLeft: '1px solid #ccc',
+                                                    borderRight: '2px solid #ccc'
+                                                }}>
+                                                {safeText(data.base, getUnidadCampo(campo))}
+                                            </TableCell>
                                             {data.comparables.map((comp, j) => (
                                                 <React.Fragment key={j}>
                                                     <TableCell>{safeText(comp.valor, getUnidadCampo(campo))}</TableCell>
-                                                    <TableCell>
+                                                    <TableCell
+                                                        sx={{
+                                                            borderRight: (j === data.comparables.length - 1) ? 'none' : '2px solid #ccc'
+                                                        }}>
                                                         {comp.estado === 'mejor' ? (
                                                             <ThumbUpIcon sx={{ color: '#2e7d32' }} />
                                                         ) : comp.estado === 'peor' ? (
