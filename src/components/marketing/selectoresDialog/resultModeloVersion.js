@@ -94,7 +94,7 @@ const ResumenComparacion = ({ resultado, bloques }) => {
                                                 </TableCell>
                                                 <TableCell
                                                     sx={{
-                                                        borderRight: '2px solid #ccc'
+                                                        borderRight: (i < comparables.length - 1) ? '2px solid #ccc' : 'none'
                                                     }}>
                                                     <strong>Comparativo</strong>
                                                 </TableCell>
