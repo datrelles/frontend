@@ -3,9 +3,8 @@ import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
 import Navbar0 from "../../Navbar0";
 import MUIDataTable from "mui-datatables";
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import {ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
-import LoadingCircle from "../../contabilidad/loader";
 import {Autocomplete, FormControl, IconButton, InputLabel, MenuItem, Select, TextField} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
@@ -18,6 +17,12 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import * as XLSX from "xlsx";
+import GlobalLoading from "../selectoresDialog/GlobalLoading";
+import RefreshIcon from '@mui/icons-material/Refresh';
+import AddIcon from "@material-ui/icons/Add";
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import Stack from "@mui/material/Stack";
+import {getTableOptions, getMuiTheme } from "../muiTableConfig";
 
 const API = process.env.REACT_APP_API;
 
@@ -34,7 +39,7 @@ function CatSegmento() {
     const [selectedLineas, setSelectedLineas] = useState(null);
     const [selectedLineaPadre, setSelectedLineaPadre] = useState(null);
     const [cabeceras, setCabeceras] = useState([]);
-    const [loading] = useState(false);
+    const [loadingGlobal, setLoadingGlobal] = useState(false);
     const [form, setForm] = useState({
         codigo_segmento: '',
         codigo_linea: '',
@@ -200,33 +205,131 @@ function CatSegmento() {
     const handleUploadExcel = (e) => {
         const file = e.target.files[0];
         const reader = new FileReader();
+
         reader.onload = async (evt) => {
             try {
                 const wb = XLSX.read(evt.target.result, { type: 'binary' });
                 const sheet = wb.Sheets[wb.SheetNames[0]];
                 const rows = XLSX.utils.sheet_to_json(sheet);
+
                 const res = await fetch(`${API}/bench/insert_segmento`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
-                    body: JSON.stringify({ repuestos: rows })
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + jwt
+                    },
+                    body: JSON.stringify(rows)
                 });
+
                 const json = await res.json();
-                if (res.ok) enqueueSnackbar(json.message, { variant: 'success' });
-                else enqueueSnackbar(json.error || 'Error en carga', { variant: 'error' });
-                fetchSegmentos();
+
+                if (res.ok) {
+                    enqueueSnackbar(json.message || 'Segmentos cargados', { variant: 'success' });
+                    if (json.errores?.length > 0) {
+                        enqueueSnackbar(`${json.errores.length} fila(s) con error`, { variant: 'error' });
+                        console.warn("Errores:", json.errores);
+                    }
+                    fetchSegmentos();
+                } else {
+                    enqueueSnackbar(json.error || 'Error en carga', { variant: 'error' });
+                }
+
             } catch (err) {
                 enqueueSnackbar('Error procesando archivo', { variant: 'error' });
             }
         };
+
+        reader.readAsBinaryString(file);
+    };
+
+    const validarEstado = (valor) => {
+        const estado = String(valor).trim().toLowerCase();
+        return ["1", "0", "activo", "inactivo"].includes(estado);
+    };
+
+
+    const handleUploadExcelUpdate = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async (evt) => {
+            try {
+                const wb = XLSX.read(evt.target.result, { type: 'binary' });
+                const sheet = wb.Sheets[wb.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(sheet);
+
+                const rowsInvalidas = [];
+                rows.forEach((row, index) => {
+                    if (row.hasOwnProperty("estado_segmento") && !validarEstado(row.estado_segmento)) {
+                        rowsInvalidas.push(`Fila ${index + 2}: Estado inválido "${row.estado_segmento}"`);
+                    }
+                });
+
+                if (rowsInvalidas.length > 0) {
+                    rowsInvalidas.forEach(msg => enqueueSnackbar(msg, { variant: 'warning' }));
+                    setLoadingGlobal(false);
+                    return;
+                }
+
+                const duplicados = [];
+                const combinaciones = new Map();
+                rows.forEach((row, index) => {
+                    const clave = `${row.nombre_linea}_${row.nombre_segmento}_
+                ${row.nombre_modelo}_${row.estado_segmento}`;
+                    if (combinaciones.has(clave)) {
+                        const filaOriginal = combinaciones.get(clave);
+                        duplicados.push({ filaOriginal, filaDuplicada: index + 2, clave });
+                    } else {
+                        combinaciones.set(clave, index + 2);
+                    }
+                });
+
+                if (duplicados.length > 0) {
+                    const msg = duplicados.map(d =>
+                        `Duplicado con clave [${d.clave}] en filas ${d.filaOriginal} y ${d.filaDuplicada}`
+                    ).join('\n');
+
+                    enqueueSnackbar(`Error..!! Registros duplicados detectados:\n${msg}`, {
+                        variant: "error",
+                        persist: true
+                    });
+                    return;
+                }
+
+                setLoadingGlobal(true);
+
+                const res = await fetch(`${API}/bench/update_segmentos_masivo`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + jwt
+                    },
+                    body: JSON.stringify(rows)
+                });
+
+                const responseData = await res.json();
+                if (res.ok) {
+                    enqueueSnackbar("Actualización exitosa", { variant: "success" });
+                    fetchSegmentos();
+                } else {
+                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
+                }
+            } catch (error) {
+                enqueueSnackbar("Error inesperado durante la carga", { variant: "error" });
+            } finally {
+                setLoadingGlobal(false);
+            }
+        };
+
         reader.readAsBinaryString(file);
     };
 
     const columns = [
-        //{ name: 'codigo_segmento', label: 'CÓDIGO' },
+        { name: 'codigo_segmento', label: 'CÓDIGO' },
         { name: 'nombre_linea_padre', label: 'LINEA PRINCIPAL' },
         { name: 'nombre_linea', label: 'LINEA' },
         { name: 'nombre_segmento', label: 'SEGMENTO' },
-        { name: 'nombre_modelo_comercial', label: 'MODELO COMERCIAL' },
+        { name: 'nombre_modelo', label: 'MODELO COMERCIAL' },
         { name: 'nombre_marca', label: 'MARCA' },
         { name: 'anio_modelo', label: 'AÑO' },
         {
@@ -268,13 +371,6 @@ function CatSegmento() {
         }
     ];
 
-    const options = {
-        responsive: 'standard', selectableRows: 'none', textLabels: {
-            body: { noMatch: 'Lo siento, no se encontraron registros', toolTip: 'Ordenar' },
-            pagination: { next: 'Siguiente', previous: 'Anterior', rowsPerPage: 'Filas por página:', displayRows: 'de' }
-        }
-    };
-
     const getMenus = async () => {
         try {
             const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`, {
@@ -292,28 +388,16 @@ function CatSegmento() {
         }
     };
 
-    const getMuiTheme = () => createTheme({
-        components: {
-            MuiTableCell: {
-                styleOverrides: {
-                    root: {
-                        paddingLeft: '3px', paddingRight: '3px', paddingTop: '0px', paddingBottom: '0px',
-                        backgroundColor: '#00000', whiteSpace: 'nowrap', flex: 1,
-                        borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontSize: '14px'
-                    },
-                    head: {
-                        backgroundColor: 'firebrick', color: '#ffffff', fontWeight: 'bold',
-                        paddingLeft: '0px', paddingRight: '0px', fontSize: '12px'
-                    }
-                }
-            },
-            MuiTable: { styleOverrides: { root: { borderCollapse: 'collapse' } } },
-            MuiToolbar: { styleOverrides: { regular: { minHeight: '10px' } } }
-        }
-    });
+    const camposPlantillaModelo = [
+        "codigo_segmento", "nombre_linea",
+        "nombre_segmento", "nombre_modelo",
+        "estado_segmento","descripcion_segmento"
+    ];
+    const tableOptions = getTableOptions(cabeceras, camposPlantillaModelo, "Actualizar_segmento.xlsx");
 
     return (
-        <>{loading ? (<LoadingCircle />) : (
+        <>
+            <GlobalLoading open={loadingGlobal} />
             <div style={{ marginTop: '150px', width: "100%" }}>
                 <Navbar0 menus={menus} />
                 <Box>
@@ -322,33 +406,81 @@ function CatSegmento() {
                         <Button onClick={() => navigate(-1)}>Catálogos</Button>
                     </ButtonGroup>
                 </Box>
-                <Box>
-                    <Button onClick={() => {
-                        setSelectedItem(null);
-                        setForm({
-                            codigo_segmento: '',
-                            codigo_linea: '',
-                            codigo_linea_padre: '',
-                            nombre_linea: '',
-                            nombre_linea_padre: '',
-                            codigo_modelo_comercial: '',
-                            nombre_modelo_comercial: '',
-                            codigo_marca: '',
-                            nombre_marca: '',
-                            nombre_segmento: '',
-                            estado_segmento: '',
-                            descripcion_segmento: '',
-                        });
-                        setSelectedModeloComercial(null);
-                        setSelectedLineaPadre(null);
-                        setSelectedLineas(null);
-                        setDialogOpen(true);
-                    } }
-                            style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}>Insertar Nuevo</Button>
-                    <Button onClick={fetchSegmentos} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
+                <Box sx={{ mt: 2 }}>
+                    <Stack direction="row" spacing={1}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<AddIcon />}
+                            onClick={() => {
+                                setSelectedItem(null);
+                                setForm({
+                                    codigo_segmento: '',
+                                    codigo_linea: '',
+                                    codigo_linea_padre: '',
+                                    nombre_linea: '',
+                                    nombre_linea_padre: '',
+                                    codigo_modelo_comercial: '',
+                                    nombre_modelo_comercial: '',
+                                    codigo_marca: '',
+                                    nombre_marca: '',
+                                    nombre_segmento: '',
+                                    estado_segmento: '',
+                                    descripcion_segmento: '',
+                                });
+                                setSelectedModeloComercial(null);
+                                setSelectedLineaPadre(null);
+                                setSelectedLineas(null);
+                                setDialogOpen(true);
+                            }}
+                            sx={{
+                                textTransform: 'none',
+                                fontWeight: 500,
+                                backgroundColor: 'firebrick',
+                                '&:hover': {
+                                    backgroundColor: 'firebrick',
+                                },
+                                '&:active': {
+                                    backgroundColor: 'firebrick',
+                                    boxShadow: 'none'
+                                }
+                            }}
+                        >Nuevo
+                        </Button>
+                        <Button
+                            variant="contained"
+                            component="label"
+                            startIcon={<CloudUploadIcon />}
+                            sx={{
+                                textTransform: 'none',
+                                fontWeight: 500,
+                                backgroundColor: 'green',
+                                '&:hover': {
+                                    backgroundColor: 'green',
+                                },
+                                '&:active': {
+                                    backgroundColor: 'green',
+                                    boxShadow: 'none'
+                                }
+                            }}
+                        >Insertar Masivo
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                        </Button>
+                        <Button
+                            variant="contained"
+                            component="label"
+                            startIcon={<EditIcon />}
+                            sx={{ textTransform: 'none', fontWeight: 600,backgroundColor: 'littleseashell' }}
+                        >Actualizar Masivo
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
+                        </Button>
+                        <IconButton onClick={fetchSegmentos} style={{ color: 'firebrick' }}>
+                            <RefreshIcon />
+                        </IconButton>
+                    </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={tableOptions} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selectedItem ? 'Actualizar' : 'Nuevo'}</DialogTitle>
@@ -393,7 +525,7 @@ function CatSegmento() {
                                         labelId="estado-segmento-label"
                                         value={form.estado_segmento}
                                         onChange={(e) => handleChange('estado_segmento', e.target.value)}
-                                    >
+                                        variant="outlined">
                                         <MenuItem value={1}>ACTIVO</MenuItem>
                                         <MenuItem value={0}>INACTIVO</MenuItem>
                                     </Select>
@@ -446,14 +578,11 @@ function CatSegmento() {
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                         <Button onClick={handleInsertOrUpdate} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedItem ? 'Actualizar' : 'Guardar'}</Button>
-                        <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
-                            Cargar Excel
-                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
-                        </Button>
                     </DialogActions>
                 </Dialog>
             </div>
-        )}</>);
+        </>
+    );
 }
 
 export default function IntegrationNotistackWrapper() {

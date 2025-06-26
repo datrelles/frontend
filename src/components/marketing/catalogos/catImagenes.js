@@ -3,7 +3,6 @@ import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
 import Navbar0 from "../../Navbar0";
 import MUIDataTable from "mui-datatables";
-import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import LoadingCircle from "../../contabilidad/loader";
 import {IconButton, TextField} from '@mui/material';
@@ -18,6 +17,9 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import ImageUploader from "../uploadImages/s3_upload";
+import RefreshIcon from '@mui/icons-material/Refresh';
+import {getTableOptions, getMuiTheme } from "../muiTableConfig";
+import {ThemeProvider} from "@mui/material/styles";
 
 const API = process.env.REACT_APP_API;
 
@@ -191,42 +193,6 @@ function CatImagen() {
         setDialogOpen(true);
     };
 
-    const options = {
-        responsive: 'standard',
-        selectableRows: 'none',
-        textLabels: {
-            body: {
-                noMatch: "Lo siento, no se encontraron registros",
-                toolTip: "Ordenar"
-            },
-            pagination: {
-                next: "Siguiente", previous: "Anterior",
-                rowsPerPage: "Filas por página:", displayRows: "de"
-            }
-        }
-    };
-
-    const getMuiTheme = () =>
-        createTheme({
-            components: {
-                MuiTableCell: {
-                    styleOverrides: {
-                        root: {
-                            paddingLeft: '3px', paddingRight: '3px', paddingTop: '0px', paddingBottom: '0px',
-                            backgroundColor: '#00000', whiteSpace: 'nowrap', flex: 1,
-                            borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontSize: '14px'
-                        },
-                        head: {
-                            backgroundColor: 'firebrick', color: '#ffffff', fontWeight: 'bold',
-                            paddingLeft: '0px', paddingRight: '0px', fontSize: '12px'
-                        },
-                    }
-                },
-                MuiTable: { styleOverrides: { root: { borderCollapse: 'collapse' } } },
-                MuiToolbar: { styleOverrides: { regular: { minHeight: '10px' } } }
-            }
-        });
-
     return (
         <>
             {loading ? (
@@ -266,18 +232,13 @@ function CatImagen() {
                                         }}
                                     />
                                 </Box>
-                                <Button
-                                    onClick={fetchImagenData}
-                                    style={{
-                                        backgroundColor: "firebrick",
-                                        color: "white",
-                                        height: '37px'
-                                    }}>Listar
-                                </Button>
+                                <IconButton onClick={fetchImagenData} style={{ color: 'firebrick' }}>
+                                    <RefreshIcon />
+                                </IconButton>
                             </Box>
                         </Box>
                         <ThemeProvider theme={getMuiTheme()}>
-                            <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
+                            <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={getTableOptions()} />
                         </ThemeProvider>
                         <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                             <DialogTitle>{selectedImagen ? 'Actualizar' : 'Nuevo'}</DialogTitle>

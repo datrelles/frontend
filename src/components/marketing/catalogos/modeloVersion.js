@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Navbar0 from "../../Navbar0";
 import Grid from '@mui/material/Grid';
 import LoadingCircle from "../../contabilidad/loader";
-import {Autocomplete, TextField} from '@mui/material';
+import {Autocomplete, IconButton, TextField} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
@@ -20,7 +20,12 @@ import SelectorDimensiones from "../selectoresDialog/selectDimensiones";
 import SelectorMotor from "../selectoresDialog/selectMotor";
 import SelectorElectronica from "../selectoresDialog/selectElectronica";
 import * as XLSX from "xlsx";
-
+import RefreshIcon from '@mui/icons-material/Refresh';
+import AddIcon from "@material-ui/icons/Add";
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import Stack from "@mui/material/Stack";
+import EditIcon from '@mui/icons-material/Edit';
+import GlobalLoading from "../selectoresDialog/GlobalLoading";
 
 
 const API = process.env.REACT_APP_API;
@@ -90,6 +95,8 @@ function CatModeloVersion() {
         precio_producto_modelo: '',
         precio_venta_distribuidor: ''
     });
+
+    const [loadingGlobal, setLoadingGlobal] = useState(false);
 
     const fetchModeloVersion = async () => {
         try {
@@ -359,7 +366,6 @@ function CatModeloVersion() {
         }
     };
 
-
     useEffect(() => {
         getMenus();
         fetchModeloVersion();
@@ -603,13 +609,61 @@ function CatModeloVersion() {
             enqueueSnackbar("Error al leer o enviar el archivo", { variant: "error" });
         }
     };
+    const handleUploadExcelUpdate = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = async (event) => {
+            setLoadingGlobal(true);
+            try {
+                const data = new Uint8Array(event.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+                const res = await fetch(`${API}/bench/update_modelo_version_masivo`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + jwt,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(jsonData),
+                });
+
+                const responseData = await res.json();
+
+                if (res.ok) {
+                    if (responseData.actualizados?.length) {
+                        enqueueSnackbar(`Modelos actualizados: ${responseData.actualizados.length}`, { variant: 'success' });
+                    }
+
+                    if (responseData.errores?.length) {
+                        enqueueSnackbar(`Errores en ${responseData.errores.length} fila(s)`, { variant: 'warning' });
+                    }
+
+                    fetchModeloVersion();
+                } else {
+                    enqueueSnackbar(responseData.error || "Error al actualizar", { variant: "error" });
+                }
+
+            } catch (error) {
+                enqueueSnackbar("Error inesperado durante la carga", { variant: "error" });
+            } finally {
+                setLoadingGlobal(false);
+            }
+        };
+
+        reader.readAsArrayBuffer(file);
+    };
+
+
 
     return (
         <>
-        {loading ? (
-            <LoadingCircle />
-        ) : (
-            <>
+            <GlobalLoading open={loadingGlobal} />
                 <Dialog open={openModalImagen} onClose={() => setOpenModalImagen(false)} maxWidth="md" fullWidth>
                     <DialogTitle>Vista de Imagen</DialogTitle>
                     <DialogContent>
@@ -634,53 +688,101 @@ function CatModeloVersion() {
                             <Button onClick={() => navigate(-1)}>Catálogos</Button>
                         </ButtonGroup>
                     </Box>
-                    <Box>
-                        <Button onClick={() => {
-                            setSelectedItem(null);
-                            setForm({
-                                codigo_modelo_version: '',
-                                codigo_dim_peso: '',
-                                codigo_imagen: '',
-                                codigo_electronica: '',
-                                codigo_tipo_motor: '',
-                                codigo_motor: '',
-                                codigo_transmision: '',
-                                codigo_color_bench: '',
-                                codigo_chasis: '',
-                                codigo_modelo_comercial: '',
-                                codigo_marca: '',
-                                codigo_cliente_canal: '',
-                                codigo_canal: '',
-                                descripcion_imagen: '',
-                                nombre_canal: '',
-                                nombre_color: '',
-                                codigo_mod_vers_repuesto: '',
-                                empresa: '',
-                                cod_producto: '',
-                                codigo_version: '',
-                                nombre_modelo_version: '',
-                                nombre_version: '',
-                                anio_modelo_version: '',
-                                precio_producto_modelo: '',
-                                precio_venta_distribuidor: ''
-                            });
-                            setSelectedProducto(null);
-                            setSelectedModeloComercial(null);
-                            setSelectedVersion( null);
-                            setSelectedTipoMotor(null);
-                            setSelectedMotor( null);
-                            setSelectedElectronica( null);
-                            setSelectedChasis( null);
-                            setSelectedCanal( null);
-                            setselectedTransmision( null);
-                            setSelectedColor( null);
-                            setSelectedImagen(null);
-                            setSelectedClienteCanal(null);
-                            fetchVersiones();
-                            setDialogOpen(true);
-                        } }
-                                style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}>Insertar Nuevo</Button>
-                        <Button onClick={fetchModeloVersion} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
+                    <Box sx={{ mt: 2 }}>
+                        <Stack direction="row" spacing={1}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                startIcon={<AddIcon />}
+                                onClick={() => {
+                                    setSelectedItem(null);
+                                    setForm({
+                                        codigo_modelo_version: '',
+                                        codigo_dim_peso: '',
+                                        codigo_imagen: '',
+                                        codigo_electronica: '',
+                                        codigo_tipo_motor: '',
+                                        codigo_motor: '',
+                                        codigo_transmision: '',
+                                        codigo_color_bench: '',
+                                        codigo_chasis: '',
+                                        codigo_modelo_comercial: '',
+                                        codigo_marca: '',
+                                        codigo_cliente_canal: '',
+                                        codigo_canal: '',
+                                        descripcion_imagen: '',
+                                        nombre_canal: '',
+                                        nombre_color: '',
+                                        codigo_mod_vers_repuesto: '',
+                                        empresa: '',
+                                        cod_producto: '',
+                                        codigo_version: '',
+                                        nombre_modelo_version: '',
+                                        nombre_version: '',
+                                        anio_modelo_version: '',
+                                        precio_producto_modelo: '',
+                                        precio_venta_distribuidor: ''
+                                    });
+                                    setSelectedProducto(null);
+                                    setSelectedModeloComercial(null);
+                                    setSelectedVersion( null);
+                                    setSelectedTipoMotor(null);
+                                    setSelectedMotor( null);
+                                    setSelectedElectronica( null);
+                                    setSelectedChasis( null);
+                                    setSelectedCanal( null);
+                                    setselectedTransmision( null);
+                                    setSelectedColor( null);
+                                    setSelectedImagen(null);
+                                    setSelectedClienteCanal(null);
+                                    fetchVersiones();
+                                    setDialogOpen(true);
+                                } }
+                                sx={{
+                                    textTransform: 'none',
+                                    fontWeight: 500,
+                                    backgroundColor: 'firebrick',
+                                    '&:hover': {
+                                        backgroundColor: 'firebrick',
+                                    },
+                                    '&:active': {
+                                        backgroundColor: 'firebrick',
+                                        boxShadow: 'none'
+                                    }
+                                }}
+                            >Nuevo
+                            </Button>
+                            <Button
+                                variant="contained"
+                                component="label"
+                                startIcon={<CloudUploadIcon />}
+                                sx={{
+                                    textTransform: 'none',
+                                    fontWeight: 500,
+                                    backgroundColor: 'green',
+                                    '&:hover': {
+                                        backgroundColor: 'green',
+                                    },
+                                    '&:active': {
+                                        backgroundColor: 'green',
+                                        boxShadow: 'none'
+                                    }
+                                }}
+                            >Insertar Masivo
+                                <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                            </Button>
+                            <Button
+                                variant="contained"
+                                component="label"
+                                startIcon={<EditIcon />}
+                                sx={{ textTransform: 'none', fontWeight: 600,backgroundColor: 'littleseashell' }}
+                            >Actualizar Masivo
+                                <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
+                            </Button>
+                            <IconButton onClick={fetchModeloVersion} style={{ color: 'firebrick' }}>
+                                <RefreshIcon />
+                            </IconButton>
+                        </Stack>
                     </Box>
                     <CatModeloVersionExpandible
                         cabeceras={cabeceras}
@@ -882,15 +984,9 @@ function CatModeloVersion() {
                         <DialogActions>
                             <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                             <Button onClick={handleInsertOrUpdate} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedItem ? 'Actualizar' : 'Guardar'}</Button>
-                            <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
-                                Cargar Excel
-                                <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
-                            </Button>
                         </DialogActions>
                     </Dialog>
                 </div>
-            </>
-        )}
         </>
     );
 }
