@@ -1,9 +1,6 @@
 import { createTheme } from '@mui/material/styles';
-import {Collapse, IconButton, TableCell, TableRow, Tooltip} from "@mui/material";
-import GetAppIcon from "@material-ui/icons/GetApp";
 import React from "react";
-import * as XLSX from "xlsx";
-import BotonExportarXLSX from "./catalogos/BotonExportarXLSX";
+import BotonExportarXLSX from "./BotonExportarXLSX";
 
 
 export const getTableOptions = (cabeceras = [], camposPlantilla = [], nombreArchivo = 'plantilla_actualizar.xlsx') => ({
