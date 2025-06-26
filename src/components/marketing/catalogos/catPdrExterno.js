@@ -1,11 +1,9 @@
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
 import Navbar0 from "../../Navbar0";
 import MUIDataTable from "mui-datatables";
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import {ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
-import LoadingCircle from "../../contabilidad/loader";
 import {Autocomplete, IconButton, TextField} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
@@ -14,16 +12,23 @@ import { SnackbarProvider, useSnackbar } from 'notistack';
 import { useAuthContext } from "../../../context/authContext";
 import EditIcon from '@mui/icons-material/Edit';
 import DialogTitle from "@mui/material/DialogTitle";
+import { useNavigate } from 'react-router-dom';
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import * as XLSX from "xlsx";
+import RefreshIcon from '@mui/icons-material/Refresh';
+import AddIcon from "@material-ui/icons/Add";
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import Stack from "@mui/material/Stack";
+import {getTableOptions, getMuiTheme } from "../muiTableConfig";
+import GlobalLoading from "../selectoresDialog/GlobalLoading";
+
 
 const API = process.env.REACT_APP_API;
 
 function CatProductoExterno() {
-    const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
     const [nombreProducto, setNombreProducto] = useState('');
@@ -31,13 +36,13 @@ function CatProductoExterno() {
     const [descripcionProducto, setDescripcionProducto] = useState('');
     const [cabeceras, setCabeceras] = useState([]);
     const [menus, setMenus] = useState([]);
-    const [loading] = useState(false);
+    const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const [selectedProducto, setSelectedProducto] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [marcaRepuesto, setMarcaRepuesto] = useState('');
     const [marcasActivas, setMarcasActivas] = useState('');
     const [marcas, setMarcas] = useState([]);
-
+    const [loadingGlobal, setLoadingGlobal] = useState(false);
 
     const handleInsertProducto = async () => {
         if (!marcaRepuesto || !marcaRepuesto.codigo_marca_rep) {
@@ -167,16 +172,7 @@ function CatProductoExterno() {
 
     const columns = [
         { name: "codigo_prod_externo", label: "Código Producto" },
-        {
-            name: "codigo_marca_rep",
-            label: "Marca Repuesto",
-            options: {
-                customBodyRender: (value) => {
-                    const marca = marcas.find(m => m.codigo_marca_rep === value);
-                    return marca ? marca.nombre_comercial : value;
-                }
-            }
-        },
+        { name: "nombre_comercial", label: "Marca Repuesto" },
         { name: "nombre_producto", label: "Nombre Producto" },
         {
             name: "estado_prod_externo",
@@ -231,7 +227,8 @@ function CatProductoExterno() {
                 const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
                 if (!rows.length) {
-                    throw new Error("El archivo Excel está vacío.");
+                    enqueueSnackbar("El archivo Excel está vacío.", { variant: "warning" });
+                    return;
                 }
 
                 const processedRows = rows.map((row, index) => {
@@ -256,7 +253,7 @@ function CatProductoExterno() {
                     return {
                         codigo_marca_rep: marcaObj.codigo_marca_rep,
                         nombre_producto: nombreProducto,
-                        estado_prod_externo: estadoProducto === "ACTIVO" ? 1 : 0,
+                        estado_prod_externo: estadoProducto === "activo" ? 1 : 0,
                         descripcion_producto: descripcion,
                     };
                 });
@@ -266,7 +263,7 @@ function CatProductoExterno() {
                     const { nombre_producto, codigo_marca_rep } = processedRows[i];
                     const key = `${nombre_producto.toLowerCase()}_${codigo_marca_rep}`;
                     if (uniqueSet.has(key)) {
-                        throw new Error(`Error: El producto '${nombre_producto}' con la misma marca se repite en el Excel. Verifica fila ${i + 2}.`);
+                        enqueueSnackbar(`Error: El producto '${nombre_producto}' con la misma marca se repite en el Excel. Verifica fila ${i + 2}.`);
                     }
                     uniqueSet.add(key);
                 }
@@ -296,6 +293,87 @@ function CatProductoExterno() {
         reader.readAsBinaryString(file);
     };
 
+    const validarEstado = (valor) => {
+        const estado = String(valor).trim().toLowerCase();
+        return ["1", "0", "activo", "inactivo"].includes(estado);
+    };
+
+    const handleUploadExcelUpdate = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async (evt) => {
+            try {
+                const wb = XLSX.read(evt.target.result, { type: 'binary' });
+                const sheet = wb.Sheets[wb.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(sheet);
+
+                const rowsInvalidas = [];
+                rows.forEach((row, index) => {
+                    if (row.hasOwnProperty("estado_prod_externo") && !validarEstado(row.estado_prod_externo)) {
+                        rowsInvalidas.push(`Fila ${index + 2}: Estado inválido "${row.estado_prod_externo}"`);
+                    }
+                });
+
+                if (rowsInvalidas.length > 0) {
+                    rowsInvalidas.forEach(msg => enqueueSnackbar(msg, { variant: 'warning' }));
+                    setLoadingGlobal(false);
+                    return;
+                }
+
+                const duplicados = [];
+                const combinaciones = new Map();
+                rows.forEach((row, index) => {
+                    const clave = `${row.nombre_comercial}_${row.nombre_producto}_
+                ${row.estado_prod_externo}`;
+                    if (combinaciones.has(clave)) {
+                        const filaOriginal = combinaciones.get(clave);
+                        duplicados.push({ filaOriginal, filaDuplicada: index + 2, clave });
+                    } else {
+                        combinaciones.set(clave, index + 2);
+                    }
+                });
+
+                if (duplicados.length > 0) {
+                    const msg = duplicados.map(d =>
+                        `Duplicado con clave [${d.clave}] en filas ${d.filaOriginal} y ${d.filaDuplicada}`
+                    ).join('\n');
+
+                    enqueueSnackbar(`Error..!! Registros duplicados detectados:\n${msg}`, {
+                        variant: "error",
+                        persist: true
+                    });
+                    return;
+                }
+
+                setLoadingGlobal(true);
+
+                const res = await fetch(`${API}/bench/update_producto_externo_masivo`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + jwt
+                    },
+                    body: JSON.stringify(rows)
+                });
+
+                const responseData = await res.json();
+                if (res.ok) {
+                    enqueueSnackbar("Actualización exitosa", { variant: "success" });
+                    fetchProductoData();
+                } else {
+                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
+                }
+            } catch (error) {
+                enqueueSnackbar("Error inesperado durante la carga", { variant: "error" });
+            } finally {
+                setLoadingGlobal(false);
+            }
+        };
+
+        reader.readAsBinaryString(file);
+    };
+
     const openEditDialog = (rowData) => {
         setSelectedProducto(rowData);
         setMarcaRepuesto(marcas.find(m => m.codigo_marca_rep === rowData.codigo_marca_rep) || null);
@@ -305,45 +383,14 @@ function CatProductoExterno() {
         setDialogOpen(true);
     };
 
-
-    const options = {
-        responsive: 'standard',
-        selectableRows: 'none',
-        textLabels: {
-            body: {
-                noMatch: "Lo siento, no se encontraron registros",
-                toolTip: "Ordenar"
-            },
-            pagination: {
-                next: "Siguiente", previous: "Anterior",
-                rowsPerPage: "Filas por página:", displayRows: "de"
-            }
-        }
-    };
-
-    const getMuiTheme = () =>
-        createTheme({
-            components: {
-                MuiTableCell: {
-                    styleOverrides: {
-                        root: {
-                            paddingLeft: '3px', paddingRight: '3px', paddingTop: '0px', paddingBottom: '0px',
-                            backgroundColor: '#00000', whiteSpace: 'nowrap', flex: 1,
-                            borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontSize: '14px'
-                        },
-                        head: {
-                            backgroundColor: 'firebrick', color: '#ffffff', fontWeight: 'bold',
-                            paddingLeft: '0px', paddingRight: '0px', fontSize: '12px'
-                        },
-                    }
-                },
-                MuiTable: { styleOverrides: { root: { borderCollapse: 'collapse' } } },
-                MuiToolbar: { styleOverrides: { regular: { minHeight: '10px' } } }
-            }
-        });
-
+    const camposPlantillaModelo = [
+        "codigo_prod_externo", "nombre_comercial","nombre_producto",
+        "estado_prod_externo", "descripcion_producto"
+    ];
+    const tableOptions = getTableOptions(cabeceras, camposPlantillaModelo, "Actualizar_producto_externo.xlsx");
     return (
-        <>{loading ? (<LoadingCircle />) : (
+        <>
+            <GlobalLoading open={loadingGlobal} />
             <div style={{ marginTop: '150px', width: "100%" }}>
                 <Navbar0 menus={menus} />
                 <Box>
@@ -352,20 +399,69 @@ function CatProductoExterno() {
                         <Button onClick={() => navigate(-1)}>Catálogos</Button>
                     </ButtonGroup>
                 </Box>
-                <Box>
-                    <Button onClick={() => {
-                        setSelectedProducto(null);
-                        setMarcaRepuesto(null);
-                        setNombreProducto('');
-                        setEstadoProdExterno('');
-                        setDescripcionProducto('');
-                        setDialogOpen(true); }}
-                            style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}>Insertar Nuevo
-                    </Button>
-                    <Button onClick={fetchProductoData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
+                <Box sx={{ mt: 2 }}>
+                    <Stack direction="row" spacing={1}>
+                        <Button
+                            variant="contained"
+                            startIcon={<AddIcon />}
+                            onClick={() => {
+                                setSelectedProducto(null);
+                                setMarcaRepuesto(null);
+                                setNombreProducto('');
+                                setEstadoProdExterno('');
+                                setDescripcionProducto('');
+                                setDialogOpen(true);
+                            }}
+                            sx={{
+                                textTransform: 'none',
+                                fontWeight: 500,
+                                backgroundColor: 'firebrick',
+                                '&:hover': {
+                                    backgroundColor: 'firebrick',
+                                },
+                                '&:active': {
+                                    backgroundColor: 'firebrick',
+                                    boxShadow: 'none'
+                                }
+                            }}
+                        >
+                            Nuevo
+                        </Button>
+                        <Button
+                            variant="contained"
+                            component="label"
+                            startIcon={<CloudUploadIcon />}
+                            sx={{
+                                textTransform: 'none',
+                                fontWeight: 500,
+                                backgroundColor: 'green',
+                                '&:hover': {
+                                    backgroundColor: 'green',
+                                },
+                                '&:active': {
+                                    backgroundColor: 'green',
+                                    boxShadow: 'none'
+                                }
+                            }}
+                        >
+                            Insertar Masivo
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                        </Button>
+                        <Button
+                            variant="contained"
+                            component="label"
+                            startIcon={<EditIcon />}
+                            sx={{ textTransform: 'none', fontWeight: 600,backgroundColor: 'littleseashell' }}
+                        >Actualizar Masivo
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
+                        </Button>
+                        <IconButton onClick={fetchProductoData} style={{ color: 'firebrick' }}>
+                            <RefreshIcon />
+                        </IconButton>
+                    </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={tableOptions} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selectedProducto ? 'Actualizar' : 'Nuevo'}</DialogTitle>
@@ -386,27 +482,27 @@ function CatProductoExterno() {
                                 <FormControl fullWidth>
                                     <InputLabel id="estado-prod-ext-label">Estado</InputLabel>
                                     <Select labelId="estado-prod-ext-label" value={estadoProdExterno}
-                                            onChange={(e) => setEstadoProdExterno(e.target.value.toUpperCase())}>
+                                            onChange={(e) => setEstadoProdExterno(e.target.value.toUpperCase())}
+                                            variant="outlined">>
                                         <MenuItem value="ACTIVO">ACTIVO</MenuItem>
                                         <MenuItem value="INACTIVO">INACTIVO</MenuItem>
                                     </Select>
                                 </FormControl>
                             </Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Descripción Producto" value={descripcionProducto} onChange={(e) => setDescripcionProducto(e.target.value.toUpperCase())} /></Grid>
-
+                            <Grid item xs={6}>
+                                <TextField fullWidth label="Descripción Producto"
+                                           value={descripcionProducto}
+                                           onChange={(e) => setDescripcionProducto(e.target.value.toUpperCase())} />
+                            </Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                         <Button onClick={handleInsertProducto} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedProducto ? 'Actualizar' : 'Guardar'}</Button>
-                        <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
-                            Cargar Excel
-                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
-                        </Button>
                     </DialogActions>
                 </Dialog>
             </div>
-        )}</>
+        </>
     );
 }
 

@@ -3,9 +3,8 @@ import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
 import Navbar0 from "../../Navbar0";
 import MUIDataTable from "mui-datatables";
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import {ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
-import LoadingCircle from "../../contabilidad/loader";
 import { IconButton, TextField } from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
@@ -18,8 +17,14 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
-
+import RefreshIcon from '@mui/icons-material/Refresh';
 import * as XLSX from "xlsx";
+import GlobalLoading from "../selectoresDialog/GlobalLoading";
+import AddIcon from "@material-ui/icons/Add";
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import Stack from "@mui/material/Stack";
+import {getTableOptions, getMuiTheme } from "../muiTableConfig";
+
 
 const API = process.env.REACT_APP_API;
 
@@ -33,9 +38,9 @@ function CatModSri() {
     const [modeloImportacion, setModeloImportacion] = useState('');
     const [cabeceras, setCabeceras] = useState([]);
     const [menus, setMenus] = useState([]);
-    const [loading] = useState(false);
     const [selectedModelo, setSelectedModelo] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [loadingGlobal, setLoadingGlobal] = useState(false);
 
     const handleInsertMarca = async () => {
         const url = selectedModelo && selectedModelo.codigo_modelo_sri
@@ -171,6 +176,7 @@ function CatModSri() {
             const workbook = XLSX.read(data, { type: "binary" });
             const sheetName = workbook.SheetNames[0];
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+            setLoadingGlobal(true);
 
             const processedRows = rows.map(row => ({
                 ...row,
@@ -197,12 +203,91 @@ function CatModSri() {
                     enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
                 }
             } catch (error) {
-                enqueueSnackbar("Error inesperado", { variant: "error" });
+                enqueueSnackbar("Error inesperado durante la carga", { variant: "error" });
+            } finally {
+                setLoadingGlobal(false);
             }
         };
 
         reader.readAsBinaryString(file);
     };
+
+    const handleUploadExcelUpdate = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async (evt) => {
+            const data = evt.target.result;
+            const workbook = XLSX.read(data, { type: "binary" });
+            const sheetName = workbook.SheetNames[0];
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+            const duplicados = [];
+            const combinaciones = new Map();
+
+            rows.forEach((row, index) => {
+                const clave = `${row.nombre_modelo}_${row.anio_modelo}`;
+                if (combinaciones.has(clave)) {
+                    const filaOriginal = combinaciones.get(clave);
+                    duplicados.push({ filaOriginal, filaDuplicada: index + 2, clave });
+                } else {
+                    combinaciones.set(clave, index + 2);
+                }
+            });
+
+            if (duplicados.length > 0) {
+                const msg = duplicados.map(d =>
+                    `Duplicado con clave [${d.clave}] en filas ${d.filaOriginal} y ${d.filaDuplicada}`
+                ).join('\n');
+
+                enqueueSnackbar(`Error..!! Registros duplicados detectados:\n${msg}`, {
+                    variant: "error",
+                    persist: true
+                });
+                return;
+            }
+            setLoadingGlobal(true);
+
+            const processedRows = rows.map(row => ({
+                ...row,
+                estado_modelo: row.estado_modelo === "ACTIVO" ? 1
+                    : row.estado_modelo === "INACTIVO" ? 0
+                        : row.estado_modelo
+            }));
+
+            try {
+                const res = await fetch(`${API}/bench/update_modelo_sri_masivo`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + jwt,
+                    },
+                    body: JSON.stringify(processedRows)
+                });
+
+                const responseData = await res.json();
+                if (res.ok) {
+                    enqueueSnackbar("Actualización exitosa", { variant: "success" });
+                    fetchModeloData();
+                } else {
+                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
+                }
+            } catch (error) {
+                enqueueSnackbar("Error inesperado durante la carga", { variant: "error" });
+            } finally {
+                setLoadingGlobal(false);
+            }
+        };
+
+        reader.readAsBinaryString(file);
+    };
+
+    const camposPlantillaModelo = [
+        "codigo_modelo_sri", "nombre_modelo",
+        "anio_modelo", "estado_modelo",
+        "cod_mdl_importacion"
+    ];
+    const tableOptions = getTableOptions(cabeceras, camposPlantillaModelo, "Actualizar_modelo_sri.xlsx");
 
     const openEditDialog = (rowData) => {
         setSelectedModelo(rowData);
@@ -213,44 +298,9 @@ function CatModSri() {
         setDialogOpen(true);
     };
 
-    const options = {
-        responsive: 'standard',
-        selectableRows: 'none',
-        textLabels: {
-            body: {
-                noMatch: "Lo siento, no se encontraron registros",
-                toolTip: "Ordenar"
-            },
-            pagination: {
-                next: "Siguiente", previous: "Anterior",
-                rowsPerPage: "Filas por página:", displayRows: "de"
-            }
-        }
-    };
-
-    const getMuiTheme = () =>
-        createTheme({
-            components: {
-                MuiTableCell: {
-                    styleOverrides: {
-                        root: {
-                            paddingLeft: '3px', paddingRight: '3px', paddingTop: '0px', paddingBottom: '0px',
-                            backgroundColor: '#00000', whiteSpace: 'nowrap', flex: 1,
-                            borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontSize: '14px'
-                        },
-                        head: {
-                            backgroundColor: 'firebrick', color: '#ffffff', fontWeight: 'bold',
-                            paddingLeft: '0px', paddingRight: '0px', fontSize: '12px'
-                        },
-                    }
-                },
-                MuiTable: { styleOverrides: { root: { borderCollapse: 'collapse' } } },
-                MuiToolbar: { styleOverrides: { regular: { minHeight: '10px' } } }
-            }
-        });
-
     return (
-        <>{loading ? (<LoadingCircle />) : (
+        <>
+            <GlobalLoading open={loadingGlobal} />
             <div style={{ marginTop: '150px', width: "100%" }}>
                 <Navbar0 menus={menus} />
                 <Box>
@@ -259,24 +309,68 @@ function CatModSri() {
                         <Button onClick={() => navigate(-1)}>Catálogos</Button>
                     </ButtonGroup>
                 </Box>
-                <Box>
-                    <Button
-                        onClick={() => {
-                            setSelectedModelo(null);
-                            setNombreModelo('');
-                            setEstadoModelo('');
-                            setAnioModelo('');
-                            setModeloImportacion('');
-                            setDialogOpen(true);
-                        }}
-                        style={{ marginTop: 10, backgroundColor: 'firebrick', color: 'white' }}
-                    >
-                        Insertar Nuevo
-                    </Button>
-                    <Button onClick={fetchModeloData} style={{ marginTop: 10, marginLeft: 10, backgroundColor: 'firebrick', color: 'white' }}>Listar</Button>
+                <Box sx={{ mt: 2 }}>
+                    <Stack direction="row" spacing={1}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<AddIcon />}
+                            onClick={() => {
+                                setSelectedModelo(null);
+                                setNombreModelo('');
+                                setEstadoModelo('');
+                                setAnioModelo('');
+                                setModeloImportacion('');
+                                setDialogOpen(true);
+                            }}
+                            sx={{
+                                textTransform: 'none',
+                                fontWeight: 500,
+                                backgroundColor: 'firebrick',
+                                '&:hover': {
+                                    backgroundColor: 'firebrick',
+                                },
+                                '&:active': {
+                                    backgroundColor: 'firebrick',
+                                    boxShadow: 'none'
+                                }
+                            }}
+                        >Nuevo
+                        </Button>
+                        <Button
+                            variant="contained"
+                            component="label"
+                            startIcon={<CloudUploadIcon />}
+                            sx={{
+                                textTransform: 'none',
+                                fontWeight: 500,
+                                backgroundColor: 'green',
+                                '&:hover': {
+                                    backgroundColor: 'green',
+                                },
+                                '&:active': {
+                                    backgroundColor: 'green',
+                                    boxShadow: 'none'
+                                }
+                            }}
+                        >Insertar Masivo
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                        </Button>
+                        <Button
+                            variant="contained"
+                            component="label"
+                            startIcon={<EditIcon />}
+                            sx={{ textTransform: 'none', fontWeight: 600,backgroundColor: 'littleseashell' }}
+                        >Actualizar Masivo
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
+                        </Button>
+                        <IconButton onClick={fetchModeloData} style={{ color: 'firebrick' }}>
+                            <RefreshIcon />
+                        </IconButton>
+                    </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={options} />
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={tableOptions} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selectedModelo ? 'Actualizar' : 'Nuevo'}</DialogTitle>
@@ -291,7 +385,7 @@ function CatModSri() {
                                         labelId="estado-marca-rep-label"
                                         value={estadoModelo}
                                         onChange={(e) => setEstadoModelo(e.target.value.toUpperCase())}
-                                    >
+                                        variant="outlined">
                                         <MenuItem value="ACTIVO">ACTIVO</MenuItem>
                                         <MenuItem value="INACTIVO">INACTIVO</MenuItem>
                                     </Select>
@@ -303,14 +397,10 @@ function CatModSri() {
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                         <Button onClick={handleInsertMarca} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedModelo ? 'Actualizar' : 'Guardar'}</Button>
-                        <Button variant="contained" component="label" style={{ backgroundColor: 'firebrick', color: 'white' }}>
-                            Cargar Excel
-                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
-                        </Button>
                     </DialogActions>
                 </Dialog>
             </div>
-        )}</>
+        </>
     );
 }
 

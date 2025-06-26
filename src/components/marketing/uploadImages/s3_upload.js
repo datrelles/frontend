@@ -4,6 +4,8 @@ import { Button } from "@mui/material";
 import {useAuthContext} from "../../../context/authContext";
 import {toast} from "react-toastify";
 import Box from "@mui/material/Box";
+import SaveIcon from "@material-ui/icons/Save";
+import AddIcon from "@material-ui/icons/Add";
 
 const API = process.env.REACT_APP_API;
 
@@ -12,8 +14,6 @@ const ImageUploader = ({ onUploadComplete }) => {
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef(null);
-
-
 
     const handleFileChange = (e) => {
         setSelectedFiles(Array.from(e.target.files));
@@ -83,7 +83,7 @@ const ImageUploader = ({ onUploadComplete }) => {
                 return;
             }
 
-            toast.success("Imagen registrada correctamente");
+            //toast.success("Imagen registrada correctamente");
 
         } catch (error) {
             console.error("Error guardando URL en base:", error);
@@ -132,9 +132,7 @@ const ImageUploader = ({ onUploadComplete }) => {
                             color: "white",
                             height: '37px'
                         }}
-                        disabled={uploading}
-                    >
-                        Elegir archivos
+                        disabled={uploading}><AddIcon/> Elegir archivos
                     </Button>
                 </label>
                 <Button
@@ -145,9 +143,7 @@ const ImageUploader = ({ onUploadComplete }) => {
                         backgroundColor: "firebrick",
                         color: "white",
                         height: '37px'
-                    }}
-                >
-                    Subir imágenes
+                    }}><SaveIcon /> Guardar
                 </Button>
             </Box>
             {selectedFiles.length > 0 && (

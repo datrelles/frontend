@@ -27,14 +27,6 @@ function CompararModelos()  {
     const [comparacionActiva, setComparacionActiva] = useState(false);
     const [bloquearInputs, setBloquearInputs] = useState(false);
 
-    const lineaPadre = lineas.find(
-        (l) => l.nombre_linea?.toUpperCase() === "AUTOMOTRIZ"
-    );
-    const lineasHijas = lineas.filter(
-        (l) =>
-            l.codigo_linea_padre === lineaPadre?.codigo_linea &&
-            l.nombre_linea?.toUpperCase() !== "AUTOMOTRIZ"
-    );
 
     const numeroModelos = 5;
 
@@ -58,8 +50,10 @@ function CompararModelos()  {
         Array(numeroModelos).fill([])
     );
 
+    const [lineasDisponiblesConSegmentos, setLineasDisponiblesConSegmentos] = useState([]);
+
     const textFieldSmallSx = {
-        width: 260,
+        width: '100%',
         '& .MuiInputBase-root': {
             fontSize: '11px',
             height: 32,
@@ -210,7 +204,11 @@ function CompararModelos()  {
         const dataSeg = await resSeg.json();
         setSegmentosPorBloque(prev => {
             const copia = [...prev];
-            copia[index] = dataSeg;
+
+            copia[index] = dataSeg.map(seg => ({
+                ...seg,
+                codigo_linea: linea.codigo_linea
+            }));
 
             if (index === 0) {
                 for (let i = 1; i < copia.length; i++) {
@@ -351,14 +349,46 @@ function CompararModelos()  {
         const cargarDatos = async () => {
             try {
                 await getMenus();
-                await fetchLineas();
+                await fetchLineas(); // esto cargará `lineas`
                 await fetchImagenData();
             } catch (err) {
                 console.error("Error cargando datos iniciales:", err);
             }
         };
+
         cargarDatos();
     }, []);
+
+
+    useEffect(() => {
+        const cargarLineasConSegmentos = async () => {
+            const automotriz = lineas.find(l => l.nombre_linea?.toUpperCase() === "AUTOMOTRIZ");
+            if (!automotriz) return;
+
+            const hijas = lineas.filter(l => l.codigo_linea_padre === automotriz.codigo_linea);
+            const lineasValidas = [];
+
+            for (const l of hijas) {
+                try {
+                    const res = await fetch(`${API}/bench_model/get_segmentos_por_linea/${l.codigo_linea}`, {
+                        headers: { Authorization: 'Bearer ' + jwt }
+                    });
+                    const segmentos = await res.json();
+                    if (Array.isArray(segmentos) && segmentos.length > 0) {
+                        lineasValidas.push(l);
+                    }
+                } catch (error) {
+                    console.error(`Error al cargar segmentos para línea ${l.nombre_linea}:`, error);
+                }
+            }
+
+            setLineasDisponiblesConSegmentos(lineasValidas);
+        };
+
+        if (lineas.length > 0) {
+            cargarLineasConSegmentos();
+        }
+    }, [lineas]);
 
     return (
         <>
@@ -371,13 +401,13 @@ function CompararModelos()  {
                             <Button onClick={() => navigate(-1)}>Catálogos</Button>
                         </ButtonGroup>
                     </Box>
-                    <Box padding={2}>
-                        <Grid container spacing={2} justifyContent="center">
+                    <Box padding={5}>
+                        <Grid container spacing={3} justifyContent="space-evenly">
                             {bloques.map((bloque, index) => {
                                 if (comparacionActiva && index > 0 && !bloque.modelo) return null;
                                 return (
-                                    <Grid key={index} item xs={12} sm={6} md={2.4}>
-                                        <Box sx={{
+                                    <Grid item xs={12} sm={6} md={4} lg={3} xl={2}>
+                                    <Box sx={{
                                             border: '1px solid #ccc',
                                             borderRadius: 2,
                                             p: 1,
@@ -394,25 +424,38 @@ function CompararModelos()  {
                                                 <strong>MODELO: </strong> {bloque.modelo?.nombre_modelo_comercial}<br/>
                                                 <strong>PRECIO VENTA CLIENTE: </strong> $ {bloque.modelo?.precio_producto_modelo}<br/>
                                             </Box>
-                                            <Box sx={{
-                                                height: 150,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center'
-                                            }}>
+                                            <Box
+                                                sx={{
+                                                    height: 150,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                }}
+                                            >
                                                 {bloque.modelo?.path_imagen && (
-                                                    <img
+                                                    <Box
+                                                        component="img"
                                                         src={bloque.modelo.path_imagen}
                                                         alt="modelo"
-                                                        style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
+                                                        sx={{
+                                                            maxHeight: '100%',
+                                                            maxWidth: '100%',
+                                                            objectFit: 'contain',
+                                                            transition: 'transform 0.3s ease-in-out',
+                                                            transformOrigin: 'center center',
+                                                            '&:hover': {
+                                                                transform: 'scale(3)',
+                                                            },
+                                                        }}
                                                     />
                                                 )}
                                             </Box>
                                             <Autocomplete
                                                 size="small"
-                                                options={lineasHijas}
+                                                options={lineasDisponiblesConSegmentos}
                                                 value={bloque.linea}
                                                 getOptionLabel={(op) => op?.nombre_linea || ''}
+                                                isOptionEqualToValue={(option, value) => option.codigo_linea === value?.codigo_linea}
                                                 onChange={(e, v) => handleLineaChange(index, v)}
                                                 renderInput={(params) => (
                                                     <TextField {...params} label="Línea" sx={textFieldSmallSx} />
@@ -494,24 +537,24 @@ function CompararModelos()  {
                                 Nueva Consulta
                             </Button>
                         </Box>
-                        <ResumenComparacion resultado={resultado} bloques={bloques} />
-                        <Dialog open={openModalImagen} onClose={() => setOpenModalImagen(false)} maxWidth="md" fullWidth>
-                            <DialogTitle>Vista de Imagen</DialogTitle>
-                            <DialogContent>
-                                <img
-                                    src={selectedImagen}
-                                    title="Vista previa imagen"
-                                    style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain' }}
-                                    alt="Vista previa imagen"
-                                />
-                            </DialogContent>
-                            <DialogActions>
-                                <Button onClick={() => setOpenModalImagen(false)} color="primary">
-                                    Cerrar
-                                </Button>
-                            </DialogActions>
-                        </Dialog>
                     </Box>
+                    <ResumenComparacion resultado={resultado} bloques={bloques} />
+                    <Dialog open={openModalImagen} onClose={() => setOpenModalImagen(false)} maxWidth="md" fullWidth>
+                        <DialogTitle>Vista de Imagen</DialogTitle>
+                        <DialogContent>
+                            <img
+                                src={selectedImagen}
+                                title="Vista previa imagen"
+                                style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain' }}
+                                alt="Vista previa imagen"
+                            />
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={() => setOpenModalImagen(false)} color="primary">
+                                Cerrar
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
                 </div>
             )}
         </>
