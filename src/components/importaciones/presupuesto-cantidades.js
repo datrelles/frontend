@@ -261,14 +261,8 @@ export default function PresupuestoCantidades() {
               filaActualizada[col.field] = 0;
             } else {
               const celda =
-                datos.find(
-                  (dato) =>
-                    dato.cod_parametro === col.context.cod_parametro &&
-                    dato.cod_modelo_comercial === filaActualizada.cod_modelo &&
-                    dato.cod_marca === filaActualizada.cod_marca &&
-                    dato.cod_cliente === filaActualizada.cod_cliente &&
-                    dato.anio === col.context.anio &&
-                    dato.mes === col.context.mes
+                datos.get(
+                  `${col.context.cod_parametro}${filaActualizada.cod_modelo}${filaActualizada.cod_marca}${filaActualizada.cod_cliente}${col.context.anio}${col.context.mes}`
                 ) || {};
               const valor = celda.numero || celda.texto || celda.fecha;
               filaActualizada[col.field] = valor || CARACTER_RELLENO;
@@ -295,7 +289,18 @@ export default function PresupuestoCantidades() {
       return;
     }
     const { anio_inicio, mes_inicio, anio_fin, mes_fin, datos } = proyeccion;
-    proyectar(anio_inicio, mes_inicio, anio_fin, mes_fin, datos);
+    proyectar(
+      anio_inicio,
+      mes_inicio,
+      anio_fin,
+      mes_fin,
+      new Map(
+        datos.map((dato) => [
+          `${dato.cod_parametro}${dato.cod_modelo_comercial}${dato.cod_marca}${dato.cod_cliente}${dato.anio}${dato.mes}`,
+          dato,
+        ])
+      )
+    );
     setProyeccionCargada(true);
     setCargando(false);
   };
