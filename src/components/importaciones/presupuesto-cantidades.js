@@ -94,6 +94,8 @@ export default function PresupuestoCantidades() {
   const [proyeccionCargada, setProyeccionCargada] = useState(false);
   const [columnasTabla, setColumnasTabla] = useState([]);
   const [filasTabla, setFilasTabla] = useState([]);
+  const columnasTablaRef = useRef([]);
+  const filasTablaRef = useRef([]);
 
   const getMenus = async () => {
     try {
@@ -181,8 +183,43 @@ export default function PresupuestoCantidades() {
           numero: validarTipoRetornoYConvertir(TiposRetorno.NUMERO, newValue),
         }
       )
-        .then((_) => {
-          cargarProyeccion(codVersionRef.current);
+        .then(async (_) => {
+          let proyeccionParcial;
+          try {
+            proyeccionParcial = await APIService.getProyeccionParcial(
+              codVersionRef.current,
+              COD_PROCESO_PRESUP_CANT,
+              rowData.cod_modelo,
+              rowData.cod_marca,
+              rowData.cod_cliente
+            );
+          } catch (err) {
+            toast.error(err.message);
+            setCargando(false);
+          }
+          if (!proyeccionParcial) {
+            toast.error("La actualización no devolvió datos");
+            setCargando(false);
+            return;
+          }
+          setFilasTabla((prev) => {
+            const filaAfectada = prev.find(
+              (fila) =>
+                fila.cod_modelo === rowData.cod_modelo &&
+                fila.cod_marca === rowData.cod_marca &&
+                fila.cod_cliente === rowData.cod_cliente
+            );
+            for (const proyeccion of proyeccionParcial) {
+              const valor =
+                proyeccion.numero || proyeccion.texto || proyeccion.fecha;
+              filaAfectada[
+                `${proyeccion.cod_parametro}_${proyeccion.anio}_${proyeccion.mes}`
+              ] = valor || CARACTER_RELLENO;
+            }
+            setCargando(false);
+            return obtenerFilasConsolidadas(columnasTablaRef.current, prev);
+          });
+          setCargando(false);
         })
         .catch((err) => {
           setCargando(false);
@@ -490,6 +527,14 @@ export default function PresupuestoCantidades() {
   useEffect(() => {
     codVersionRef.current = version.cod_version;
   }, [version]);
+
+  useEffect(() => {
+    columnasTablaRef.current = columnasTabla;
+  }, [columnasTabla]);
+
+  useEffect(() => {
+    filasTablaRef.current = filasTabla;
+  }, [filasTabla]);
 
   useEffect(() => {
     if (

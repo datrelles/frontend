@@ -356,6 +356,17 @@ export default class API {
     );
   });
 
+  getProyeccionParcial = this.#errorHandler(
+    async (version, proceso, modelo, marca, cliente) => {
+      return await axios.get(
+        `${
+          this.#URL
+        }/versiones/${version}/proyecciones/procesos/${proceso}/modelos/${modelo}/marcas/${marca}/clientes/${cliente}`,
+        this.#headers
+      );
+    }
+  );
+
   createProyeccion = this.#errorHandler(async (version, proceso, data) => {
     return await axios.post(
       `${this.#URL}/versiones/${version}/proyecciones/procesos/${proceso}`,
