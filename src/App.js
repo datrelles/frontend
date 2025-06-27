@@ -78,6 +78,7 @@ import Funciones from "./components/formulas/funciones";
 import Clientes from "./components/formulas/clientes";
 import PresupuestoCantidades from "./components/importaciones/presupuesto-cantidades";
 import CoberturaModelo from "./components/importaciones/cobertura-modelo";
+import SellOut from "./components/formulas/sell-out";
 
 ///SellManagerB2B
 const API = process.env.REACT_APP_API;
@@ -712,6 +713,15 @@ function App() {
                 element={
                   <Protected isLoggedIn={authorizedSystems.includes("IMP")}>
                     <CoberturaModelo />
+                  </Protected>
+                }
+              ></Route>
+              <Route
+                exact
+                path="/sell-out"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("IMP")}>
+                    <SellOut />
                   </Protected>
                 }
               ></Route>

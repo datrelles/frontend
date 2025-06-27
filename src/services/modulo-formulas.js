@@ -422,4 +422,8 @@ export default class API {
       this.#headers
     );
   });
+
+  getSellOut = this.#errorHandler(async () => {
+    return await axios.get(`${this.#URL}/sell-out`, this.#headers);
+  });
 }
