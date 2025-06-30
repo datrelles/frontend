@@ -423,7 +423,31 @@ export default class API {
     );
   });
 
-  getSellOut = this.#errorHandler(async () => {
-    return await axios.get(`${this.#URL}/sell-out`, this.#headers);
+  getPresupuestos = this.#errorHandler(async () => {
+    return await axios.get(`${this.#URL}/presupuestos`, this.#headers);
   });
+
+  createPresupuesto = this.#errorHandler(
+    async (cliente, modelo, anio, mes, data) => {
+      return await axios.post(
+        `${
+          this.#URL
+        }/clientes/${cliente}/modelos/${modelo}/anios/${anio}/meses/${mes}/presupuestos`,
+        data,
+        this.#headers
+      );
+    }
+  );
+
+  updatePresupuesto = this.#errorHandler(
+    async (cliente, modelo, anio, mes, data) => {
+      return await axios.put(
+        `${
+          this.#URL
+        }/clientes/${cliente}/modelos/${modelo}/anios/${anio}/meses/${mes}/presupuestos`,
+        data,
+        this.#headers
+      );
+    }
+  );
 }
