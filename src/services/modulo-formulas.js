@@ -461,4 +461,43 @@ export default class API {
       );
     }
   );
+
+  getPresupuestosTipoCli = this.#errorHandler(async () => {
+    return await axios.get(`${this.#URL}/presupuestos-tipo-cli`, this.#headers);
+  });
+
+  createPresupuestoTipoCli = this.#errorHandler(
+    async (cliente, modelo, anio, mes, data) => {
+      return await axios.post(
+        `${
+          this.#URL
+        }/tipos-clientes/${cliente}/modelos/${modelo}/anios/${anio}/meses/${mes}/presupuestos-tipo-cli`,
+        data,
+        this.#headers
+      );
+    }
+  );
+
+  updatePresupuestoTipoCli = this.#errorHandler(
+    async (cliente, modelo, anio, mes, data) => {
+      return await axios.put(
+        `${
+          this.#URL
+        }/tipos-clientes/${cliente}/modelos/${modelo}/anios/${anio}/meses/${mes}/presupuestos-tipo-cli`,
+        data,
+        this.#headers
+      );
+    }
+  );
+
+  deletePresupuestoTipoCli = this.#errorHandler(
+    async (cliente, modelo, anio, mes, data) => {
+      return await axios.delete(
+        `${
+          this.#URL
+        }/tipos-clientes/${cliente}/modelos/${modelo}/anios/${anio}/meses/${mes}/presupuestos-tipo-cli`,
+        this.#headers
+      );
+    }
+  );
 }
