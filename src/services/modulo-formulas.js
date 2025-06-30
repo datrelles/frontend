@@ -450,4 +450,15 @@ export default class API {
       );
     }
   );
+
+  deletePresupuesto = this.#errorHandler(
+    async (cliente, modelo, anio, mes, data) => {
+      return await axios.delete(
+        `${
+          this.#URL
+        }/clientes/${cliente}/modelos/${modelo}/anios/${anio}/meses/${mes}/presupuestos`,
+        this.#headers
+      );
+    }
+  );
 }

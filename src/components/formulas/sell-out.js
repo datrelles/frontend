@@ -83,6 +83,31 @@ export default function SellOut({}) {
       .catch((err) => toast.error(err.message));
   };
 
+  const handleDelete = (rowsDeleted) => {
+    if (!window.confirm("¿Estás seguro de eliminar el presupuesto?")) {
+      return false;
+    }
+    const { data: deletedData } = rowsDeleted;
+    const deletedRowIndex = deletedData[0].index;
+    const deletedRowValue = presupuestos[deletedRowIndex];
+    const newItems = presupuestos.filter(
+      (item, index) => index !== deletedRowIndex
+    );
+    setPresupuestos(newItems);
+    APIService.deletePresupuesto(
+      deletedRowValue.cod_cliente,
+      deletedRowValue.cod_modelo,
+      deletedRowValue.anio,
+      deletedRowValue.mes
+    )
+      .then((res) => toast.success(res))
+      .catch((err) => {
+        toast.error(err.message);
+        getPresupuestos();
+      });
+    return true;
+  };
+
   const handleRowClick = (rowData, rowMeta) => {
     const item = presupuestos.find(
       (item) =>
@@ -99,10 +124,6 @@ export default function SellOut({}) {
     setSellOut(item.sell_out ?? "");
     setCodLinea(item.cod_linea ?? "");
     setCodTipoLinea(item.cod_tipo_linea ?? "");
-    setOpenUpdate(true);
-  };
-
-  const handleClickOpenUpdate = () => {
     setOpenUpdate(true);
   };
 
@@ -169,7 +190,7 @@ export default function SellOut({}) {
     },
   ];
 
-  const options = createTableOptions(handleRowClick);
+  const options = createTableOptions(handleRowClick, handleDelete);
 
   const createContentItems = [
     createTextFieldItem(
