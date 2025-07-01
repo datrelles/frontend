@@ -112,7 +112,7 @@ export default function ParametrosProceso() {
       .then((res) => {
         toast.success(res);
         setOpenAdd(false);
-        setCodParametro(codParametro);
+        getParametrosDetail();
       })
       .catch((err) => toast.error(err.message));
   };
@@ -140,8 +140,8 @@ export default function ParametrosProceso() {
     })
       .then((res) => {
         toast.success(res);
-        setCodParametro("");
         setOpenUpdate(false);
+        getParametrosDetail();
       })
       .catch((err) => toast.error(err.message));
   };
@@ -171,7 +171,6 @@ export default function ParametrosProceso() {
     const { data: deletedData } = selectedRows;
     const deletedRowIndex = deletedData[0].index;
     const deletedRowValue = parametrosDetail[deletedRowIndex];
-    setCodParametro(deletedRowValue.cod_parametro);
     const newParametros = parametrosDetail.filter(
       (_, index) => index !== deletedRowIndex
     );
@@ -183,10 +182,10 @@ export default function ParametrosProceso() {
       .then((res) => {
         toast.success(res);
         setSelectedRows([]);
+        getParametrosDetail();
       })
       .catch((err) => {
         toast.error(err.message);
-        setCodParametro("");
       });
     return true;
   };
@@ -205,6 +204,7 @@ export default function ParametrosProceso() {
     const procesoSeleccionado = procesos[indiceSeleccionado];
     if (procesoSeleccionado) {
       setCodProceso(procesoSeleccionado.cod_proceso);
+      getParametrosDetail();
     }
   };
 
@@ -537,12 +537,6 @@ export default function ParametrosProceso() {
     getParametros();
     getFormulas();
   }, []);
-
-  useEffect(() => {
-    if (codProceso) {
-      getParametrosDetail();
-    }
-  }, [codProceso, codParametro]);
 
   return (
     <MainComponent
