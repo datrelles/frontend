@@ -3,7 +3,6 @@ import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
 import Navbar0 from "../../Navbar0";
 import Grid from '@mui/material/Grid';
-import LoadingCircle from "../../contabilidad/loader";
 import {Autocomplete, IconButton, TextField} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
@@ -52,7 +51,6 @@ function CatModeloVersion() {
     const [selectedClienteCanal, setSelectedClienteCanal] = useState(null);
     const [selectedVersion, setSelectedVersion] = useState(null);
     const [cabeceras, setCabeceras] = useState([]);
-    const [loading] = useState(false);
     const [chasis, setChasis] = useState([]);
     const [motores, setMotores] = useState([]);
     const [tiposMotor, setTiposMotor] = useState([]);
