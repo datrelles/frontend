@@ -447,7 +447,7 @@ export default function PresupuestoCantidades() {
       label="Meses proyección"
       options={MesesProyeccion}
       value={mesesProyeccion}
-      onChange={createDefaultSetter(setMesesProyeccion)}
+      onChange={createDefaultSetter({ setter: setMesesProyeccion })}
       disabled={cargando || proyeccionCargada}
     />
   );
@@ -481,7 +481,7 @@ export default function PresupuestoCantidades() {
       id: "nueva_version",
       label: "Nombre versión",
       value: nuevaVersion,
-      setValue: createDefaultSetter(setNuevaVersion, undefined, true),
+      setValue: createDefaultSetter({ setter: setNuevaVersion, toUpper: true }),
     }),
     createCustomComponentItem(2, "btnCrearVersion", btnCrearVersion),
     createCustomComponentItem(2, "btnCancelarVersion", btnCancelarVersion),

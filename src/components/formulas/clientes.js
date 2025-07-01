@@ -193,7 +193,7 @@ export default function Clientes() {
       label="Modelo"
       options={ModelosCliente}
       value={codModelo}
-      onChange={createDefaultSetter(setCodModelo)}
+      onChange={createDefaultSetter({ setter: setCodModelo })}
     />
   );
 
@@ -266,7 +266,7 @@ export default function Clientes() {
       id: "nombre_imprime",
       label: "Nombre",
       value: nombreImprime,
-      setValue: createDefaultSetter(setNombreImprime),
+      setValue: createDefaultSetter({ setter: setNombreImprime }),
     }),
     createCustomComponentItem(4, "checkboxAgrupa", checkboxAgrupa),
     agrupa
@@ -275,7 +275,7 @@ export default function Clientes() {
           id: "nombre_agrupa",
           label: "Nombre agrupación",
           value: nombreAgrupacion,
-          setValue: createDefaultSetter(setNombreAgrupacion),
+          setValue: createDefaultSetter({ setter: setNombreAgrupacion }),
         })
       : createEmptyItem(8, "nombre_agrupa"),
   ];
@@ -304,7 +304,7 @@ export default function Clientes() {
       id: "nombre_imprime",
       label: "Nombre",
       value: nombreImprime,
-      setValue: createDefaultSetter(setNombreImprime),
+      setValue: createDefaultSetter({ setter: setNombreImprime }),
     }),
     createCustomComponentItem(4, "checkboxAgrupa", checkboxAgrupa),
     agrupa
@@ -313,7 +313,7 @@ export default function Clientes() {
           id: "nombre_agrupa",
           label: "Nombre agrupación",
           value: nombreAgrupacion,
-          setValue: createDefaultSetter(setNombreAgrupacion),
+          setValue: createDefaultSetter({ setter: setNombreAgrupacion }),
         })
       : createEmptyItem(8, "nombre_agrupa"),
   ];

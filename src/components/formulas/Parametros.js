@@ -198,7 +198,7 @@ export default function Parametros() {
     <Check
       label="Activo"
       checked={estado}
-      onChange={createDefaultSetter(setEstado, true)}
+      onChange={createDefaultSetter({ setter: setEstado, isCheck: true })}
     />
   );
 
@@ -222,7 +222,7 @@ export default function Parametros() {
       id: "cod_parametro",
       label: "Código",
       value: codParametro,
-      setValue: createDefaultSetter(setCodParametro, undefined, true),
+      setValue: createDefaultSetter({ setter: setCodParametro, toUpper: true }),
       placeholder: "PARAM###",
     }),
     createTextFieldItem({
@@ -230,7 +230,7 @@ export default function Parametros() {
       id: "nombre",
       label: "Nombre",
       value: nombre,
-      setValue: createDefaultSetter(setNombre),
+      setValue: createDefaultSetter({ setter: setNombre }),
     }),
     createCustomComponentItem(12, "color", autocompleteColores),
     createTextFieldItem({
@@ -238,7 +238,7 @@ export default function Parametros() {
       id: "descripcion",
       label: "Descripción",
       value: descripcion,
-      setValue: createDefaultSetter(setDescripcion),
+      setValue: createDefaultSetter({ setter: setDescripcion }),
       required: false,
       rows: 3,
     }),
@@ -256,7 +256,7 @@ export default function Parametros() {
       id: "nombre",
       label: "Nombre",
       value: nombre,
-      setValue: createDefaultSetter(setNombre),
+      setValue: createDefaultSetter({ setter: setNombre }),
     }),
     createCustomComponentItem(12, "color", autocompleteColores),
     createTextFieldItem({
@@ -264,7 +264,7 @@ export default function Parametros() {
       id: "descripcion",
       label: "Descripción",
       value: descripcion,
-      setValue: createDefaultSetter(setDescripcion),
+      setValue: createDefaultSetter({ setter: setDescripcion }),
       required: false,
       rows: 3,
     }),

@@ -377,7 +377,10 @@ export default function ParametrosProceso() {
     <Check
       label="Activo"
       checked={estadoParametro}
-      onChange={createDefaultSetter(setEstadoParametro, true)}
+      onChange={createDefaultSetter({
+        setter: setEstadoParametro,
+        isCheck: true,
+      })}
     />
   );
 
@@ -406,7 +409,7 @@ export default function ParametrosProceso() {
       id: "orden",
       label: "Orden",
       value: ordenParametro,
-      setValue: createDefaultSetter(setOrdenParametro),
+      setValue: createDefaultSetter({ setter: setOrdenParametro }),
       type: "number",
     }),
     createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
@@ -434,7 +437,7 @@ export default function ParametrosProceso() {
       id: "fecha_inicio",
       label: "Fecha inicio",
       value: fechaInicio,
-      setValue: createDefaultSetter(setFechaInicio),
+      setValue: createDefaultSetter({ setter: setFechaInicio }),
       required: false,
       type: "date",
     }),
@@ -443,7 +446,7 @@ export default function ParametrosProceso() {
       id: "fecha_fin",
       label: "Fecha fin",
       value: fechaFin,
-      setValue: createDefaultSetter(setFechaFin),
+      setValue: createDefaultSetter({ setter: setFechaFin }),
       required: false,
       type: "date",
     }),

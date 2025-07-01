@@ -161,7 +161,7 @@ export default function Procesos() {
     <Check
       label="Activo"
       checked={estado}
-      onChange={createDefaultSetter(setEstado, true)}
+      onChange={createDefaultSetter({ setter: setEstado, isCheck: true })}
     />
   );
 
@@ -171,7 +171,7 @@ export default function Procesos() {
       id: "cod_proceso",
       label: "Código",
       value: codProceso,
-      setValue: createDefaultSetter(setCodProceso, undefined, true),
+      setValue: createDefaultSetter({ setter: setCodProceso, toUpper: true }),
       placeholder: "PROCE###",
     }),
     createTextFieldItem({
@@ -179,7 +179,7 @@ export default function Procesos() {
       id: "nombre",
       label: "Nombre",
       value: nombre,
-      setValue: createDefaultSetter(setNombre),
+      setValue: createDefaultSetter({ setter: setNombre }),
     }),
   ];
 
@@ -195,7 +195,7 @@ export default function Procesos() {
       id: "nombre",
       label: "Nombre",
       value: nombre,
-      setValue: createDefaultSetter(setNombre),
+      setValue: createDefaultSetter({ setter: setNombre }),
     }),
     createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
   ];

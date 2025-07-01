@@ -273,7 +273,7 @@ export default function FactoresCalculo() {
         label="Operador"
         options={Operadores}
         value={operador}
-        onChange={createDefaultSetter(setOperador)}
+        onChange={createDefaultSetter({ setter: setOperador })}
         required={false}
         disabled={tipoFactor !== TiposFactor.OPERADOR.key}
       />
@@ -283,7 +283,7 @@ export default function FactoresCalculo() {
       id: "n_f_numero",
       label: "Número",
       value: numero,
-      setValue: createDefaultSetter(setNumero),
+      setValue: createDefaultSetter({ setter: setNumero }),
       required: false,
       placeholder: "",
       disabled: tipoFactor !== TiposFactor.VALOR.key,

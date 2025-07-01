@@ -447,7 +447,7 @@ export default function Funciones() {
       label="Tipo retorno"
       options={TiposRetorno}
       value={retorno}
-      onChange={createDefaultSetter(setRetorno)}
+      onChange={createDefaultSetter({ setter: setRetorno })}
     />
   );
 
@@ -456,7 +456,7 @@ export default function Funciones() {
       label="Paquete"
       options={PaquetesBD}
       value={paquete}
-      onChange={createDefaultSetter(setPaquete)}
+      onChange={createDefaultSetter({ setter: setPaquete })}
     />
   );
 
@@ -477,7 +477,7 @@ export default function Funciones() {
     <Check
       label="Activa"
       checked={estado}
-      onChange={createDefaultSetter(setEstado, true)}
+      onChange={createDefaultSetter({ setter: setEstado, isCheck: true })}
     />
   );
 
@@ -501,7 +501,7 @@ export default function Funciones() {
       id: "cod_funcion",
       label: "Código",
       value: codFuncion,
-      setValue: createDefaultSetter(setCodFuncion, undefined, true),
+      setValue: createDefaultSetter({ setter: setCodFuncion, toUpper: true }),
       placeholder: "FUNC###",
     }),
     createCustomComponentItem(5, "autocompleteModulos", autocompleteModulos),
@@ -512,21 +512,21 @@ export default function Funciones() {
       id: "nombre_base_datos",
       label: "Nombre base de datos",
       value: nombreBD,
-      setValue: createDefaultSetter(setNombreBD),
+      setValue: createDefaultSetter({ setter: setNombreBD }),
     }),
     createTextFieldItem({
       xs: 12,
       id: "nombre",
       label: "Nombre",
       value: nombre,
-      setValue: createDefaultSetter(setNombre),
+      setValue: createDefaultSetter({ setter: setNombre }),
     }),
     createTextFieldItem({
       xs: 12,
       id: "descripcion",
       label: "Descripción",
       value: descripcion,
-      setValue: createDefaultSetter(setDescripcion),
+      setValue: createDefaultSetter({ setter: setDescripcion }),
       required: false,
       rows: 3,
     }),
@@ -537,7 +537,7 @@ export default function Funciones() {
     id: "numero",
     label: "Número",
     value: numero,
-    setValue: createDefaultSetter(setNumero),
+    setValue: createDefaultSetter({ setter: setNumero }),
     type: "number",
   });
 
@@ -546,7 +546,7 @@ export default function Funciones() {
     id: "texto",
     label: "Texto",
     value: texto,
-    setValue: createDefaultSetter(setTexto),
+    setValue: createDefaultSetter({ setter: setTexto }),
   });
 
   const variableTextFieldItem = createTextFieldItem({
@@ -554,7 +554,7 @@ export default function Funciones() {
     id: "variable",
     label: "Variable",
     value: variable,
-    setValue: createDefaultSetter(setVariable),
+    setValue: createDefaultSetter({ setter: setVariable }),
   });
 
   const createParametroContentItems = () => {
@@ -575,7 +575,7 @@ export default function Funciones() {
         4,
         "selectTipoParametro",
         selectTipoParametro,
-        createDefaultSetter(setTipoParametro)
+        createDefaultSetter({ setter: setTipoParametro })
       ),
     ];
     switch (tipoParametro) {
@@ -616,14 +616,14 @@ export default function Funciones() {
       id: "nombre",
       label: "Nombre",
       value: nombre,
-      setValue: createDefaultSetter(setNombre),
+      setValue: createDefaultSetter({ setter: setNombre }),
     }),
     createTextFieldItem({
       xs: 12,
       id: "descripcion",
       label: "Descripción",
       value: descripcion,
-      setValue: createDefaultSetter(setDescripcion),
+      setValue: createDefaultSetter({ setter: setDescripcion }),
       required: false,
       rows: 3,
     }),
@@ -648,7 +648,7 @@ export default function Funciones() {
         4,
         "selectTipoParametro",
         selectTipoParametro,
-        createDefaultSetter(setTipoParametro)
+        createDefaultSetter({ setter: setTipoParametro })
       ),
     ];
     switch (tipoParametro) {

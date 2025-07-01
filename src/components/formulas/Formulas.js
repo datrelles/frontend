@@ -394,7 +394,7 @@ export default function Formulas() {
     <Check
       label="Activa"
       checked={estado}
-      onChange={createDefaultSetter(setEstado, true)}
+      onChange={createDefaultSetter({ setter: setEstado, isCheck: true })}
     />
   );
 
@@ -403,7 +403,7 @@ export default function Formulas() {
       label="Tipo retorno"
       options={TiposRetorno}
       value={retorno}
-      onChange={createDefaultSetter(setRetorno)}
+      onChange={createDefaultSetter({ setter: setRetorno })}
     />
   );
 
@@ -443,7 +443,7 @@ export default function Formulas() {
       id: "cod_formula",
       label: "Código",
       value: codFormula,
-      setValue: createDefaultSetter(setCodFormula, undefined, true),
+      setValue: createDefaultSetter({ setter: setCodFormula, toUpper: true }),
       placeholder: "FORMU###",
     }),
     createTextFieldItem({
@@ -451,7 +451,7 @@ export default function Formulas() {
       id: "nombre",
       label: "Nombre",
       value: nombre,
-      setValue: createDefaultSetter(setNombre),
+      setValue: createDefaultSetter({ setter: setNombre }),
     }),
     createCustomComponentItem(3, "retorno", selectRetorno),
     createTextFieldItem({
@@ -459,7 +459,7 @@ export default function Formulas() {
       id: "descripcion",
       label: "Descripción",
       value: descripcion,
-      setValue: createDefaultSetter(setDescripcion),
+      setValue: createDefaultSetter({ setter: setDescripcion }),
       required: false,
       rows: 3,
     }),
@@ -491,7 +491,7 @@ export default function Formulas() {
       id: "nombre",
       label: "Nombre",
       value: nombre,
-      setValue: createDefaultSetter(setNombre),
+      setValue: createDefaultSetter({ setter: setNombre }),
     }),
     createCustomComponentItem(2, "checkboxEstado", checkboxEstado),
     createCustomComponentItem(12, "retorno", selectRetorno),
@@ -500,7 +500,7 @@ export default function Formulas() {
       id: "descripcion",
       label: "Descripción",
       value: descripcion,
-      setValue: createDefaultSetter(setDescripcion),
+      setValue: createDefaultSetter({ setter: setDescripcion }),
       required: false,
       rows: 3,
     }),
