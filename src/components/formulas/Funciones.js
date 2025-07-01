@@ -497,78 +497,81 @@ export default function Funciones() {
   );
 
   const createContentItems = [
-    createTextFieldItem(
-      3,
-      "cod_funcion",
-      "Código",
-      codFuncion,
-      createDefaultSetter(setCodFuncion, undefined, true),
-      true,
-      "FUNC###"
-    ),
+    createTextFieldItem({
+      xs: 3,
+      id: "cod_funcion",
+      label: "Código",
+      value: codFuncion,
+      setValue: createDefaultSetter(setCodFuncion, undefined, true),
+      placeholder: "FUNC###",
+    }),
     createCustomComponentItem(5, "autocompleteModulos", autocompleteModulos),
     createCustomComponentItem(4, "selectPaquete", selectPaquete),
     createCustomComponentItem(3, "selectRetorno", selectRetorno),
-    createTextFieldItem(
-      9,
-      "nombre_base_datos",
-      "Nombre base de datos",
-      nombreBD,
-      createDefaultSetter(setNombreBD)
-    ),
-    createTextFieldItem(
-      12,
-      "nombre",
-      "Nombre",
-      nombre,
-      createDefaultSetter(setNombre)
-    ),
-    createTextFieldItem(
-      12,
-      "descripcion",
-      "Descripción",
-      descripcion,
-      createDefaultSetter(setDescripcion),
-      false,
-      undefined,
-      undefined,
-      undefined,
-      3
-    ),
+    createTextFieldItem({
+      xs: 9,
+      id: "nombre_base_datos",
+      label: "Nombre base de datos",
+      value: nombreBD,
+      setValue: createDefaultSetter(setNombreBD),
+    }),
+    createTextFieldItem({
+      xs: 12,
+      id: "nombre",
+      label: "Nombre",
+      value: nombre,
+      setValue: createDefaultSetter(setNombre),
+    }),
+    createTextFieldItem({
+      xs: 12,
+      id: "descripcion",
+      label: "Descripción",
+      value: descripcion,
+      setValue: createDefaultSetter(setDescripcion),
+      required: false,
+      rows: 3,
+    }),
   ];
 
-  const numeroTextFieldItem = createTextFieldItem(
-    12,
-    "numero",
-    "Número",
-    numero,
-    createDefaultSetter(setNumero),
-    undefined,
-    undefined,
-    undefined,
-    "number"
-  );
+  const numeroTextFieldItem = createTextFieldItem({
+    xs: 12,
+    id: "numero",
+    label: "Número",
+    value: numero,
+    setValue: createDefaultSetter(setNumero),
+    type: "number",
+  });
 
-  const caracterTextFieldItem = createTextFieldItem(
-    12,
-    "texto",
-    "Texto",
-    texto,
-    createDefaultSetter(setTexto)
-  );
+  const caracterTextFieldItem = createTextFieldItem({
+    xs: 12,
+    id: "texto",
+    label: "Texto",
+    value: texto,
+    setValue: createDefaultSetter(setTexto),
+  });
 
-  const variableTextFieldItem = createTextFieldItem(
-    12,
-    "variable",
-    "Variable",
-    variable,
-    createDefaultSetter(setVariable)
-  );
+  const variableTextFieldItem = createTextFieldItem({
+    xs: 12,
+    id: "variable",
+    label: "Variable",
+    value: variable,
+    setValue: createDefaultSetter(setVariable),
+  });
 
   const createParametroContentItems = () => {
     const items = [
-      createTextFieldItem(4, "cod_funcion", "Código Función", codFuncion),
-      createTextFieldItem(4, "secuencia", "Secuencia", parametros.length + 1),
+      createTextFieldItem({
+        xs: 4,
+        id: "cod_funcion",
+        label: "Código Función",
+        value: codFuncion,
+      }),
+      createTextFieldItem({
+        xs: 4,
+        id: "secuencia",
+        label: "Secuencia",
+        value: parametros.length + 1,
+      }),
       createCustomComponentItem(
         4,
         "selectTipoParametro",
@@ -589,47 +592,59 @@ export default function Funciones() {
   };
 
   const updateContentItems = [
-    createTextFieldItem(3, "cod_funcion", "Código", codFuncion),
+    createTextFieldItem({
+      xs: 3,
+      id: "cod_funcion",
+      label: "Código",
+      value: codFuncion,
+    }),
     createCustomComponentItem(5, "autocompleteModulos", autocompleteModulos),
     createCustomComponentItem(4, "selectPaquete", selectPaquete),
     createCustomComponentItem(3, "selectRetorno", selectRetorno),
-    createTextFieldItem(
-      7,
-      "nombre_base_datos",
-      "Nombre base de datos",
-      nombreBD,
-      (e) => {
+    createTextFieldItem({
+      xs: 7,
+      id: "nombre_base_datos",
+      label: "Nombre base de datos",
+      value: nombreBD,
+      setValue: (e) => {
         setNombreBDActualizado(false);
         setNombreBD(e.target.value);
-      }
-    ),
+      },
+    }),
     createCustomComponentItem(2, "checkboxEstado", checkboxEstado),
-    createTextFieldItem(
-      12,
-      "nombre",
-      "Nombre",
-      nombre,
-      createDefaultSetter(setNombre)
-    ),
-    createTextFieldItem(
-      12,
-      "descripcion",
-      "Descripción",
-      descripcion,
-      createDefaultSetter(setDescripcion),
-      false,
-      undefined,
-      undefined,
-      undefined,
-      3
-    ),
+    createTextFieldItem({
+      xs: 12,
+      id: "nombre",
+      label: "Nombre",
+      value: nombre,
+      setValue: createDefaultSetter(setNombre),
+    }),
+    createTextFieldItem({
+      xs: 12,
+      id: "descripcion",
+      label: "Descripción",
+      value: descripcion,
+      setValue: createDefaultSetter(setDescripcion),
+      required: false,
+      rows: 3,
+    }),
     createCustomComponentItem(12, "boxCenter", boxCenter),
   ];
 
   const updateParametroContentItems = () => {
     const items = [
-      createTextFieldItem(4, "cod_funcion", "Código Función", codFuncion),
-      createTextFieldItem(4, "secuencia", "Secuencia", secuencia),
+      createTextFieldItem({
+        xs: 4,
+        id: "cod_funcion",
+        label: "Código Función",
+        value: codFuncion,
+      }),
+      createTextFieldItem({
+        xs: 4,
+        id: "secuencia",
+        label: "Secuencia",
+        value: secuencia,
+      }),
       createCustomComponentItem(
         4,
         "selectTipoParametro",

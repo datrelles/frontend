@@ -209,12 +209,12 @@ export default function Clientes() {
   );
 
   const createContentItems = [
-    createTextFieldItem(
-      4,
-      "cod_cliente",
-      "Código",
-      codCliente,
-      async (e) => {
+    createTextFieldItem({
+      xs: 4,
+      id: "cod_cliente",
+      label: "Código",
+      value: codCliente,
+      setValue: async (e) => {
         const codigo = e.target.value;
         setCodCliente(codigo);
         if (validarCedulaRUC(codigo)) {
@@ -238,69 +238,80 @@ export default function Clientes() {
           setTipoCliente("");
         }
       },
-      true,
-      "CI / RUC"
-    ),
-    createTextFieldItem(
-      8,
-      "nombre",
-      "Nombre",
-      nombre,
-      undefined,
-      true,
-      undefined,
-      true
-    ),
-    createTextFieldItem(
-      2,
-      "tipo_cliente",
-      "Tipo",
-      tipoCliente,
-      undefined,
-      true,
-      undefined,
-      true
-    ),
+      required: true,
+      placeholder: "CI / RUC",
+    }),
+    createTextFieldItem({
+      xs: 8,
+      id: "nombre",
+      label: "Nombre",
+      value: nombre,
+      required: true,
+      disabled: true,
+    }),
+    createTextFieldItem({
+      xs: 2,
+      id: "tipo_cliente",
+      label: "Tipo",
+      value: tipoCliente,
+      required: true,
+      disabled: true,
+    }),
     createCustomComponentItem(2, "cod_modelo", selectModelo),
-    createTextFieldItem(
-      8,
-      "nombre_imprime",
-      "Nombre",
-      nombreImprime,
-      createDefaultSetter(setNombreImprime)
-    ),
+    createTextFieldItem({
+      xs: 8,
+      id: "nombre_imprime",
+      label: "Nombre",
+      value: nombreImprime,
+      setValue: createDefaultSetter(setNombreImprime),
+    }),
     createCustomComponentItem(4, "checkboxAgrupa", checkboxAgrupa),
     agrupa
-      ? createTextFieldItem(
-          8,
-          "nombre_agrupa",
-          "Nombre agrupación",
-          nombreAgrupacion,
-          createDefaultSetter(setNombreAgrupacion)
-        )
+      ? createTextFieldItem({
+          xs: 8,
+          id: "nombre_agrupa",
+          label: "Nombre agrupación",
+          value: nombreAgrupacion,
+          setValue: createDefaultSetter(setNombreAgrupacion),
+        })
       : createEmptyItem(8, "nombre_agrupa"),
   ];
 
   const updateContentItems = [
-    createTextFieldItem(4, "cod_proceso", "Código", codCliente),
-    createTextFieldItem(4, "cod_modelo", "Modelo", codModelo),
-    createTextFieldItem(4, "cod_tipo", "Tipo cliente", tipoCliente),
-    createTextFieldItem(
-      12,
-      "nombre_imprime",
-      "Nombre",
-      nombreImprime,
-      createDefaultSetter(setNombreImprime)
-    ),
+    createTextFieldItem({
+      xs: 4,
+      id: "cod_proceso",
+      label: "Código",
+      value: codCliente,
+    }),
+    createTextFieldItem({
+      xs: 4,
+      id: "cod_modelo",
+      label: "Modelo",
+      value: codModelo,
+    }),
+    createTextFieldItem({
+      xs: 4,
+      id: "cod_tipo",
+      label: "Tipo cliente",
+      value: tipoCliente,
+    }),
+    createTextFieldItem({
+      xs: 12,
+      id: "nombre_imprime",
+      label: "Nombre",
+      value: nombreImprime,
+      setValue: createDefaultSetter(setNombreImprime),
+    }),
     createCustomComponentItem(4, "checkboxAgrupa", checkboxAgrupa),
     agrupa
-      ? createTextFieldItem(
-          8,
-          "nombre_agrupa",
-          "Nombre agrupación",
-          nombreAgrupacion,
-          createDefaultSetter(setNombreAgrupacion)
-        )
+      ? createTextFieldItem({
+          xs: 8,
+          id: "nombre_agrupa",
+          label: "Nombre agrupación",
+          value: nombreAgrupacion,
+          setValue: createDefaultSetter(setNombreAgrupacion),
+        })
       : createEmptyItem(8, "nombre_agrupa"),
   ];
 

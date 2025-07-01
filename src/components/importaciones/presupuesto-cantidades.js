@@ -476,13 +476,13 @@ export default function PresupuestoCantidades() {
   );
 
   const itemsCrearVersion = [
-    createTextFieldItem(
-      6,
-      "nueva_version",
-      "Nombre versión",
-      nuevaVersion,
-      createDefaultSetter(setNuevaVersion, undefined, true)
-    ),
+    createTextFieldItem({
+      xs: 6,
+      id: "nueva_version",
+      label: "Nombre versión",
+      value: nuevaVersion,
+      setValue: createDefaultSetter(setNuevaVersion, undefined, true),
+    }),
     createCustomComponentItem(2, "btnCrearVersion", btnCrearVersion),
     createCustomComponentItem(2, "btnCancelarVersion", btnCancelarVersion),
     createEmptyItem(2, "relleno_proyeccion"),

@@ -214,59 +214,57 @@ export default function Parametros() {
   );
 
   const createContentItems = [
-    createTextFieldItem(
-      4,
-      "cod_parametro",
-      "Código",
-      codParametro,
-      createDefaultSetter(setCodParametro, undefined, true),
-      true,
-      "PARAM###"
-    ),
-    createTextFieldItem(
-      8,
-      "nombre",
-      "Nombre",
-      nombre,
-      createDefaultSetter(setNombre)
-    ),
+    createTextFieldItem({
+      xs: 4,
+      id: "cod_parametro",
+      label: "Código",
+      value: codParametro,
+      setValue: createDefaultSetter(setCodParametro, undefined, true),
+      placeholder: "PARAM###",
+    }),
+    createTextFieldItem({
+      xs: 8,
+      id: "nombre",
+      label: "Nombre",
+      value: nombre,
+      setValue: createDefaultSetter(setNombre),
+    }),
     createCustomComponentItem(12, "color", autocompleteColores),
-    createTextFieldItem(
-      12,
-      "descripcion",
-      "Descripción",
-      descripcion,
-      createDefaultSetter(setDescripcion),
-      false,
-      undefined,
-      undefined,
-      undefined,
-      3
-    ),
+    createTextFieldItem({
+      xs: 12,
+      id: "descripcion",
+      label: "Descripción",
+      value: descripcion,
+      setValue: createDefaultSetter(setDescripcion),
+      required: false,
+      rows: 3,
+    }),
   ];
 
   const updateContentItems = [
-    createTextFieldItem(4, "cod_parametro", "Código", codParametro),
-    createTextFieldItem(
-      8,
-      "nombre",
-      "Nombre",
-      nombre,
-      createDefaultSetter(setNombre)
-    ),
+    createTextFieldItem({
+      xs: 4,
+      id: "cod_parametro",
+      label: "Código",
+      value: codParametro,
+    }),
+    createTextFieldItem({
+      xs: 8,
+      id: "nombre",
+      label: "Nombre",
+      value: nombre,
+      setValue: createDefaultSetter(setNombre),
+    }),
     createCustomComponentItem(12, "color", autocompleteColores),
-    createTextFieldItem(
-      12,
-      "descripcion",
-      "Descripción",
-      descripcion,
-      createDefaultSetter(setDescripcion),
-      false,
-      undefined,
-      undefined,
-      undefined,
-      3
-    ),
+    createTextFieldItem({
+      xs: 12,
+      id: "descripcion",
+      label: "Descripción",
+      value: descripcion,
+      setValue: createDefaultSetter(setDescripcion),
+      required: false,
+      rows: 3,
+    }),
     createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
   ];
 

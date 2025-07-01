@@ -24,7 +24,7 @@ function createMultiline(rows) {
   };
 }
 
-export function createTextFieldItem(
+export function createTextFieldItem({
   xs,
   id,
   label,
@@ -34,8 +34,8 @@ export function createTextFieldItem(
   placeholder = "",
   disabled = !setValue,
   type = "text",
-  rows = null
-) {
+  rows = null,
+}) {
   return {
     xs,
     id,

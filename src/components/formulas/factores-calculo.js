@@ -174,17 +174,13 @@ export default function FactoresCalculo() {
 
   const factoresListItem = factores.map((item, index) =>
     createCustomListItem(`factor_${item.orden}`, [
-      createTextFieldItem(
-        3,
-        `orden_${item.orden}`,
-        "Orden",
-        item.orden,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        "number"
-      ),
+      createTextFieldItem({
+        xs: 3,
+        id: `orden_${item.orden}`,
+        label: "Orden",
+        value: item.orden,
+        type: "number",
+      }),
       createCustomComponentItem(
         3,
         `select_tipo_op_${item.orden}`,
@@ -208,26 +204,24 @@ export default function FactoresCalculo() {
         )
       ),
       item.numero
-        ? createTextFieldItem(
-            2,
-            `numero_${item.orden}`,
-            "Número",
-            item.numero,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            "number"
-          )
+        ? createTextFieldItem({
+            xs: 2,
+            id: `numero_${item.orden}`,
+            label: "Número",
+            value: item.numero,
+            type: "number",
+          })
         : createEmptyItem(2, `numero_${item.orden}`),
       item.cod_parametro_tipo
-        ? createTextFieldItem(
-            2,
-            `cod_parametro_operador_${item.orden}`,
-            "Parámetro",
-            parametros.find((p) => p.cod_parametro === item.cod_parametro_tipo)
-              ?.parametro?.nombre ?? ""
-          )
+        ? createTextFieldItem({
+            xs: 2,
+            id: `cod_parametro_operador_${item.orden}`,
+            label: "Parámetro",
+            value:
+              parametros.find(
+                (p) => p.cod_parametro === item.cod_parametro_tipo
+              )?.parametro?.nombre ?? "",
+          })
         : createEmptyItem(2, `cod_parametro_operador_${item.orden}`),
       createCustomComponentItem(
         1,
@@ -248,7 +242,14 @@ export default function FactoresCalculo() {
   );
 
   const nuevoFactorListItem = createCustomListItem("nuevo_factor", [
-    createTextFieldItem(3, "n_f_orden", "Orden", orden, null, true, null, true),
+    createTextFieldItem({
+      xs: 3,
+      id: "n_f_orden",
+      label: "Orden",
+      value: orden,
+      required: true,
+      disabled: true,
+    }),
     createCustomComponentItem(
       3,
       "n_f_tipo_operador",
@@ -277,17 +278,17 @@ export default function FactoresCalculo() {
         disabled={tipoFactor !== TiposFactor.OPERADOR.key}
       />
     ),
-    createTextFieldItem(
-      2,
-      "n_f_numero",
-      "Número",
-      numero,
-      createDefaultSetter(setNumero),
-      false,
-      "",
-      tipoFactor !== TiposFactor.VALOR.key,
-      "number"
-    ),
+    createTextFieldItem({
+      xs: 2,
+      id: "n_f_numero",
+      label: "Número",
+      value: numero,
+      setValue: createDefaultSetter(setNumero),
+      required: false,
+      placeholder: "",
+      disabled: tipoFactor !== TiposFactor.VALOR.key,
+      type: "number",
+    }),
     createCustomComponentItem(
       3,
       "n_f_parametro",

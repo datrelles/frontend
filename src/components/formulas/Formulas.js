@@ -435,42 +435,38 @@ export default function Formulas() {
   );
 
   const createContentItems = [
-    createTextFieldItem(
-      3,
-      "cod_formula",
-      "Código",
-      codFormula,
-      createDefaultSetter(setCodFormula, undefined, true),
-      true,
-      "FORMU###"
-    ),
-    createTextFieldItem(
-      6,
-      "nombre",
-      "Nombre",
-      nombre,
-      createDefaultSetter(setNombre)
-    ),
+    createTextFieldItem({
+      xs: 3,
+      id: "cod_formula",
+      label: "Código",
+      value: codFormula,
+      setValue: createDefaultSetter(setCodFormula, undefined, true),
+      placeholder: "FORMU###",
+    }),
+    createTextFieldItem({
+      xs: 6,
+      id: "nombre",
+      label: "Nombre",
+      value: nombre,
+      setValue: createDefaultSetter(setNombre),
+    }),
     createCustomComponentItem(3, "retorno", selectRetorno),
-    createTextFieldItem(
-      12,
-      "descripcion",
-      "Descripción",
-      descripcion,
-      createDefaultSetter(setDescripcion),
-      false,
-      undefined,
-      undefined,
-      undefined,
-      3
-    ),
-    createTextFieldItem(
-      12,
-      "definicion",
-      "Definición",
-      definicion,
-      onChangeDefinicion
-    ),
+    createTextFieldItem({
+      xs: 12,
+      id: "descripcion",
+      label: "Descripción",
+      value: descripcion,
+      setValue: createDefaultSetter(setDescripcion),
+      required: false,
+      rows: 3,
+    }),
+    createTextFieldItem({
+      xs: 12,
+      id: "definicion",
+      label: "Definición",
+      value: definicion,
+      setValue: onChangeDefinicion,
+    }),
     mostrarSugerencias
       ? createCustomComponentItem(
           12,
@@ -481,35 +477,37 @@ export default function Formulas() {
   ];
 
   const updateContentItems = [
-    createTextFieldItem(4, "cod_formula", "Código", codFormula),
-    createTextFieldItem(
-      6,
-      "nombre",
-      "Nombre",
-      nombre,
-      createDefaultSetter(setNombre)
-    ),
+    createTextFieldItem({
+      xs: 4,
+      id: "cod_formula",
+      label: "Código",
+      value: codFormula,
+    }),
+    createTextFieldItem({
+      xs: 6,
+      id: "nombre",
+      label: "Nombre",
+      value: nombre,
+      setValue: createDefaultSetter(setNombre),
+    }),
     createCustomComponentItem(2, "checkboxEstado", checkboxEstado),
     createCustomComponentItem(12, "retorno", selectRetorno),
-    createTextFieldItem(
-      12,
-      "descripcion",
-      "Descripción",
-      descripcion,
-      createDefaultSetter(setDescripcion),
-      false,
-      undefined,
-      undefined,
-      undefined,
-      3
-    ),
-    createTextFieldItem(
-      12,
-      "definicion",
-      "Definición",
-      definicion,
-      onChangeDefinicion
-    ),
+    createTextFieldItem({
+      xs: 12,
+      id: "descripcion",
+      label: "Descripción",
+      value: descripcion,
+      setValue: createDefaultSetter(setDescripcion),
+      required: false,
+      rows: 3,
+    }),
+    createTextFieldItem({
+      xs: 12,
+      id: "definicion",
+      label: "Definición",
+      value: definicion,
+      setValue: onChangeDefinicion,
+    }),
     mostrarSugerencias
       ? createCustomComponentItem(
           12,

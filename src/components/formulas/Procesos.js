@@ -163,33 +163,37 @@ export default function Procesos() {
   );
 
   const createContentItems = [
-    createTextFieldItem(
-      4,
-      "cod_proceso",
-      "Código",
-      codProceso,
-      createDefaultSetter(setCodProceso, undefined, true),
-      true,
-      "PROCE###"
-    ),
-    createTextFieldItem(
-      8,
-      "nombre",
-      "Nombre",
-      nombre,
-      createDefaultSetter(setNombre)
-    ),
+    createTextFieldItem({
+      xs: 4,
+      id: "cod_proceso",
+      label: "Código",
+      value: codProceso,
+      setValue: createDefaultSetter(setCodProceso, undefined, true),
+      placeholder: "PROCE###",
+    }),
+    createTextFieldItem({
+      xs: 8,
+      id: "nombre",
+      label: "Nombre",
+      value: nombre,
+      setValue: createDefaultSetter(setNombre),
+    }),
   ];
 
   const updateContentItems = [
-    createTextFieldItem(4, "cod_proceso", "Código", codProceso),
-    createTextFieldItem(
-      8,
-      "nombre",
-      "Nombre",
-      nombre,
-      createDefaultSetter(setNombre)
-    ),
+    createTextFieldItem({
+      xs: 4,
+      id: "cod_proceso",
+      label: "Código",
+      value: codProceso,
+    }),
+    createTextFieldItem({
+      xs: 8,
+      id: "nombre",
+      label: "Nombre",
+      value: nombre,
+      setValue: createDefaultSetter(setNombre),
+    }),
     createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
   ];
 

@@ -386,31 +386,33 @@ export default function ParametrosProceso() {
   );
 
   const updateContentItems = [
-    createTextFieldItem(6, "cod_parametro", "Código", codParametro),
-    createTextFieldItem(6, "nombre", "Nombre", nombreParametro),
-    createTextFieldItem(
-      12,
-      "descripcion",
-      "Descripción",
-      descripcionParametro,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      3
-    ),
-    createTextFieldItem(
-      12,
-      "orden",
-      "Orden",
-      ordenParametro,
-      createDefaultSetter(setOrdenParametro),
-      undefined,
-      undefined,
-      undefined,
-      "number"
-    ),
+    createTextFieldItem({
+      xs: 6,
+      id: "cod_parametro",
+      label: "Código",
+      value: codParametro,
+    }),
+    createTextFieldItem({
+      xs: 6,
+      id: "nombre",
+      label: "Nombre",
+      value: nombreParametro,
+    }),
+    createTextFieldItem({
+      xs: 12,
+      id: "descripcion",
+      label: "Descripción",
+      value: descripcionParametro,
+      rows: 3,
+    }),
+    createTextFieldItem({
+      xs: 12,
+      id: "orden",
+      label: "Orden",
+      value: ordenParametro,
+      setValue: createDefaultSetter(setOrdenParametro),
+      type: "number",
+    }),
     createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
   ];
 
@@ -431,28 +433,24 @@ export default function ParametrosProceso() {
 
   const updateDatosContentItems = [
     createCustomComponentItem(12, "formula", autocompleteFormulas),
-    createTextFieldItem(
-      6,
-      "fecha_inicio",
-      "Fecha inicio",
-      fechaInicio,
-      createDefaultSetter(setFechaInicio),
-      false,
-      undefined,
-      undefined,
-      "date"
-    ),
-    createTextFieldItem(
-      6,
-      "fecha_fin",
-      "Fecha fin",
-      fechaFin,
-      createDefaultSetter(setFechaFin),
-      false,
-      undefined,
-      undefined,
-      "date"
-    ),
+    createTextFieldItem({
+      xs: 6,
+      id: "fecha_inicio",
+      label: "Fecha inicio",
+      value: fechaInicio,
+      setValue: createDefaultSetter(setFechaInicio),
+      required: false,
+      type: "date",
+    }),
+    createTextFieldItem({
+      xs: 6,
+      id: "fecha_fin",
+      label: "Fecha fin",
+      value: fechaFin,
+      setValue: createDefaultSetter(setFechaFin),
+      required: false,
+      type: "date",
+    }),
   ];
 
   const addContent = (
