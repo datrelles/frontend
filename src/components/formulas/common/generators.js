@@ -90,14 +90,14 @@ export function createTableFeatures({
   );
 }
 
-export function createTableOptions(
+export function createTableOptions({
   onRowClick = null,
   onRowsDelete = null,
   selectable = TiposSeleccionTabla.SINGLE.key,
   onRowSelectionChange = null,
   customToolbarSelect = null,
-  features = createTableFeatures()
-) {
+  features = createTableFeatures(),
+}) {
   return {
     responsive: "standard",
     selectableRows: selectable,

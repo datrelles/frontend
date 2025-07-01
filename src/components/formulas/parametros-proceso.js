@@ -302,14 +302,11 @@ export default function ParametrosProceso() {
     },
   ];
 
-  const optionsMaster = createTableOptions(
-    undefined,
-    undefined,
-    undefined,
-    handleMasterRowSelectionChange,
-    masterEmptyToolbarSelect,
-    createTableFeatures({ download: false, print: false })
-  );
+  const optionsMaster = createTableOptions({
+    onRowSelectionChange: handleMasterRowSelectionChange,
+    customToolbarSelect: masterEmptyToolbarSelect,
+    features: createTableFeatures({ download: false, print: false }),
+  });
 
   const columnsDetail = [
     {
@@ -337,14 +334,11 @@ export default function ParametrosProceso() {
     },
   ];
 
-  const optionsDetail = createTableOptions(
-    handleClickOpenUpdate,
-    undefined,
-    undefined,
-    undefined,
+  const optionsDetail = createTableOptions({
+    onRowClick: handleClickOpenUpdate,
     customToolbarSelect,
-    createTableFeatures({ download: false, print: false })
-  );
+    features: createTableFeatures({ download: false, print: false }),
+  });
 
   const columnsParametros = [
     {
@@ -368,19 +362,16 @@ export default function ParametrosProceso() {
     },
   ];
 
-  const optionsParametros = createTableOptions(
-    handleAdd,
-    undefined,
-    TiposSeleccionTabla.NONE.key,
-    undefined,
-    undefined,
-    createTableFeatures({
+  const optionsParametros = createTableOptions({
+    onRowClick: handleAdd,
+    selectable: TiposSeleccionTabla.NONE.key,
+    features: createTableFeatures({
       download: false,
       print: false,
       viewColumns: false,
       filter: false,
-    })
-  );
+    }),
+  });
 
   const checkboxEstado = (
     <Check

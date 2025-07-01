@@ -383,12 +383,11 @@ export default function Funciones() {
     },
   ];
 
-  const options = createTableOptions(
-    handleRowClick,
-    handleDelete,
-    undefined,
-    handleRowSelectionChange
-  );
+  const options = createTableOptions({
+    onRowClick: handleRowClick,
+    onRowsDelete: handleDelete,
+    onRowSelectionChange: handleRowSelectionChange,
+  });
 
   const columnsParametros = [
     {
@@ -424,10 +423,10 @@ export default function Funciones() {
     },
   ];
 
-  const optionsParametros = createTableOptions(
-    handleRowClickParametro,
-    handleDeleteParametro
-  );
+  const optionsParametros = createTableOptions({
+    onRowClick: handleRowClickParametro,
+    onRowsDelete: handleDeleteParametro,
+  });
 
   const autocompleteModulos = (
     <AutocompleteObject

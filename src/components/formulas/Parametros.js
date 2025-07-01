@@ -189,7 +189,10 @@ export default function Parametros() {
     },
   ];
 
-  const options = createTableOptions(handleRowClick, handleDelete);
+  const options = createTableOptions({
+    onRowClick: handleRowClick,
+    onRowsDelete: handleDelete,
+  });
 
   const checkboxEstado = (
     <Check

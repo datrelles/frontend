@@ -152,7 +152,10 @@ export default function Procesos() {
     },
   ];
 
-  const options = createTableOptions(handleRowClick, handleDelete);
+  const options = createTableOptions({
+    onRowClick: handleRowClick,
+    onRowsDelete: handleDelete,
+  });
 
   const checkboxEstado = (
     <Check

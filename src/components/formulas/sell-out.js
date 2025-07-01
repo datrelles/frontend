@@ -323,12 +323,15 @@ export default function SellOut({}) {
     },
   ];
 
-  const options = createTableOptions(handleRowClick, handleDelete);
+  const options = createTableOptions({
+    onRowClick: handleRowClick,
+    onRowsDelete: handleDelete,
+  });
 
-  const optionsTipoCli = createTableOptions(
-    handleRowClickTipoCli,
-    handleDeleteTipoCli
-  );
+  const optionsTipoCli = createTableOptions({
+    onRowClick: handleRowClickTipoCli,
+    onRowsDelete: handleDeleteTipoCli,
+  });
 
   const createContentItems = [
     createTextFieldItem({

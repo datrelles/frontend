@@ -183,7 +183,10 @@ export default function Clientes() {
     },
   ];
 
-  const options = createTableOptions(handleRowClick, handleDelete);
+  const options = createTableOptions({
+    onRowClick: handleRowClick,
+    onRowsDelete: handleDelete,
+  });
 
   const selectModelo = (
     <CustomSelect
