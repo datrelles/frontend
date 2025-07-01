@@ -174,7 +174,6 @@ export default function ParametrosProceso() {
     const newParametros = parametrosDetail.filter(
       (_, index) => index !== deletedRowIndex
     );
-    setParametrosDetail(newParametros);
     APIService.deleteParametroPorProceso(
       codProceso,
       deletedRowValue.cod_parametro
@@ -204,7 +203,6 @@ export default function ParametrosProceso() {
     const procesoSeleccionado = procesos[indiceSeleccionado];
     if (procesoSeleccionado) {
       setCodProceso(procesoSeleccionado.cod_proceso);
-      getParametrosDetail();
     }
   };
 
@@ -540,6 +538,12 @@ export default function ParametrosProceso() {
     getParametros();
     getFormulas();
   }, []);
+
+  useEffect(() => {
+    if (codProceso !== "") {
+      getParametrosDetail();
+    }
+  }, [codProceso]);
 
   return (
     <MainComponent
