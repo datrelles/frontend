@@ -308,7 +308,7 @@ export default function ParametrosProceso() {
     undefined,
     handleMasterRowSelectionChange,
     masterEmptyToolbarSelect,
-    createTableFeatures(true, false, false)
+    createTableFeatures({ download: false, print: false })
   );
 
   const columnsDetail = [
@@ -343,7 +343,7 @@ export default function ParametrosProceso() {
     undefined,
     undefined,
     customToolbarSelect,
-    createTableFeatures(true, false, false)
+    createTableFeatures({ download: false, print: false })
   );
 
   const columnsParametros = [
@@ -374,7 +374,12 @@ export default function ParametrosProceso() {
     TiposSeleccionTabla.NONE.key,
     undefined,
     undefined,
-    createTableFeatures(true, false, false, false, false)
+    createTableFeatures({
+      download: false,
+      print: false,
+      viewColumns: false,
+      filter: false,
+    })
   );
 
   const checkboxEstado = (

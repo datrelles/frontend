@@ -70,14 +70,14 @@ export function createCustomListItem(id, gridItems) {
   return { id, gridItems };
 }
 
-export function createTableFeatures(
+export function createTableFeatures({
   search = true,
   download = true,
   print = true,
   viewColumns = true,
   filter = true,
-  pagination = true
-) {
+  pagination = true,
+}) {
   return Object.fromEntries(
     Object.entries({
       search,
