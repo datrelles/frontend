@@ -41,28 +41,44 @@ const shapeSugerencia = {
 };
 
 const itemsLeyenda = [
-  createLegendItem("Número", "#", ColoresFondo.INFO.key),
-  createLegendItem("Función", "&", ColoresFondo.SUCCESS.key),
-  createLegendItem("Parámetro", "$", ColoresFondo.DARK.key),
-  createLegendItem("Fórmula", "@", ColoresFondo.WARNING.key),
-  createLegendItem(
-    "+ - * / ( )",
-    "Operadores válidos",
-    ColoresFondo.DANGER.key
-  ),
-  createLegendItem(
-    "S (v1,condición,v2,v3,v4,v5)",
-    "SI",
-    ColoresFondo.DANGER.key
-  ),
-  createLegendItem(
-    "= <> != > >= < <= E (entre)",
-    "Condición",
-    ColoresFondo.DANGER.key
-  ),
-  createLegendItem(
-    "Todas las expresiones van separadas por espacios y sin ENTER"
-  ),
+  createLegendItem({
+    description: "Número",
+    label: "#",
+    color: ColoresFondo.INFO.key,
+  }),
+  createLegendItem({
+    description: "Función",
+    label: "&",
+    color: ColoresFondo.SUCCESS.key,
+  }),
+  createLegendItem({
+    description: "Parámetro",
+    label: "$",
+    color: ColoresFondo.DARK.key,
+  }),
+  createLegendItem({
+    description: "Fórmula",
+    label: "@",
+    color: ColoresFondo.WARNING.key,
+  }),
+  createLegendItem({
+    description: "+ - * / ( )",
+    label: "Operadores válidos",
+    color: ColoresFondo.DANGER.key,
+  }),
+  createLegendItem({
+    description: "S (v1,condición,v2,v3,v4,v5)",
+    label: "SI",
+    color: ColoresFondo.DANGER.key,
+  }),
+  createLegendItem({
+    description: "= <> != > >= < <= E (entre)",
+    label: "Condición",
+    color: ColoresFondo.DANGER.key,
+  }),
+  createLegendItem({
+    description: "Todas las expresiones van separadas por espacios y sin ENTER",
+  }),
 ];
 
 const leyendaFormulas = <Legend title="Notas" items={itemsLeyenda} />;

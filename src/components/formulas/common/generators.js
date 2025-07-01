@@ -77,7 +77,7 @@ export function createTableFeatures({
   viewColumns = true,
   filter = true,
   pagination = true,
-}) {
+} = {}) {
   return Object.fromEntries(
     Object.entries({
       search,
@@ -154,11 +154,11 @@ export function createDefaultSetter({
   };
 }
 
-export function createLegendItem(
+export function createLegendItem({
   description,
   label = null,
-  color = ColoresFondo.DANGER
-) {
+  color = ColoresFondo.DANGER,
+}) {
   return {
     description,
     label,
