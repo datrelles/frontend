@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthContext } from "../../context/authContext";
 import { toast } from "react-toastify";
 import API from "../../services/modulo-formulas";
@@ -37,6 +37,7 @@ export default function FactoresCalculo() {
   const queryParams = new URLSearchParams(location.search);
   const codProceso = queryParams.get("proceso");
   const codParametro = queryParams.get("parametro");
+  const navigate = useNavigate();
   const [menus, setMenus] = useState([]);
   const [proceso, setProceso] = useState({ nombre: "" });
   const [parametro, setParametro] = useState({ nombre: "" });
@@ -378,7 +379,20 @@ export default function FactoresCalculo() {
 
   return (
     <MainComponent
-      components={[header, titulo, texto, factoresList, btnNuevo]}
+      components={[
+        header,
+        <BtnNuevo
+          onClick={() => {
+            navigate("/parametros-x-proceso");
+          }}
+          texto="Regresar"
+          icon={null}
+        />,
+        titulo,
+        texto,
+        factoresList,
+        btnNuevo,
+      ]}
     />
   );
 }

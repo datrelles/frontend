@@ -6,11 +6,7 @@ export default function BtnCancelar({
   texto = "Cancelar",
 }) {
   return (
-    <Button
-      disabled={disabled}
-      color="primary"
-      onClick={onClick}
-    >
+    <Button disabled={disabled} color="primary" onClick={onClick}>
       {texto}
     </Button>
   );
