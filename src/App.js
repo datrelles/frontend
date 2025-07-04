@@ -120,9 +120,8 @@ function App() {
     "VE",
     "LOG",
     "RET",
-    "ADM",
-    ,
     "MKT",
+    "ADM",
   ]);
 
   const { jwt, userShineray, enterpriseShineray, flag, temporalFlag, logout } =
@@ -877,6 +876,96 @@ function App() {
                   </Protected>
                 }
               />
+              <Route
+                exact
+                path="/procesos"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
+                    <Procesos />
+                  </Protected>
+                }
+              ></Route>
+              <Route
+                exact
+                path="/formulas"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
+                    <Formulas />
+                  </Protected>
+                }
+              ></Route>
+              <Route
+                exact
+                path="/parametros"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
+                    <Parametros />
+                  </Protected>
+                }
+              ></Route>
+              <Route
+                exact
+                path="/parametros-x-proceso"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
+                    <ParametrosProceso />
+                  </Protected>
+                }
+              ></Route>
+              <Route
+                exact
+                path="/factores-calculo"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
+                    <FactoresCalculo />
+                  </Protected>
+                }
+              ></Route>
+              <Route
+                exact
+                path="/funciones"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
+                    <Funciones />
+                  </Protected>
+                }
+              ></Route>
+              <Route
+                exact
+                path="/clientes-procesos"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
+                    <Clientes />
+                  </Protected>
+                }
+              ></Route>
+              <Route
+                exact
+                path="/presupuesto-cantidades"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("IMP")}>
+                    <PresupuestoCantidades />
+                  </Protected>
+                }
+              ></Route>
+              <Route
+                exact
+                path="/cobertura-modelo"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("IMP")}>
+                    <CoberturaModelo />
+                  </Protected>
+                }
+              ></Route>
+              <Route
+                exact
+                path="/sell-out"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("IMP")}>
+                    <SellOut />
+                  </Protected>
+                }
+              ></Route>
               <Route exact path="/settings" element={<Settings />}></Route>
             </Routes>
           </>
