@@ -18,6 +18,9 @@ import DialogActions from '@mui/material/DialogActions';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
+import InputAdornment from '@mui/material/InputAdornment';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 import { PedidoDialog } from './pedidosDialog'
 
@@ -35,7 +38,11 @@ import {
   getPostventasObsByCod,
   putUpdatePostventasObs,
   deletePostventasObs,
-  getCasoPostventa
+  getCasoPostventa,
+  updateNumeroGuia,
+  getClienteDataForId,
+  getNombreProductoByMotor,
+  getClienteDataForIdEspecificClienteShibot
 } from '../../../services/api'
 
 import { ProgressBar } from './progressLine'
@@ -43,7 +50,7 @@ import LoadingCircle from '../../contabilidad/loader'
 
 // Import your new API calls:
 import { cierrePrevio, cerrarCaso } from '../../../services/api'
-
+import { DialogAddClient } from '../openCase/DialogAddClient';
 export const CaseManager = () => {
   const [menus, setMenus] = useState([]);
   const { jwt, userShineray, enterpriseShineray } = useAuthContext()
@@ -69,6 +76,7 @@ export const CaseManager = () => {
   const [editingObservation, setEditingObservation] = useState(null);
   const [editedObservationText, setEditedObservationText] = useState('');
   const observationRef = useRef(null);
+  const numeroGuiaRef = useRef(null);
 
   // DIALOG: Edit/view case
   const [openEdit, setOpenEdit] = useState(false);
@@ -76,6 +84,14 @@ export const CaseManager = () => {
 
   // DIALOG: "Realizar Pedido"
   const [openPedido, setOpenPedido] = useState(false);
+  const [numeroGuia, setNumeroGuia] = useState('');
+  // Estado para saber si el cliente existe
+  const [clientExists, setClientExists] = useState(null);
+  const [nombreProducto, setNombreProducto] = useState('');
+
+  const [openAddClient, setOpenAddClient] = useState(false); // Controla la apertura del diálogo
+  const [identificacionClienteAux, setIdentificacionClienteAux] = useState(''); // Identificación temporal
+
 
   const listaProblemas = {
     46: "MOTOR",
@@ -169,6 +185,20 @@ export const CaseManager = () => {
         ),
       },
     },
+
+    {
+      name: "nombre_cliente",
+      label: "Cliente",
+      options: {
+        customBodyRender: (value) => (
+          <div style={{ textAlign: "left" }}>
+            {value}
+          </div>
+        ),
+      },
+    },
+
+
     {
       name: "taller",
       label: "Taller",
@@ -361,6 +391,50 @@ export const CaseManager = () => {
     }
     getDataCitiesFunction();
   }, [province])
+
+  useEffect(() => {
+    if (dataCasoPostventaEdit) {
+      setNumeroGuia(dataCasoPostventaEdit.numero_guia || '');
+    }
+  }, [dataCasoPostventaEdit]);
+
+  // Efecto para llamar al endpoint de verificación del cliente
+  useEffect(() => {
+    const fetchCliente = async () => {
+      if (dataCasoPostventaEdit && dataCasoPostventaEdit.identificacion_cliente) {
+        try {
+          // Se usa el endpoint importado getClienteDataForId (parámetros: jwt, codCliente, enterprise)
+          await getClienteDataForIdEspecificClienteShibot(jwt, dataCasoPostventaEdit.identificacion_cliente, enterpriseShineray);
+          setClientExists(true);
+        } catch (error) {
+          setClientExists(false);
+        }
+      } else {
+        setClientExists(false);
+      }
+    };
+    fetchCliente();
+  }, [dataCasoPostventaEdit, jwt, enterpriseShineray]);
+
+
+  useEffect(() => {
+    const fetchNombreProducto = async () => {
+      if (dataCasoPostventaEdit?.cod_motor) {
+        try {
+          const response = await getNombreProductoByMotor(jwt, dataCasoPostventaEdit.cod_motor);
+          setNombreProducto(response.nombre || 'No encontrado');
+        } catch (error) {
+          console.error('Error al obtener el nombre del producto:', error);
+          setNombreProducto('Error al obtener el producto');
+        }
+      } else {
+        setNombreProducto('');
+      }
+    };
+
+    fetchNombreProducto();
+  }, [dataCasoPostventaEdit?.cod_motor, jwt]);
+
 
   // SUBCASOS
   const handleRefresh = () => {
@@ -625,7 +699,7 @@ export const CaseManager = () => {
 
       const payload = {
         empresa: dataCasoPostventaEdit.empresa,
-        tipoComprobante: dataCasoPostventaEdit.tipo_comprobante, 
+        tipoComprobante: dataCasoPostventaEdit.tipo_comprobante,
         codComprobante: dataCasoPostventaEdit.cod_comprobante,
         observacion: observa,
         usuarioCierra: userShineray
@@ -657,7 +731,7 @@ export const CaseManager = () => {
       const body = {
         empresa: enterpriseShineray,
         cod_comprobante: dataCasoPostventaEdit.cod_comprobante,
-        aplica_garantia: dataCasoPostventaEdit.aplica_garantia , // assume 2 = pendiente if not defined
+        aplica_garantia: dataCasoPostventaEdit.aplica_garantia, // assume 2 = pendiente if not defined
         observacion_final: observa,
         usuario_cierra: userShineray,
         tipo_comprobante: "CP",
@@ -696,6 +770,45 @@ export const CaseManager = () => {
     toast.info("Generar Pedido (todos) - Pendiente de implementar");
   };
 
+  const handleGuardarNumeroGuia = async () => {
+    const nuevoNumeroGuia = numeroGuiaRef.current.value; // Lee el valor actual sin disparar re-renders en cada pulsación
+    if (!nuevoNumeroGuia.trim()) {
+      toast.error("Ingrese un número de guía válido.");
+      return;
+    }
+    try {
+      setLoading(true);
+      const payload = {
+        empresa: dataCasoPostventaEdit.empresa,
+        cod_comprobante: dataCasoPostventaEdit.cod_comprobante,
+        numero_guia: nuevoNumeroGuia
+      };
+      await updateNumeroGuia(jwt, payload);
+      toast.success("Número de guía actualizado correctamente.");
+      // Actualizamos opcionalmente el estado del caso
+      setDataCasoPostventaEdit({
+        ...dataCasoPostventaEdit,
+        numero_guia: nuevoNumeroGuia
+      });
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      toast.error("Error al actualizar el número de guía.");
+      console.error(error);
+    }
+  };
+  const handleClientCreated = async (newId) => {
+    setOpenAddClient(false); // Cierra el diálogo
+    try {
+      const dataCliente = await getClienteDataForIdEspecificClienteShibot(jwt, newId, enterpriseShineray);
+      setIdentificacionClienteAux(dataCliente.cod_cliente);
+      toast.success('Cliente creado y cargado con éxito.');
+      setClientExists(true);
+    } catch (error) {
+      console.error(error);
+      toast.error('Error al cargar el cliente recién creado.');
+    }
+  };
   // -----------------------------------------
   // RENDER
   // -----------------------------------------
@@ -995,6 +1108,16 @@ export const CaseManager = () => {
 
               <Grid item xs={12} sm={6}>
                 <TextField
+                  label="Modelo"
+                  value={nombreProducto}
+                  fullWidth
+                  margin="dense"
+                  InputProps={{ readOnly: true }}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
                   label="cod producto"
                   value={dataCasoPostventaEdit.cod_producto || ''}
                   fullWidth
@@ -1091,14 +1214,49 @@ export const CaseManager = () => {
 
               <Grid item xs={12} sm={6}>
                 <TextField
-                  label="identificacion cliente"
-                  value={dataCasoPostventaEdit.identificacion_cliente || ''}
+                  label="Identificación Cliente"
+                  value={dataCasoPostventaEdit?.identificacion_cliente || identificacionClienteAux}
+                  onChange={(e) => setIdentificacionClienteAux(e.target.value)}
+                  onBlur={async () => {
+                    if (!identificacionClienteAux) return;
+                    try {
+                      const dataCliente = await getClienteDataForIdEspecificClienteShibot(jwt, identificacionClienteAux, enterpriseShineray);
+                      setClientExists(true);
+                      toast.success('Cliente encontrado.');
+                    } catch (error) {
+                      setClientExists(false);
+                      toast.info('Cliente no encontrado. Por favor, regístrelo.');
+                    }
+                  }}
                   fullWidth
                   margin="dense"
-                  InputProps={{ readOnly: true }}
+                  InputProps={{
+                    readOnly: false,
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        {clientExists === null ? null : clientExists ? (
+                          <CheckCircleIcon style={{ color: 'green' }} />
+                        ) : (
+                          <CancelIcon style={{ color: 'red' }} />
+                        )}
+                      </InputAdornment>
+                    ),
+                  }}
                 />
               </Grid>
 
+              {!clientExists && (
+                <Grid item xs={12} sm={6}>
+                  <Button
+                    variant="contained"
+                    
+                    onClick={() => setOpenAddClient(true)}
+                    style={{ marginTop: '16px' ,backgroundColor: 'firebrick' }}
+                  >
+                    Agregar Cliente
+                  </Button>
+                </Grid>
+              )}
               <Grid item xs={12} sm={6}>
                 <TextField
                   label="kilometraje"
@@ -1113,6 +1271,15 @@ export const CaseManager = () => {
                 <TextField
                   label="nombre cliente"
                   value={dataCasoPostventaEdit.nombre_cliente || ''}
+                  fullWidth
+                  margin="dense"
+                  InputProps={{ readOnly: true }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="observacion final"
+                  value={dataCasoPostventaEdit.observacion_final || ''}
                   fullWidth
                   margin="dense"
                   InputProps={{ readOnly: true }}
@@ -1157,6 +1324,26 @@ export const CaseManager = () => {
                   margin="dense"
                   InputProps={{ readOnly: true }}
                 />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Número de Guía"
+                  defaultValue={dataCasoPostventaEdit.numero_guia || ''}
+                  inputRef={numeroGuiaRef}
+                  fullWidth
+                  margin="dense"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleGuardarNumeroGuia}
+                  style={{ marginTop: '20px', backgroundColor: 'firebrick' }}
+                >
+                  Agregar Número de Guía
+                </Button>
               </Grid>
 
               {/* OBSERVACIONES */}
@@ -1243,7 +1430,7 @@ export const CaseManager = () => {
                               variant="outlined"
                               color="error"
                               size="small"
-                              disabled={true} 
+                              disabled={true}
                             >
                               Eliminar
                             </Button>
@@ -1261,17 +1448,17 @@ export const CaseManager = () => {
         </DialogContent>
         <DialogActions>
           {/* 1) ABRIR DIALOGO "REALIZAR PEDIDO" */}
-          <Button onClick={handleOpenPedido} variant="contained" color="primary">
+          <Button onClick={handleOpenPedido} variant="contained" color="primary" disabled={!(['P', 'R'].includes(dataCasoPostventaEdit?.estado))}>
             Realizar Pedido
           </Button>
 
           {/* 2) CIERRE PREVIO */}
-          <Button onClick={handleCierrePrevio} variant="contained" color="primary">
+          <Button onClick={handleCierrePrevio} variant="contained" color="primary" disabled={!(['P', 'R'].includes(dataCasoPostventaEdit?.estado))}>
             Cierre Previo
           </Button>
 
           {/* 3) CERRAR CASO DEFINITIVO */}
-          <Button onClick={handleCerrarCaso} variant="contained" color="primary">
+          <Button onClick={handleCerrarCaso} variant="contained" color="primary" disabled={!(['P', 'R'].includes(dataCasoPostventaEdit?.estado))}>
             Cerrar Caso
           </Button>
 
@@ -1288,6 +1475,19 @@ export const CaseManager = () => {
         handleGenerarPedido={handleGenerarPedido}
         handleGenerarPedidoTodos={handleGenerarPedidoTodos}
         dataCasoPostventaEdit={dataCasoPostventaEdit}
+        modeloMot={nombreProducto}
+      />
+      <DialogAddClient
+        open={openAddClient}
+        onClose={() => setOpenAddClient(false)}
+        jwt={jwt}
+        enterprise={enterpriseShineray}
+        onClientCreated={handleClientCreated}
+        initialData={{
+          id: dataCasoPostventaEdit?.identificacion_cliente || '',
+          nombre: dataCasoPostventaEdit?.nombre_cliente || '',
+          apellidos: '', // Si tienes un campo para apellidos, puedes agregarlo aquí
+        }}
       />
 
       {/* LOADING SPINNER */}

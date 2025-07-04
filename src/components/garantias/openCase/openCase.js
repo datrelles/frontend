@@ -6,7 +6,6 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import dayjs from 'dayjs'
 import { toast } from 'react-toastify'
 
-// Importa los servicios que creaste
 import {
   getCheckInfoByEngineCode,
   getInfoActiveTalleres,
@@ -14,58 +13,52 @@ import {
   postSaveCaseWarranty,
   getMenus,
   getClienteDataForId,
-  getIncidencesByMotorYear
+  getIncidencesByMotorYear,
+  saveNewDataClient
 } from '../../../services/api'
+
 
 import { useAuthContext } from '../../../context/authContext'
 import Navbar0 from '../../Navbar0'
+import { DialogAddClient } from './DialogAddClient'  // <--- ajusta la ruta
 
 export const OpenCase = () => {
   // Obtenemos credenciales del contexto
   const { jwt, userShineray, enterpriseShineray } = useAuthContext()
 
-  // ----- ESTADOS DEL FORMULARIO -----
+  // ----- ESTADOS DEL FORMULARIO ----- ...
+  // (igual que antes)
   const [engineCode, setEngineCode] = useState('')
   const [motorInfo, setMotorInfo] = useState(null)
   const [talleres, setTalleres] = useState([])
   const [selectedTaller, setSelectedTaller] = useState('')
-
-  // Nuevos estados para filtros de provincia y cantón
   const [selectedProvincia, setSelectedProvincia] = useState('')
   const [selectedCanton, setSelectedCanton] = useState('')
-
   const [tipoProblemas, setTipoProblemas] = useState([])
   const [kilometraje, setKilometraje] = useState('')
 
   // CAMPOS DE CLIENTE
+  // Observa que "nombreCliente" no se manipula manualmente 
+  // (el user no puede editarlo, se rellena tras la consulta).
   const [nombreCliente, setNombreCliente] = useState('')
   const [identificacionCliente, setIdentificacionCliente] = useState('')
   const [identificacionClienteAux, setIdentificacionClienteAux] = useState('')
   const [tipoIdentificacion, setTipoIdentificacion] = useState('CED')
-
-  // CONTACTO
   const [telefonoContacto1, setTelefonoContacto1] = useState('')
   const [email, setEmail] = useState('')
   const [emailNotificaciones, setEmailNotificaciones] = useState('')
-
-  // FECHAS
   const [fechaVenta, setFechaVenta] = useState(dayjs())
   const [fechaCaso, setFechaCaso] = useState(dayjs())
-
-  // DESCRIPCIÓN GENERAL
   const [descripcionGeneral, setDescripcionGeneral] = useState('')
-
-  // MÚLTIPLES PROBLEMAS
-  const [problemList, setProblemList] = useState([
-    { tipoProblema: '', descripcion: '' }
-  ])
-  // INCIDENCIAS POR AÑO
+  const [problemList, setProblemList] = useState([{ tipoProblema: '', descripcion: '' }])
   const [incidencesByYear, setIncidencesByYear] = useState([])
-
-  // MENU
   const [menus, setMenus] = useState([])
 
-  // ----- EFECTOS -----
+  // ----- NUEVO: State para abrir/cerrar el modal de creación de cliente
+  const [openAddClient, setOpenAddClient] = useState(false)
+
+  // useEffects para cargar info (igual que antes)...
+
   useEffect(() => {
     const fetchTalleres = async () => {
       try {
@@ -105,19 +98,17 @@ export const OpenCase = () => {
     menu()
   }, [userShineray, enterpriseShineray, jwt])
 
-  // ----- Cálculos para los filtros interdependientes -----
-  // Obtiene la lista única de provincias
+  // useMemos para provincia/cantón/taller (igual)...
+
   const uniqueProvincias = useMemo(() => {
     return [...new Set(talleres.map(t => t.provincia))]
   }, [talleres])
 
-  // Obtiene la lista única de cantones en función de la provincia seleccionada
   const uniqueCantones = useMemo(() => {
     if (!selectedProvincia) return []
     return [...new Set(talleres.filter(t => t.provincia === selectedProvincia).map(t => t.canton))]
   }, [talleres, selectedProvincia])
 
-  // Filtra los talleres según la provincia y el cantón seleccionados
   const filteredTalleres = useMemo(() => {
     return talleres.filter(t => {
       return (selectedProvincia ? t.provincia === selectedProvincia : true) &&
@@ -125,16 +116,14 @@ export const OpenCase = () => {
     })
   }, [talleres, selectedProvincia, selectedCanton])
 
-  // ----- HANDLERS -----
+  // Handler al "blur" del #Motor (igual)...
   const handleBlurEngineCode = async () => {
     if (!engineCode) return
     try {
-      // 1) Llamada para traer info general del motor
       const info = await getCheckInfoByEngineCode(jwt, engineCode)
       setMotorInfo(info)
       toast.success('Información de motor cargada.')
 
-      // 2) Llamada para traer incidencias por año
       const incidences = await getIncidencesByMotorYear(jwt, enterpriseShineray, engineCode)
       setIncidencesByYear(incidences)
     } catch (error) {
@@ -143,6 +132,7 @@ export const OpenCase = () => {
     }
   }
 
+  // Handler para cuando pierda foco la cédula
   const handleBlurIdentificacionCliente = async () => {
     if (!identificacionClienteAux) return
     try {
@@ -153,10 +143,30 @@ export const OpenCase = () => {
       toast.success('Datos de cliente cargados.')
     } catch (error) {
       console.error(error)
-      toast.error('No se encontró el cliente o hubo un error al cargarlo.')
+      // Si no encuentra => abrimos modal de creación de cliente
+      toast.info("Cliente no encontrado. Regístralo por favor.")
+      setOpenAddClient(true)
     }
   }
 
+  // Handler que se llama luego de crear el cliente en el modal
+  const handleClientCreated = async (newId) => {
+    // Cerramos el modal
+    setOpenAddClient(false)
+    // Volvemos a buscar con la cédula que acaban de guardar
+    try {
+      const dataCliente = await getClienteDataForId(jwt, newId, enterpriseShineray)
+      setNombreCliente(`${dataCliente.nombre} ${dataCliente.apellido1 || ''}`.trim())
+      setTipoIdentificacion(dataCliente.cod_tipo_identificacion)
+      setIdentificacionCliente(dataCliente.cod_cliente)
+      toast.success('Datos de cliente cargados tras creación.')
+    } catch (error) {
+      console.error(error)
+      toast.error('No se pudo cargar el cliente recién creado.')
+    }
+  }
+
+  // Múltiples problemas...
   const handleProblemChange = (index, field, value) => {
     const newList = [...problemList]
     newList[index][field] = value
@@ -167,13 +177,14 @@ export const OpenCase = () => {
     setProblemList([...problemList, { tipoProblema: '', descripcion: '' }])
   }
 
+  // Al guardar el caso
   const handleSubmitCase = async () => {
+    // Validación rápida
+    if (!engineCode || !selectedTaller) {
+      toast.error('Por favor llena los campos obligatorios (#Motor, Taller).')
+      return
+    }
     try {
-      if (!engineCode || !selectedTaller) {
-        toast.error('Por favor llena los campos obligatorios (#Motor, Taller).')
-        return
-      }
-
       const arrayProblemas = problemList.map(item => ({
         CODIGO_TIPO_PROBLEMA: item.tipoProblema,
         DESCRIPCION_DEL_PROBLEMA: item.descripcion || 'SIN DESCRIPCIÓN'
@@ -182,7 +193,7 @@ export const OpenCase = () => {
       const dataCaso = {
         NOMBRE_CASO: engineCode,
         DESCRIPCION: descripcionGeneral,
-        NOMBRE_CLIENTE: nombreCliente,
+        NOMBRE_CLIENTE: nombreCliente,  // Se llena tras la consulta
         COD_TIPO_IDENTIFICACION: tipoIdentificacion,
         IDENTIFICACION_CLIENTE: identificacionCliente,
         COD_MOTOR: engineCode,
@@ -194,14 +205,12 @@ export const OpenCase = () => {
         PROBLEMAS: JSON.stringify(arrayProblemas),
         TELEFONO_CONTACTO1: telefonoContacto1,
         E_MAIL: email,
-        //E_MAIL_NOTIFICACIONES: emailNotificaciones,
+        E_MAIL2: emailNotificaciones,
         MANUAL_GARANTIA: "0",
         TELEFONO_CONTACTO2: telefonoContacto1,
       }
 
-      console.log(dataCaso)
-      const response = await postSaveCaseWarranty(jwt, dataCaso, userShineray, enterpriseShineray)
-
+      await postSaveCaseWarranty(jwt, dataCaso, userShineray, enterpriseShineray)
       toast.success('Caso creado con éxito!')
       resetForm()
     } catch (error) {
@@ -225,18 +234,18 @@ export const OpenCase = () => {
     setEmail('')
     setEmailNotificaciones('')
     setProblemList([{ tipoProblema: '', descripcion: '' }])
-    // Reiniciamos también los filtros de taller
     setSelectedProvincia('')
     setSelectedCanton('')
+    setIdentificacionClienteAux('')
   }
 
-  // ----- RENDER -----
   return (
     <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
       <Navbar0 menus={menus} />
       <Box sx={{ margin: '50px' }}>
         <h2>Ingreso de Casos PostVenta</h2>
 
+        {/* CAMPOS PRINCIPALES */}
         <Box sx={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
           <TextField
             label="# Motor"
@@ -261,11 +270,12 @@ export const OpenCase = () => {
           </LocalizationProvider>
         </Box>
 
+        {/* CAMPOS DE CLIENTE */}
         <Box sx={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginTop: '20px' }}>
           <TextField
-            label="Nombre Cliente"
+            label="Nombre Cliente (auto)"
             value={nombreCliente}
-            onChange={(e) => setNombreCliente(e.target.value.toUpperCase())}
+            disabled  // No se puede editar manualmente
             sx={{ width: '250px' }}
           />
           <FormControl sx={{ width: '250px' }}>
@@ -275,8 +285,8 @@ export const OpenCase = () => {
               label="Tipo ID"
               onChange={(e) => setTipoIdentificacion(e.target.value)}
             >
-              <MenuItem value='1' >Cédula</MenuItem>
-              <MenuItem value='2' >RUC</MenuItem>
+              <MenuItem value='1'>Cédula</MenuItem>
+              <MenuItem value='2'>RUC</MenuItem>
             </Select>
           </FormControl>
 
@@ -289,7 +299,7 @@ export const OpenCase = () => {
           />
         </Box>
 
-        {/* CAMPOS DE CONTACTO */}
+        {/* CONTACTO */}
         <Box sx={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginTop: '20px' }}>
           <TextField
             label="Teléfono"
@@ -311,7 +321,7 @@ export const OpenCase = () => {
           />
         </Box>
 
-        {/* FILTROS PARA TALLER */}
+        {/* FILTROS TALLER */}
         <Box sx={{ display: 'flex', gap: '20px', marginTop: '20px', flexWrap: 'wrap' }}>
           <FormControl sx={{ width: '250px' }}>
             <InputLabel>Provincia</InputLabel>
@@ -326,9 +336,7 @@ export const OpenCase = () => {
             >
               <MenuItem value="">-- Seleccionar --</MenuItem>
               {uniqueProvincias.map((prov) => (
-                <MenuItem key={prov} value={prov}>
-                  {prov}
-                </MenuItem>
+                <MenuItem key={prov} value={prov}>{prov}</MenuItem>
               ))}
             </Select>
           </FormControl>
@@ -346,9 +354,7 @@ export const OpenCase = () => {
             >
               <MenuItem value="">-- Seleccionar --</MenuItem>
               {uniqueCantones.map((cant) => (
-                <MenuItem key={cant} value={cant}>
-                  {cant}
-                </MenuItem>
+                <MenuItem key={cant} value={cant}>{cant}</MenuItem>
               ))}
             </Select>
           </FormControl>
@@ -362,9 +368,7 @@ export const OpenCase = () => {
             >
               <MenuItem value="">-- Seleccionar --</MenuItem>
               {filteredTalleres.map((t) => (
-                <MenuItem key={t.codigo} value={t.codigo}>
-                  {t.taller}
-                </MenuItem>
+                <MenuItem key={t.codigo} value={t.codigo}>{t.taller}</MenuItem>
               ))}
             </Select>
           </FormControl>
@@ -372,7 +376,7 @@ export const OpenCase = () => {
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
               label="Fecha Venta"
-              views={['year', 'month']}
+              views={['year','month']}
               value={fechaVenta}
               onChange={(newValue) => setFechaVenta(newValue)}
               format="YYYY/MM"
@@ -380,7 +384,7 @@ export const OpenCase = () => {
           </LocalizationProvider>
         </Box>
 
-        {/* SECCIÓN DE PROBLEMAS */}
+        {/* PROBLEMAS */}
         <Box
           sx={{
             maxHeight: '180px',
@@ -388,14 +392,13 @@ export const OpenCase = () => {
             marginTop: '20px',
             border: '1px solid #ccc',
             padding: '10px',
-            width: '790px' 
+            width: '790px'
           }}
         >
           {problemList.map((item, index) => (
             <Box
               key={index}
               sx={{ display: 'flex', gap: '20px', marginTop: '10px', flexWrap: 'wrap', width: '80%' }}
-            
             >
               <FormControl sx={{ width: '250px' }}>
                 <InputLabel>Tipo Problema</InputLabel>
@@ -423,7 +426,6 @@ export const OpenCase = () => {
           ))}
         </Box>
 
-        {/* Botón para añadir más problemas */}
         <Box sx={{ marginTop: '10px' }}>
           <Button variant="outlined" onClick={addNewProblem}>
             + Agregar Problema
@@ -442,12 +444,7 @@ export const OpenCase = () => {
         </Box>
 
         <Box sx={{ marginTop: '20px' }}>
-          <Button
-            variant="contained"
-            color="success"
-            onClick={handleSubmitCase}
-            sx={{ marginRight: '10px' }}
-          >
+          <Button variant="contained" color="success" onClick={handleSubmitCase} sx={{ marginRight: '10px' }}>
             Guardar
           </Button>
           <Button variant="outlined" color="error" onClick={resetForm}>
@@ -455,6 +452,7 @@ export const OpenCase = () => {
           </Button>
         </Box>
 
+        {/* Info del motor (opcional) */}
         {motorInfo && (
           <Box sx={{ marginTop: '30px', padding: '10px', border: '1px solid gray' }}>
             <h4>Información del Motor:</h4>
@@ -463,12 +461,11 @@ export const OpenCase = () => {
             <p><b>Chasis:</b> {motorInfo.COD_CHASIS}</p>
             <p><b>Importación:</b> {motorInfo.IMPORTACION}</p>
 
-            {/* Sección para número de incidencias por año */}
             {incidencesByYear.length > 0 && (
               <Box sx={{ marginTop: '20px' }}>
                 <h4>Número de incidencias por año:</h4>
-                {incidencesByYear.map((item, index) => (
-                  <p key={index}>
+                {incidencesByYear.map((item, idx) => (
+                  <p key={idx}>
                     Año {item.year}: <strong>{item.incidences}</strong> incidencias
                   </p>
                 ))}
@@ -477,6 +474,15 @@ export const OpenCase = () => {
           </Box>
         )}
       </Box>
+
+      {/* MODAL PARA CREAR CLIENTE NUEVO */}
+      <DialogAddClient 
+        open={openAddClient}
+        onClose={() => setOpenAddClient(false)}
+        jwt={jwt}
+        enterprise={enterpriseShineray}
+        onClientCreated={handleClientCreated} 
+      />
     </div>
   )
 }

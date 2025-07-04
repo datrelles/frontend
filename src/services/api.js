@@ -647,7 +647,7 @@ export const getProductosWithDespiece = async (jwt, empresa, activo) => {
 }
 
 /**
- * 5) Obtener lotes con inventario
+ *  Obtener lotes con inventario
  *    ENDPOINT: GET /lotes/inventory
  *    Parámetros query: ?empresa=...&bodega=...&producto=...
  */
@@ -669,7 +669,7 @@ export const getLotesWithInventory = async (jwt, empresa, bodega, producto) => {
 }
 
 /**
- * 6) Consulta de existencia (por agencia)
+ *  Consulta de existencia (por agencia)
  *    ENDPOINT: GET /existence_by_agency
  *    Parámetros query: ?empresa=...&cod_agencia=...&cod_producto=...
  */
@@ -691,7 +691,7 @@ export const getExistenceByAgency = async (jwt, empresa, codAgencia, codProducto
 }
 
 /**
- * 7) Consulta de existencia por lote
+ *  Consulta de existencia por lote
  *    ENDPOINT: GET /existencia_lote_by_agency_cod_producto
  *    Parámetros query: ?empresa=...&cod_agencia=...&cod_producto=...&tipo_comprobante_lote=...&cod_comprobante_lote=...
  */
@@ -720,7 +720,7 @@ export const getExistenciaLote = async (
 }
 
 /**
- * 8) Obtener costo actual (precio)
+ *  Obtener costo actual (precio)
  *    ENDPOINT: GET /obt_precio_actual
  *    Parámetros query: ?empresa=...&cod_producto=...&cod_comprobante_lote=...&tipo_comprobante_lote=...
  */
@@ -748,7 +748,7 @@ export const getCosto = async (
 }
 
 /**
- * 9) Generar pedido de garantía
+ *  Generar pedido de garantía
  *    ENDPOINT: GET /generate_order_warranty
  *    Parámetros query: ?empresa=...&tipo_comprobante=...&cod_comprobante=...&cod_agencia=...&cod_politica=...&todos=... (opcional)
  *                      &cod_pedido=... (opcional, IN OUT) &tipo_pedido=... (opcional, IN OUT)
@@ -819,7 +819,7 @@ export const createCasosProductos = async (jwt, dataBody) => {
 }
 
 /**
- * 11) Obtener casos_productos por cod_comprobante
+ *  Obtener casos_productos por cod_comprobante
  *     ENDPOINT: GET /casos_productos
  *     Parámetro query: ?cod_comprobante=...
  */
@@ -838,7 +838,7 @@ export const getCasosProductosByArgs = async (jwt, codComprobante) => {
 }
 
 /**
- * 12) Borrar un registro en ST_CASOS_PRODUCTOS
+ *  Borrar un registro en ST_CASOS_PRODUCTOS
  *     ENDPOINT: DELETE /casos_productos
  *     Parámetros query: ?cod_comprobante=...&secuencia=...
  */
@@ -858,7 +858,7 @@ export const deleteCasosProductos = async (jwt, codComprobante, secuencia) => {
 }
 
 /**
- * 13) Cerrar caso definitivamente
+ *  Cerrar caso definitivamente
  *     ENDPOINT: POST /casos_postventa/cerrar
  *     Body JSON: { empresa, cod_comprobante, aplica_garantia, observacion_final, usuario_cierra }
  */
@@ -878,7 +878,7 @@ export const cerrarCaso = async (jwt, dataBody) => {
 }
 
 /**
- * 14) Cierre preliminar
+ *  Cierre preliminar
  *     ENDPOINT: POST /close_preliminary
  *     Se envían los parámetros por query string:
  *        ?empresa=...&tipo_comprobante=...&cod_comprobante=...&observacion=...&usuario_cierra=...
@@ -908,13 +908,147 @@ export const cierrePrevio = async (
 }
 
 
+export const getOpagoRecords = async (jwt, {
+  empresa,
+  fechaFacturaIni,
+  fechaFacturaFin,
+  fechaPagoIni,
+  fechaPagoFin,
+  ruc,
+}) => {
+  try {
+    if (!empresa) {
+      throw new Error("El parámetro 'empresa' es obligatorio.");
+    }
+
+    // Construir la query string usando URLSearchParams
+    const queryParams = new URLSearchParams();
+    queryParams.append('empresa', empresa);
+
+    if (fechaFacturaIni) queryParams.append('fecha_factura_ini', fechaFacturaIni);
+    if (fechaFacturaFin) queryParams.append('fecha_factura_fin', fechaFacturaFin);
+    if (fechaPagoIni)    queryParams.append('fecha_pago_ini', fechaPagoIni);
+    if (fechaPagoFin)    queryParams.append('fecha_pago_fin', fechaPagoFin);
+    if (ruc)             queryParams.append('ruc', ruc);
+
+    // Llamado GET con el token en la cabecera de autorización
+    const response = await axios.get(`${API}/warranty/opago?${queryParams.toString()}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error en getOpagoRecords:", error);
+    throw error;
+  }
+};
+
+export const getDocElectronicos = async (jwt, {
+  fechaEmisionIni,
+  fechaEmisionFin,
+  ruc,
+}) => {
+  try {
+    // Construir la query string usando URLSearchParams
+    const queryParams = new URLSearchParams();
+    if (fechaEmisionIni) queryParams.append('fecha_emision_ini', fechaEmisionIni);
+    if (fechaEmisionFin) queryParams.append('fecha_emision_fin', fechaEmisionFin);
+    if (ruc)             queryParams.append('ruc', ruc);
+
+    // Llamado GET con el token en la cabecera de autorización
+    const response = await axios.get(`${API}/warranty/doc_electronicos?${queryParams.toString()}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error en getDocElectronicos:", error);
+    throw error;
+  }
+};
+
+
+
+export const saveNewDataClient = async (jwt, dataClient) => {
+  try {
+    const response = await axios.post(`${API}/warranty/save_new_data_client`, dataClient, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error en saveNewDataClient:", error);
+    throw error;
+  }
+};
+
+
+export const updateNumeroGuia = async (jwt, { empresa, cod_comprobante, numero_guia }) => {
+  try {
+    const dataBody = { empresa, cod_comprobante, numero_guia }
+    const response = await axios.post(`${API}/warranty/casos_postventa/numero_guia`, dataBody, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+      },
+    })
+    return response.data
+  } catch (error) {
+    console.error("Error updating numero_guia:", error)
+    throw error
+  }
+}
+
+export const getNombreProductoByMotor = async (jwt, codMotor) => {
+  try {
+    const response = await axios.get(`${API}/warranty/get_nombre_producto_by_motor?cod_motor=${codMotor}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error obteniendo el nombre del producto por código de motor:", error);
+    throw error;
+  }
+};
+
+/**
+ *
+ *     Descripción: Retorna los datos específicos de un cliente según su código y empresa.
+ */
+export const getClienteDataForIdEspecificClienteShibot = async (jwt, codCliente, enterprise) => {
+  try {
+    if (!codCliente || !enterprise) {
+      throw new Error("Los parámetros 'cod_cliente' y 'enterprise' son obligatorios.");
+    }
+
+    const response = await axios.get(
+      `${API}/warranty/get_cliente_data_for_id_especific_cliente_shibot?cod_cliente=${codCliente}&enterprise=${enterprise}`,
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error obteniendo datos específicos del cliente:", error);
+    throw error;
+  }
+};
 
 
 
 
-
-
-//PARTS UPDATE YEAR---------------------------------------
+//PARTS UPDATE YEAR---------------------------------------///////////////////
 
 export const getDataDespiece = async (jwt, codeEnterprise) => {
   try {
@@ -1130,6 +1264,8 @@ export const updateModeloCrecimientoBI = async (jwt, data) => {
     throw error;
   }
 };
+
+
 
 // MANAGE TRANS. ECOMMERCE-------
 

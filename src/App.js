@@ -69,6 +69,30 @@ import { ParametrizacionModelosDespieceAnio } from "./components/inventario/upda
 import { CreditoDirectoManager } from "./components/ventas/approveCredit";
 import { SellManagerB2B } from "./components/ventas/b2bCaseManager";
 import { AdminTallerUsuarios } from "./components/garantias/adminTallerUsuarios/adminTallerUsuarios";
+import { OpagoManager } from "./components/garantias/laborCase/laborCase";
+import CatChasis from "./components/marketing/catalogos/catChasis";
+import CatDimensionesPeso from "./components/marketing/catalogos/catDimensionesPeso";
+import CatElectronica from "./components/marketing/catalogos/catElectronica";
+import CatMotor from "./components/marketing/catalogos/catMotor";
+import CatColor from "./components/marketing/catalogos/catColor";
+import CatImagenes from "./components/marketing/catalogos/catImagenes";
+import CatTransmision from "./components/marketing/catalogos/catTransmision";
+import CatCanal from "./components/marketing/catalogos/catCanal";
+import CatMarca from "./components/marketing/catalogos/catMarca";
+import CatMarcRepuesto from "./components/marketing/catalogos/catMarcRepuesto";
+import CatPdrExterno from "./components/marketing/catalogos/catPdrExterno";
+import CatVersion from "./components/marketing/catalogos/catVersion";
+import CatLinea from "./components/marketing/catalogos/catLinea";
+import CatModSri from "./components/marketing/catalogos/catModSri";
+import CatMdlHomologado from "./components/marketing/catalogos/catMdlHomologado";
+import CatMatriculacionMarca from "./components/marketing/catalogos/catMatriculacionMarca";
+import CatMdlComercial from "./components/marketing/catalogos/catMdlComercial";
+import MdlVersionRepuesto from "./components/marketing/catalogos/mdlVersionRepuesto";
+import ClienteCanal from "./components/marketing/catalogos/clienteCanal";
+import CatSegmento from "./components/marketing/catalogos/catSegmento";
+import ModeloVersion from "./components/marketing/catalogos/modeloVersion";
+import BenchModelos from "./components/marketing/benchModelo/benchModelos";
+import BenchRepuestos from "./components/marketing/benchRepuesto/benchRepuestos";
 import Procesos from "./components/formulas/procesos";
 import Formulas from "./components/formulas/formulas";
 import Parametros from "./components/formulas/parametros";
@@ -97,6 +121,8 @@ function App() {
     "LOG",
     "RET",
     "ADM",
+    ,
+    "MKT",
   ]);
 
   const { jwt, userShineray, enterpriseShineray, flag, temporalFlag, logout } =
@@ -600,6 +626,15 @@ function App() {
                 }
               />
               <Route
+                exacth
+                path="/warranty/pago/labor_cost"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("GAR")}>
+                    <OpagoManager />
+                  </Protected>
+                }
+              />
+              <Route
                 exact
                 path="/invoice"
                 element={
@@ -637,94 +672,211 @@ function App() {
               />
               <Route
                 exact
-                path="/procesos"
+                path="/catalogo_chasis"
                 element={
-                  <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
-                    <Procesos />
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <CatChasis />
                   </Protected>
                 }
-              ></Route>
+              />
               <Route
                 exact
-                path="/formulas"
+                path="/catalogo_dim_peso"
                 element={
-                  <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
-                    <Formulas />
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <CatDimensionesPeso />
                   </Protected>
                 }
-              ></Route>
+              />
               <Route
                 exact
-                path="/parametros"
+                path="/catalogo_electronica"
                 element={
-                  <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
-                    <Parametros />
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <CatElectronica />
                   </Protected>
                 }
-              ></Route>
+              />
               <Route
                 exact
-                path="/parametros-x-proceso"
+                path="/catalogo_motor"
                 element={
-                  <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
-                    <ParametrosProceso />
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <CatMotor />
                   </Protected>
                 }
-              ></Route>
+              />
               <Route
                 exact
-                path="/factores-calculo"
+                path="/catalogo_color"
                 element={
-                  <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
-                    <FactoresCalculo />
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <CatColor />
                   </Protected>
                 }
-              ></Route>
+              />
               <Route
                 exact
-                path="/funciones"
+                path="/catalogo_imagenes"
                 element={
-                  <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
-                    <Funciones />
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <CatImagenes />
                   </Protected>
                 }
-              ></Route>
+              />
               <Route
                 exact
-                path="/clientes-procesos"
+                path="/catalogo_transmision"
                 element={
-                  <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
-                    <Clientes />
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <CatTransmision />
                   </Protected>
                 }
-              ></Route>
+              />
               <Route
                 exact
-                path="/presupuesto-cantidades"
+                path="/catalogo_canal"
                 element={
-                  <Protected isLoggedIn={authorizedSystems.includes("IMP")}>
-                    <PresupuestoCantidades />
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <CatCanal />
                   </Protected>
                 }
-              ></Route>
+              />
               <Route
                 exact
-                path="/cobertura-modelo"
+                path="/catalogo_marca_rep"
                 element={
-                  <Protected isLoggedIn={authorizedSystems.includes("IMP")}>
-                    <CoberturaModelo />
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <CatMarcRepuesto />
                   </Protected>
                 }
-              ></Route>
+              />
               <Route
                 exact
-                path="/sell-out"
+                path="/catalogo_prod_externo"
                 element={
-                  <Protected isLoggedIn={authorizedSystems.includes("IMP")}>
-                    <SellOut />
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <CatPdrExterno />
                   </Protected>
                 }
-              ></Route>
+              />
+              <Route
+                exact
+                path="/catalogo_version"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <CatVersion />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/catalogo_marca"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <CatMarca />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/catalogo_linea"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <CatLinea />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/catalogo_sri"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <CatModSri />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/modelo_homologado"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <CatMdlHomologado />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/matriculacion_marca"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <CatMatriculacionMarca />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/catalogo_modelo_comercial"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <CatMdlComercial />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/catalogo_modelo_repuesto"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <MdlVersionRepuesto />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/cliente_canal"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <ClienteCanal />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/catalogo_segmento"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <CatSegmento />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/modelo_version"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <ModeloVersion />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/modelo_compatible"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <BenchModelos />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/repuesto_compatible"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <BenchRepuestos />
+                  </Protected>
+                }
+              />
               <Route exact path="/settings" element={<Settings />}></Route>
             </Routes>
           </>
