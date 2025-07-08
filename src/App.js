@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useAuthContext } from "./context/authContext";
 
-import { ToastContainer } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Users from "./components/Users";
 import Login from "./components/Login";
@@ -129,18 +129,30 @@ function App() {
   const token = jwt;
 
   const checkAuthorization = async () => {
-    const res = await fetch(
-      `${API}/modules/${userShineray}/${enterpriseShineray}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + token,
-        },
+    try {
+      const res = await fetch(
+        `${API}/modules/${userShineray}/${enterpriseShineray}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token,
+          },
+        }
+      );
+      if (!res.ok) {
+        if (res.status === 401) {
+          toast.warn("Sesión caducada. Por favor, ingresa de nuevo");
+          logout();
+          return;
+        }
       }
-    );
-    const data = await res.json();
-    setAuthorizedSystems(data.map((row) => row.COD_SISTEMA));
+      const data = await res.json();
+      setAuthorizedSystems(data.map((row) => row.COD_SISTEMA));
+    } catch (err) {
+      console.log("Error en checkAuthorization: ", err);
+      setAuthorizedSystems([]);
+    }
   };
 
   useEffect(() => {
