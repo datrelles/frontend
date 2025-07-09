@@ -74,7 +74,7 @@ export default class API {
     );
   });
 
-  getPoliticas = this.#errorHandler(async (agencia) => {
+  getPoliticas = this.#errorHandler(async (agencia = 25) => {
     return await axios.get(
       `${this.#URL}/credit_policies?empresa=${
         this.#enterprise
@@ -83,7 +83,24 @@ export default class API {
     );
   });
 
-  getVendedores = this.#errorHandler(async (agencia) => {
+  getPolitica = this.#errorHandler(
+    async (
+      agencia,
+      politica,
+      persona,
+      tipoPedido = "PE",
+      tipoPersona = "CLI"
+    ) => {
+      return await axios.get(
+        `${this.#URL}/credit_policies?empresa=${
+          this.#enterprise
+        }&cod_agencia=${agencia}`,
+        this.#headers
+      );
+    }
+  );
+
+  getVendedores = this.#errorHandler(async (agencia = 25) => {
     return await axios.get(
       `${this.#URL}/vendedores_agencia?empresa=${
         this.#enterprise
@@ -98,6 +115,23 @@ export default class API {
         `${this.#URL}/clientes_mayoreo?empresa=${
           this.#enterprise
         }&cod_agencia=${agencia}&cod_politica=${politica}&pl_lv_cod_tipo_pedido=${tipoPedido}`,
+        this.#headers
+      );
+    }
+  );
+
+  getCliente = this.#errorHandler(
+    async (
+      agencia,
+      politica,
+      persona,
+      tipoPedido = "PE",
+      tipoPersona = "CLI"
+    ) => {
+      return await axios.get(
+        `${this.#URL}/cliente_info?empresa=${
+          this.#enterprise
+        }&cod_agencia=${agencia}&cod_politica=${politica}&cod_tipo_pedido=${tipoPedido}&cod_persona_cli=${persona}&cod_tipo_persona_cli=${tipoPersona}`,
         this.#headers
       );
     }
