@@ -186,13 +186,13 @@ export default function RegistrarPedido() {
       value: zona,
     }),
     createTextFieldItem({
-      xs: 2,
+      xs: 3,
       id: "credito",
       label: "Cupo crédito",
       value: credito,
     }),
     createTextFieldItem({
-      xs: 2,
+      xs: 3,
       id: "saldo",
       label: "Saldo actual",
       value: disponible,
@@ -210,7 +210,7 @@ export default function RegistrarPedido() {
       value: tipoCliente,
     }),
     createTextFieldItem({
-      xs: 3,
+      xs: 2,
       id: "cartera_vencida",
       label: "Cartera Vencida",
       value: carteraVencida,
