@@ -110,7 +110,7 @@ function ClienteCanal() {
     const handleInsertOrUpdate = async () => {
         console.log("form actual:", form);
 
-        if (!form.codigo_mod_vers_repuesto || !form.codigo_canal | !form.codigo_cliente || !form.cod_producto || !form.empresa  || !form.codigo_version) {
+        if (!form.codigo_mod_vers_repuesto || !form.codigo_canal || !form.codigo_cliente || !form.cod_producto || !form.empresa  || !form.codigo_version) {
             enqueueSnackbar("Todos los campos son obligatorios", { variant: "error" });
             return;
         }
