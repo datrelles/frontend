@@ -82,4 +82,24 @@ export default class API {
       this.#headers
     );
   });
+
+  getVendedores = this.#errorHandler(async (agencia) => {
+    return await axios.get(
+      `${this.#URL}/vendedores_agencia?empresa=${
+        this.#enterprise
+      }&cod_agencia=${agencia}`,
+      this.#headers
+    );
+  });
+
+  getClientes = this.#errorHandler(
+    async (agencia, politica, tipoPedido = "PE") => {
+      return await axios.get(
+        `${this.#URL}/clientes_mayoreo?empresa=${
+          this.#enterprise
+        }&cod_agencia=${agencia}&cod_politica=${politica}&pl_lv_cod_tipo_pedido=${tipoPedido}`,
+        this.#headers
+      );
+    }
+  );
 }

@@ -16,7 +16,6 @@ function Menus() {
 
   const getMenus = async () => {
     try {
-      console.log("getMenus");
       const res = await fetch(
         `${API}/menus/${userShineray}/${enterpriseShineray}/${sistemaValue}`,
         {

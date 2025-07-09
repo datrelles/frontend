@@ -16,7 +16,6 @@ function Dashboard() {
   const [moduleList, setModuleList] = useState([]);
   const [menus, setMenus] = useState([]);
   const getModules = async () => {
-    console.log("jwt", jwt);
     try {
       const res = await fetch(
         `${API}/modules/${userShineray}/${enterpriseShineray}`,

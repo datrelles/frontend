@@ -7,9 +7,18 @@ import { toast } from "react-toastify";
 import { createCustomComponentItem } from "../formulas/common/generators";
 import AutocompleteObject from "../formulas/common/autocomplete-objects";
 import CustomGrid from "../formulas/common/custom-grid";
+import LoadingModal from "../formulas/common/loading-modal";
 
 const shapePolitica = {
   cod_politica: "",
+  nombre: "Seleccione",
+};
+const shapeVendedor = {
+  cod_persona_vendor: "",
+  nombre: "Seleccione",
+};
+const shapeCliente = {
+  cod_persona: "",
   nombre: "Seleccione",
 };
 
@@ -26,8 +35,13 @@ export default function RegistrarPedido() {
     [jwt]
   );
   const [menus, setMenus] = useState([]);
+  const [cargando, setCargando] = useState(false);
   const [politicas, setPoliticas] = useState([]);
   const [politica, setPolitica] = useState(shapePolitica);
+  const [vendedores, setVendedores] = useState([]);
+  const [vendedor, setVendedor] = useState(shapeVendedor);
+  const [clientes, setClientes] = useState([]);
+  const [cliente, setCliente] = useState(shapeCliente);
 
   const getMenus = async () => {
     try {
@@ -45,6 +59,25 @@ export default function RegistrarPedido() {
     }
   };
 
+  const getVendedores = async () => {
+    try {
+      setVendedores(await APIService.getVendedores(branchShineray));
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const getClientes = async (politica) => {
+    try {
+      setCargando(true);
+      setClientes(await APIService.getClientes(branchShineray, politica));
+      setCargando(false);
+    } catch (err) {
+      setCargando(false);
+      toast.error(err.message);
+    }
+  };
+
   const autocompletePoliticas = (
     <AutocompleteObject
       id="Política"
@@ -56,13 +89,45 @@ export default function RegistrarPedido() {
       onChange={(e, value) => {
         setPolitica(value ?? shapePolitica);
       }}
-      required={false}
+    />
+  );
+
+  const autocompleteVendedores = (
+    <AutocompleteObject
+      id="Agente"
+      value={vendedor}
+      optionId="cod_persona_vendor"
+      shape={shapeVendedor}
+      options={vendedores}
+      optionLabel="nombre"
+      onChange={(e, value) => {
+        setVendedor(value ?? shapeVendedor);
+      }}
+    />
+  );
+
+  const autocompleteClientes = (
+    <AutocompleteObject
+      id="Cliente"
+      value={cliente}
+      optionId="cod_persona"
+      shape={shapeCliente}
+      options={clientes}
+      optionLabel="nombre"
+      onChange={(e, value) => {
+        setCliente(value ?? shapeCliente);
+      }}
+      disabled={politica.cod_politica === ""}
     />
   );
 
   const createOrderItems = [
     createCustomComponentItem(4, "politica", autocompletePoliticas),
+    createCustomComponentItem(4, "agente", autocompleteVendedores),
+    createCustomComponentItem(4, "cliente", autocompleteClientes),
   ];
+
+  const modalCargando = <LoadingModal esVisible={cargando} />;
 
   const header = <Header menus={menus} />;
 
@@ -72,7 +137,17 @@ export default function RegistrarPedido() {
     document.title = "Registrar pedido";
     getMenus();
     getPoliticas();
+    getVendedores();
   }, []);
 
-  return <MainComponent components={[header, createOrderContent]} />;
+  useEffect(() => {
+    setClientes([]);
+    if (politica.cod_politica !== "") {
+      getClientes(politica.cod_politica);
+    }
+  }, [politica]);
+
+  return (
+    <MainComponent components={[modalCargando, header, createOrderContent]} />
+  );
 }
