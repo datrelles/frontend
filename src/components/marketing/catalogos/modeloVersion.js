@@ -1011,7 +1011,7 @@ function CatModeloVersion() {
                                     <Autocomplete
                                         options={clienteCanal}
                                         getOptionLabel={(option) =>
-                                            `${option.codigo_cliente_canal} - ${option.nombre_canal} - ${option.nombre_cliente} - ${option.nombre_producto_externo}`
+                                            `${option.codigo_cliente_canal} - ${option.nombre_canal} - ${option.nombre_cliente} - ${option.nombre_producto}`
                                         }
                                         value={selectedClienteCanal}
                                         isOptionEqualToValue={(opt, val) => opt.codigo_cliente_canal === val?.codigo_cliente_canal}
@@ -1027,9 +1027,7 @@ function CatModeloVersion() {
                                                 codigo_version: v.codigo_version,
                                             }));
                                             const producto = productos.find(p => p.cod_producto === v.cod_producto && p.empresa === v.empresa);
-                                            const version = versiones.find(ver => ver.codigo_version === v.codigo_version);
                                             setSelectedProducto(producto || null);
-                                            setSelectedVersion(version || null);
                                             setSelectedClienteCanal(v);
                                         }}
                                         renderInput={(params) => (
@@ -1052,12 +1050,6 @@ function CatModeloVersion() {
                                     <TextField
                                         label="Empresa"
                                         value={selectedProducto?.nombre_empresa || ''}
-                                        fullWidth disabled />
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <TextField
-                                        label="Versión"
-                                        value={selectedClienteCanal?.nombre_version || ''}
                                         fullWidth disabled />
                                 </Grid>
                             </Grid>
