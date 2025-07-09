@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, Table, TableHead,
     TableRow, TableCell, TableBody, Button, IconButton,
@@ -7,8 +7,9 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import Typography from "@mui/material/Typography";
 import CloseIcon from '@mui/icons-material/Close';
+import InputAdornment from "@mui/material/InputAdornment";
 
-export default function SelectorChasis({ chasis, selectedChasisId, onSelect }) {
+export default function SelectorChasis({ chasis, selectedChasisId, onSelect,error, helperText }) {
     const [open, setOpen] = useState(false);
 
     const handleOpenDialog = () => setOpen(true);
@@ -26,19 +27,22 @@ export default function SelectorChasis({ chasis, selectedChasisId, onSelect }) {
 
     const safeValue = (val) => val !== undefined && val !== null && val !== '' ? val : 'N/A';
 
-
     return (
         <Grid item xs={6}>
             <Box display="flex" alignItems="center">
                 <TextField
                     label="Chasis"
                     value={chasisLabel}
+                    error={!!error}
+                    helperText={helperText}
                     fullWidth
                     disabled
                 />
-                <IconButton onClick={handleOpenDialog}>
-                    <SearchIcon />
-                </IconButton>
+                <InputAdornment position="end">
+                    <IconButton onClick={handleOpenDialog}>
+                        <SearchIcon />
+                    </IconButton>
+                </InputAdornment>
             </Box>
             <Dialog open={open} onClose={handleCloseDialog} fullWidth maxWidth={false}
                     sx={{ '& .MuiDialog-paper': { width: '80vw', maxWidth: '80vw' } }}>

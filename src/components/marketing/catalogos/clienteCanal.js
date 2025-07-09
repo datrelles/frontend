@@ -5,7 +5,6 @@ import Navbar0 from "../../Navbar0";
 import MUIDataTable from "mui-datatables";
 import {ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
-import LoadingCircle from "../../contabilidad/loader";
 import {Autocomplete, IconButton, TextField} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
@@ -23,6 +22,7 @@ import AddIcon from "@material-ui/icons/Add";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Stack from "@mui/material/Stack";
 import {getTableOptions, getMuiTheme } from "../muiTableConfig";
+import GlobalLoading from "../selectoresDialog/GlobalLoading";
 
 const API = process.env.REACT_APP_API;
 
@@ -32,14 +32,16 @@ function ClienteCanal() {
     const navigate = useNavigate();
     const [menus, setMenus] = useState([]);
     const [canales, setCanales] = useState([]);
+    const [clientes, setClientes] = useState([]);
     const [modeloVersionRepuesto, setModeloVersionRepuesto] = useState([]);
     const [selectedItem, setSelectedItem] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [cabeceras, setCabeceras] = useState([]);
-    const [loading] = useState(false);
+    const [loadingGlobal, setLoadingGlobal] = useState(false);
     const [form, setForm] = useState({
         codigo_cliente_canal: '',
         codigo_canal: '',
+        codigo_cliente: '',
         codigo_mod_vers_repuesto: '',
         empresa: '',
         cod_producto: '',
@@ -92,13 +94,27 @@ function ClienteCanal() {
         }
     };
 
+    const fetchClientesActivos = async () => {
+        try {
+            const res = await fetch(`${API}/bench/get_cliente`, {
+                headers: { "Authorization": "Bearer " + jwt }
+            });
+            const data = await res.json();
+            const activos = Array.isArray(data) ? data.filter(c => c.estado_cliente === 1) : [];
+            setClientes(activos);
+        } catch (err) {
+            enqueueSnackbar('Error cargando canales', { variant: 'error' });
+        }
+    };
+
     const handleInsertOrUpdate = async () => {
         console.log("form actual:", form);
 
-        if (!form.codigo_mod_vers_repuesto || !form.codigo_canal || !form.cod_producto || !form.empresa  || !form.codigo_version) {
+        if (!form.codigo_mod_vers_repuesto || !form.codigo_canal | !form.codigo_cliente || !form.cod_producto || !form.empresa  || !form.codigo_version) {
             enqueueSnackbar("Todos los campos son obligatorios", { variant: "error" });
             return;
         }
+        setLoadingGlobal(true);
         const method = selectedItem ? "PUT" : "POST";
         const url = selectedItem
             ? `${API}/bench/update_cliente_canal/${selectedItem.codigo_cliente_canal}`
@@ -110,6 +126,7 @@ function ClienteCanal() {
             cod_producto: form.cod_producto,
             empresa: form.empresa,
             codigo_version: form.codigo_version,
+            codigo_cliente: form.codigo_cliente,
             descripcion_cliente_canal: form.descripcion_cliente_canal
         };
 
@@ -133,7 +150,9 @@ function ClienteCanal() {
                 enqueueSnackbar(data.error || "Error al guardar", { variant: 'error' });
             }
         } catch (error) {
-            enqueueSnackbar("Error al enviar los datos", { variant: 'error' });
+            enqueueSnackbar("Error inesperado durante la carga", { variant: "error" });
+        } finally {
+            setLoadingGlobal(false);
         }
     };
 
@@ -141,6 +160,7 @@ function ClienteCanal() {
         getMenus();
         fetchModeloVersionRepuesto();
         fetchCanalesActivos();
+        fetchClientesActivos();
         fetchClienteCanal()
     }, []);
 
@@ -151,6 +171,7 @@ function ClienteCanal() {
         else setForm({
             codigo_cliente_canal: '',
             codigo_canal: '',
+            codigo_cliente: '',
             codigo_mod_vers_repuesto: '',
             empresa: '',
             cod_producto: '',
@@ -185,14 +206,43 @@ function ClienteCanal() {
         reader.readAsBinaryString(file);
     };
 
+    const handleUploadExcelUpdate = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = async (evt) => {
+            try {
+                const wb = XLSX.read(evt.target.result, { type: 'binary' });
+                const sheet = wb.Sheets[wb.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(sheet);
+                setLoadingGlobal(true);
+                const res = await fetch(`${API}/bench/update_cliente_canal_masivo`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+                    body: JSON.stringify({ repuestos: rows })
+                });
+                const json = await res.json();
+                if (res.ok) enqueueSnackbar(json.message, { variant: 'success' });
+                else enqueueSnackbar(json.error || 'Error en carga', { variant: 'error' });
+                fetchClienteCanal();
+            } catch (error) {
+                enqueueSnackbar("Error inesperado durante la carga", { variant: "error" });
+            } finally {
+                setLoadingGlobal(false);
+            }
+        };
+        reader.readAsBinaryString(file);
+    };
+
     const columns = [
        // { name: 'codigo_cliente_canal', label: 'CÓDIGO' },
         { name: 'nombre_canal', label: 'CANAL' },
-        { name: 'descripcion_cliente_canal', label: 'CLIENTE' },
-        { name: 'codigo_mod_vers_repuesto', label: 'MODELO VERSION REPUESTO' },
-        { name: 'nombre_producto', label: 'PRODUCTO' },
+        { name: 'nombre_cliente', label: 'CLIENTE' },
+        //{ name: 'codigo_mod_vers_repuesto', label: 'MODELO VERSION REPUESTO' },
+        { name: 'nombre_producto', label: 'REPUESTO' },
+        { name: 'nombre_producto_externo', label: 'REPUESTO/SUSTITUTO' },
         { name: 'nombre_empresa', label: 'EMPRESA' },
         { name: 'nombre_version', label: 'VERSIÓN' },
+        { name: 'descripcion_cliente_canal', label: 'DESCRIPCIÓN' },
         {
             name: "acciones",
             label: "ACCIONES",
@@ -226,8 +276,15 @@ function ClienteCanal() {
         }
     };
 
+    const camposPlantillaModelo = [
+        "codigo_cliente_canal", "cliente", "nombre_canal","nombre_producto",
+        "nombre_empresa", "nombre_version", "descripcion_cliente_canal",
+    ];
+    const tableOptions = getTableOptions(cabeceras, camposPlantillaModelo, "Actualizar_cliente_canal.xlsx");
+
     return (
-        <>{loading ? (<LoadingCircle />) : (
+        <>
+            <GlobalLoading open={loadingGlobal} />
             <div style={{ marginTop: '150px', width: "100%" }}>
                 <Navbar0 menus={menus} />
                 <Box>
@@ -247,6 +304,7 @@ function ClienteCanal() {
                                 setForm({
                                     codigo_cliente_canal: '',
                                     codigo_canal: '',
+                                    codigo_cliente: '',
                                     codigo_mod_vers_repuesto: '',
                                     empresa: '',
                                     cod_producto: '',
@@ -284,9 +342,16 @@ function ClienteCanal() {
                                     backgroundColor: 'green',
                                     boxShadow: 'none'
                                 }
-                            }}
-                        >Insertar Masivo
+                            }}>Insertar Masivo
                             <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                        </Button>
+                        <Button
+                            variant="contained"
+                            component="label"
+                            startIcon={<EditIcon />}
+                            sx={{ textTransform: 'none', fontWeight: 600,backgroundColor: 'littleseashell' }}
+                        >Actualizar Masivo
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
                         </Button>
                         <IconButton onClick={fetchClienteCanal} style={{ color: 'firebrick' }}>
                             <RefreshIcon />
@@ -294,7 +359,7 @@ function ClienteCanal() {
                     </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={getTableOptions()} />
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={tableOptions} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selectedItem ? 'Actualizar' : 'Nuevo'}</DialogTitle>
@@ -308,7 +373,7 @@ function ClienteCanal() {
                                         value={modeloVersionRepuesto.find(m => m.codigo_mod_vers_repuesto === form.codigo_mod_vers_repuesto) || null}
                                         onChange={(e, v) => {
                                             if (v) {
-                                                console.log("modelo version seleccionado", v);  // Debug
+                                                console.log("modelo version seleccionado", v);
                                                 setForm(prev => ({
                                                     ...prev,
                                                     codigo_mod_vers_repuesto: v.codigo_mod_vers_repuesto ?? '',
@@ -323,7 +388,7 @@ function ClienteCanal() {
                                                 }));
                                             }
                                         }}
-                                        renderInput={(params) => <TextField {...params} label="Modelo Versión Repuesto" fullWidth />}
+                                        renderInput={(params) => <TextField {...params} label="Modelo Repuesto" fullWidth />}
                                         isOptionEqualToValue={(option, value) => option.codigo_mod_vers_repuesto === value.codigo_mod_vers_repuesto}
                                     />
                                 </Grid>
@@ -351,6 +416,21 @@ function ClienteCanal() {
                                     />
                                 </Grid>
                             </Grid>
+
+                            <Grid item xs={12}>
+                                <Grid item xs={12}>
+                                    <Autocomplete
+                                        options={clientes}
+                                        getOptionLabel={(c) => c.nombre_cliente || ''}
+                                        value={clientes.find(c => String(c.codigo_cliente) === String(form.codigo_cliente)) || null}
+                                        onChange={(e, v) => {
+                                            handleChange('codigo_cliente', v?.codigo_cliente || '');
+                                        }}
+                                        renderInput={(params) => <TextField {...params} label="Cliente" />}
+                                        isOptionEqualToValue={(option, value) => option.codigo_cliente === value.codigo_cliente}
+                                    />
+                                </Grid>
+                            </Grid>
                             <Grid item xs={12}>
                                 <TextField label="Descripción" value={form.descripcion_cliente_canal} onChange={e => handleChange('descripcion_cliente_canal', e.target.value.toUpperCase())} fullWidth />
                             </Grid>
@@ -362,7 +442,8 @@ function ClienteCanal() {
                     </DialogActions>
                 </Dialog>
             </div>
-        )}</>);
+        </>
+    );
 }
 
 export default function IntegrationNotistackWrapper() {

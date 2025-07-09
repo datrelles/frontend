@@ -27,27 +27,26 @@ import {getTableOptions, getMuiTheme } from "../muiTableConfig";
 
 const API = process.env.REACT_APP_API;
 
-function CatCanal() {
+function CatCliente() {
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
-    const [nombreCanal, setnombreCanal] = useState('');
-    const [estadoCanal, setestadoCanal] = useState('');
-    const [descripcionCanal, setdescripcionCanal] = useState('');
+    const [nombreCliente, setnombreCliente] = useState('');
+    const [estadoCliente, setestadoCliente] = useState('');
     const [cabeceras, setCabeceras] = useState([]);
     const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
-    const [selectedCanal, setSelectedCanal] = useState(null);
+    const [selectedCliente, setSelectedCliente] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
 
-    const handleInsertCanal = async () => {
-        const url = selectedCanal && selectedCanal.codigo_canal
-            ? `${API}/bench/update_canal/${selectedCanal.codigo_canal}`
-            : `${API}/bench/insert_canal`;
+    const handleInsertCliente = async () => {
+        const url = selectedCliente && selectedCliente.codigo_cliente
+            ? `${API}/bench/update_cliente/${selectedCliente.codigo_cliente}`
+            : `${API}/bench/insert_cliente`;
 
-        const method = selectedCanal && selectedCanal.codigo_canal ? "PUT" : "POST";
+        const method = selectedCliente && selectedCliente.codigo_cliente ? "PUT" : "POST";
 
-        const estadoCanalNumerico = estadoCanal === "ACTIVO" ? 1 : 0;
+        const estadoClienteNumerico = estadoCliente === "ACTIVO" ? 1 : 0;
 
         try {
             const res = await fetch(url, {
@@ -57,16 +56,15 @@ function CatCanal() {
                     "Authorization": "Bearer " + jwt
                 },
                 body: JSON.stringify({
-                    nombre_canal: nombreCanal,
-                    estado_canal: estadoCanalNumerico,
-                    descripcion_canal: descripcionCanal
+                    nombre_cliente: nombreCliente,
+                    estado_cliente: estadoClienteNumerico
                 })
             });
 
             const data = await res.json();
             if (res.ok) {
                 enqueueSnackbar(data.message || "Operación exitosa", { variant: "success" });
-                fetchCanalData();
+                fetchClienteData();
                 setDialogOpen(false);
             } else {
                 enqueueSnackbar(data.error || "Error al guardar", { variant: "error" });
@@ -97,13 +95,12 @@ function CatCanal() {
 
     useEffect(() => {
         getMenus();
-        fetchCanalData();
-
+        fetchClienteData();
     }, [])
 
-    const fetchCanalData = async () => {
+    const fetchClienteData = async () => {
         try {
-            const res = await fetch(`${API}/bench/get_canal`, {
+            const res = await fetch(`${API}/bench/get_cliente`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -114,7 +111,7 @@ function CatCanal() {
             if (res.ok) {
                 setCabeceras(data);
             } else {
-                enqueueSnackbar(data.error || "Error al obtener data de Canal", { variant: "error" });
+                enqueueSnackbar(data.error || "Error al obtener data de Clientes", { variant: "error" });
             }
         } catch (error) {
             enqueueSnackbar("Error de conexión", { variant: "error" });
@@ -122,11 +119,11 @@ function CatCanal() {
     };
 
     const columns = [
-        { name: "codigo_canal", label: "Código" },
-        { name: "nombre_canal", label: "Nombre Canal" },
+        { name: "codigo_cliente", label: "Código" },
+        { name: "nombre_cliente", label: "Nombre Cliente" },
         {
-            name: "estado_canal",
-            label: "Estado Canal",
+            name: "estado_cliente",
+            label: "Estado Cliente",
             options: {
                 customBodyRender: (value) => (
                     <div
@@ -146,7 +143,6 @@ function CatCanal() {
                 )
             }
         },
-        { name: "descripcion_canal", label: "Descripción Canal" },
         //{ name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
@@ -177,13 +173,13 @@ function CatCanal() {
 
             const processedRows = rows.map(row => ({
                 ...row,
-                estado_canal: row.estado_canal === "ACTIVO" ? 1
-                    : row.estado_canal === "INACTIVO" ? 0
-                        : row.estado_canal
+                estado_cliente: row.estado_cliente === "ACTIVO" ? 1
+                    : row.estado_cliente === "INACTIVO" ? 0
+                        : row.estado_cliente
             }));
 
             try {
-                const res = await fetch(`${API}/bench/insert_canal`, {
+                const res = await fetch(`${API}/bench/insert_cliente`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -195,7 +191,7 @@ function CatCanal() {
                 const responseData = await res.json();
                 if (res.ok) {
                     enqueueSnackbar("Carga exitosa", { variant: "success" });
-                    fetchCanalData();
+                    fetchClienteData();
                 } else {
                     enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
                 }
@@ -207,10 +203,9 @@ function CatCanal() {
     };
 
     const openEditDialog = (rowData) => {
-        setSelectedCanal(rowData);
-        setnombreCanal(rowData.nombre_canal || '');
-        setestadoCanal(rowData.estado_canal === 1 ? "ACTIVO" : "INACTIVO");
-        setdescripcionCanal(rowData.descripcion_canal || '');
+        setSelectedCliente(rowData);
+        setnombreCliente(rowData.nombre_cliente || '');
+        setestadoCliente(rowData.estado_cliente === 1 ? "ACTIVO" : "INACTIVO");
         setDialogOpen(true);
     };
 
@@ -231,10 +226,9 @@ function CatCanal() {
                             color="primary"
                             startIcon={<AddIcon />}
                             onClick={() => {
-                                setSelectedCanal(null);
-                                setnombreCanal('');
-                                setestadoCanal('');
-                                setdescripcionCanal('');
+                                setSelectedCliente(null);
+                                setnombreCliente('');
+                                setestadoCliente('');
                                 setDialogOpen(true);
                             }}
                             sx={{
@@ -270,7 +264,7 @@ function CatCanal() {
                         >Insertar Masivo
                             <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
                         </Button>
-                        <IconButton onClick={fetchCanalData} style={{ color: 'firebrick' }}>
+                        <IconButton onClick={fetchClienteData} style={{ color: 'firebrick' }}>
                             <RefreshIcon />
                         </IconButton>
                     </Stack>
@@ -279,29 +273,28 @@ function CatCanal() {
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={getTableOptions()} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
-                    <DialogTitle>{selectedCanal ? 'Actualizar' : 'Nuevo'}</DialogTitle>
+                    <DialogTitle>{selectedCliente ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Nombre canal" value={nombreCanal} onChange={(e) => setnombreCanal(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Nombre cliente" value={nombreCliente} onChange={(e) => setnombreCliente(e.target.value.toUpperCase())} /></Grid>
                             <Grid item xs={6}>
                                 <FormControl fullWidth>
-                                    <InputLabel id="estado-canal-label">Estado</InputLabel>
+                                    <InputLabel id="estado-cliente-label">Estado</InputLabel>
                                     <Select
-                                        labelId="estado-canal-label"
-                                        value={estadoCanal}
-                                        onChange={(e) => setestadoCanal(e.target.value.toUpperCase())}
-                                     variant="outlined">
+                                        labelId="estado-cliente-label"
+                                        value={estadoCliente}
+                                        onChange={(e) => setestadoCliente(e.target.value.toUpperCase())}
+                                        variant="outlined">
                                         <MenuItem value="ACTIVO">ACTIVO</MenuItem>
                                         <MenuItem value="INACTIVO">INACTIVO</MenuItem>
                                     </Select>
                                 </FormControl>
                             </Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Descripcion" value={descripcionCanal} onChange={(e) => setdescripcionCanal(e.target.value.toUpperCase())} /></Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleInsertCanal} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedCanal ? 'Actualizar' : 'Guardar'}</Button>
+                        <Button onClick={handleInsertCliente} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedCliente ? 'Actualizar' : 'Guardar'}</Button>
                     </DialogActions>
                 </Dialog>
             </div>
@@ -312,7 +305,7 @@ function CatCanal() {
 export default function IntegrationNotistack() {
     return (
         <SnackbarProvider maxSnack={3}>
-            <CatCanal/>
+            <CatCliente/>
         </SnackbarProvider>
     );
 }

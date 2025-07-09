@@ -57,7 +57,7 @@ function CatModeloVersion() {
     const [selectedTipoMotor, setSelectedTipoMotor] = useState(null);
     const [transmisiones, setTransmisiones] = useState([]);
     const [dimensiones, setDimensiones] = useState([]);
-    const [electronica, setElectronicas] = useState([]);
+    const [electronica, setElectronica] = useState([]);
     const [colores, setColores] = useState([]);
     const [images, setImages] = useState([]);
     const [canales, setCanales] = useState([]);
@@ -93,6 +93,7 @@ function CatModeloVersion() {
         precio_producto_modelo: '',
         precio_venta_distribuidor: ''
     });
+    const [formErrors, setFormErrors] = useState({});
 
     const [loadingGlobal, setLoadingGlobal] = useState(false);
 
@@ -292,7 +293,7 @@ function CatModeloVersion() {
             });
             const data = await res.json();
             if (res.ok) {
-                setElectronicas(data);
+                setElectronica(data);
             } else {
                 enqueueSnackbar(data.error || "Error al obtener datos de electrónica", { variant: "error" });
             }
@@ -385,13 +386,8 @@ function CatModeloVersion() {
 
     const handleInsertOrUpdate = async () => {
 
-        if (!selectedVersion?.nombre_version) {
-            enqueueSnackbar("Seleccione una versión válida", { variant: "error" });
-            return;
-        }
-
-        if (!form.cod_producto || !form.codigo_modelo_comercial || !form.codigo_version) {
-            enqueueSnackbar("Todos los campos son obligatorios", { variant: "error" });
+        if (!validarFormulario()) {
+            enqueueSnackbar("Completa todos los campos obligatorios", { variant: "error" });
             return;
         }
 
@@ -448,6 +444,27 @@ function CatModeloVersion() {
     };
 
     const handleChange = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
+
+    const validarFormulario = () => {
+        const errors = {};
+
+        if (!form.codigo_chasis) errors.codigo_chasis = 'Chasis requerido';
+        if (!form.codigo_motor) errors.codigo_motor = 'Motor requerido';
+        if (!form.codigo_tipo_motor) errors.codigo_tipo_motor = 'Tipo de motor requerido';
+        if (!form.codigo_transmision) errors.codigo_transmision = 'Transmisión requerida';
+        if (!form.codigo_electronica) errors.codigo_electronica = 'Electrónica requerida';
+        if (!form.codigo_color_bench) errors.codigo_color_bench = 'Color requerido';
+        if (!form.codigo_imagen) errors.codigo_imagen = 'Imágen requerida';
+        if (!form.nombre_modelo_version?.trim()) errors.nombre_modelo_version = 'Nombre del modelo requerido';
+        if (!form.codigo_modelo_comercial) errors.codigo_modelo_comercial = 'Modelo comercial requerido';
+        if (!form.codigo_version) errors.codigo_version = 'Versión requerida';
+        if (!form.anio_modelo_version) errors.anio_modelo_version = 'Año requerido';
+        if (!form.codigo_cliente_canal) errors.codigo_cliente_canal = 'Canal requerido';
+        if (!form.codigo_dim_peso) errors.codigo_dim_peso = 'Dimensiones requeridas';
+
+        setFormErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
 
     const openDialog = async (item = null) => {
 
@@ -623,7 +640,7 @@ function CatModeloVersion() {
                 const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
 
                 const res = await fetch(`${API}/bench/update_modelo_version_masivo`, {
-                    method: 'POST',
+                    method: 'PUT',
                     headers: {
                         'Authorization': 'Bearer ' + jwt,
                         'Content-Type': 'application/json',
@@ -656,8 +673,6 @@ function CatModeloVersion() {
 
         reader.readAsArrayBuffer(file);
     };
-
-
 
     return (
         <>
@@ -800,14 +815,22 @@ function CatModeloVersion() {
                                 <SelectorChasis
                                     chasis={chasis}
                                     selectedChasisId={form.codigo_chasis}
-                                    onSelect={(codigo) => handleChange('codigo_chasis', codigo)}/>
+                                    onSelect={(codigo) => handleChange('codigo_chasis', codigo)}
+                                    error={!!formErrors.codigo_chasis}
+                                    helperText={formErrors.codigo_chasis}
+                                />
                                 <SelectorDimensiones
                                     dimensiones={dimensiones}
                                     selectedDimensionesId={form.codigo_dim_peso}
-                                    onSelect={(codigo) => handleChange('codigo_dim_peso', codigo)}/>
+                                    onSelect={(codigo) => handleChange('codigo_dim_peso', codigo)}
+                                    error={!!formErrors.codigo_dim_peso}
+                                    helperText={formErrors.codigo_dim_peso}
+                                />
                                 <SelectorMotor
                                     motores={motores}
                                     tiposMotor={tiposMotor}
+                                    error={!!formErrors.codigo_motor}
+                                    helperText={formErrors.codigo_motor}
                                     selectedMotorId={form.codigo_motor}
                                     onSelect={({ codigo_motor, codigo_tipo_motor, nombre_tipo_motor }) => {
                                         handleChange('codigo_motor', codigo_motor);
@@ -817,6 +840,8 @@ function CatModeloVersion() {
                                 <Grid item xs={6}>
                                     <TextField
                                         label="Tipo Motor"
+                                        error={!!formErrors.codigo_tipo_motor}
+                                        helperText={formErrors.codigo_tipo_motor}
                                         value={selectedTipoMotor?.nombre_tipo || ''}
                                         fullWidth
                                         disabled/>
@@ -830,12 +855,23 @@ function CatModeloVersion() {
                                             setselectedTransmision(v || null);
                                             handleChange('codigo_transmision', v?.codigo_transmision || '');
                                         }}
-                                        renderInput={(params) => <TextField {...params} label="Transmisión" />}/>
+                                        renderInput={(params) => (
+                                            <TextField
+                                                {...params}
+                                                label="Transmisión"
+                                                error={!!formErrors.codigo_transmision}
+                                                helperText={formErrors.codigo_transmision}
+                                            />
+                                        )}
+                                    />
                                 </Grid>
                                 <SelectorElectronica
                                     electronica={electronica}
                                     selectedElectronicaId={form.codigo_electronica}
-                                    onSelect={(codigo) => handleChange('codigo_electronica', codigo)}/>
+                                    onSelect={(codigo) => handleChange('codigo_electronica', codigo)}
+                                    error={!!formErrors.codigo_electronica}
+                                    helperText={formErrors.codigo_electronica}
+                                />
                                 <Grid item xs={6}>
                                     <Autocomplete
                                         options={colores}
@@ -845,7 +881,15 @@ function CatModeloVersion() {
                                             setSelectedColor(v || null);
                                             handleChange('codigo_color_bench', v?.codigo_color_bench || '');
                                         }}
-                                        renderInput={(params) => <TextField {...params} label="Color" />}/>
+                                        renderInput={(params) => (
+                                            <TextField
+                                                {...params}
+                                                label="Color"
+                                                error={!!formErrors.codigo_color_bench}
+                                                helperText={formErrors.codigo_color_bench}
+                                            />
+                                        )}
+                                    />
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Autocomplete
@@ -856,13 +900,28 @@ function CatModeloVersion() {
                                             setSelectedImagen(v || null);
                                             handleChange('codigo_imagen', v?.codigo_imagen || '');
                                         }}
-                                        renderInput={(params) => <TextField {...params} label="Imagen" />}/>
+                                        renderInput={(params) => (
+                                            <TextField
+                                                {...params}
+                                                label="Imágen"
+                                                error={!!formErrors.codigo_imagen}
+                                                helperText={formErrors.codigo_imagen}
+                                            />
+                                        )}
+                                       />
                                 </Grid>
-                                <Grid item xs={12}><
-                                    TextField fullWidth
-                                              label="Nombre Modelo Version"
-                                              value={form.nombre_modelo_version || ''} onChange={(e) =>
-                                    handleChange('nombre_modelo_version', e.target.value.toUpperCase())} />
+                                <Grid item xs={12}>
+                                    <TextField
+                                        fullWidth
+                                        label="Nombre Modelo Version"
+                                        value={form.nombre_modelo_version || ''}
+                                        onChange={(e) =>
+                                            handleChange('nombre_modelo_version', e.target.value.toUpperCase())
+                                        }
+                                        error={!!formErrors.nombre_modelo_version}
+                                        helperText={formErrors.nombre_modelo_version}
+                                        inputProps={{ style: { textTransform: 'uppercase' } }}
+                                    />
                                 </Grid>
                                 <Grid item xs={9}>
                                     <Autocomplete
@@ -873,14 +932,26 @@ function CatModeloVersion() {
                                             handleChange('codigo_version', v ? v.codigo_version : '');
                                             setSelectedVersion(v);
                                         }}
-                                        renderInput={(params) => <TextField {...params} label="Versión Modelo"  />}
+                                        renderInput={(params) => (
+                                            <TextField
+                                                {...params}
+                                                label="Versión"
+                                                error={!!formErrors.codigo_version}
+                                                helperText={formErrors.codigo_version}
+                                            />
+                                        )}
                                     />
                                 </Grid>
                                 <Grid item xs={3}><
                                     TextField fullWidth
                                               label="Año" type="number"
-                                              value={form.anio_modelo_version || ''} onChange={(e) =>
-                                    handleChange('anio_modelo_version', e.target.value)} />
+                                              value={form.anio_modelo_version || ''}
+                                              onChange={(e) =>
+                                    handleChange('anio_modelo_version', e.target.value)}
+                                              error={!!formErrors.anio_modelo_version}
+                                              helperText={formErrors.anio_modelo_version}
+                                              inputProps={{ style: { textTransform: 'uppercase' } }}
+                                />
                                 </Grid>
                                 <Grid item xs={6}>
                                     <TextField
@@ -919,7 +990,12 @@ function CatModeloVersion() {
                                             setSelectedModeloComercial(v);
                                         }}
                                         renderInput={(params) => (
-                                            <TextField {...params} label="Modelo Comercial" />
+                                            <TextField
+                                                {...params}
+                                                label="Modelo Comercial"
+                                                error={!!formErrors.codigo_modelo_comercial}
+                                                helperText={formErrors.codigo_modelo_comercial}
+                                            />
                                         )}
                                     />
                                 </Grid>
@@ -935,7 +1011,7 @@ function CatModeloVersion() {
                                     <Autocomplete
                                         options={clienteCanal}
                                         getOptionLabel={(option) =>
-                                            `${option.codigo_cliente_canal} - ${option.nombre_canal} - ${option.descripcion_cliente_canal} - ${option.nombre_producto}`
+                                            `${option.codigo_cliente_canal} - ${option.nombre_canal} - ${option.nombre_cliente} - ${option.nombre_producto_externo}`
                                         }
                                         value={selectedClienteCanal}
                                         isOptionEqualToValue={(opt, val) => opt.codigo_cliente_canal === val?.codigo_cliente_canal}
@@ -956,7 +1032,14 @@ function CatModeloVersion() {
                                             setSelectedVersion(version || null);
                                             setSelectedClienteCanal(v);
                                         }}
-                                        renderInput={(params) => <TextField {...params} label="Canal" />}
+                                        renderInput={(params) => (
+                                            <TextField
+                                                {...params}
+                                                label="Canal"
+                                                error={!!formErrors.codigo_cliente_canal}
+                                                helperText={formErrors.codigo_cliente_canal}
+                                            />
+                                        )}
                                     />
                                 </Grid>
                                 <Grid item xs={12}>
