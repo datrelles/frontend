@@ -74,29 +74,11 @@ export default class API {
     );
   });
 
-  getProceso = this.#errorHandler(async (proceso) => {
-    return await axios.get(`${this.#URL}/procesos/${proceso}`, this.#headers);
-  });
-
-  getProcesos = this.#errorHandler(async () => {
-    return await axios.get(`${this.#URL}/procesos`, this.#headers);
-  });
-
-  createProceso = this.#errorHandler(async (data) => {
-    return await axios.post(`${this.#URL}/procesos`, data, this.#headers);
-  });
-
-  updateProceso = this.#errorHandler(async (proceso, data) => {
-    return await axios.put(
-      `${this.#URL}/procesos/${proceso}`,
-      data,
-      this.#headers
-    );
-  });
-
-  deleteProceso = this.#errorHandler(async (proceso) => {
-    return await axios.delete(
-      `${this.#URL}/procesos/${proceso}`,
+  getPoliticas = this.#errorHandler(async (agencia) => {
+    return await axios.get(
+      `${this.#URL}/credit_policies?empresa=${
+        this.#enterprise
+      }&cod_agencia=${agencia}`,
       this.#headers
     );
   });
