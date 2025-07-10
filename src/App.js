@@ -62,7 +62,7 @@ import Reports29 from "./components/Reports29";
 import Reports30 from "./components/Reports30";
 import Reports31 from "./components/Reports31";
 import Reports32 from "./components/Reports32";
-
+import Reports33 from "./components/Reports33";
 
 import Settings from "./components/Settings";
 import Menus from "./components/Menus";
@@ -254,6 +254,7 @@ function App() {
                   <Route exact path="/reports30" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports30 /></Protected>}/>
                   <Route exact path="/reports31" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports31 /></Protected>}/>
                   <Route exact path="/reports32" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports32 /></Protected>}/>
+                  <Route exact path="/reports33" element={<Protected isLoggedIn={authorizedSystems.includes('PBI')}><Reports33 /></Protected>}/>
                   <Route exact path="/electronicFile" element={<Protected isLoggedIn={authorizedSystems.includes('CON')}><ElectronicFilesSri/></Protected>}/>
                   <Route exact path="/warranty" element={<Protected isLoggedIn={authorizedSystems.includes('GAR')}><CaseManager/></Protected>}/>
                   <Route exact path="/warranty/openCaseWarranty" element={<Protected isLoggedIn={authorizedSystems.includes('GAR')}><OpenCase/></Protected>}/>
