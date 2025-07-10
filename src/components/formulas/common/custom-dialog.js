@@ -10,16 +10,18 @@ export default function CustomDialog({
   open,
   handleClose,
   handleCancel,
+  cancelText = "Cancelar",
   handleConfirm = null,
   confirmText = "Crear",
+  maxWidth = "sm",
 }) {
   return (
-    <Dialog open={open} onClose={handleClose}>
+    <Dialog open={open} onClose={handleClose} {...{ maxWidth }} fullWidth>
       <DialogTitle>{titulo}</DialogTitle>
       <DialogContent>{contenido}</DialogContent>
       <DialogActions>
         <Button onClick={handleCancel} color="primary">
-          Cancelar
+          {cancelText}
         </Button>
         {handleConfirm && (
           <Button
