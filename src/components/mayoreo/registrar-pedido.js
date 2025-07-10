@@ -222,7 +222,7 @@ export default function RegistrarPedido() {
       setCodigoProd("");
       setNombreProd("");
       setProductosFiltrados([]);
-      return prev.concat(newProd);
+      return prev.concat({ ...newProd, cantidad: 1 });
     });
   };
 
@@ -434,18 +434,13 @@ export default function RegistrarPedido() {
       setValue: (e) => {
         const nuevoCod = e.target.value ?? "";
         setCodigoProd(nuevoCod);
-        let nuevosProductosPedido = productos.filter(
-          (prod) =>
-            filtrarCampo(prod, "cod_producto", nuevoCod) &&
-            filtrarCampo(prod, "nombre", nombreProd)
+        setProductosFiltrados(
+          productos.filter(
+            (prod) =>
+              filtrarCampo(prod, "cod_producto", nuevoCod) &&
+              filtrarCampo(prod, "nombre", nombreProd)
+          )
         );
-        nuevosProductosPedido = nuevosProductosPedido.map((prod) => ({
-          ...prod,
-          cantidad: 1,
-          descuento: 0,
-          precio_descuento: prod.precio ?? 0,
-        }));
-        setProductosFiltrados(nuevosProductosPedido);
       },
     }),
     createTextFieldItem({
@@ -560,14 +555,22 @@ export default function RegistrarPedido() {
                     key={idx}
                     style={prod.readOnly ? { opacity: 0.5 } : {}}
                   >
-                    <TableCell>{prod.cod_producto}</TableCell>
-                    <TableCell>{prod.nombre}</TableCell>
-                    <TableCell>{prod.precio ?? 0}</TableCell>
-                    <TableCell>{prod.descuento ?? 0}</TableCell>
-                    <TableCell>
+                    <TableCell style={{ width: "15%" }}>
+                      {prod.cod_producto}
+                    </TableCell>
+                    <TableCell style={{ width: "25%" }}>
+                      {prod.nombre}
+                    </TableCell>
+                    <TableCell style={{ width: "10%" }}>
+                      {prod.precio ?? 0}
+                    </TableCell>
+                    <TableCell style={{ width: "10%" }}>
+                      {prod.descuento ?? 0}
+                    </TableCell>
+                    <TableCell style={{ width: "10%" }}>
                       {prod.precio_descuento ?? prod.precio ?? 0}
                     </TableCell>
-                    <TableCell>
+                    <TableCell style={{ width: "10%" }}>
                       <TextField
                         type="number"
                         size="small"
@@ -579,8 +582,10 @@ export default function RegistrarPedido() {
                         sx={{ width: "100%" }}
                       />
                     </TableCell>
-                    <TableCell>{prod.subtotal ?? 0}</TableCell>
-                    <TableCell>
+                    <TableCell style={{ width: "10%" }}>
+                      {prod.subtotal ?? 0}
+                    </TableCell>
+                    <TableCell style={{ width: "10%" }}>
                       <IconButton
                         size="small"
                         onClick={() => handleQuitarProducto(idx)}

@@ -142,4 +142,39 @@ export default class API {
       );
     }
   );
+
+  getPrecioProducto = this.#errorHandler(
+    async (
+      agencia,
+      politica,
+      modeloCat,
+      itemCat,
+      producto,
+      cuotas,
+      persona,
+      codTipoPedido,
+      cantidad,
+      tipoPedido,
+      lvCodUnidad,
+      cantidadCalculo,
+      codigoUnidad,
+      formaPago,
+      divisa,
+      fecha,
+      formaPago2,
+      comprobanteLote,
+      tipoComprobante,
+      descuento,
+      iva,
+      ice,
+      anio
+    ) => {
+      return await axios.get(
+        `${this.#URL}/politica_credito_detalle?empresa=${
+          this.#enterprise
+        }&cod_agencia=${agencia}&cod_politica=${politica}&lv_cod_modelo_cat=${modeloCat}&lv_cod_item_cat=${itemCat}&cod_producto=${producto}&num_cuotas=${cuotas}`,
+        this.#headers
+      );
+    }
+  );
 }
