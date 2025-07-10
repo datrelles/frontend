@@ -54,7 +54,13 @@ const ResumenComparacion = ({ resultado, bloques }) => {
             <Typography variant="h6" align="center" gutterBottom fontWeight="bold">
                 RESUMEN DETALLADO
             </Typography>
-            {Object.entries(categoriesAgrupadas).map(([categoria, campos]) => (
+            {Object.entries(categoriesAgrupadas)
+                .sort(([a], [b]) => {
+                    const ordenDeseado = ['motor', 'chasis', 'electronica', 'dimensiones', 'transmision'];
+                    return ordenDeseado.indexOf(a.toLowerCase()) - ordenDeseado.indexOf(b.toLowerCase());
+                })
+                .map(([categoria, campos]) => (
+
                 <Accordion key={categoria} defaultExpanded>
                     <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />} sx={{ backgroundColor: 'firebrick', color: 'white' }}>
                         <Typography sx={{ textTransform: 'capitalize' }}>{categoria}</Typography>
@@ -171,7 +177,6 @@ const ResumenComparacion = ({ resultado, bloques }) => {
                             </Table>
                         </Box>
                     </AccordionDetails>
-
                 </Accordion>
             ))}
         </Box>
