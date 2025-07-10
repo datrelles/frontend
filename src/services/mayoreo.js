@@ -83,23 +83,6 @@ export default class API {
     );
   });
 
-  getPolitica = this.#errorHandler(
-    async (
-      agencia,
-      politica,
-      persona,
-      tipoPedido = "PE",
-      tipoPersona = "CLI"
-    ) => {
-      return await axios.get(
-        `${this.#URL}/credit_policies?empresa=${
-          this.#enterprise
-        }&cod_agencia=${agencia}`,
-        this.#headers
-      );
-    }
-  );
-
   getVendedores = this.#errorHandler(async (agencia = 25) => {
     return await axios.get(
       `${this.#URL}/vendedores_agencia?empresa=${
@@ -147,6 +130,25 @@ export default class API {
         `${this.#URL}/productos_disponibles?empresa=${
           this.#enterprise
         }&cod_modelo_cat=${codModeloCat}&cod_item_cat=${codItemCat}&cod_modelo=${codModelo}`,
+        this.#headers
+      );
+    }
+  );
+
+  getDetallePolitica = this.#errorHandler(
+    async (
+      politica,
+      persona,
+      cuotas,
+      agencia = 25,
+      tipoPedido = "PE",
+      tipoPersona = "CLI",
+      tipoClienteH
+    ) => {
+      return await axios.get(
+        `${this.#URL}/cliente_info?empresa=${
+          this.#enterprise
+        }&cod_agencia=${agencia}&cod_politica=${politica}&cod_tipo_pedido=${tipoPedido}&cod_persona_cli=${persona}&cod_tipo_persona_cli=${tipoPersona}`,
         this.#headers
       );
     }

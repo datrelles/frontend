@@ -120,6 +120,7 @@ export default function RegistrarPedido() {
   const [cargando, setCargando] = useState(false);
   const [politicas, setPoliticas] = useState([]);
   const [politica, setPolitica] = useState(shapePolitica);
+  const [nombrePolitica, setNombrePolitica] = useState("");
   const [vendedores, setVendedores] = useState([]);
   const [vendedor, setVendedor] = useState(shapeVendedor);
   const [clientes, setClientes] = useState([]);
@@ -231,7 +232,7 @@ export default function RegistrarPedido() {
       optionId="cod_politica"
       shape={shapePolitica}
       options={politicas}
-      optionLabel="nombre"
+      optionLabel="cod_politica"
       onChange={(e, value) => {
         setPolitica(value ?? shapePolitica);
       }}
@@ -268,7 +269,13 @@ export default function RegistrarPedido() {
   );
 
   const itemsCabeceraPedido = [
-    createCustomComponentItem(6, "politica", autocompletePoliticas),
+    createCustomComponentItem(2, "politica", autocompletePoliticas),
+    createTextFieldItem({
+      xs: 4,
+      id: "nombre-politica",
+      label: "Nombre política",
+      value: nombrePolitica,
+    }),
     createCustomComponentItem(6, "agente", autocompleteVendedores),
     createCustomComponentItem(12, "cliente", autocompleteClientes),
     // createTextFieldItem({
@@ -634,6 +641,7 @@ export default function RegistrarPedido() {
   useEffect(() => {
     setClientes([]);
     if (politica.cod_politica !== "") {
+      setNombrePolitica(politica.nombre);
       getClientes(politica.cod_politica);
     }
   }, [politica]);
