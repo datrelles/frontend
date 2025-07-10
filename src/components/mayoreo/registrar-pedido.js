@@ -27,6 +27,10 @@ import {
   TextField,
 } from "@mui/material";
 import CancelIcon from "@mui/icons-material/Cancel";
+import TwoWheelerIcon from "@mui/icons-material/TwoWheeler";
+import FlashOnIcon from "@mui/icons-material/FlashOn";
+import OpacityIcon from "@mui/icons-material/Opacity";
+import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 const shapePolitica = {
@@ -100,6 +104,9 @@ const filtrarCampo = (obj, campo, valor) => {
     campoValor.toLowerCase().includes(valor.toLowerCase())
   );
 };
+
+const filtrarProdsPorCat = (productos, categoria) =>
+  productos.filter((prod) => prod.cod_item_cat === categoria);
 
 export default function RegistrarPedido() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
@@ -350,7 +357,7 @@ export default function RegistrarPedido() {
 
   const itemsAgregarProducto = [
     createTextFieldItem({
-      xs: 2,
+      xs: 3,
       id: "codigo-prod",
       label: "Código",
       value: codigoProd,
@@ -372,7 +379,7 @@ export default function RegistrarPedido() {
       },
     }),
     createTextFieldItem({
-      xs: 3,
+      xs: 5,
       id: "nombre-prod",
       label: "Nombre",
       value: nombreProd,
@@ -388,6 +395,54 @@ export default function RegistrarPedido() {
         );
       },
     }),
+    createCustomComponentItem(
+      1,
+      "filtro-moto",
+      <IconButton
+        size="small"
+        onClick={() => {
+          setProductosFiltrados(filtrarProdsPorCat(productos, "T"));
+        }}
+      >
+        <TwoWheelerIcon />
+      </IconButton>
+    ),
+    createCustomComponentItem(
+      1,
+      "filtro-electrica",
+      <IconButton
+        size="small"
+        onClick={() => {
+          setProductosFiltrados(filtrarProdsPorCat(productos, "E"));
+        }}
+      >
+        <FlashOnIcon />
+      </IconButton>
+    ),
+    createCustomComponentItem(
+      1,
+      "filtro-lubricante",
+      <IconButton
+        size="small"
+        onClick={() => {
+          setProductosFiltrados(filtrarProdsPorCat(productos, "L"));
+        }}
+      >
+        <OpacityIcon />
+      </IconButton>
+    ),
+    createCustomComponentItem(
+      1,
+      "filtro-envio",
+      <IconButton
+        size="small"
+        onClick={() => {
+          setProductosFiltrados(filtrarProdsPorCat(productos, "Y"));
+        }}
+      >
+        <DirectionsCarIcon />
+      </IconButton>
+    ),
   ];
 
   const modalCargandoClientes = (
