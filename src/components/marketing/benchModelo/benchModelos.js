@@ -268,26 +268,6 @@ function CompararModelos()  {
         });
     };
 
-    const obtenerCilindradaMinMax = (cilindradaStr) => {
-        if (cilindradaStr && typeof cilindradaStr === 'string') {
-            const match = cilindradaStr.match(/(\d+)\s*CC\s*-\s*(\d+)\s*CC/);
-            if (match) {
-                return {
-                    cilMin: parseInt(match[1]),
-                    cilMax: parseInt(match[2])
-                };
-            }
-        }
-        return { cilMin: null, cilMax: null };
-    };
-
-    const extraerCilindradaTexto = (bloque, fallback) => {
-        if (typeof bloque?.cilindrada === 'string') return bloque.cilindrada;
-        if (typeof bloque?.cilindrada?.label === 'string') return bloque.cilindrada.label;
-        if (typeof fallback?.label === 'string') return fallback.label;
-        return '';
-    };
-
     const handleSegmentoChange = async (index, segmento) => {
         const nuevosBloques = [...bloques];
         nuevosBloques[index].segmento = segmento;
@@ -308,8 +288,9 @@ function CompararModelos()  {
 
         setBloques(nuevosBloques);
 
-        const cilindradaTexto = extraerCilindradaTexto(nuevosBloques[index], cilindradaSeleccionada);
-        const { cilMin, cilMax } = obtenerCilindradaMinMax(cilindradaTexto);
+        const cilindrada = nuevosBloques[index]?.cilindrada || cilindradaSeleccionada;
+        const cilMin = cilindrada?.min ?? null;
+        const cilMax = cilindrada?.max ?? null;
 
         const linea = nuevosBloques[index].linea;
 
@@ -407,8 +388,10 @@ function CompararModelos()  {
         const linea = nuevosBloques[index].linea;
         const segmento = nuevosBloques[index].segmento;
 
-        const cilindradaTexto = extraerCilindradaTexto(nuevosBloques[index], cilindradaSeleccionada);
-        const { cilMin, cilMax } = obtenerCilindradaMinMax(cilindradaTexto);
+
+        const cilindrada = nuevosBloques[index]?.cilindrada || cilindradaSeleccionada;
+        const cilMin = cilindrada?.min ?? null;
+        const cilMax = cilindrada?.max ?? null;
 
 
         let url = `${API}/bench_model/get_modelos_por_linea_segmento_marca_cilindraje?codigo_linea=${linea.codigo_linea}&nombre_segmento=${encodeURIComponent(segmento.nombre_segmento)}&codigo_marca=${marca.codigo_marca}`;
@@ -505,21 +488,12 @@ function CompararModelos()  {
                 const data = await res.json();
 
                 const opciones = [
-                    { label: "Todos", min: null, max: null },
-                    ...data.map(rango => {
-                        const match = rango.match(/(\d+)\s*CC\s*-\s*(\d+)\s*CC/);
-                        if (match) {
-                            return {
-                                label: rango.trim(),
-                                min: parseInt(match[1]),
-                                max: parseInt(match[2])
-                            };
-                        }
-                        return null;
-                    }).filter(Boolean)
+                    { label: 'Todos', min: null, max: null },
+                    ...data
                 ];
-
                 setCilindradasDisponibles(opciones);
+                console.log("Cilindradas cargadas:", opciones);
+
             } catch (err) {
                 console.error('Error al cargar cilindradas disponibles', err);
             }
@@ -615,6 +589,7 @@ function CompararModelos()  {
                                                 getOptionLabel={(option) => option?.label || ''}
                                                 value={bloque.cilindrada || null}
                                                 onChange={(e, newValue) => handleCilindradaChange(index, newValue)}
+                                                isOptionEqualToValue={(option, value) => option?.min === value?.min && option?.max === value?.max}
                                                 renderInput={(params) => (
                                                     <TextField {...params} label="Cilindrada" sx={textFieldSmallSx} />
                                                 )}
