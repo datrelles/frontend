@@ -23,7 +23,10 @@ import {
   Table,
   TableBody,
   TableRow,
+  IconButton,
+  TextField,
 } from "@mui/material";
+import CancelIcon from "@mui/icons-material/Cancel";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 const shapePolitica = {
@@ -199,6 +202,21 @@ export default function RegistrarPedido() {
     });
   };
 
+  const handleQuitarProducto = (indice) => {
+    setProductosPedido((prev) => {
+      return prev.filter((prod, idx) => idx !== indice);
+    });
+  };
+
+  const handleCambiarCantidad = (idx, cantidad) => {
+    const productoPedido = { ...productosPedido[idx] };
+    productoPedido.cantidad = cantidad;
+    setProductosPedido((prev) => {
+      prev[idx] = productoPedido;
+      return [...prev];
+    });
+  };
+
   const autocompletePoliticas = (
     <AutocompleteObject
       id="Política"
@@ -339,15 +357,18 @@ export default function RegistrarPedido() {
       setValue: (e) => {
         const nuevoCod = e.target.value ?? "";
         setCodigoProd(nuevoCod);
-        setProductosFiltrados(
-          productos.filter(
-            (prod) =>
-              filtrarCampo(prod, "cod_producto", nuevoCod) &&
-              productos.filter((prod) =>
-                filtrarCampo(prod, "nombre", nombreProd)
-              )
-          )
+        let nuevosProductosPedido = productos.filter(
+          (prod) =>
+            filtrarCampo(prod, "cod_producto", nuevoCod) &&
+            filtrarCampo(prod, "nombre", nombreProd)
         );
+        nuevosProductosPedido = nuevosProductosPedido.map((prod) => ({
+          ...prod,
+          cantidad: 1,
+          descuento: 0,
+          precio_descuento: prod.precio ?? 0,
+        }));
+        setProductosFiltrados(nuevosProductosPedido);
       },
     }),
     createTextFieldItem({
@@ -393,19 +414,18 @@ export default function RegistrarPedido() {
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell style={{ fontWeight: "bold" }}>Sec</TableCell>
-                <TableCell style={{ fontWeight: "bold" }}>Cod Pedido</TableCell>
+                <TableCell style={{ fontWeight: "bold" }}>Código</TableCell>
                 <TableCell style={{ fontWeight: "bold", width: "300px" }}>
                   Producto
                 </TableCell>
-                <TableCell style={{ fontWeight: "bold" }}>Agencia</TableCell>
-                <TableCell style={{ fontWeight: "bold" }}>Exist.</TableCell>
-                <TableCell style={{ fontWeight: "bold" }}>Lote</TableCell>
-                <TableCell style={{ fontWeight: "bold" }}>Exist.Lote</TableCell>
-                <TableCell style={{ fontWeight: "bold" }}>Cant.</TableCell>
-                <TableCell style={{ fontWeight: "bold" }}>P.Unit</TableCell>
+                <TableCell style={{ fontWeight: "bold" }}>Precio</TableCell>
+                <TableCell style={{ fontWeight: "bold" }}>% Desc</TableCell>
+                <TableCell style={{ fontWeight: "bold" }}>
+                  Precio Desc
+                </TableCell>
+                <TableCell style={{ fontWeight: "bold" }}>Cantidad</TableCell>
                 <TableCell style={{ fontWeight: "bold" }}>Subtotal</TableCell>
-                <TableCell></TableCell>
+                <TableCell>Acciones</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -415,7 +435,34 @@ export default function RegistrarPedido() {
                     key={idx}
                     style={prod.readOnly ? { opacity: 0.5 } : {}}
                   >
-                    <TableCell>{prod.cod_producto || ""}</TableCell>
+                    <TableCell>{prod.cod_producto}</TableCell>
+                    <TableCell>{prod.nombre}</TableCell>
+                    <TableCell>{prod.precio ?? 0}</TableCell>
+                    <TableCell>{prod.descuento ?? 0}</TableCell>
+                    <TableCell>
+                      {prod.precio_descuento ?? prod.precio ?? 0}
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        type="number"
+                        size="small"
+                        value={prod.cantidad}
+                        onChange={(e) =>
+                          handleCambiarCantidad(idx, e.target.value)
+                        }
+                        inputProps={{ min: 1, style: { textAlign: "center" } }}
+                        sx={{ width: "100%" }}
+                      />
+                    </TableCell>
+                    <TableCell>{prod.subtotal ?? 0}</TableCell>
+                    <TableCell>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleQuitarProducto(idx)}
+                      >
+                        <CancelIcon />
+                      </IconButton>
+                    </TableCell>
                   </TableRow>
                 );
               })}
