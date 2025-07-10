@@ -241,6 +241,15 @@ export default function RegistrarPedido() {
     });
   };
 
+  const handleCambiarDescuento = (idx, descuento) => {
+    const productoPedido = { ...productosPedido[idx] };
+    productoPedido.descuento = descuento;
+    setProductosPedido((prev) => {
+      prev[idx] = productoPedido;
+      return [...prev];
+    });
+  };
+
   const autocompletePoliticas = (
     <AutocompleteObject
       id="Política"
@@ -540,9 +549,7 @@ export default function RegistrarPedido() {
                 </TableCell>
                 <TableCell style={{ fontWeight: "bold" }}>Precio</TableCell>
                 <TableCell style={{ fontWeight: "bold" }}>% Desc</TableCell>
-                <TableCell style={{ fontWeight: "bold" }}>
-                  Precio Desc
-                </TableCell>
+                <TableCell style={{ fontWeight: "bold" }}>P Desc</TableCell>
                 <TableCell style={{ fontWeight: "bold" }}>Cantidad</TableCell>
                 <TableCell style={{ fontWeight: "bold" }}>Subtotal</TableCell>
                 <TableCell>Acciones</TableCell>
@@ -565,7 +572,16 @@ export default function RegistrarPedido() {
                       {prod.precio ?? 0}
                     </TableCell>
                     <TableCell style={{ width: "10%" }}>
-                      {prod.descuento ?? 0}
+                      <TextField
+                        type="number"
+                        size="small"
+                        value={prod.descuento ?? 0}
+                        onChange={(e) =>
+                          handleCambiarDescuento(idx, e.target.value)
+                        }
+                        inputProps={{ min: 1, style: { textAlign: "center" } }}
+                        sx={{ width: "100%" }}
+                      />
                     </TableCell>
                     <TableCell style={{ width: "10%" }}>
                       {prod.precio_descuento ?? prod.precio ?? 0}
