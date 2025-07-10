@@ -59,6 +59,7 @@ export default class API {
           } else if (data.mensaje) {
             ({ mensaje } = data);
           }
+          mensaje = data.error ?? mensaje;
         }
         throw new Error(mensaje);
       }
@@ -74,7 +75,7 @@ export default class API {
     );
   });
 
-  getPoliticas = this.#errorHandler(async (agencia = 25) => {
+  getPoliticas = this.#errorHandler(async (agencia) => {
     return await axios.get(
       `${this.#URL}/credit_policies?empresa=${
         this.#enterprise
@@ -83,7 +84,7 @@ export default class API {
     );
   });
 
-  getVendedores = this.#errorHandler(async (agencia = 25) => {
+  getVendedores = this.#errorHandler(async (agencia) => {
     return await axios.get(
       `${this.#URL}/vendedores_agencia?empresa=${
         this.#enterprise
@@ -92,25 +93,17 @@ export default class API {
     );
   });
 
-  getClientes = this.#errorHandler(
-    async (politica, agencia = 25, tipoPedido = "PE") => {
-      return await axios.get(
-        `${this.#URL}/clientes_mayoreo?empresa=${
-          this.#enterprise
-        }&cod_agencia=${agencia}&cod_politica=${politica}&pl_lv_cod_tipo_pedido=${tipoPedido}`,
-        this.#headers
-      );
-    }
-  );
+  getClientes = this.#errorHandler(async (agencia, politica, tipoPedido) => {
+    return await axios.get(
+      `${this.#URL}/clientes_mayoreo?empresa=${
+        this.#enterprise
+      }&cod_agencia=${agencia}&cod_politica=${politica}&pl_lv_cod_tipo_pedido=${tipoPedido}`,
+      this.#headers
+    );
+  });
 
   getCliente = this.#errorHandler(
-    async (
-      politica,
-      persona,
-      agencia = 25,
-      tipoPedido = "PE",
-      tipoPersona = "CLI"
-    ) => {
+    async (agencia, politica, tipoPedido, persona, tipoPersona) => {
       return await axios.get(
         `${this.#URL}/cliente_info?empresa=${
           this.#enterprise
@@ -121,11 +114,7 @@ export default class API {
   );
 
   getProductos = this.#errorHandler(
-    async (
-      codModeloCat = "PRO2",
-      codItemCat = "Y,E,T,L",
-      codModelo = "PRO1"
-    ) => {
+    async (codModeloCat, codItemCat, codModelo) => {
       return await axios.get(
         `${this.#URL}/productos_disponibles?empresa=${
           this.#enterprise
@@ -137,18 +126,18 @@ export default class API {
 
   getDetallePolitica = this.#errorHandler(
     async (
+      agencia,
       politica,
+      tipoPedido,
       persona,
+      tipoPersona,
       cuotas,
-      agencia = 25,
-      tipoPedido = "PE",
-      tipoPersona = "CLI",
       tipoClienteH
     ) => {
       return await axios.get(
-        `${this.#URL}/cliente_info?empresa=${
+        `${this.#URL}/politica_credito_detalle?empresa=${
           this.#enterprise
-        }&cod_agencia=${agencia}&cod_politica=${politica}&cod_tipo_pedido=${tipoPedido}&cod_persona_cli=${persona}&cod_tipo_persona_cli=${tipoPersona}`,
+        }&cod_agencia=${agencia}&cod_politica=${politica}&cod_tipo_pedido=${tipoPedido}&cod_persona_cli=${persona}&cod_tipo_persona_cli=${tipoPersona}&num_cuotas=${cuotas}&cod_tipo_clienteh=${tipoClienteH}`,
         this.#headers
       );
     }

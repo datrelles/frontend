@@ -124,4 +124,11 @@ export const ModelosCliente = {
 
 export const DefaultModeloCliente = ModelosCliente.CLI1.key;
 
+export const FormasPago = {
+  CRE: new Enum("CRE", "CRÉDITO"),
+  EFE: new Enum("EFE", "EFECTIVO"),
+};
+
+export const DefaultFormaPago = FormasPago.EFE.key;
+
 export const CARACTER_RELLENO = "-";

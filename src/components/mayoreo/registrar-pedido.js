@@ -32,6 +32,8 @@ import FlashOnIcon from "@mui/icons-material/FlashOn";
 import OpacityIcon from "@mui/icons-material/Opacity";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { DefaultFormaPago, FormasPago } from "../formulas/common/enum";
+import CustomSelect from "../formulas/common/custom-select";
 
 const shapePolitica = {
   cod_politica: "",
@@ -108,6 +110,14 @@ const filtrarCampo = (obj, campo, valor) => {
 const filtrarProdsPorCat = (productos, categoria) =>
   productos.filter((prod) => prod.cod_item_cat === categoria);
 
+const COD_AGENCIA = 25;
+const COD_TIPO_PEDIDO = "PE";
+const COD_TIPO_PERSONA_CLI = "CLI";
+const COD_MODELO_CAT = "PRO2";
+const COD_ITEM_CAT = "Y,E,T,L";
+const COD_MODELO = "PRO1";
+const COD_TIPO_CLIENTE_H = "MY";
+
 export default function RegistrarPedido() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
     useAuthContext();
@@ -128,7 +138,9 @@ export default function RegistrarPedido() {
   const [productos, setProductos] = useState([]);
   const [productosFiltrados, setProductosFiltrados] = useState([]);
   const [cuotas, setCuotas] = useState(0);
+  const [formaPago, setFormaPago] = useState(DefaultFormaPago);
   const [interes, setInteres] = useState(0);
+  const [factorCredito, setFactorCredito] = useState(0);
   const [envio, setEnvio] = useState("");
   const [telefono, setTelefono] = useState("");
   const [ciudad, setCiudad] = useState("");
@@ -159,7 +171,7 @@ export default function RegistrarPedido() {
 
   const getPoliticas = async () => {
     try {
-      setPoliticas(await APIService.getPoliticas());
+      setPoliticas(await APIService.getPoliticas(COD_AGENCIA));
     } catch (err) {
       toast.error(err.message);
     }
@@ -167,7 +179,7 @@ export default function RegistrarPedido() {
 
   const getVendedores = async () => {
     try {
-      setVendedores(await APIService.getVendedores());
+      setVendedores(await APIService.getVendedores(COD_AGENCIA));
     } catch (err) {
       toast.error(err.message);
     }
@@ -175,7 +187,9 @@ export default function RegistrarPedido() {
 
   const getProductos = async () => {
     try {
-      setProductos(await APIService.getProductos());
+      setProductos(
+        await APIService.getProductos(COD_MODELO_CAT, COD_ITEM_CAT, COD_MODELO)
+      );
     } catch (err) {
       toast.error(err.message);
     }
@@ -184,7 +198,9 @@ export default function RegistrarPedido() {
   const getClientes = async (politica) => {
     try {
       setCargando(true);
-      setClientes(await APIService.getClientes(politica));
+      setClientes(
+        await APIService.getClientes(COD_AGENCIA, politica, COD_TIPO_PEDIDO)
+      );
       setCargando(false);
     } catch (err) {
       setCargando(false);
@@ -268,6 +284,10 @@ export default function RegistrarPedido() {
     />
   );
 
+  const selectFormaPago = (
+    <CustomSelect label="Forma pago" options={FormasPago} value={formaPago} />
+  );
+
   const itemsCabeceraPedido = [
     createCustomComponentItem(2, "politica", autocompletePoliticas),
     createTextFieldItem({
@@ -278,22 +298,65 @@ export default function RegistrarPedido() {
     }),
     createCustomComponentItem(6, "agente", autocompleteVendedores),
     createCustomComponentItem(12, "cliente", autocompleteClientes),
-    // createTextFieldItem({
-    //   xs: 6,
-    //   id: "cuotas",
-    //   label: "Cuotas",
-    //   value: cuotas,
-    //   setValue: createDefaultSetter({ setter: setCuotas }),
-    //   type: "number",
-    // }),
-    // createTextFieldItem({
-    //   xs: 6,
-    //   id: "interes",
-    //   label: "% Interés",
-    //   value: interes,
-    //   setValue: createDefaultSetter({ setter: setInteres }),
-    //   type: "number",
-    // }),
+    createTextFieldItem({
+      xs: 3,
+      id: "cuotas",
+      label: "Cuotas",
+      value: cuotas,
+      disabled:
+        politica.cod_politica === "" ||
+        vendedor.cod_persona_vendor === "" ||
+        cliente.cod_persona === "",
+      setValue: (e) => {
+        let numCuotas = parseInt(e.target.value || "0");
+        if (numCuotas < 0) numCuotas = 0;
+        setCuotas(numCuotas);
+        let forma = FormasPago.EFE.key;
+        if (numCuotas > 0) forma = FormasPago.CRE.key;
+        setFormaPago(forma);
+        if (numCuotas > 0) {
+          APIService.getDetallePolitica(
+            COD_AGENCIA,
+            politica.cod_politica,
+            COD_TIPO_PEDIDO,
+            cliente.cod_persona,
+            COD_TIPO_PERSONA_CLI,
+            numCuotas,
+            COD_TIPO_CLIENTE_H
+          )
+            .then((res) => {
+              setInteres(res.por_interes_final ?? 0);
+              setFactorCredito(res.factor_credito_final ?? 0);
+            })
+            .catch((err) => {
+              toast.error(err.message);
+              setFormaPago(DefaultFormaPago);
+              setInteres(0);
+              setFactorCredito(0);
+            });
+        } else {
+          setFormaPago(DefaultFormaPago);
+          setInteres(0);
+          setFactorCredito(0);
+        }
+      },
+      type: "number",
+    }),
+    createCustomComponentItem(3, "forma-pago", selectFormaPago),
+    createTextFieldItem({
+      xs: 3,
+      id: "interes",
+      label: "% Interés",
+      value: interes,
+      type: "number",
+    }),
+    createTextFieldItem({
+      xs: 3,
+      id: "factor",
+      label: "Factor crédito",
+      value: factorCredito,
+      type: "number",
+    }),
     // createTextFieldItem({
     //   xs: 6,
     //   id: "direccion",
@@ -648,7 +711,13 @@ export default function RegistrarPedido() {
 
   useEffect(() => {
     if (cliente.cod_persona !== "") {
-      APIService.getCliente(politica.cod_politica, cliente.cod_persona)
+      APIService.getCliente(
+        COD_AGENCIA,
+        politica.cod_politica,
+        COD_TIPO_PEDIDO,
+        cliente.cod_persona,
+        COD_TIPO_PERSONA_CLI
+      )
         .then((cliente) => {
           setEnvio(cliente.direccion_envio);
           setTelefono(cliente.telefono);
@@ -665,6 +734,18 @@ export default function RegistrarPedido() {
         );
     }
   }, [cliente]);
+
+  useEffect(() => {
+    if (
+      politica.cod_politica === "" ||
+      vendedor.cod_persona_vendor === "" ||
+      cliente.cod_persona === ""
+    ) {
+      setCuotas(0);
+      setInteres(0);
+      setFactorCredito(0);
+    }
+  }, [politica, vendedor, cliente]);
 
   return (
     <MainComponent
