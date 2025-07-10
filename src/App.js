@@ -98,6 +98,7 @@ import  CatColor from "./components/marketing/catalogos/catColor";
 import  CatImagenes from "./components/marketing/catalogos/catImagenes";
 import  CatTransmision from "./components/marketing/catalogos/catTransmision";
 import  CatCanal from "./components/marketing/catalogos/catCanal";
+import  CatCliente from "./components/marketing/catalogos/catCliente";
 import  CatMarca from "./components/marketing/catalogos/catMarca";
 import  CatMarcRepuesto from "./components/marketing/catalogos/catMarcRepuesto";
 import  CatPdrExterno from "./components/marketing/catalogos/catPdrExterno";
@@ -272,6 +273,7 @@ function App() {
                   <Route exact path="/catalogo_imagenes" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatImagenes/></Protected>}/>
                   <Route exact path="/catalogo_transmision" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatTransmision/></Protected>}/>
                   <Route exact path="/catalogo_canal" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatCanal/></Protected>}/>
+                  <Route exact path="/catalogo_cliente" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatCliente/></Protected>}/>
                   <Route exact path="/catalogo_marca_rep" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatMarcRepuesto/></Protected>}/>
                   <Route exact path="/catalogo_prod_externo" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatPdrExterno/></Protected>}/>
                   <Route exact path="/catalogo_version" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatVersion/></Protected>}/>

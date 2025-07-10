@@ -26,6 +26,8 @@ function CompararModelos()  {
     const [selectedImagen, setSelectedImagen] = useState(null);
     const [comparacionActiva, setComparacionActiva] = useState(false);
     const [bloquearInputs, setBloquearInputs] = useState(false);
+    const [cilindradaSeleccionada, setCilindradaSeleccionada] = useState(null);
+    const [cilindradasDisponibles, setCilindradasDisponibles] = useState([]);
 
 
     const numeroModelos = 5;
@@ -35,7 +37,8 @@ function CompararModelos()  {
             linea: null,
             segmento: null,
             modelo: null,
-            marca: null
+            marca: null,
+            cilindrada: null
         }))
     );
 
@@ -47,6 +50,9 @@ function CompararModelos()  {
         Array(numeroModelos).fill([])
     );
     const [marcasPorBloque, setMarcasPorBloque] = useState(
+        Array(numeroModelos).fill([])
+    );
+    const [cilindradaPorBloque, setCilindradaPorBloque] = useState(
         Array(numeroModelos).fill([])
     );
 
@@ -63,6 +69,15 @@ function CompararModelos()  {
             fontSize: '11px'
         }
     };
+
+    const ordenPersonalizado = [
+        "SCOOTER",
+        "CABALLITO",
+        "UTILITARIA",
+        "STREET",
+        "DEPORTIVA",
+        "CROSS"
+    ];
 
     const handleComparar = async () => {
         const modeloBase = bloques[0]?.modelo;
@@ -205,17 +220,22 @@ function CompararModelos()  {
         setSegmentosPorBloque(prev => {
             const copia = [...prev];
 
-            copia[index] = dataSeg.map(seg => ({
-                ...seg,
-                codigo_linea: linea.codigo_linea
-            }));
+            copia[index] = dataSeg
+                .slice()
+                .sort((a, b) =>
+                    ordenPersonalizado.indexOf(a.nombre_segmento?.toUpperCase()) -
+                    ordenPersonalizado.indexOf(b.nombre_segmento?.toUpperCase())
+                )
+                .map(seg => ({
+                    ...seg,
+                    codigo_linea: linea.codigo_linea
+                }));
 
             if (index === 0) {
                 for (let i = 1; i < copia.length; i++) {
                     copia[i] = [];
                 }
             }
-
             return copia;
         });
 
@@ -225,7 +245,6 @@ function CompararModelos()  {
             if (index === 0) {
                 for (let i = 1; i < copia.length; i++) copia[i] = [];
             }
-
             return copia;
         });
 
@@ -238,6 +257,35 @@ function CompararModelos()  {
 
             return copia;
         });
+
+        setCilindradaPorBloque(prev => {
+            const copia = [...prev];
+            copia[index] = [];
+            if (index === 0) {
+                for (let i = 1; i < copia.length; i++) copia[i] = [];
+            }
+            return copia;
+        });
+    };
+
+    const obtenerCilindradaMinMax = (cilindradaStr) => {
+        if (cilindradaStr && typeof cilindradaStr === 'string') {
+            const match = cilindradaStr.match(/(\d+)\s*CC\s*-\s*(\d+)\s*CC/);
+            if (match) {
+                return {
+                    cilMin: parseInt(match[1]),
+                    cilMax: parseInt(match[2])
+                };
+            }
+        }
+        return { cilMin: null, cilMax: null };
+    };
+
+    const extraerCilindradaTexto = (bloque, fallback) => {
+        if (typeof bloque?.cilindrada === 'string') return bloque.cilindrada;
+        if (typeof bloque?.cilindrada?.label === 'string') return bloque.cilindrada.label;
+        if (typeof fallback?.label === 'string') return fallback.label;
+        return '';
     };
 
     const handleSegmentoChange = async (index, segmento) => {
@@ -260,10 +308,20 @@ function CompararModelos()  {
 
         setBloques(nuevosBloques);
 
+        const cilindradaTexto = extraerCilindradaTexto(nuevosBloques[index], cilindradaSeleccionada);
+        const { cilMin, cilMax } = obtenerCilindradaMinMax(cilindradaTexto);
+
         const linea = nuevosBloques[index].linea;
-        const res = await fetch(`${API}/bench_model/get_marcas_por_linea_segmento?codigo_linea=${linea.codigo_linea}&nombre_segmento=${encodeURIComponent(segmento.nombre_segmento)}`, {
+
+        let url = `${API}/bench_model/get_marcas_por_linea_segmento?codigo_linea=${linea.codigo_linea}&nombre_segmento=${encodeURIComponent(segmento.nombre_segmento)}`;
+        if (cilMin !== null && cilMax !== null) {
+            url += `&cil_min=${cilMin}&cil_max=${cilMax}`;
+        }
+
+        const res = await fetch(url, {
             headers: { Authorization: 'Bearer ' + jwt }
         });
+
         const data = await res.json();
         setMarcasPorBloque(prev => {
             const copia = [...prev];
@@ -297,6 +355,23 @@ function CompararModelos()  {
             return copia;
         });
 
+        setCilindradaPorBloque(prev => {
+            const copia = [...prev];
+            copia[index] = [];
+            if (index === 0) {
+                for (let i = 1; i < nuevosBloques.length; i++) {
+                    if (
+                        nuevosBloques[i].linea?.codigo_linea === nuevosBloques[0].linea?.codigo_linea &&
+                        nuevosBloques[i].segmento?.nombre_segmento === segmento.nombre_segmento
+
+                    ) {
+                        copia[i] = [];
+                    }
+                }
+            }
+            return copia;
+        });
+
         if (index === 0) {
             const marcaShineray = data.find(m => m.nombre_marca?.toUpperCase().trim() === "SHINERAY");
             if (marcaShineray && !nuevosBloques[0].marca) {
@@ -304,7 +379,12 @@ function CompararModelos()  {
                 nuevosBloquesConMarca[0].marca = marcaShineray;
                 setBloques(nuevosBloquesConMarca);
 
-                const resModelos = await fetch(`${API}/bench_model/get_modelos_por_linea_segmento_marca?codigo_linea=${linea.codigo_linea}&nombre_segmento=${encodeURIComponent(segmento.nombre_segmento)}&codigo_marca=${marcaShineray.codigo_marca}`, {
+                let urlModelos = `${API}/bench_model/get_modelos_por_linea_segmento_marca_cilindraje?codigo_linea=${linea.codigo_linea}&nombre_segmento=${encodeURIComponent(segmento.nombre_segmento)}&codigo_marca=${marcaShineray.codigo_marca}`;
+                if (cilMin !== null && cilMax !== null) {
+                    urlModelos += `&cil_min=${cilMin}&cil_max=${cilMax}`;
+                }
+
+                const resModelos = await fetch(urlModelos, {
                     headers: { Authorization: 'Bearer ' + jwt }
                 });
                 const modelosData = await resModelos.json();
@@ -327,7 +407,16 @@ function CompararModelos()  {
         const linea = nuevosBloques[index].linea;
         const segmento = nuevosBloques[index].segmento;
 
-        const res = await fetch(`${API}/bench_model/get_modelos_por_linea_segmento_marca?codigo_linea=${linea.codigo_linea}&nombre_segmento=${encodeURIComponent(segmento.nombre_segmento)}&codigo_marca=${marca.codigo_marca}`, {
+        const cilindradaTexto = extraerCilindradaTexto(nuevosBloques[index], cilindradaSeleccionada);
+        const { cilMin, cilMax } = obtenerCilindradaMinMax(cilindradaTexto);
+
+
+        let url = `${API}/bench_model/get_modelos_por_linea_segmento_marca_cilindraje?codigo_linea=${linea.codigo_linea}&nombre_segmento=${encodeURIComponent(segmento.nombre_segmento)}&codigo_marca=${marca.codigo_marca}`;
+        if (cilMin !== null && cilMax !== null) {
+            url += `&cil_min=${cilMin}&cil_max=${cilMax}`;
+        }
+
+        const res = await fetch(url, {
             headers: { Authorization: 'Bearer ' + jwt }
         });
 
@@ -349,7 +438,7 @@ function CompararModelos()  {
         const cargarDatos = async () => {
             try {
                 await getMenus();
-                await fetchLineas(); // esto cargará `lineas`
+                await fetchLineas();
                 await fetchImagenData();
             } catch (err) {
                 console.error("Error cargando datos iniciales:", err);
@@ -358,7 +447,6 @@ function CompararModelos()  {
 
         cargarDatos();
     }, []);
-
 
     useEffect(() => {
         const cargarLineasConSegmentos = async () => {
@@ -381,7 +469,6 @@ function CompararModelos()  {
                     console.error(`Error al cargar segmentos para línea ${l.nombre_linea}:`, error);
                 }
             }
-
             setLineasDisponiblesConSegmentos(lineasValidas);
         };
 
@@ -389,6 +476,57 @@ function CompararModelos()  {
             cargarLineasConSegmentos();
         }
     }, [lineas]);
+
+    const handleCilindradaChange = async (index, cilindrada) => {
+        const nuevosBloques = [...bloques];
+
+        if (index === 0) {
+            for (let i = 0; i < nuevosBloques.length; i++) {
+                nuevosBloques[i].cilindrada = cilindrada;
+            }
+        } else {
+            nuevosBloques[index].cilindrada = cilindrada;
+        }
+
+        setBloques(nuevosBloques);
+
+        if (index === 0 && nuevosBloques[0].segmento) {
+            await handleSegmentoChange(0, nuevosBloques[0].segmento);
+        }
+    };
+
+
+    useEffect(() => {
+        const fetchCilindradas = async () => {
+            try {
+                const res = await fetch(`${API}/bench_model/get_cilindradas_disponibles`, {
+                    headers: { Authorization: 'Bearer ' + jwt }
+                });
+                const data = await res.json();
+
+                const opciones = [
+                    { label: "Todos", min: null, max: null },
+                    ...data.map(rango => {
+                        const match = rango.match(/(\d+)\s*CC\s*-\s*(\d+)\s*CC/);
+                        if (match) {
+                            return {
+                                label: rango.trim(),
+                                min: parseInt(match[1]),
+                                max: parseInt(match[2])
+                            };
+                        }
+                        return null;
+                    }).filter(Boolean)
+                ];
+
+                setCilindradasDisponibles(opciones);
+            } catch (err) {
+                console.error('Error al cargar cilindradas disponibles', err);
+            }
+        };
+
+        fetchCilindradas();
+    }, []);
 
     return (
         <>
@@ -406,7 +544,7 @@ function CompararModelos()  {
                             {bloques.map((bloque, index) => {
                                 if (comparacionActiva && index > 0 && !bloque.modelo) return null;
                                 return (
-                                    <Grid item xs={12} sm={6} md={4} lg={3} xl={2}>
+                                    <Grid item key={index} xs={12} sm={6} md={4} lg={3} xl={2}>
                                     <Box sx={{
                                             border: '1px solid #ccc',
                                             borderRadius: 2,
@@ -473,6 +611,17 @@ function CompararModelos()  {
                                             />
                                             <Autocomplete
                                                 size="small"
+                                                options={cilindradasDisponibles}
+                                                getOptionLabel={(option) => option?.label || ''}
+                                                value={bloque.cilindrada || null}
+                                                onChange={(e, newValue) => handleCilindradaChange(index, newValue)}
+                                                renderInput={(params) => (
+                                                    <TextField {...params} label="Cilindrada" sx={textFieldSmallSx} />
+                                                )}
+                                                disabled={bloquearInputs || !bloque.segmento || index !== 0}
+                                            />
+                                            <Autocomplete
+                                                size="small"
                                                 options={marcasPorBloque[index] || []}
                                                 value={bloque.marca}
                                                 getOptionLabel={(op) => op?.nombre_marca || ''}
@@ -522,10 +671,12 @@ function CompararModelos()  {
                                     setBloques(Array(numeroModelos).fill().map(() => ({
                                         linea: null,
                                         segmento: null,
-                                        modelo: null
+                                        modelo: null,
+                                        cilindrada: null
                                     })));
                                     setSegmentosPorBloque(Array(numeroModelos).fill([]));
                                     setModelosPorBloque(Array(numeroModelos).fill([]));
+                                    setCilindradaPorBloque(Array(numeroModelos).fill([]));
                                 }}
                                 sx={{
                                     backgroundColor: '#535353',

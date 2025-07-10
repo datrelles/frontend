@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {
     Table, TableBody, TableCell, TableRow,
     IconButton, Collapse, Box, Typography, Button, Dialog, DialogTitle, DialogContent, Tooltip,
@@ -155,7 +155,7 @@ export default function CatModeloVersionExpandible({
     const columns = [
         //{ name: 'codigo_modelo_version', label: 'CÓDIGO' },
         { name: 'nombre_modelo_version', label: 'MODELO' },
-       // { name: 'nombre_producto', label: 'PRODUCTO' },
+        { name: 'nombre_producto', label: 'REPUESTO' },
         { name: 'nombre_marca', label: 'MARCA' },
         { name: 'nombre_empresa', label: 'EMPRESA' },
         {
@@ -247,7 +247,7 @@ export default function CatModeloVersionExpandible({
             </TableRow>
         ),
         customToolbar: () => (
-            <Tooltip title="Exportar CSV">
+            <Tooltip title="Exportar XLSX">
                 <IconButton onClick={() => exportarCamposPlantilla(cabeceras)}>
                     <GetAppIcon />
                 </IconButton>
