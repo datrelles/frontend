@@ -143,6 +143,28 @@ export default class API {
     }
   );
 
+  getDescuentoProducto = this.#errorHandler(
+    async (
+      agencia,
+      politica,
+      modeloCat,
+      itemCat,
+      producto,
+      cuotas,
+      persona,
+      pedido,
+      tipoPedido,
+      secuencia
+    ) => {
+      return await axios.get(
+        `${this.#URL}/obtener_descuento?empresa=${
+          this.#enterprise
+        }&cod_agencia=${agencia}&cod_politica=${politica}&lv_cod_modelo_cat=${modeloCat}&lv_cod_item_cat=${itemCat}&cod_producto=${producto}&num_cuotas=${cuotas}&cod_persona_cli=${persona}&cod_pedido=${pedido}&cod_tipo_pedido=${tipoPedido}&secuencia=${secuencia}`,
+        this.#headers
+      );
+    }
+  );
+
   getPrecioProducto = this.#errorHandler(
     async (
       agencia,
@@ -165,14 +187,15 @@ export default class API {
       comprobanteLote,
       tipoComprobante,
       descuento,
+      factorCredito,
       iva,
       ice,
       anio
     ) => {
       return await axios.get(
-        `${this.#URL}/politica_credito_detalle?empresa=${
+        `${this.#URL}/calcula_precios?empresa=${
           this.#enterprise
-        }&cod_agencia=${agencia}&cod_politica=${politica}&lv_cod_modelo_cat=${modeloCat}&lv_cod_item_cat=${itemCat}&cod_producto=${producto}&num_cuotas=${cuotas}`,
+        }&cod_agencia=${agencia}&cod_politica=${politica}&lv_cod_modelo_cat=${modeloCat}&lv_cod_item_cat=${itemCat}&cod_producto=${producto}&num_cuotas=${cuotas}&cod_persona_cli=${persona}&cod_tipo_pedido=${codTipoPedido}&cantidad_pedida=${cantidad}&tipo_pedido=${tipoPedido}&lv_cod_unidad=${lvCodUnidad}&cantidad_calculo=${cantidadCalculo}&cod_unidad=${codigoUnidad}&cod_forma_pago=${formaPago}&cod_divisa=${divisa}&fecha=${fecha}&cod_forma_pago2=${formaPago2}&cod_comprobante_lote=${comprobanteLote}&tipo_comprobante_lote=${tipoComprobante}&descuento=${descuento}&pc_factor_credito=${factorCredito}&lv_tiene_iva=${iva}&lv_tiene_ice=${ice}&anio_modelo=${anio}`,
         this.#headers
       );
     }

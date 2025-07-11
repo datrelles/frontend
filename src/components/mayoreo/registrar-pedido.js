@@ -32,8 +32,16 @@ import FlashOnIcon from "@mui/icons-material/FlashOn";
 import OpacityIcon from "@mui/icons-material/Opacity";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { DefaultFormaPago, FormasPago } from "../formulas/common/enum";
+import {
+  DefaultFormaPago,
+  FormasPago,
+  TiposRetorno,
+} from "../formulas/common/enum";
 import CustomSelect from "../formulas/common/custom-select";
+import {
+  formatearFechaInput,
+  validarTipoRetornoYConvertir,
+} from "../../helpers/modulo-formulas";
 
 const shapePolitica = {
   cod_politica: "",
@@ -117,6 +125,11 @@ const COD_MODELO_CAT = "PRO2";
 const COD_ITEM_CAT = "Y,E,T,L";
 const COD_MODELO = "PRO1";
 const COD_TIPO_CLIENTE_H = "MY";
+const COD_UNIDAD = "U";
+const COD_DIVISA = "DOLARES";
+const TIENE_IVA = "S";
+const TIENE_ICE = "S";
+const COD_PEDIDO = 0;
 
 export default function RegistrarPedido() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
@@ -128,6 +141,7 @@ export default function RegistrarPedido() {
   const [menus, setMenus] = useState([]);
   const [pagina, setPagina] = useState(0);
   const [cargando, setCargando] = useState(false);
+  const [mensajeCargando, setMensajeCargando] = useState("");
   const [politicas, setPoliticas] = useState([]);
   const [politica, setPolitica] = useState(shapePolitica);
   const [nombrePolitica, setNombrePolitica] = useState("");
@@ -158,6 +172,7 @@ export default function RegistrarPedido() {
   const [cantidadProd, setCantidadProd] = useState(1);
   const [productosPedido, setProductosPedido] = useState([]);
   const [agregarProducto, setAgregarProducto] = useState(false);
+  const [valorPedido, setValorPedido] = useState(0);
 
   const [observacion, setObservacion] = useState("");
 
@@ -197,12 +212,15 @@ export default function RegistrarPedido() {
 
   const getClientes = async (politica) => {
     try {
+      setMensajeCargando("Cargando clientes");
       setCargando(true);
       setClientes(
         await APIService.getClientes(COD_AGENCIA, politica, COD_TIPO_PEDIDO)
       );
+      setMensajeCargando("");
       setCargando(false);
     } catch (err) {
+      setMensajeCargando("");
       setCargando(false);
       toast.error(err.message);
     }
@@ -212,7 +230,66 @@ export default function RegistrarPedido() {
     setPagina(pagina);
   };
 
-  const handleSelectProduct = (newProd) => {
+  const calcularValorPedido = () => {
+    const valor =
+      productosPedido.length === 0
+        ? 0
+        : productosPedido.reduce((accum, item) => accum + item.subtotal, 0);
+    setValorPedido(valor);
+  };
+
+  const handleSelectProduct = async (prod) => {
+    const newProd = { ...prod };
+    newProd.secuencia = (productosPedido.at(-1)?.secuencia ?? 0) + 1;
+    newProd.cantidad = 1;
+    let descuentoProd, precioProd;
+    try {
+      descuentoProd = await APIService.getDescuentoProducto(
+        COD_AGENCIA,
+        politica.cod_politica,
+        COD_MODELO_CAT,
+        newProd.cod_item_cat,
+        newProd.cod_producto,
+        cuotas,
+        cliente.cod_persona,
+        COD_PEDIDO,
+        COD_TIPO_PEDIDO,
+        newProd.secuencia
+      );
+      newProd.descuento = descuentoProd.descuento;
+      precioProd = await APIService.getPrecioProducto(
+        COD_AGENCIA,
+        politica.cod_politica,
+        COD_MODELO_CAT,
+        newProd.cod_item_cat,
+        newProd.cod_producto,
+        cuotas,
+        cliente.cod_persona,
+        COD_TIPO_PEDIDO,
+        newProd.cantidad,
+        COD_TIPO_PEDIDO,
+        COD_UNIDAD,
+        newProd.cantidad,
+        COD_UNIDAD,
+        formaPago,
+        COD_DIVISA,
+        formatearFechaInput(new Date()),
+        formaPago,
+        null,
+        null,
+        newProd.descuento,
+        factorCredito,
+        TIENE_IVA,
+        TIENE_ICE,
+        new Date().getFullYear()
+      );
+    } catch (error) {
+      toast.error(error.message);
+      return;
+    }
+    newProd.precio = precioProd.precio;
+    newProd.precio_descontado = precioProd.precio_descontado;
+    newProd.subtotal = newProd.cantidad * newProd.precio_descontado;
     setProductosPedido((prev) => {
       if (prev.find((prod) => prod.cod_producto === newProd.cod_producto)) {
         toast.warn("El producto ya fue agregado");
@@ -222,7 +299,7 @@ export default function RegistrarPedido() {
       setCodigoProd("");
       setNombreProd("");
       setProductosFiltrados([]);
-      return prev.concat({ ...newProd, cantidad: 1 });
+      return prev.concat(newProd);
     });
   };
 
@@ -235,16 +312,59 @@ export default function RegistrarPedido() {
   const handleCambiarCantidad = (idx, cantidad) => {
     const productoPedido = { ...productosPedido[idx] };
     productoPedido.cantidad = cantidad;
+    productoPedido.subtotal =
+      productoPedido.cantidad * productoPedido.precio_descontado;
     setProductosPedido((prev) => {
       prev[idx] = productoPedido;
       return [...prev];
     });
   };
 
-  const handleCambiarDescuento = (idx, descuento) => {
+  const handleCambiarDescuento = async (idx, descuento) => {
+    setMensajeCargando("Calculando descuento");
+    setCargando(true);
     const productoPedido = { ...productosPedido[idx] };
     productoPedido.descuento = descuento;
+    let precioProd;
+    try {
+      precioProd = await APIService.getPrecioProducto(
+        COD_AGENCIA,
+        politica.cod_politica,
+        COD_MODELO_CAT,
+        productoPedido.cod_item_cat,
+        productoPedido.cod_producto,
+        cuotas,
+        cliente.cod_persona,
+        COD_TIPO_PEDIDO,
+        productoPedido.cantidad,
+        COD_TIPO_PEDIDO,
+        COD_UNIDAD,
+        productoPedido.cantidad,
+        COD_UNIDAD,
+        formaPago,
+        COD_DIVISA,
+        formatearFechaInput(new Date()),
+        formaPago,
+        null,
+        null,
+        productoPedido.descuento,
+        factorCredito,
+        TIENE_IVA,
+        TIENE_ICE,
+        new Date().getFullYear()
+      );
+    } catch (error) {
+      toast.error(error.message);
+      setMensajeCargando("");
+      setCargando(false);
+      return;
+    }
+    productoPedido.precio_descontado = precioProd.precio_descontado;
+    productoPedido.subtotal =
+      productoPedido.cantidad * productoPedido.precio_descontado;
     setProductosPedido((prev) => {
+      setMensajeCargando("");
+      setCargando(false);
       prev[idx] = productoPedido;
       return [...prev];
     });
@@ -520,7 +640,7 @@ export default function RegistrarPedido() {
   ];
 
   const modalCargandoClientes = (
-    <LoadingModal esVisible={cargando} mensaje="Cargando clientes" />
+    <LoadingModal esVisible={cargando} mensaje={mensajeCargando} />
   );
 
   const header = <Header menus={menus} />;
@@ -576,24 +696,48 @@ export default function RegistrarPedido() {
                         type="number"
                         size="small"
                         value={prod.descuento ?? 0}
-                        onChange={(e) =>
-                          handleCambiarDescuento(idx, e.target.value)
-                        }
+                        onChange={(e) => {
+                          let descuento = e.target.value;
+                          try {
+                            descuento = validarTipoRetornoYConvertir(
+                              TiposRetorno.NUMERO,
+                              descuento
+                            );
+                            if (descuento > 100) {
+                              toast.error(
+                                "El descuento debe ser máximo del 100%"
+                              );
+                              descuento = 0;
+                            }
+                          } catch (err) {
+                            descuento = 0;
+                          }
+                          handleCambiarDescuento(idx, descuento);
+                        }}
                         inputProps={{ min: 1, style: { textAlign: "center" } }}
                         sx={{ width: "100%" }}
                       />
                     </TableCell>
                     <TableCell style={{ width: "10%" }}>
-                      {prod.precio_descuento ?? prod.precio ?? 0}
+                      {prod.precio_descontado ?? prod.precio ?? 0}
                     </TableCell>
                     <TableCell style={{ width: "10%" }}>
                       <TextField
                         type="number"
                         size="small"
                         value={prod.cantidad}
-                        onChange={(e) =>
-                          handleCambiarCantidad(idx, e.target.value)
-                        }
+                        onChange={(e) => {
+                          let cantidad = e.target.value;
+                          try {
+                            cantidad = validarTipoRetornoYConvertir(
+                              TiposRetorno.NUMERO,
+                              cantidad
+                            );
+                          } catch (err) {
+                            cantidad = 1;
+                          }
+                          handleCambiarCantidad(idx, cantidad);
+                        }}
                         inputProps={{ min: 1, style: { textAlign: "center" } }}
                         sx={{ width: "100%" }}
                       />
@@ -621,6 +765,13 @@ export default function RegistrarPedido() {
           icon={false}
         />
       </Paper>
+      <Typography
+        variant="h6"
+        align="right"
+        style={{ fontWeight: "bold", marginTop: 15, marginRight: "2%" }}
+      >
+        Total: {valorPedido.toFixed(2)}
+      </Typography>
     </ThemeProvider>
   );
 
@@ -767,6 +918,10 @@ export default function RegistrarPedido() {
       setFactorCredito(0);
     }
   }, [politica, vendedor, cliente]);
+
+  useEffect(() => {
+    calcularValorPedido();
+  }, [productosPedido]);
 
   return (
     <MainComponent
