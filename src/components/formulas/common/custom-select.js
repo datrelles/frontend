@@ -8,6 +8,7 @@ export default function CustomSelect({
   onChange = null,
   disabled = !onChange,
   required = true,
+  blankOption = true,
 }) {
   return (
     <TextField
@@ -20,7 +21,9 @@ export default function CustomSelect({
       value={value}
       onChange={onChange ?? null}
     >
-      {onChange && <MenuItem value="Seleccione">Seleccione</MenuItem>}
+      {onChange && blankOption && (
+        <MenuItem value="Seleccione">Seleccione</MenuItem>
+      )}
       {Enum.values(options).map((option) => (
         <MenuItem
           disabled={option.disabled ?? false}
