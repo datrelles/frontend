@@ -115,8 +115,15 @@ const filtrarCampo = (obj, campo, valor) => {
   );
 };
 
-const filtrarProdsPorCat = (productos, categoria) =>
-  productos.filter((prod) => prod.cod_item_cat === categoria);
+const filtrarProductos = (productos, codigo, nombre, codItemCat) =>
+  codigo === "" && nombre === "" && codItemCat === ""
+    ? []
+    : productos.filter(
+        (prod) =>
+          filtrarCampo(prod, "cod_producto", codigo) &&
+          filtrarCampo(prod, "nombre", nombre) &&
+          filtrarCampo(prod, "cod_item_cat", codItemCat)
+      );
 
 const COD_AGENCIA = 25;
 const COD_TIPO_PEDIDO = "PE";
@@ -172,8 +179,9 @@ export default function RegistrarPedido() {
   const [categoria, setCategoria] = useState("");
   const [tipoCliente, setTipoCliente] = useState("");
   const [carteraVencida, setCarteraVencida] = useState(0);
-  const [codigoProd, setCodigoProd] = useState("");
-  const [nombreProd, setNombreProd] = useState("");
+  const [codigoProducto, setCodigoProducto] = useState("");
+  const [nombreProducto, setNombreProducto] = useState("");
+  const [codItemCatProducto, setCodItemCatProducto] = useState("");
   const [productosPedido, setProductosPedido] = useState([]);
   const [agregarProducto, setAgregarProducto] = useState(false);
   const [ICEPedido, setICEPedido] = useState(0);
@@ -324,8 +332,8 @@ export default function RegistrarPedido() {
         return prev;
       }
       setAgregarProducto(false);
-      setCodigoProd("");
-      setNombreProd("");
+      setCodigoProducto("");
+      setNombreProducto("");
       setProductosFiltrados([]);
       return prev.concat(newProd);
     });
@@ -593,15 +601,16 @@ export default function RegistrarPedido() {
       xs: 3,
       id: "codigo-prod",
       label: "Código",
-      value: codigoProd,
+      value: codigoProducto,
       setValue: (e) => {
         const nuevoCod = e.target.value ?? "";
-        setCodigoProd(nuevoCod);
+        setCodigoProducto(nuevoCod);
         setProductosFiltrados(
-          productos.filter(
-            (prod) =>
-              filtrarCampo(prod, "cod_producto", nuevoCod) &&
-              filtrarCampo(prod, "nombre", nombreProd)
+          filtrarProductos(
+            productos,
+            nuevoCod,
+            nombreProducto,
+            codItemCatProducto
           )
         );
       },
@@ -610,15 +619,16 @@ export default function RegistrarPedido() {
       xs: 5,
       id: "nombre-prod",
       label: "Nombre",
-      value: nombreProd,
+      value: nombreProducto,
       setValue: (e) => {
         const nuevoNombre = e.target.value ?? "";
-        setNombreProd(nuevoNombre);
+        setNombreProducto(nuevoNombre);
         setProductosFiltrados(
-          productos.filter(
-            (prod) =>
-              filtrarCampo(prod, "nombre", nuevoNombre) &&
-              filtrarCampo(prod, "cod_producto", codigoProd)
+          filtrarProductos(
+            productos,
+            codigoProducto,
+            nuevoNombre,
+            codItemCatProducto
           )
         );
       },
@@ -626,50 +636,150 @@ export default function RegistrarPedido() {
     createCustomComponentItem(
       1,
       "filtro-moto",
-      <IconButton
-        size="small"
-        onClick={() => {
-          setProductosFiltrados(filtrarProdsPorCat(productos, "T"));
-        }}
-      >
-        <TwoWheelerIcon />
-      </IconButton>
+      <div style={{ textAlign: "center" }}>
+        <IconButton
+          size="small"
+          onClick={() => {
+            let nuevoCodItemCat = "T";
+            if (codItemCatProducto === nuevoCodItemCat) {
+              nuevoCodItemCat = "";
+              setCodItemCatProducto(nuevoCodItemCat);
+              setProductosFiltrados(
+                filtrarProductos(
+                  productos,
+                  codigoProducto,
+                  nombreProducto,
+                  nuevoCodItemCat
+                )
+              );
+            } else {
+              setCodItemCatProducto(nuevoCodItemCat);
+              setProductosFiltrados(
+                filtrarProductos(
+                  productos,
+                  codigoProducto,
+                  nombreProducto,
+                  nuevoCodItemCat
+                )
+              );
+            }
+          }}
+          color={codItemCatProducto === "T" ? "error" : "default"}
+        >
+          <TwoWheelerIcon />
+        </IconButton>
+      </div>
     ),
     createCustomComponentItem(
       1,
       "filtro-electrica",
-      <IconButton
-        size="small"
-        onClick={() => {
-          setProductosFiltrados(filtrarProdsPorCat(productos, "E"));
-        }}
-      >
-        <FlashOnIcon />
-      </IconButton>
+      <div style={{ textAlign: "center" }}>
+        <IconButton
+          size="small"
+          onClick={() => {
+            let nuevoCodItemCat = "E";
+            if (codItemCatProducto === nuevoCodItemCat) {
+              nuevoCodItemCat = "";
+              setCodItemCatProducto(nuevoCodItemCat);
+              setProductosFiltrados(
+                filtrarProductos(
+                  productos,
+                  codigoProducto,
+                  nombreProducto,
+                  nuevoCodItemCat
+                )
+              );
+            } else {
+              setCodItemCatProducto(nuevoCodItemCat);
+              setProductosFiltrados(
+                filtrarProductos(
+                  productos,
+                  codigoProducto,
+                  nombreProducto,
+                  nuevoCodItemCat
+                )
+              );
+            }
+          }}
+          color={codItemCatProducto === "E" ? "error" : "default"}
+        >
+          <FlashOnIcon />
+        </IconButton>
+      </div>
     ),
     createCustomComponentItem(
       1,
       "filtro-lubricante",
-      <IconButton
-        size="small"
-        onClick={() => {
-          setProductosFiltrados(filtrarProdsPorCat(productos, "L"));
-        }}
-      >
-        <OpacityIcon />
-      </IconButton>
+      <div style={{ textAlign: "center" }}>
+        <IconButton
+          size="small"
+          onClick={() => {
+            let nuevoCodItemCat = "L";
+            if (codItemCatProducto === nuevoCodItemCat) {
+              nuevoCodItemCat = "";
+              setCodItemCatProducto(nuevoCodItemCat);
+              setProductosFiltrados(
+                filtrarProductos(
+                  productos,
+                  codigoProducto,
+                  nombreProducto,
+                  nuevoCodItemCat
+                )
+              );
+            } else {
+              setCodItemCatProducto(nuevoCodItemCat);
+              setProductosFiltrados(
+                filtrarProductos(
+                  productos,
+                  codigoProducto,
+                  nombreProducto,
+                  nuevoCodItemCat
+                )
+              );
+            }
+          }}
+          color={codItemCatProducto === "L" ? "error" : "default"}
+        >
+          <OpacityIcon />
+        </IconButton>
+      </div>
     ),
     createCustomComponentItem(
       1,
-      "filtro-direccionEnvio",
-      <IconButton
-        size="small"
-        onClick={() => {
-          setProductosFiltrados(filtrarProdsPorCat(productos, "Y"));
-        }}
-      >
-        <LocalShippingIcon />
-      </IconButton>
+      "filtro-direccion-envio",
+      <div style={{ textAlign: "center" }}>
+        <IconButton
+          size="small"
+          onClick={() => {
+            let nuevoCodItemCat = "Y";
+            if (codItemCatProducto === nuevoCodItemCat) {
+              nuevoCodItemCat = "";
+              setCodItemCatProducto(nuevoCodItemCat);
+              setProductosFiltrados(
+                filtrarProductos(
+                  productos,
+                  codigoProducto,
+                  nombreProducto,
+                  nuevoCodItemCat
+                )
+              );
+            } else {
+              setCodItemCatProducto(nuevoCodItemCat);
+              setProductosFiltrados(
+                filtrarProductos(
+                  productos,
+                  codigoProducto,
+                  nombreProducto,
+                  nuevoCodItemCat
+                )
+              );
+            }
+          }}
+          color={codItemCatProducto === "Y" ? "error" : "default"}
+        >
+          <LocalShippingIcon />
+        </IconButton>
+      </div>
     ),
   ];
 
@@ -934,11 +1044,13 @@ export default function RegistrarPedido() {
       open={agregarProducto}
       handleClose={() => {
         setAgregarProducto(false);
+        setCodItemCatProducto("");
       }}
       handleCancel={() => {
         setAgregarProducto(false);
-        setCodigoProd("");
-        setNombreProd("");
+        setCodItemCatProducto("");
+        setCodigoProducto("");
+        setNombreProducto("");
         setProductosFiltrados([]);
       }}
       maxWidth="md"
