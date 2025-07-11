@@ -103,7 +103,7 @@ import Clientes from "./components/formulas/clientes";
 import PresupuestoCantidades from "./components/importaciones/presupuesto-cantidades";
 import CoberturaModelo from "./components/importaciones/cobertura-modelo";
 import SellOut from "./components/formulas/sell-out";
-import RegistrarPedido from "./components/mayoreo/registrar-pedido";
+import Pedidos from "./components/mayoreo/pedidos";
 
 ///SellManagerB2B
 const API = process.env.REACT_APP_API;
@@ -684,10 +684,10 @@ function App() {
               />
               <Route
                 exact
-                path="/registrar_pedido"
+                path="/pedidos"
                 element={
                   <Protected isLoggedIn={authorizedSystems.includes("VE")}>
-                    <RegistrarPedido />
+                    <Pedidos />
                   </Protected>
                 }
               />

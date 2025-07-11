@@ -138,7 +138,6 @@ export default function RegistrarPedido() {
     () => new API(jwt, userShineray, enterpriseShineray, systemShineray),
     [jwt]
   );
-  const [menus, setMenus] = useState([]);
   const [pagina, setPagina] = useState(0);
   const [cargando, setCargando] = useState(false);
   const [mensajeCargando, setMensajeCargando] = useState("");
@@ -175,14 +174,6 @@ export default function RegistrarPedido() {
   const [valorPedido, setValorPedido] = useState(0);
 
   const [observacion, setObservacion] = useState("");
-
-  const getMenus = async () => {
-    try {
-      setMenus(await APIService.getMenus());
-    } catch (err) {
-      toast.error(err.message);
-    }
-  };
 
   const getPoliticas = async () => {
     try {
@@ -643,8 +634,6 @@ export default function RegistrarPedido() {
     <LoadingModal esVisible={cargando} mensaje={mensajeCargando} />
   );
 
-  const header = <Header menus={menus} />;
-
   const btnRegistrar = (
     <div style={{ textAlign: "center" }}>
       <BtnNuevo onClick={setearPagina(1)} texto="Registrar pedido" />
@@ -866,8 +855,6 @@ export default function RegistrarPedido() {
   );
 
   useEffect(() => {
-    document.title = "Registrar pedido";
-    getMenus();
     getPoliticas();
     getVendedores();
     getProductos();
@@ -924,15 +911,12 @@ export default function RegistrarPedido() {
   }, [productosPedido]);
 
   return (
-    <MainComponent
-      components={[
-        header,
-        btnRegistrar,
-        dialogo1RegistrarPedido,
-        modalCargandoClientes,
-        dialogo2RegistrarPedido,
-        dialogoAgregarProducto,
-      ]}
-    />
+    <>
+      {btnRegistrar}
+      {dialogo1RegistrarPedido}
+      {modalCargandoClientes}
+      {dialogo2RegistrarPedido}
+      {dialogoAgregarProducto}
+    </>
   );
 }
