@@ -585,7 +585,7 @@ function CompararModelos()  {
                                             />
                                             <Autocomplete
                                                 size="small"
-                                                options={cilindradasDisponibles}
+                                                options={Array.isArray(cilindradasDisponibles) ? cilindradasDisponibles : []}
                                                 getOptionLabel={(option) => option?.label || ''}
                                                 value={bloque.cilindrada || null}
                                                 onChange={(e, newValue) => handleCilindradaChange(index, newValue)}
@@ -613,7 +613,7 @@ function CompararModelos()  {
                                                 renderInput={(params) => <TextField {...params} label="Modelo" sx={textFieldSmallSx} />}
                                                 disabled={bloquearInputs || !bloque.marca}
                                             />
-                                        </Box>
+                                         </Box>
                                     </Grid>
                                 );
                             })}
