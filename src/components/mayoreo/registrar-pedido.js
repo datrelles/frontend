@@ -264,6 +264,8 @@ export default function RegistrarPedido() {
   };
 
   const handleSelectProduct = async (prod) => {
+    setMensajeCargando("Agregando producto");
+    setCargando(true);
     const newProd = { ...prod };
     newProd.secuencia = (productosPedido.at(-1)?.secuencia ?? 0) + 1;
     newProd.cantidad_pedida = 1;
@@ -309,6 +311,8 @@ export default function RegistrarPedido() {
         new Date().getFullYear()
       );
     } catch (err) {
+      setCargando(false);
+      setMensajeCargando("");
       toast.error(err.message);
       return;
     }
@@ -322,12 +326,16 @@ export default function RegistrarPedido() {
     newProd.valor_linea = precioProd.valor_linea;
     const primeraDireccion = Object.keys(direccionesCliente)[0];
     if (!primeraDireccion) {
+      setCargando(false);
+      setMensajeCargando("");
       toast.warn("El cliente no tiene direcciones para asignar al producto");
       return;
     }
     newProd.cod_direccion = primeraDireccion;
     setProductosPedido((prev) => {
       if (prev.find((prod) => prod.cod_producto === newProd.cod_producto)) {
+        setCargando(false);
+        setMensajeCargando("");
         toast.warn("El producto ya fue agregado");
         return prev;
       }
@@ -335,6 +343,8 @@ export default function RegistrarPedido() {
       setCodigoProducto("");
       setNombreProducto("");
       setProductosFiltrados([]);
+      setCargando(false);
+      setMensajeCargando("");
       return prev.concat(newProd);
     });
   };
@@ -464,9 +474,44 @@ export default function RegistrarPedido() {
   const selectCuotas = (
     <CustomSelect
       label="Cuotas"
+      disabled={politica.cod_politica === "" || cliente.cod_persona === ""}
       options={CuotasPedido}
       value={cuotas}
-      onChange={createDefaultSetter({ setter: setCuotas })}
+      blankOption={false}
+      onChange={(e) => {
+        setMensajeCargando("Calculando valores");
+        setCargando(true);
+        const nuevasCuotas = e.target.value;
+        APIService.getDetallePolitica(
+          COD_AGENCIA,
+          politica.cod_politica,
+          COD_TIPO_PEDIDO,
+          cliente.cod_persona,
+          COD_TIPO_PERSONA_CLI,
+          nuevasCuotas,
+          COD_TIPO_CLIENTE_H
+        )
+          .then((res) => {
+            setCuotas(nuevasCuotas);
+            setFormaPago(
+              res.cod_forma_pago_final ??
+                (nuevasCuotas === 0 ? FormasPago.EFE.key : FormasPago.CRE.key)
+            );
+            setPorcentajeInteres(res.por_interes_final ?? 0);
+            setFactorCredito(res.factor_credito_final ?? 0);
+          })
+          .catch((err) => {
+            toast.error(err.message);
+            setCuotas(cuotas);
+            setFormaPago(formaPago);
+            setPorcentajeInteres(porcentajeInteres);
+            setFactorCredito(factorCredito);
+          })
+          .finally(() => {
+            setMensajeCargando("");
+            setCargando(false);
+          });
+      }}
     />
   );
 
@@ -951,31 +996,39 @@ export default function RegistrarPedido() {
           <Table size="small">
             <TableHead>
               <TableRow>
+                <TableCell>Secuencia</TableCell>
                 <TableCell>Producto</TableCell>
                 <TableCell>% Desc</TableCell>
                 <TableCell>P Desc</TableCell>
                 <TableCell>Cantidad</TableCell>
                 <TableCell>Subtotal</TableCell>
+                <TableCell>Dirección</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {productosPedido.map((prod, idx) => {
                 return (
                   <TableRow key={idx} style={{ opacity: 0.5 }}>
-                    <TableCell style={{ width: "40%" }}>
+                    <TableCell style={{ width: "10%" }}>
+                      {prod.secuencia}
+                    </TableCell>
+                    <TableCell style={{ width: "30%" }}>
                       {prod.nombre}
                     </TableCell>
-                    <TableCell style={{ width: "15%" }}>
+                    <TableCell style={{ width: "10%" }}>
                       {prod.descuento}
                     </TableCell>
                     <TableCell style={{ width: "15%" }}>
                       {prod.precio_descontado.toFixed(2)}
                     </TableCell>
-                    <TableCell style={{ width: "15%" }}>
+                    <TableCell style={{ width: "10%" }}>
                       {prod.cantidad_pedida}
                     </TableCell>
                     <TableCell style={{ width: "15%" }}>
                       {prod.subtotal.toFixed(2)}
+                    </TableCell>
+                    <TableCell style={{ width: "10%" }}>
+                      {direccionesCliente[prod.cod_direccion].label}
                     </TableCell>
                   </TableRow>
                 );
@@ -1016,7 +1069,7 @@ export default function RegistrarPedido() {
           );
           return;
         }
-        setearPagina(2)();
+        setPagina(2);
       }}
       confirmText="Siguiente"
       maxWidth="xl"
@@ -1030,7 +1083,15 @@ export default function RegistrarPedido() {
       open={pagina === 2}
       handleClose={setearPagina(1)}
       handleCancel={setearPagina(1)}
-      handleConfirm={setearPagina(3)}
+      handleConfirm={() => {
+        if (productosPedido.length === 0) {
+          toast.warn(
+            "Para continuar al menos debe agregar un producto al pedido"
+          );
+          return;
+        }
+        setPagina(3);
+      }}
       confirmText="Siguiente"
       cancelText="Atrás"
       maxWidth="xl"
@@ -1149,39 +1210,17 @@ export default function RegistrarPedido() {
           }));
           const pedido = { cabecera, detalles };
           await APIService.postPedido(pedido);
-          setCargando(false);
-          setMensajeCargando("");
-          toast.success("Pedido grabado");
-          setearPagina(4)();
+          toast.success(`Pedido ${codPedido.cod_pedido} grabado`);
+          setPagina(0);
         } catch (err) {
           toast.error(err.message);
+        } finally {
           setCargando(false);
           setMensajeCargando("");
         }
       }}
       confirmText="Grabar"
       cancelText="Atrás"
-      maxWidth="xl"
-    />
-  );
-
-  const dialogo4RegistrarPedido = (
-    <CustomDialog
-      titulo="Registrar Pedido - Confirmación"
-      contenido={<></>}
-      open={pagina === 4}
-      handleClose={setearPagina(3)}
-      handleCancel={setearPagina(3)}
-      handleConfirm={async () => {
-        try {
-          //await APIService
-          setearPagina(0)();
-          toast.success("Pedido confirmado");
-        } catch (err) {
-          toast.error(err.message);
-        }
-      }}
-      confirmText="Confirmar"
       maxWidth="xl"
     />
   );
@@ -1193,17 +1232,20 @@ export default function RegistrarPedido() {
   }, []);
 
   useEffect(() => {
+    setCliente(shapeCliente);
     if (politica.cod_politica !== "") {
       setNombrePolitica(politica.nombre);
       getClientes(politica.cod_politica);
     } else {
-      setNombrePolitica("");
       setClientes([]);
+      setNombrePolitica("");
     }
   }, [politica]);
 
   useEffect(() => {
     if (cliente.cod_persona !== "") {
+      setMensajeCargando("Cargando datos del cliente");
+      setCargando(true);
       setProductosPedido([]);
       APIService.getCliente(
         COD_AGENCIA,
@@ -1222,10 +1264,15 @@ export default function RegistrarPedido() {
           setCategoria(cliente.cod_cat_cliente);
           setTipoCliente(cliente.cod_tipo_clienteh);
           setCarteraVencida(cliente.cartera_vencida);
+          setMensajeCargando("Cargando direcciones del cliente");
           APIService.getDireccionesCliente(cliente.cod_persona_cli)
             .then((res) => {
               if (!res || res.length === 0) {
                 toast.error("El cliente no tiene direcciones");
+                setNombreCliente("");
+                setDireccionEnvio("");
+                setTelefono("");
+                setCiudad("");
                 return;
               }
               const enumDirs = res.reduce(
@@ -1241,15 +1288,33 @@ export default function RegistrarPedido() {
               setDireccionesCliente(enumDirs);
             })
             .catch((err) => {
-              console.log("er", err);
               toast.error(
                 "Ocurrió un error al consultar las direcciones del cliente"
               );
+              setNombreCliente("");
+              setDireccionEnvio("");
+              setTelefono("");
+              setCiudad("");
+            })
+            .finally(() => {
+              setCargando(false);
+              setMensajeCargando("");
             });
         })
-        .catch((err) =>
-          toast.error("Ocurrió un error al consultar el cliente")
-        );
+        .catch((err) => {
+          setCargando(false);
+          setMensajeCargando("");
+          setNombreCliente("");
+          setDireccionEnvio("");
+          setTelefono("");
+          setCiudad("");
+          toast.error("Ocurrió un error al consultar el cliente");
+        });
+    } else {
+      setNombreCliente("");
+      setDireccionEnvio("");
+      setTelefono("");
+      setCiudad("");
     }
   }, [cliente]);
 
@@ -1272,39 +1337,6 @@ export default function RegistrarPedido() {
     calcularFinanciamientoPedido();
   }, [productosPedido]);
 
-  useEffect(() => {
-    if (
-      cuotas !== "" &&
-      politica.cod_politica !== "" &&
-      cliente.cod_persona !== ""
-    ) {
-      APIService.getDetallePolitica(
-        COD_AGENCIA,
-        politica.cod_politica,
-        COD_TIPO_PEDIDO,
-        cliente.cod_persona,
-        COD_TIPO_PERSONA_CLI,
-        cuotas,
-        COD_TIPO_CLIENTE_H
-      )
-        .then((res) => {
-          setFormaPago(
-            res.cod_forma_pago_final ??
-              (cuotas === 0 ? FormasPago.EFE.key : FormasPago.CRE.key)
-          );
-          setPorcentajeInteres(res.por_interes_final ?? 0);
-          setFactorCredito(res.factor_credito_final ?? 0);
-        })
-        .catch((err) => {
-          toast.error(err.message);
-          setCuotas(DefaultCuotas);
-          setFormaPago(DefaultFormaPago);
-          setPorcentajeInteres(0);
-          setFactorCredito(0);
-        });
-    }
-  }, [cuotas]);
-
   return (
     <>
       {btnRegistrar}
@@ -1313,7 +1345,6 @@ export default function RegistrarPedido() {
       {dialogo2RegistrarPedido}
       {dialogoAgregarProducto}
       {dialogo3RegistrarPedido}
-      {dialogo4RegistrarPedido}
     </>
   );
 }
