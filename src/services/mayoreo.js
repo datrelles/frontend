@@ -200,4 +200,25 @@ export default class API {
       );
     }
   );
+
+  listarPedidosPorFecha = this.#errorHandler(async ({ fecha_ini, fecha_fin, cod_agencia }) => {
+  let params = `fecha_ini=${fecha_ini}&fecha_fin=${fecha_fin}`;
+  if (cod_agencia) {
+    params += `&cod_agencia=${cod_agencia}`;
+  }
+  return await axios.get(
+    `${this.#URL}/pedidos_list?${params}`,
+    this.#headers
+  );
+  });
+
+  obtenerPedidoConDetalles = this.#errorHandler(async ({ cod_pedido, empresa, cod_tipo_pedido }) => {
+  let params = `cod_pedido=${cod_pedido}`;
+  if (empresa) params += `&empresa=${empresa}`;
+  if (cod_tipo_pedido) params += `&cod_tipo_pedido=${cod_tipo_pedido}`;
+  return await axios.get(
+    `${this.#URL}/pedido_detalle?${params}`,
+    this.#headers
+  );
+  });
 }
