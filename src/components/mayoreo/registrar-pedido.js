@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuthContext } from "../../context/authContext";
 import API from "../../services/mayoreo";
-import Header from "../../components/formulas/common/header";
-import MainComponent from "../../components/formulas/common/main-component";
 import { toast } from "react-toastify";
 import {
   createCustomComponentItem,
@@ -30,10 +28,13 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import TwoWheelerIcon from "@mui/icons-material/TwoWheeler";
 import FlashOnIcon from "@mui/icons-material/FlashOn";
 import OpacityIcon from "@mui/icons-material/Opacity";
-import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import {
+  CuotasPedido,
+  DefaultCuotas,
   DefaultFormaPago,
+  Enum,
   FormasPago,
   TiposRetorno,
 } from "../formulas/common/enum";
@@ -72,13 +73,12 @@ const getMuiTheme = () =>
             borderBottom: "1px solid #ddd",
             borderRight: "1px solid #ddd",
             fontSize: "14px",
+            textAlign: "center",
           },
           head: {
             backgroundColor: "firebrick",
             color: "#ffffff",
             fontWeight: "bold",
-            paddingLeft: "0px",
-            paddingRight: "0px",
             fontSize: "12px",
           },
         },
@@ -115,8 +115,15 @@ const filtrarCampo = (obj, campo, valor) => {
   );
 };
 
-const filtrarProdsPorCat = (productos, categoria) =>
-  productos.filter((prod) => prod.cod_item_cat === categoria);
+const filtrarProductos = (productos, codigo, nombre, codItemCat) =>
+  codigo === "" && nombre === "" && codItemCat === ""
+    ? []
+    : productos.filter(
+        (prod) =>
+          filtrarCampo(prod, "cod_producto", codigo) &&
+          filtrarCampo(prod, "nombre", nombre) &&
+          filtrarCampo(prod, "cod_item_cat", codItemCat)
+      );
 
 const COD_AGENCIA = 25;
 const COD_TIPO_PEDIDO = "PE";
@@ -130,6 +137,12 @@ const COD_DIVISA = "DOLARES";
 const TIENE_IVA = "S";
 const TIENE_ICE = "S";
 const COD_PEDIDO = 0;
+const COD_TIPO_PERSONA_VEN = "VEN";
+const COD_BODEGA_DESPACHO = 25;
+const TIPO_CANTIDAD = "P";
+const COD_TIPO_PRODUCTO = "A";
+const DIAS_VALIDEZ = 30;
+const PLAZO = 60;
 
 export default function RegistrarPedido() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
@@ -146,15 +159,18 @@ export default function RegistrarPedido() {
   const [nombrePolitica, setNombrePolitica] = useState("");
   const [vendedores, setVendedores] = useState([]);
   const [vendedor, setVendedor] = useState(shapeVendedor);
+  const [nombreVendedor, setNombreVendedor] = useState("");
   const [clientes, setClientes] = useState([]);
   const [cliente, setCliente] = useState(shapeCliente);
+  const [direccionesCliente, setDireccionesCliente] = useState([]);
+  const [nombreCliente, setNombreCliente] = useState("");
   const [productos, setProductos] = useState([]);
   const [productosFiltrados, setProductosFiltrados] = useState([]);
-  const [cuotas, setCuotas] = useState(0);
+  const [cuotas, setCuotas] = useState(DefaultCuotas);
   const [formaPago, setFormaPago] = useState(DefaultFormaPago);
-  const [interes, setInteres] = useState(0);
+  const [porcentajeInteres, setPorcentajeInteres] = useState(0);
   const [factorCredito, setFactorCredito] = useState(0);
-  const [envio, setEnvio] = useState("");
+  const [direccionEnvio, setDireccionEnvio] = useState("");
   const [telefono, setTelefono] = useState("");
   const [ciudad, setCiudad] = useState("");
   const [zona, setZona] = useState("");
@@ -163,14 +179,13 @@ export default function RegistrarPedido() {
   const [categoria, setCategoria] = useState("");
   const [tipoCliente, setTipoCliente] = useState("");
   const [carteraVencida, setCarteraVencida] = useState(0);
-  const [codigoProd, setCodigoProd] = useState("");
-  const [nombreProd, setNombreProd] = useState("");
-  const [precioProd, setPrecioProd] = useState("");
-  const [descuentoProd, setDescuentoProd] = useState(0);
-  const [precioDescuentoProd, setPrecioDescuentoProd] = useState("");
-  const [cantidadProd, setCantidadProd] = useState(1);
+  const [codigoProducto, setCodigoProducto] = useState("");
+  const [nombreProducto, setNombreProducto] = useState("");
+  const [codItemCatProducto, setCodItemCatProducto] = useState("");
   const [productosPedido, setProductosPedido] = useState([]);
   const [agregarProducto, setAgregarProducto] = useState(false);
+  const [ICEPedido, setICEPedido] = useState(0);
+  const [financiamientoPedido, setFinanciamientoPedido] = useState(0);
   const [valorPedido, setValorPedido] = useState(0);
 
   const [observacion, setObservacion] = useState("");
@@ -229,10 +244,31 @@ export default function RegistrarPedido() {
     setValorPedido(valor);
   };
 
+  const calcularICEPedido = () => {
+    const valor =
+      productosPedido.length === 0
+        ? 0
+        : productosPedido.reduce((accum, item) => accum + item.ice, 0);
+    setICEPedido(valor);
+  };
+
+  const calcularFinanciamientoPedido = () => {
+    const valor =
+      productosPedido.length === 0
+        ? 0
+        : productosPedido.reduce(
+            (accum, item) => accum + item.financiamiento,
+            0
+          );
+    setFinanciamientoPedido(valor);
+  };
+
   const handleSelectProduct = async (prod) => {
+    setMensajeCargando("Agregando producto");
+    setCargando(true);
     const newProd = { ...prod };
     newProd.secuencia = (productosPedido.at(-1)?.secuencia ?? 0) + 1;
-    newProd.cantidad = 1;
+    newProd.cantidad_pedida = 1;
     let descuentoProd, precioProd;
     try {
       descuentoProd = await APIService.getDescuentoProducto(
@@ -257,10 +293,10 @@ export default function RegistrarPedido() {
         cuotas,
         cliente.cod_persona,
         COD_TIPO_PEDIDO,
-        newProd.cantidad,
+        newProd.cantidad_pedida,
         COD_TIPO_PEDIDO,
         COD_UNIDAD,
-        newProd.cantidad,
+        newProd.cantidad_pedida,
         COD_UNIDAD,
         formaPago,
         COD_DIVISA,
@@ -274,22 +310,41 @@ export default function RegistrarPedido() {
         TIENE_ICE,
         new Date().getFullYear()
       );
-    } catch (error) {
-      toast.error(error.message);
+    } catch (err) {
+      setCargando(false);
+      setMensajeCargando("");
+      toast.error(err.message);
       return;
     }
+    newProd.financiamiento = precioProd.financiamiento;
+    newProd.ice = precioProd.ice;
     newProd.precio = precioProd.precio;
+    newProd.precio_lista = precioProd.precio_lista;
     newProd.precio_descontado = precioProd.precio_descontado;
-    newProd.subtotal = newProd.cantidad * newProd.precio_descontado;
+    newProd.subtotal = newProd.cantidad_pedida * newProd.precio_descontado;
+    newProd.valor_iva = precioProd.valor_iva;
+    newProd.valor_linea = precioProd.valor_linea;
+    const primeraDireccion = Object.keys(direccionesCliente)[0];
+    if (!primeraDireccion) {
+      setCargando(false);
+      setMensajeCargando("");
+      toast.warn("El cliente no tiene direcciones para asignar al producto");
+      return;
+    }
+    newProd.cod_direccion = primeraDireccion;
     setProductosPedido((prev) => {
       if (prev.find((prod) => prod.cod_producto === newProd.cod_producto)) {
+        setCargando(false);
+        setMensajeCargando("");
         toast.warn("El producto ya fue agregado");
         return prev;
       }
       setAgregarProducto(false);
-      setCodigoProd("");
-      setNombreProd("");
+      setCodigoProducto("");
+      setNombreProducto("");
       setProductosFiltrados([]);
+      setCargando(false);
+      setMensajeCargando("");
       return prev.concat(newProd);
     });
   };
@@ -302,9 +357,9 @@ export default function RegistrarPedido() {
 
   const handleCambiarCantidad = (idx, cantidad) => {
     const productoPedido = { ...productosPedido[idx] };
-    productoPedido.cantidad = cantidad;
+    productoPedido.cantidad_pedida = cantidad;
     productoPedido.subtotal =
-      productoPedido.cantidad * productoPedido.precio_descontado;
+      productoPedido.cantidad_pedida * productoPedido.precio_descontado;
     setProductosPedido((prev) => {
       prev[idx] = productoPedido;
       return [...prev];
@@ -330,7 +385,7 @@ export default function RegistrarPedido() {
         productoPedido.cantidad,
         COD_TIPO_PEDIDO,
         COD_UNIDAD,
-        productoPedido.cantidad,
+        productoPedido.cantidad_pedida,
         COD_UNIDAD,
         formaPago,
         COD_DIVISA,
@@ -344,15 +399,15 @@ export default function RegistrarPedido() {
         TIENE_ICE,
         new Date().getFullYear()
       );
-    } catch (error) {
-      toast.error(error.message);
+    } catch (err) {
+      toast.error(err.message);
       setMensajeCargando("");
       setCargando(false);
       return;
     }
     productoPedido.precio_descontado = precioProd.precio_descontado;
     productoPedido.subtotal =
-      productoPedido.cantidad * productoPedido.precio_descontado;
+      productoPedido.cantidad_pedida * productoPedido.precio_descontado;
     setProductosPedido((prev) => {
       setMensajeCargando("");
       setCargando(false);
@@ -382,9 +437,15 @@ export default function RegistrarPedido() {
       optionId="cod_persona_vendor"
       shape={shapeVendedor}
       options={vendedores}
-      optionLabel="nombre"
+      optionLabel="cod_persona_vendor"
       onChange={(e, value) => {
-        setVendedor(value ?? shapeVendedor);
+        if (value) {
+          setVendedor(value);
+          setNombreVendedor(value.nombre);
+        } else {
+          setVendedor(shapeVendedor);
+          setNombreVendedor("");
+        }
       }}
     />
   );
@@ -396,16 +457,82 @@ export default function RegistrarPedido() {
       optionId="cod_persona"
       shape={shapeCliente}
       options={clientes}
-      optionLabel="nombre"
+      optionLabel="cod_persona"
       onChange={(e, value) => {
-        setCliente(value ?? shapeCliente);
+        if (value) {
+          setCliente(value);
+          setNombreCliente(value.nombre);
+        } else {
+          setCliente(shapeCliente);
+          setNombreCliente("");
+        }
       }}
       disabled={politica.cod_politica === ""}
     />
   );
 
+  const selectCuotas = (
+    <CustomSelect
+      label="Cuotas"
+      disabled={politica.cod_politica === "" || cliente.cod_persona === ""}
+      options={CuotasPedido}
+      value={cuotas}
+      blankOption={false}
+      onChange={(e) => {
+        setMensajeCargando("Calculando valores");
+        setCargando(true);
+        const nuevasCuotas = e.target.value;
+        APIService.getDetallePolitica(
+          COD_AGENCIA,
+          politica.cod_politica,
+          COD_TIPO_PEDIDO,
+          cliente.cod_persona,
+          COD_TIPO_PERSONA_CLI,
+          nuevasCuotas,
+          COD_TIPO_CLIENTE_H
+        )
+          .then((res) => {
+            setCuotas(nuevasCuotas);
+            setFormaPago(
+              res.cod_forma_pago_final ??
+                (nuevasCuotas === 0 ? FormasPago.EFE.key : FormasPago.CRE.key)
+            );
+            setPorcentajeInteres(res.por_interes_final ?? 0);
+            setFactorCredito(res.factor_credito_final ?? 0);
+          })
+          .catch((err) => {
+            toast.error(err.message);
+            setCuotas(cuotas);
+            setFormaPago(formaPago);
+            setPorcentajeInteres(porcentajeInteres);
+            setFactorCredito(factorCredito);
+          })
+          .finally(() => {
+            setMensajeCargando("");
+            setCargando(false);
+          });
+      }}
+    />
+  );
+
   const selectFormaPago = (
     <CustomSelect label="Forma pago" options={FormasPago} value={formaPago} />
+  );
+
+  const SelectDirecciones = ({ idx, valor }) => (
+    <CustomSelect
+      label="Direcciones"
+      options={direccionesCliente}
+      value={valor}
+      blankOption={false}
+      onChange={(e) => {
+        const nuevaDireccion = e.target.value;
+        const nuevosProductos = [...productosPedido];
+        const nuevoProducto = nuevosProductos[idx];
+        nuevoProducto.cod_direccion = nuevaDireccion;
+        setProductosPedido(nuevosProductos);
+      }}
+    />
   );
 
   const itemsCabeceraPedido = [
@@ -416,58 +543,27 @@ export default function RegistrarPedido() {
       label: "Nombre política",
       value: nombrePolitica,
     }),
-    createCustomComponentItem(6, "agente", autocompleteVendedores),
-    createCustomComponentItem(12, "cliente", autocompleteClientes),
+    createCustomComponentItem(2, "agente", autocompleteVendedores),
     createTextFieldItem({
-      xs: 3,
-      id: "cuotas",
-      label: "Cuotas",
-      value: cuotas,
-      disabled:
-        politica.cod_politica === "" ||
-        vendedor.cod_persona_vendor === "" ||
-        cliente.cod_persona === "",
-      setValue: (e) => {
-        let numCuotas = parseInt(e.target.value || "0");
-        if (numCuotas < 0) numCuotas = 0;
-        setCuotas(numCuotas);
-        let forma = FormasPago.EFE.key;
-        if (numCuotas > 0) forma = FormasPago.CRE.key;
-        setFormaPago(forma);
-        if (numCuotas > 0) {
-          APIService.getDetallePolitica(
-            COD_AGENCIA,
-            politica.cod_politica,
-            COD_TIPO_PEDIDO,
-            cliente.cod_persona,
-            COD_TIPO_PERSONA_CLI,
-            numCuotas,
-            COD_TIPO_CLIENTE_H
-          )
-            .then((res) => {
-              setInteres(res.por_interes_final ?? 0);
-              setFactorCredito(res.factor_credito_final ?? 0);
-            })
-            .catch((err) => {
-              toast.error(err.message);
-              setFormaPago(DefaultFormaPago);
-              setInteres(0);
-              setFactorCredito(0);
-            });
-        } else {
-          setFormaPago(DefaultFormaPago);
-          setInteres(0);
-          setFactorCredito(0);
-        }
-      },
-      type: "number",
+      xs: 4,
+      id: "nombre-agente",
+      label: "Nombre agente",
+      value: nombreVendedor,
     }),
+    createCustomComponentItem(4, "cliente", autocompleteClientes),
+    createTextFieldItem({
+      xs: 8,
+      id: "nombre-cliente",
+      label: "Nombre cliente",
+      value: nombreCliente,
+    }),
+    createCustomComponentItem(3, "cuotas", selectCuotas),
     createCustomComponentItem(3, "forma-pago", selectFormaPago),
     createTextFieldItem({
       xs: 3,
-      id: "interes",
+      id: "porcentajeInteres",
       label: "% Interés",
-      value: interes,
+      value: porcentajeInteres,
       type: "number",
     }),
     createTextFieldItem({
@@ -477,27 +573,27 @@ export default function RegistrarPedido() {
       value: factorCredito,
       type: "number",
     }),
-    // createTextFieldItem({
-    //   xs: 6,
-    //   id: "direccion",
-    //   label: "Dirección de envío",
-    //   value: envio,
-    //   setValue: createDefaultSetter({ setter: setEnvio }),
-    // }),
-    // createTextFieldItem({
-    //   xs: 2,
-    //   id: "telefono",
-    //   label: "Teléfono",
-    //   value: telefono,
-    //   setValue: createDefaultSetter({ setter: setTelefono }),
-    // }),
-    // createTextFieldItem({
-    //   xs: 2,
-    //   id: "ciudad",
-    //   label: "Ciudad",
-    //   value: ciudad,
-    //   setValue: createDefaultSetter({ setter: setCiudad }),
-    // }),
+    createTextFieldItem({
+      xs: 6,
+      id: "direccion",
+      label: "Dirección de envío",
+      value: direccionEnvio,
+      setValue: createDefaultSetter({ setter: setDireccionEnvio }),
+    }),
+    createTextFieldItem({
+      xs: 3,
+      id: "telefono",
+      label: "Teléfono",
+      value: telefono,
+      setValue: createDefaultSetter({ setter: setTelefono }),
+    }),
+    createTextFieldItem({
+      xs: 3,
+      id: "ciudad",
+      label: "Ciudad",
+      value: ciudad,
+      setValue: createDefaultSetter({ setter: setCiudad }),
+    }),
     // createTextFieldItem({
     //   xs: 2,
     //   id: "zona",
@@ -550,15 +646,16 @@ export default function RegistrarPedido() {
       xs: 3,
       id: "codigo-prod",
       label: "Código",
-      value: codigoProd,
+      value: codigoProducto,
       setValue: (e) => {
         const nuevoCod = e.target.value ?? "";
-        setCodigoProd(nuevoCod);
+        setCodigoProducto(nuevoCod);
         setProductosFiltrados(
-          productos.filter(
-            (prod) =>
-              filtrarCampo(prod, "cod_producto", nuevoCod) &&
-              filtrarCampo(prod, "nombre", nombreProd)
+          filtrarProductos(
+            productos,
+            nuevoCod,
+            nombreProducto,
+            codItemCatProducto
           )
         );
       },
@@ -567,15 +664,16 @@ export default function RegistrarPedido() {
       xs: 5,
       id: "nombre-prod",
       label: "Nombre",
-      value: nombreProd,
+      value: nombreProducto,
       setValue: (e) => {
         const nuevoNombre = e.target.value ?? "";
-        setNombreProd(nuevoNombre);
+        setNombreProducto(nuevoNombre);
         setProductosFiltrados(
-          productos.filter(
-            (prod) =>
-              filtrarCampo(prod, "nombre", nuevoNombre) &&
-              filtrarCampo(prod, "cod_producto", codigoProd)
+          filtrarProductos(
+            productos,
+            codigoProducto,
+            nuevoNombre,
+            codItemCatProducto
           )
         );
       },
@@ -583,54 +681,154 @@ export default function RegistrarPedido() {
     createCustomComponentItem(
       1,
       "filtro-moto",
-      <IconButton
-        size="small"
-        onClick={() => {
-          setProductosFiltrados(filtrarProdsPorCat(productos, "T"));
-        }}
-      >
-        <TwoWheelerIcon />
-      </IconButton>
+      <div style={{ textAlign: "center" }}>
+        <IconButton
+          size="small"
+          onClick={() => {
+            let nuevoCodItemCat = "T";
+            if (codItemCatProducto === nuevoCodItemCat) {
+              nuevoCodItemCat = "";
+              setCodItemCatProducto(nuevoCodItemCat);
+              setProductosFiltrados(
+                filtrarProductos(
+                  productos,
+                  codigoProducto,
+                  nombreProducto,
+                  nuevoCodItemCat
+                )
+              );
+            } else {
+              setCodItemCatProducto(nuevoCodItemCat);
+              setProductosFiltrados(
+                filtrarProductos(
+                  productos,
+                  codigoProducto,
+                  nombreProducto,
+                  nuevoCodItemCat
+                )
+              );
+            }
+          }}
+          color={codItemCatProducto === "T" ? "error" : "default"}
+        >
+          <TwoWheelerIcon />
+        </IconButton>
+      </div>
     ),
     createCustomComponentItem(
       1,
       "filtro-electrica",
-      <IconButton
-        size="small"
-        onClick={() => {
-          setProductosFiltrados(filtrarProdsPorCat(productos, "E"));
-        }}
-      >
-        <FlashOnIcon />
-      </IconButton>
+      <div style={{ textAlign: "center" }}>
+        <IconButton
+          size="small"
+          onClick={() => {
+            let nuevoCodItemCat = "E";
+            if (codItemCatProducto === nuevoCodItemCat) {
+              nuevoCodItemCat = "";
+              setCodItemCatProducto(nuevoCodItemCat);
+              setProductosFiltrados(
+                filtrarProductos(
+                  productos,
+                  codigoProducto,
+                  nombreProducto,
+                  nuevoCodItemCat
+                )
+              );
+            } else {
+              setCodItemCatProducto(nuevoCodItemCat);
+              setProductosFiltrados(
+                filtrarProductos(
+                  productos,
+                  codigoProducto,
+                  nombreProducto,
+                  nuevoCodItemCat
+                )
+              );
+            }
+          }}
+          color={codItemCatProducto === "E" ? "error" : "default"}
+        >
+          <FlashOnIcon />
+        </IconButton>
+      </div>
     ),
     createCustomComponentItem(
       1,
       "filtro-lubricante",
-      <IconButton
-        size="small"
-        onClick={() => {
-          setProductosFiltrados(filtrarProdsPorCat(productos, "L"));
-        }}
-      >
-        <OpacityIcon />
-      </IconButton>
+      <div style={{ textAlign: "center" }}>
+        <IconButton
+          size="small"
+          onClick={() => {
+            let nuevoCodItemCat = "L";
+            if (codItemCatProducto === nuevoCodItemCat) {
+              nuevoCodItemCat = "";
+              setCodItemCatProducto(nuevoCodItemCat);
+              setProductosFiltrados(
+                filtrarProductos(
+                  productos,
+                  codigoProducto,
+                  nombreProducto,
+                  nuevoCodItemCat
+                )
+              );
+            } else {
+              setCodItemCatProducto(nuevoCodItemCat);
+              setProductosFiltrados(
+                filtrarProductos(
+                  productos,
+                  codigoProducto,
+                  nombreProducto,
+                  nuevoCodItemCat
+                )
+              );
+            }
+          }}
+          color={codItemCatProducto === "L" ? "error" : "default"}
+        >
+          <OpacityIcon />
+        </IconButton>
+      </div>
     ),
     createCustomComponentItem(
       1,
-      "filtro-envio",
-      <IconButton
-        size="small"
-        onClick={() => {
-          setProductosFiltrados(filtrarProdsPorCat(productos, "Y"));
-        }}
-      >
-        <DirectionsCarIcon />
-      </IconButton>
+      "filtro-direccion-envio",
+      <div style={{ textAlign: "center" }}>
+        <IconButton
+          size="small"
+          onClick={() => {
+            let nuevoCodItemCat = "Y";
+            if (codItemCatProducto === nuevoCodItemCat) {
+              nuevoCodItemCat = "";
+              setCodItemCatProducto(nuevoCodItemCat);
+              setProductosFiltrados(
+                filtrarProductos(
+                  productos,
+                  codigoProducto,
+                  nombreProducto,
+                  nuevoCodItemCat
+                )
+              );
+            } else {
+              setCodItemCatProducto(nuevoCodItemCat);
+              setProductosFiltrados(
+                filtrarProductos(
+                  productos,
+                  codigoProducto,
+                  nombreProducto,
+                  nuevoCodItemCat
+                )
+              );
+            }
+          }}
+          color={codItemCatProducto === "Y" ? "error" : "default"}
+        >
+          <LocalShippingIcon />
+        </IconButton>
+      </div>
     ),
   ];
 
-  const modalCargandoClientes = (
+  const modalCargando = (
     <LoadingModal esVisible={cargando} mensaje={mensajeCargando} />
   );
 
@@ -652,39 +850,29 @@ export default function RegistrarPedido() {
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell style={{ fontWeight: "bold" }}>Código</TableCell>
-                <TableCell style={{ fontWeight: "bold", width: "300px" }}>
-                  Producto
-                </TableCell>
-                <TableCell style={{ fontWeight: "bold" }}>Precio</TableCell>
-                <TableCell style={{ fontWeight: "bold" }}>% Desc</TableCell>
-                <TableCell style={{ fontWeight: "bold" }}>P Desc</TableCell>
-                <TableCell style={{ fontWeight: "bold" }}>Cantidad</TableCell>
-                <TableCell style={{ fontWeight: "bold" }}>Subtotal</TableCell>
-                <TableCell>Acciones</TableCell>
+                <TableCell style={{ width: "10%" }}>Código</TableCell>
+                <TableCell style={{ width: "20%" }}>Producto</TableCell>
+                <TableCell style={{ width: "10%" }}>Precio</TableCell>
+                <TableCell style={{ width: "10%" }}>% Desc</TableCell>
+                <TableCell style={{ width: "10%" }}>P Desc</TableCell>
+                <TableCell style={{ width: "10%" }}>Cantidad</TableCell>
+                <TableCell style={{ width: "10%" }}>Subtotal</TableCell>
+                <TableCell style={{ width: "10%" }}>Dirección</TableCell>
+                <TableCell style={{ width: "10%" }}>Acciones</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {productosPedido.map((prod, idx) => {
                 return (
-                  <TableRow
-                    key={idx}
-                    style={prod.readOnly ? { opacity: 0.5 } : {}}
-                  >
-                    <TableCell style={{ width: "15%" }}>
-                      {prod.cod_producto}
-                    </TableCell>
-                    <TableCell style={{ width: "25%" }}>
-                      {prod.nombre}
-                    </TableCell>
-                    <TableCell style={{ width: "10%" }}>
-                      {prod.precio ?? 0}
-                    </TableCell>
-                    <TableCell style={{ width: "10%" }}>
+                  <TableRow key={idx}>
+                    <TableCell>{prod.cod_producto}</TableCell>
+                    <TableCell>{prod.nombre}</TableCell>
+                    <TableCell>{prod.precio.toFixed(2)}</TableCell>
+                    <TableCell>
                       <TextField
                         type="number"
                         size="small"
-                        value={prod.descuento ?? 0}
+                        value={prod.descuento}
                         onChange={(e) => {
                           let descuento = e.target.value;
                           try {
@@ -707,14 +895,12 @@ export default function RegistrarPedido() {
                         sx={{ width: "100%" }}
                       />
                     </TableCell>
-                    <TableCell style={{ width: "10%" }}>
-                      {prod.precio_descontado ?? prod.precio ?? 0}
-                    </TableCell>
-                    <TableCell style={{ width: "10%" }}>
+                    <TableCell>{prod.precio_descontado.toFixed(2)}</TableCell>
+                    <TableCell>
                       <TextField
                         type="number"
                         size="small"
-                        value={prod.cantidad}
+                        value={prod.cantidad_pedida}
                         onChange={(e) => {
                           let cantidad = e.target.value;
                           try {
@@ -731,10 +917,11 @@ export default function RegistrarPedido() {
                         sx={{ width: "100%" }}
                       />
                     </TableCell>
-                    <TableCell style={{ width: "10%" }}>
-                      {prod.subtotal ?? 0}
+                    <TableCell>{prod.subtotal.toFixed(2)}</TableCell>
+                    <TableCell>
+                      <SelectDirecciones idx={idx} valor={prod.cod_direccion} />
                     </TableCell>
-                    <TableCell style={{ width: "10%" }}>
+                    <TableCell>
                       <IconButton
                         size="small"
                         onClick={() => handleQuitarProducto(idx)}
@@ -748,11 +935,13 @@ export default function RegistrarPedido() {
             </TableBody>
           </Table>
         </TableContainer>
-        <BtnNuevo
-          onClick={() => setAgregarProducto(true)}
-          texto="Agregar producto"
-          icon={false}
-        />
+        <div style={{ marginTop: "1%", textAlign: "center" }}>
+          <BtnNuevo
+            onClick={() => setAgregarProducto(true)}
+            texto="Agregar producto"
+            icon={false}
+          />
+        </div>
       </Paper>
       <Typography
         variant="h6"
@@ -797,6 +986,71 @@ export default function RegistrarPedido() {
     </>
   );
 
+  const contenidoResumenPedido = (
+    <ThemeProvider theme={getMuiTheme()}>
+      <Typography variant="h6" style={{ marginTop: 20, marginBottom: 10 }}>
+        Resumen de Productos
+      </Typography>
+      <Paper variant="outlined" style={{ padding: 10 }}>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Secuencia</TableCell>
+                <TableCell>Producto</TableCell>
+                <TableCell>% Desc</TableCell>
+                <TableCell>P Desc</TableCell>
+                <TableCell>Cantidad</TableCell>
+                <TableCell>Subtotal</TableCell>
+                <TableCell>Dirección</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {productosPedido.map((prod, idx) => {
+                return (
+                  <TableRow key={idx} style={{ opacity: 0.5 }}>
+                    <TableCell style={{ width: "10%" }}>
+                      {prod.secuencia}
+                    </TableCell>
+                    <TableCell style={{ width: "30%" }}>
+                      {prod.nombre}
+                    </TableCell>
+                    <TableCell style={{ width: "10%" }}>
+                      {prod.descuento}
+                    </TableCell>
+                    <TableCell style={{ width: "15%" }}>
+                      {prod.precio_descontado.toFixed(2)}
+                    </TableCell>
+                    <TableCell style={{ width: "10%" }}>
+                      {prod.cantidad_pedida}
+                    </TableCell>
+                    <TableCell style={{ width: "15%" }}>
+                      {prod.subtotal.toFixed(2)}
+                    </TableCell>
+                    <TableCell style={{ width: "10%" }}>
+                      {direccionesCliente[prod.cod_direccion].label}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+      <Typography
+        variant="h6"
+        align="right"
+        style={{ fontWeight: "bold", marginTop: 15, marginRight: "2%" }}
+      >
+        Total: {valorPedido.toFixed(2)}
+      </Typography>
+      <Typography variant="body1" align="center" color={"red"} marginTop={"2%"}>
+        <b>Importante:</b> verifique que los datos sean correctos antes de
+        grabar el pedido
+      </Typography>
+    </ThemeProvider>
+  );
+
   const dialogo1RegistrarPedido = (
     <CustomDialog
       titulo="Registrar Pedido - Cabecera"
@@ -815,10 +1069,10 @@ export default function RegistrarPedido() {
           );
           return;
         }
-        setearPagina(2)();
+        setPagina(2);
       }}
       confirmText="Siguiente"
-      maxWidth="md"
+      maxWidth="xl"
     />
   );
 
@@ -829,7 +1083,15 @@ export default function RegistrarPedido() {
       open={pagina === 2}
       handleClose={setearPagina(1)}
       handleCancel={setearPagina(1)}
-      handleConfirm={setearPagina(3)}
+      handleConfirm={() => {
+        if (productosPedido.length === 0) {
+          toast.warn(
+            "Para continuar al menos debe agregar un producto al pedido"
+          );
+          return;
+        }
+        setPagina(3);
+      }}
       confirmText="Siguiente"
       cancelText="Atrás"
       maxWidth="xl"
@@ -843,14 +1105,123 @@ export default function RegistrarPedido() {
       open={agregarProducto}
       handleClose={() => {
         setAgregarProducto(false);
+        setCodItemCatProducto("");
       }}
       handleCancel={() => {
         setAgregarProducto(false);
-        setCodigoProd("");
-        setNombreProd("");
+        setCodItemCatProducto("");
+        setCodigoProducto("");
+        setNombreProducto("");
         setProductosFiltrados([]);
       }}
       maxWidth="md"
+    />
+  );
+
+  const dialogo3RegistrarPedido = (
+    <CustomDialog
+      titulo="Registrar Pedido - Resumen"
+      contenido={contenidoResumenPedido}
+      open={pagina === 3}
+      handleClose={setearPagina(2)}
+      handleCancel={setearPagina(2)}
+      handleConfirm={async () => {
+        setMensajeCargando("Grabando pedido");
+        setCargando(true);
+        try {
+          const codPedido = await APIService.getCodPedido(
+            COD_AGENCIA,
+            COD_TIPO_PEDIDO
+          );
+          const codLiquidacion = await APIService.getCodLiquidacion(
+            COD_AGENCIA
+          );
+          const fechaActual = new Date().toISOString().slice(0, 19);
+          const cabecera = {
+            COD_TIPO_PERSONA_VEN,
+            TIENE_ICE: "S",
+            ES_PENDIENTE: "S",
+            OBSERVACIONES: observacion,
+            COD_TIPO_PEDIDO: "PE",
+            CIUDAD: ciudad,
+            COD_LIQUIDACION: codLiquidacion.cod_liquidacion,
+            COD_PEDIDO: codPedido.cod_pedido,
+            ES_APROBADO_VEN: "N",
+            ES_APROBADO_CAR: "N",
+            ES_BLOQUEADO: "N",
+            REVISADO: "N",
+            ES_FACTURADO: "N",
+            ES_ANULADO: "N",
+            ES_PEDIDO_REPUESTOS: "N",
+            ADICIONADO_POR: userShineray,
+            MODIFICADO_POR: userShineray,
+            COD_PERSONA_VEN: vendedor.cod_persona_vendor,
+            COD_FORMA_PAGO: formaPago,
+            COD_TIPO_PERSONA_CLI,
+            COD_TIPO_PERSONA_GAR: COD_TIPO_PERSONA_CLI,
+            DIRECCION_ENVIO: direccionEnvio,
+            TIPO_PEDIDO: "A",
+            COD_POLITICA: politica.cod_politica,
+            ICE: ICEPedido,
+            TELEFONO: telefono,
+            DIAS_VALIDEZ,
+            COD_BODEGA_DESPACHO,
+            COD_AGENCIA,
+            EMPRESA: enterpriseShineray,
+            NUM_CUOTAS: cuotas,
+            COD_PERSONA_CLI: cliente.cod_persona,
+            VALOR_PEDIDO: valorPedido,
+            FECHA_MODIFICACION: fechaActual,
+            FECHA_ADICION: fechaActual,
+            FECHA_PEDIDO: fechaActual,
+            FINANCIAMIENTO: financiamientoPedido,
+            COMPROBANTE_MANUAL: "0",
+            ES_FACTURA_CONSIGNACION: 0,
+          };
+          const detalles = productosPedido.map((prod) => ({
+            ES_PENDIENTE: "S",
+            COD_TIPO_PEDIDO,
+            TIPO_CANTIDAD,
+            COD_PEDIDO: codPedido.cod_pedido,
+            ES_ANULADO: "N",
+            COD_PRODUCTO: prod.cod_producto,
+            COD_TIPO_PRODUCTO,
+            VALOR_LINEA: prod.valor_linea,
+            PLAZO,
+            ICE: prod.ice,
+            COD_AGENCIA,
+            EMPRESA: enterpriseShineray,
+            NUM_CUOTAS: cuotas,
+            VALOR_IVA: prod.valor_iva,
+            COD_CLIENTE: cliente.cod_persona,
+            PRECIO_LISTA: prod.precio_lista,
+            PRECIO_DESCONTADO: prod.precio_descontado,
+            PRECIO: prod.precio,
+            CANTIDAD_PEDIDA: prod.cantidad_pedida,
+            SECUENCIA: prod.secuencia,
+            COD_DIRECCION: prod.cod_direccion,
+            DESCUENTO: prod.descuento,
+            CANTIDAD_DESPACHADA: 0,
+            FINANCIAMIENTO: prod.financiamiento,
+            PORCENTAJE_INTERES: porcentajeInteres,
+            CANTIDAD_PRODUCIDA: 0,
+            ES_CONFIRMADO_BOD: 0,
+            CANTIDAD_A_ENVIAR: 0,
+          }));
+          const pedido = { cabecera, detalles };
+          await APIService.postPedido(pedido);
+          toast.success(`Pedido ${codPedido.cod_pedido} grabado`);
+          setPagina(0);
+        } catch (err) {
+          toast.error(err.message);
+        } finally {
+          setCargando(false);
+          setMensajeCargando("");
+        }
+      }}
+      confirmText="Grabar"
+      cancelText="Atrás"
+      maxWidth="xl"
     />
   );
 
@@ -861,15 +1232,21 @@ export default function RegistrarPedido() {
   }, []);
 
   useEffect(() => {
-    setClientes([]);
+    setCliente(shapeCliente);
     if (politica.cod_politica !== "") {
       setNombrePolitica(politica.nombre);
       getClientes(politica.cod_politica);
+    } else {
+      setClientes([]);
+      setNombrePolitica("");
     }
   }, [politica]);
 
   useEffect(() => {
     if (cliente.cod_persona !== "") {
+      setMensajeCargando("Cargando datos del cliente");
+      setCargando(true);
+      setProductosPedido([]);
       APIService.getCliente(
         COD_AGENCIA,
         politica.cod_politica,
@@ -878,7 +1255,7 @@ export default function RegistrarPedido() {
         COD_TIPO_PERSONA_CLI
       )
         .then((cliente) => {
-          setEnvio(cliente.direccion_envio);
+          setDireccionEnvio(cliente.direccion_envio);
           setTelefono(cliente.telefono);
           setCiudad(cliente.ciudad);
           setZona(cliente.zona_geografica);
@@ -887,10 +1264,57 @@ export default function RegistrarPedido() {
           setCategoria(cliente.cod_cat_cliente);
           setTipoCliente(cliente.cod_tipo_clienteh);
           setCarteraVencida(cliente.cartera_vencida);
+          setMensajeCargando("Cargando direcciones del cliente");
+          APIService.getDireccionesCliente(cliente.cod_persona_cli)
+            .then((res) => {
+              if (!res || res.length === 0) {
+                toast.error("El cliente no tiene direcciones");
+                setNombreCliente("");
+                setDireccionEnvio("");
+                setTelefono("");
+                setCiudad("");
+                return;
+              }
+              const enumDirs = res.reduce(
+                (accum, cur) => ({
+                  ...accum,
+                  [`${cur.cod_direccion}`]: new Enum(
+                    cur.cod_direccion,
+                    `${cur.cod_direccion} - ${cur.direccion}`
+                  ),
+                }),
+                {}
+              );
+              setDireccionesCliente(enumDirs);
+            })
+            .catch((err) => {
+              toast.error(
+                "Ocurrió un error al consultar las direcciones del cliente"
+              );
+              setNombreCliente("");
+              setDireccionEnvio("");
+              setTelefono("");
+              setCiudad("");
+            })
+            .finally(() => {
+              setCargando(false);
+              setMensajeCargando("");
+            });
         })
-        .catch((err) =>
-          toast.error("Ocurrió un error al consultar el cliente")
-        );
+        .catch((err) => {
+          setCargando(false);
+          setMensajeCargando("");
+          setNombreCliente("");
+          setDireccionEnvio("");
+          setTelefono("");
+          setCiudad("");
+          toast.error("Ocurrió un error al consultar el cliente");
+        });
+    } else {
+      setNombreCliente("");
+      setDireccionEnvio("");
+      setTelefono("");
+      setCiudad("");
     }
   }, [cliente]);
 
@@ -900,23 +1324,27 @@ export default function RegistrarPedido() {
       vendedor.cod_persona_vendor === "" ||
       cliente.cod_persona === ""
     ) {
-      setCuotas(0);
-      setInteres(0);
+      setCuotas(DefaultCuotas);
+      setFormaPago(DefaultFormaPago);
+      setPorcentajeInteres(0);
       setFactorCredito(0);
     }
   }, [politica, vendedor, cliente]);
 
   useEffect(() => {
     calcularValorPedido();
+    calcularICEPedido();
+    calcularFinanciamientoPedido();
   }, [productosPedido]);
 
   return (
     <>
       {btnRegistrar}
       {dialogo1RegistrarPedido}
-      {modalCargandoClientes}
+      {modalCargando}
       {dialogo2RegistrarPedido}
       {dialogoAgregarProducto}
+      {dialogo3RegistrarPedido}
     </>
   );
 }

@@ -113,6 +113,15 @@ export default class API {
     }
   );
 
+  getDireccionesCliente = this.#errorHandler(async (cliente) => {
+    return await axios.get(
+      `${this.#URL}/direcciones_cliente?empresa=${
+        this.#enterprise
+      }&cod_persona_cli=${cliente}`,
+      this.#headers
+    );
+  });
+
   getProductos = this.#errorHandler(
     async (codModeloCat, codItemCat, codModelo) => {
       return await axios.get(
@@ -201,6 +210,7 @@ export default class API {
     }
   );
 
+<<<<<<< HEAD
   listarPedidosPorFecha = this.#errorHandler(async ({ fecha_ini, fecha_fin, cod_agencia }) => {
   let params = `fecha_ini=${fecha_ini}&fecha_fin=${fecha_fin}`;
   if (cod_agencia) {
@@ -220,5 +230,27 @@ export default class API {
     `${this.#URL}/pedido_detalle?${params}`,
     this.#headers
   );
+=======
+  getCodPedido = this.#errorHandler(async (agencia, tipoPedido) => {
+    return await axios.get(
+      `${this.#URL}/generar__cod_pedido?empresa=${
+        this.#enterprise
+      }&cod_agencia=${agencia}&cod_tipo_pedido=${tipoPedido}`,
+      this.#headers
+    );
+  });
+
+  getCodLiquidacion = this.#errorHandler(async (agencia) => {
+    return await axios.get(
+      `${this.#URL}/obtener_cod_liquidacion?empresa=${
+        this.#enterprise
+      }&cod_agencia=${agencia}`,
+      this.#headers
+    );
+  });
+
+  postPedido = this.#errorHandler(async (data) => {
+    return await axios.post(`${this.#URL}/guardar_pedido`, data, this.#headers);
+>>>>>>> 7046e4529897b841e86980b067b84117e490d63b
   });
 }
