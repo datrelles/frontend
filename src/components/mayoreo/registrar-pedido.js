@@ -138,7 +138,6 @@ const TIENE_IVA = "S";
 const TIENE_ICE = "S";
 const COD_PEDIDO = 0;
 const COD_TIPO_PERSONA_VEN = "VEN";
-const COD_BODEGA_DESPACHO = 25;
 const TIPO_CANTIDAD = "P";
 const COD_TIPO_PRODUCTO = "A";
 const DIAS_VALIDEZ = 30;
@@ -185,7 +184,6 @@ export default function RegistrarPedido() {
   const [productosPedido, setProductosPedido] = useState([]);
   const [agregarProducto, setAgregarProducto] = useState(false);
   const [ICEPedido, setICEPedido] = useState(0);
-  const [financiamientoPedido, setFinanciamientoPedido] = useState(0);
   const [valorPedido, setValorPedido] = useState(0);
 
   const [observacion, setObservacion] = useState("");
@@ -265,17 +263,6 @@ export default function RegistrarPedido() {
         ? 0
         : productosPedido.reduce((accum, item) => accum + item.ice, 0);
     setICEPedido(valor);
-  };
-
-  const calcularFinanciamientoPedido = () => {
-    const valor =
-      productosPedido.length === 0
-        ? 0
-        : productosPedido.reduce(
-            (accum, item) => accum + item.financiamiento,
-            0
-          );
-    setFinanciamientoPedido(valor);
   };
 
   const handleSelectProduct = async (prod) => {
@@ -441,6 +428,23 @@ export default function RegistrarPedido() {
       optionLabel="label_politica"
       onChange={(e, value) => {
         setPolitica(value ?? shapePolitica);
+      }}
+      customFilter={(options, { inputValue }) => {
+        const campo = "label_politica";
+        const palabras = inputValue
+          .trim()
+          .toLowerCase()
+          .split(/\s+/)
+          .filter(Boolean);
+        return palabras.length === 0
+          ? options
+          : options.filter((opt) =>
+              palabras.reduce(
+                (accum, p) =>
+                  accum || opt[campo].toLowerCase().includes(p.toLowerCase()),
+                false
+              )
+            );
       }}
     />
   );
@@ -1158,7 +1162,7 @@ export default function RegistrarPedido() {
           const fechaActual = new Date().toISOString().slice(0, 19);
           const cabecera = {
             COD_TIPO_PERSONA_VEN,
-            TIENE_ICE: "S",
+            TIENE_ICE: ICEPedido > 0 ? "S" : "N",
             ES_PENDIENTE: "S",
             OBSERVACIONES: observacion,
             COD_TIPO_PEDIDO: "PE",
@@ -1180,20 +1184,20 @@ export default function RegistrarPedido() {
             COD_TIPO_PERSONA_GAR: COD_TIPO_PERSONA_CLI,
             DIRECCION_ENVIO: direccionEnvio,
             TIPO_PEDIDO: "A",
-            COD_POLITICA: politica.cod_politica,
+            COD_POLITICA: parseInt(politica.cod_politica),
             ICE: ICEPedido,
-            TELEFONO: telefono,
+            TELEFONO: parseInt(telefono),
             DIAS_VALIDEZ,
-            COD_BODEGA_DESPACHO,
+            COD_BODEGA_DESPACHO: COD_AGENCIA,
             COD_AGENCIA,
-            EMPRESA: enterpriseShineray,
-            NUM_CUOTAS: cuotas,
+            EMPRESA: parseInt(enterpriseShineray),
+            NUM_CUOTAS: parseInt(cuotas),
             COD_PERSONA_CLI: cliente.cod_persona,
             VALOR_PEDIDO: valorPedido,
             FECHA_MODIFICACION: fechaActual,
             FECHA_ADICION: fechaActual,
-            FECHA_PEDIDO: fechaActual,
-            FINANCIAMIENTO: financiamientoPedido,
+            FECHA_PEDIDO: `${fechaActual.slice(0, 11)}00:00:00`,
+            FINANCIAMIENTO: 0,
             COMPROBANTE_MANUAL: "0",
             ES_FACTURA_CONSIGNACION: 0,
           };
@@ -1209,8 +1213,8 @@ export default function RegistrarPedido() {
             PLAZO,
             ICE: prod.ice,
             COD_AGENCIA,
-            EMPRESA: enterpriseShineray,
-            NUM_CUOTAS: cuotas,
+            EMPRESA: parseInt(enterpriseShineray),
+            NUM_CUOTAS: parseInt(cuotas),
             VALOR_IVA: prod.valor_iva,
             COD_CLIENTE: cliente.cod_persona,
             PRECIO_LISTA: prod.precio_lista,
@@ -1218,10 +1222,10 @@ export default function RegistrarPedido() {
             PRECIO: prod.precio,
             CANTIDAD_PEDIDA: prod.cantidad_pedida,
             SECUENCIA: prod.secuencia,
-            COD_DIRECCION: prod.cod_direccion,
+            COD_DIRECCION: parseInt(prod.cod_direccion),
             DESCUENTO: prod.descuento,
             CANTIDAD_DESPACHADA: 0,
-            FINANCIAMIENTO: prod.financiamiento,
+            FINANCIAMIENTO: 0,
             PORCENTAJE_INTERES: porcentajeInteres,
             CANTIDAD_PRODUCIDA: 0,
             ES_CONFIRMADO_BOD: 0,
@@ -1353,7 +1357,6 @@ export default function RegistrarPedido() {
   useEffect(() => {
     calcularValorPedido();
     calcularICEPedido();
-    calcularFinanciamientoPedido();
   }, [productosPedido]);
 
   return (
