@@ -200,10 +200,19 @@ function App() {
   }, []);
 
   return (
-    <div style={{ width: '99%', minHeight: '100vh', marginLeft: '10px' }}>
-        <Router>
-          {!jwt && jwt !== "" && jwt == undefined ?
-            (        
+    <div style={{ width: "99%", minHeight: "100vh", marginLeft: "10px" }}>
+      <Router>
+        {!jwt && jwt !== "" && jwt == undefined ? (
+          <Routes>
+            <>
+              <Route path="/" element={<LoginAuth />} />
+              <Route path="/auth" element={<LoginAuth />} />
+              <Route path="/2auth" element={<SecondAuth />} />
+              <Route path="*" element={<LoginAuth />} />
+            </>
+          </Routes>
+        ) : (
+          <>
             <Routes>
               <Route exact path="*" element={<Profile />}></Route>
               <Route path="/saveDevice" element={<SaveDevice />} />
