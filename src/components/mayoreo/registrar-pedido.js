@@ -108,10 +108,10 @@ const getMuiTheme = () =>
   });
 
 const filtrarCampo = (obj, campo, valor) => {
-  const campoValor = obj[campo];
+  const valorCampo = obj[campo];
   return (
-    typeof campoValor === "string" &&
-    campoValor.toLowerCase().includes(valor.toLowerCase())
+    typeof valorCampo === "string" &&
+    valorCampo.toLowerCase().includes(valor.toLowerCase())
   );
 };
 
@@ -124,6 +124,24 @@ const filtrarProductos = (productos, codigo, nombre, codItemCat) =>
           filtrarCampo(prod, "nombre", nombre) &&
           filtrarCampo(prod, "cod_item_cat", codItemCat)
       );
+
+const filtrarPalabras =
+  (campo) =>
+  (options, { inputValue }) => {
+    const palabras = inputValue
+      .trim()
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(Boolean);
+    return palabras.length === 0
+      ? options
+      : options.filter((opt) =>
+          palabras.reduce(
+            (accum, p) => accum && filtrarCampo(opt, campo, p),
+            true
+          )
+        );
+  };
 
 const COD_AGENCIA = 25;
 const COD_TIPO_PEDIDO = "PE";
@@ -184,6 +202,7 @@ export default function RegistrarPedido() {
   const [productosPedido, setProductosPedido] = useState([]);
   const [agregarProducto, setAgregarProducto] = useState(false);
   const [ICEPedido, setICEPedido] = useState(0);
+  const [financiamientoPedido, setFinanciamientoPedido] = useState(0);
   const [valorPedido, setValorPedido] = useState(0);
 
   const [observacion, setObservacion] = useState("");
@@ -250,19 +269,24 @@ export default function RegistrarPedido() {
   };
 
   const calcularValorPedido = () => {
-    const valor =
-      productosPedido.length === 0
-        ? 0
-        : productosPedido.reduce((accum, item) => accum + item.subtotal, 0);
+    const valor = productosPedido.reduce(
+      (accum, item) => accum + item.subtotal,
+      0
+    );
     setValorPedido(valor);
   };
 
   const calcularICEPedido = () => {
-    const valor =
-      productosPedido.length === 0
-        ? 0
-        : productosPedido.reduce((accum, item) => accum + item.ice, 0);
+    const valor = productosPedido.reduce((accum, item) => accum + item.ice, 0);
     setICEPedido(valor);
+  };
+
+  const calcularFinanciamientoPedido = () => {
+    const valor = productosPedido.reduce(
+      (accum, item) => accum + item.financiamiento,
+      0
+    );
+    setFinanciamientoPedido(valor);
   };
 
   const handleSelectProduct = async (prod) => {
@@ -363,58 +387,62 @@ export default function RegistrarPedido() {
     productoPedido.subtotal =
       productoPedido.cantidad_pedida * productoPedido.precio_descontado;
     setProductosPedido((prev) => {
-      prev[idx] = productoPedido;
-      return [...prev];
+      const nuevosProductos = [...prev];
+      nuevosProductos[idx] = productoPedido;
+      return nuevosProductos;
     });
   };
 
-  const handleCambiarDescuento = async (idx, descuento) => {
+  const handleCambiarDescuento = async (idx, descuento, consultar = true) => {
     setMensajeCargando("Calculando descuento");
     setCargando(true);
     const productoPedido = { ...productosPedido[idx] };
     productoPedido.descuento = descuento;
-    let precioProd;
-    try {
-      precioProd = await APIService.getPrecioProducto(
-        COD_AGENCIA,
-        politica.cod_politica,
-        COD_MODELO_CAT,
-        productoPedido.cod_item_cat,
-        productoPedido.cod_producto,
-        cuotas,
-        cliente.cod_persona,
-        COD_TIPO_PEDIDO,
-        productoPedido.cantidad,
-        COD_TIPO_PEDIDO,
-        COD_UNIDAD,
-        productoPedido.cantidad_pedida,
-        COD_UNIDAD,
-        formaPago,
-        COD_DIVISA,
-        formatearFechaInput(new Date()),
-        formaPago,
-        null,
-        null,
-        productoPedido.descuento,
-        factorCredito,
-        TIENE_IVA,
-        TIENE_ICE,
-        new Date().getFullYear()
-      );
-    } catch (err) {
-      toast.error(err.message);
-      setMensajeCargando("");
-      setCargando(false);
-      return;
+    if (consultar) {
+      let precioProd;
+      try {
+        precioProd = await APIService.getPrecioProducto(
+          COD_AGENCIA,
+          politica.cod_politica,
+          COD_MODELO_CAT,
+          productoPedido.cod_item_cat,
+          productoPedido.cod_producto,
+          cuotas,
+          cliente.cod_persona,
+          COD_TIPO_PEDIDO,
+          productoPedido.cantidad,
+          COD_TIPO_PEDIDO,
+          COD_UNIDAD,
+          productoPedido.cantidad_pedida,
+          COD_UNIDAD,
+          formaPago,
+          COD_DIVISA,
+          formatearFechaInput(new Date()),
+          formaPago,
+          null,
+          null,
+          productoPedido.descuento,
+          factorCredito,
+          TIENE_IVA,
+          TIENE_ICE,
+          new Date().getFullYear()
+        );
+      } catch (err) {
+        toast.error(err.message);
+        setMensajeCargando("");
+        setCargando(false);
+        return;
+      }
+      productoPedido.precio_descontado = precioProd.precio_descontado;
+      productoPedido.subtotal =
+        productoPedido.cantidad_pedida * productoPedido.precio_descontado;
     }
-    productoPedido.precio_descontado = precioProd.precio_descontado;
-    productoPedido.subtotal =
-      productoPedido.cantidad_pedida * productoPedido.precio_descontado;
     setProductosPedido((prev) => {
       setMensajeCargando("");
       setCargando(false);
-      prev[idx] = productoPedido;
-      return [...prev];
+      const nuevosProductos = [...prev];
+      nuevosProductos[idx] = productoPedido;
+      return nuevosProductos;
     });
   };
 
@@ -429,23 +457,7 @@ export default function RegistrarPedido() {
       onChange={(e, value) => {
         setPolitica(value ?? shapePolitica);
       }}
-      customFilter={(options, { inputValue }) => {
-        const campo = "label_politica";
-        const palabras = inputValue
-          .trim()
-          .toLowerCase()
-          .split(/\s+/)
-          .filter(Boolean);
-        return palabras.length === 0
-          ? options
-          : options.filter((opt) =>
-              palabras.reduce(
-                (accum, p) =>
-                  accum || opt[campo].toLowerCase().includes(p.toLowerCase()),
-                false
-              )
-            );
-      }}
+      customFilter={filtrarPalabras("label_politica")}
     />
   );
 
@@ -466,6 +478,7 @@ export default function RegistrarPedido() {
           setNombreVendedor("");
         }
       }}
+      customFilter={filtrarPalabras("label_vendedor")}
     />
   );
 
@@ -487,6 +500,7 @@ export default function RegistrarPedido() {
         }
       }}
       disabled={politica.cod_politica === ""}
+      customFilter={filtrarPalabras("label_cliente")}
     />
   );
 
@@ -573,9 +587,9 @@ export default function RegistrarPedido() {
       label: "Nombre agente",
       value: nombreVendedor,
     }),
-    createCustomComponentItem(4, "cliente", autocompleteClientes),
+    createCustomComponentItem(6, "cliente", autocompleteClientes),
     createTextFieldItem({
-      xs: 8,
+      xs: 6,
       id: "nombre-cliente",
       label: "Nombre cliente",
       value: nombreCliente,
@@ -893,50 +907,76 @@ export default function RegistrarPedido() {
                     <TableCell>{prod.precio.toFixed(2)}</TableCell>
                     <TableCell>
                       <TextField
-                        type="number"
                         size="small"
                         value={prod.descuento}
                         onChange={(e) => {
                           let descuento = e.target.value;
-                          try {
-                            descuento = validarTipoRetornoYConvertir(
-                              TiposRetorno.NUMERO,
-                              descuento
-                            );
-                            if (descuento > 100) {
-                              toast.error(
-                                "El descuento debe ser máximo del 100%"
+                          if (descuento) {
+                            try {
+                              let mensaje;
+                              descuento = validarTipoRetornoYConvertir(
+                                TiposRetorno.NUMERO,
+                                descuento
                               );
-                              descuento = 0;
+                              if (descuento < 0) {
+                                mensaje = "El descuento debe ser positivo";
+                                toast.error(mensaje);
+                                throw new Error(mensaje);
+                              }
+                              if (descuento > 100) {
+                                mensaje =
+                                  "El descuento debe ser máximo del 100%";
+                                toast.error(mensaje);
+                                throw new Error(mensaje);
+                              }
+                            } catch (err) {
+                              descuento = prod.descuento;
                             }
-                          } catch (err) {
-                            descuento = 0;
                           }
+                          handleCambiarDescuento(idx, descuento, false);
+                        }}
+                        onBlur={(e) => {
+                          let descuento = parseInt(e.target.value);
+                          descuento = Number.isNaN(descuento) ? 0 : descuento;
                           handleCambiarDescuento(idx, descuento);
                         }}
-                        inputProps={{ min: 1, style: { textAlign: "center" } }}
+                        inputProps={{ style: { textAlign: "center" } }}
                         sx={{ width: "100%" }}
                       />
                     </TableCell>
                     <TableCell>{prod.precio_descontado.toFixed(2)}</TableCell>
                     <TableCell>
                       <TextField
-                        type="number"
                         size="small"
                         value={prod.cantidad_pedida}
                         onChange={(e) => {
                           let cantidad = e.target.value;
-                          try {
-                            cantidad = validarTipoRetornoYConvertir(
-                              TiposRetorno.NUMERO,
-                              cantidad
-                            );
-                          } catch (err) {
-                            cantidad = 1;
+                          if (cantidad) {
+                            try {
+                              let mensaje;
+                              cantidad = validarTipoRetornoYConvertir(
+                                TiposRetorno.NUMERO,
+                                cantidad
+                              );
+                              if (cantidad < 0) {
+                                mensaje = "La cantidad debe ser positiva";
+                                toast.error(mensaje);
+                                throw new Error(mensaje);
+                              }
+                            } catch (err) {
+                              cantidad = prod.cantidad_pedida;
+                            }
                           }
                           handleCambiarCantidad(idx, cantidad);
                         }}
-                        inputProps={{ min: 1, style: { textAlign: "center" } }}
+                        onBlur={(e) => {
+                          const cantidad = parseInt(e.target.value);
+                          if (!cantidad) {
+                            toast.warn("La cantidad mínima debe ser 1");
+                            handleCambiarCantidad(idx, 1);
+                          }
+                        }}
+                        inputProps={{ style: { textAlign: "center" } }}
                         sx={{ width: "100%" }}
                       />
                     </TableCell>
@@ -1197,7 +1237,7 @@ export default function RegistrarPedido() {
             FECHA_MODIFICACION: fechaActual,
             FECHA_ADICION: fechaActual,
             FECHA_PEDIDO: `${fechaActual.slice(0, 11)}00:00:00`,
-            FINANCIAMIENTO: 0,
+            FINANCIAMIENTO: financiamientoPedido,
             COMPROBANTE_MANUAL: "0",
             ES_FACTURA_CONSIGNACION: 0,
           };
@@ -1296,6 +1336,7 @@ export default function RegistrarPedido() {
                 setDireccionEnvio("");
                 setTelefono("");
                 setCiudad("");
+                setObservacion("");
                 return;
               }
               const enumDirs = res.reduce(
@@ -1318,6 +1359,7 @@ export default function RegistrarPedido() {
               setDireccionEnvio("");
               setTelefono("");
               setCiudad("");
+              setObservacion("");
             })
             .finally(() => {
               setCargando(false);
@@ -1331,6 +1373,7 @@ export default function RegistrarPedido() {
           setDireccionEnvio("");
           setTelefono("");
           setCiudad("");
+          setObservacion("");
           toast.error("Ocurrió un error al consultar el cliente");
         });
     } else {
@@ -1338,6 +1381,7 @@ export default function RegistrarPedido() {
       setDireccionEnvio("");
       setTelefono("");
       setCiudad("");
+      setObservacion("");
     }
   }, [cliente]);
 
@@ -1357,6 +1401,7 @@ export default function RegistrarPedido() {
   useEffect(() => {
     calcularValorPedido();
     calcularICEPedido();
+    calcularFinanciamientoPedido();
   }, [productosPedido]);
 
   return (
