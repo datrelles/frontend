@@ -1,53 +1,65 @@
 import Navbar0 from "./Navbar0";
-import { toast } from 'react-toastify';
-import React, { useState, useEffect} from "react";
-import { useLocation } from 'react-router-dom';
+import { toast } from "react-toastify";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { useAuthContext } from "../context/authContext";
 
 const API = process.env.REACT_APP_API;
 
 function Menus() {
-  const [menus, setMenus] = useState([])
-  const {jwt, userShineray, enterpriseShineray, }=useAuthContext();
-   
+  const [menus, setMenus] = useState([]);
+  const { jwt, userShineray, enterpriseShineray, logout } = useAuthContext();
+
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  const sistemaValue = queryParams.get('sistema');
+  const sistemaValue = queryParams.get("sistema");
 
   const getMenus = async () => {
     try {
-      const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${sistemaValue}`,
+      const res = await fetch(
+        `${API}/menus/${userShineray}/${enterpriseShineray}/${sistemaValue}`,
         {
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + jwt
-          }
-        });
-
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + jwt,
+          },
+        }
+      );
       if (!res.ok) {
         if (res.status === 401) {
-          toast.error('Sesión caducada.');
+          toast.warn("Sesión caducada. Por favor, ingresa de nuevo");
+          logout();
+          return;
         }
       } else {
         const data = await res.json();
-        setMenus(data)
+        setMenus(data);
       }
-    } catch (error) {
+    } catch (err) {
+      console.log("Error en getMenus:", err);
+      setMenus([]);
     }
-  }
+  };
 
   useEffect(() => {
-    document.title = 'Menus';
+    document.title = "Menus";
     getMenus();
-  }, [])
-
-
+  }, []);
 
   return (
     <div>
-        <Navbar0 menus={menus} style={{ marginTop: '70px', top: 0, left:0, width: "100%", zIndex: 1000}}/>
+      <Navbar0
+        menus={menus}
+        style={{
+          marginTop: "70px",
+          top: 0,
+          left: 0,
+          width: "100%",
+          zIndex: 1000,
+        }}
+      />
     </div>
-  )
+  );
 }
 
-export default Menus
+export default Menus;

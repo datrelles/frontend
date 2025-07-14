@@ -1,0 +1,560 @@
+import { toast } from "react-toastify";
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuthContext } from "../../context/authContext";
+import API from "../../services/modulo-formulas";
+import {
+  formatearEstado,
+  formatearFechaInput,
+} from "../../helpers/modulo-formulas";
+import Header from "./common/header";
+import BtnNuevo from "./common/btn-nuevo";
+import Tabla from "./common/tabla";
+import CustomDialog from "./common/custom-dialog";
+import {
+  createCustomComponentItem,
+  createCustomIconTooltip,
+  createDefaultSetter,
+  createFunctionCustomBodyRender,
+  createTableFeatures,
+  createTableOptions,
+  createTextFieldItem,
+  createTooltipCustomBodyRender,
+} from "./common/generators";
+import CustomGrid from "./common/custom-grid";
+import Check from "./common/check";
+import MainComponent from "./common/main-component";
+import CustomSelectToolbar from "./common/custom-select-toolbar";
+import AutocompleteObject from "./common/autocomplete-objects";
+import BoxMasterDetail from "./common/box-master-detail";
+import { TiposSeleccionTabla } from "./common/enum";
+
+const shapeFormula = {
+  cod_formula: "",
+  nombre: "Seleccione",
+};
+
+export default function ParametrosProceso() {
+  const { jwt, userShineray, enterpriseShineray, systemShineray } =
+    useAuthContext();
+  const APIService = useMemo(
+    () => new API(jwt, userShineray, enterpriseShineray, systemShineray),
+    [jwt]
+  );
+  const [procesos, setProcesos] = useState([]);
+  const [parametros, setParametros] = useState([]);
+  const [parametrosDetail, setParametrosDetail] = useState([]);
+  const [menus, setMenus] = useState([]);
+  const [openAdd, setOpenAdd] = useState(false);
+  const [openUpdate, setOpenUpdate] = useState(false);
+  const [openUpdateDatos, setOpenUpdateDatos] = useState(false);
+  const [formulas, setFormulas] = useState("");
+  const [formula, setFormula] = useState(shapeFormula);
+  const [fechaInicio, setFechaInicio] = useState("");
+  const [fechaFin, setFechaFin] = useState("");
+  const [codProceso, setCodProceso] = useState("");
+  const [codParametro, setCodParametro] = useState("");
+  const [nombreParametro, setNombreParametro] = useState("");
+  const [descripcionParametro, setDescripcionParametro] = useState("");
+  const [ordenParametro, setOrdenParametro] = useState(0);
+  const [estadoParametro, setEstadoParametro] = useState(false);
+
+  const navigate = useNavigate();
+
+  const getMenus = async () => {
+    try {
+      setMenus(await APIService.getMenus());
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const getProcesos = async () => {
+    try {
+      setProcesos(await APIService.getProcesos());
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const getParametros = async () => {
+    try {
+      setParametros(
+        (await APIService.getParametros()).filter((param) => param.estado)
+      );
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const getFormulas = async () => {
+    try {
+      setFormulas(await APIService.getFormulas());
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleAdd = (rowData, rowMeta) => {
+    const codParametro = rowData[0];
+    const orden_imprime = parseInt(
+      window.prompt(
+        `Ingresa el orden de impresión para el parámetro ${codParametro}:`
+      )
+    );
+    if (isNaN(orden_imprime)) {
+      toast.error("Orden de impresión inválido");
+      return;
+    }
+    APIService.addParametroPorProceso(codProceso, codParametro, {
+      orden_imprime,
+    })
+      .then((res) => {
+        toast.success(res);
+        setOpenAdd(false);
+        getParametrosDetail();
+      })
+      .catch((err) => toast.error(err.message));
+  };
+
+  const getParametrosDetail = async () => {
+    try {
+      setParametrosDetail(
+        (await APIService.getParametrosPorProceso(codProceso)).map(
+          ({ parametro, ...rest }) => ({
+            ...rest,
+            nombre: parametro.nombre,
+            descripcion: parametro.descripcion,
+          })
+        )
+      );
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleUpdate = () => {
+    APIService.updateParametroPorProceso(codProceso, codParametro, {
+      orden_imprime: ordenParametro,
+      estado: estadoParametro,
+    })
+      .then((res) => {
+        toast.success(res);
+        setOpenUpdate(false);
+        getParametrosDetail();
+      })
+      .catch((err) => toast.error(err.message));
+  };
+
+  const handleUpdateDatos = () => {
+    APIService.updateParametroPorProceso(codProceso, codParametro, {
+      orden_imprime: parametrosDetail.find(
+        (p) => p.cod_parametro === codParametro
+      ).orden_imprime,
+      cod_formula: formula.cod_formula,
+      fecha_calculo_inicio: fechaInicio,
+      fecha_calculo_fin: fechaFin,
+    })
+      .then((res) => {
+        setFormula(shapeFormula);
+        toast.success(res);
+        setOpenUpdateDatos(false);
+        getParametrosDetail();
+      })
+      .catch((err) => toast.error(err.message));
+  };
+
+  const handleDelete = (selectedRows, setSelectedRows) => {
+    if (!window.confirm("¿Estás seguro de eliminar el parámetro?")) {
+      return false;
+    }
+    const { data: deletedData } = selectedRows;
+    const deletedRowIndex = deletedData[0].index;
+    const deletedRowValue = parametrosDetail[deletedRowIndex];
+    const newParametros = parametrosDetail.filter(
+      (_, index) => index !== deletedRowIndex
+    );
+    APIService.deleteParametroPorProceso(
+      codProceso,
+      deletedRowValue.cod_parametro
+    )
+      .then((res) => {
+        toast.success(res);
+        setSelectedRows([]);
+        getParametrosDetail();
+      })
+      .catch((err) => {
+        toast.error(err.message);
+      });
+    return true;
+  };
+
+  const handleMasterRowSelectionChange = (
+    currentRowsSelected,
+    allRowsSelected,
+    rowsSelected
+  ) => {
+    if (rowsSelected.length === 0) {
+      setCodProceso("");
+      setParametrosDetail([]);
+      return;
+    }
+    const indiceSeleccionado = rowsSelected[0];
+    const procesoSeleccionado = procesos[indiceSeleccionado];
+    if (procesoSeleccionado) {
+      setCodProceso(procesoSeleccionado.cod_proceso);
+    }
+  };
+
+  const handleClickOpenAdd = () => {
+    setOpenAdd(true);
+  };
+
+  const handleClickCloseAdd = () => {
+    setOpenAdd(false);
+  };
+
+  const handleClickOpenUpdate = (rowData) => {
+    setCodParametro(rowData[0]);
+    setNombreParametro(rowData[1]);
+    setDescripcionParametro(rowData[2] || "N/A");
+    setOrdenParametro(rowData[3]);
+    setEstadoParametro(rowData[4] === "Activo");
+    setOpenUpdate(true);
+  };
+
+  const handleClickCloseUpdate = () => {
+    setOpenUpdate(false);
+  };
+
+  const handleClickCloseUpdateDatos = () => {
+    setOpenUpdateDatos(false);
+  };
+
+  const handleCustomAction = (selectedRows, displayData) => {
+    const indiceSeleccionado = selectedRows.data[0].index;
+    const codParametro = displayData[indiceSeleccionado].data[0];
+    navigate(
+      `/factores-calculo?proceso=${codProceso}&parametro=${codParametro}`
+    );
+  };
+
+  const handleOpenUpdateDatos = (selectedRows, displayData) => {
+    const indiceSeleccionado = selectedRows.data[0].index;
+    const codParametro = displayData[indiceSeleccionado].data[0];
+    const parametro = parametrosDetail.find(
+      (p) => p.cod_parametro === codParametro
+    );
+    setCodParametro(codParametro);
+    setFormula(
+      formulas.find((f) => f.cod_formula === parametro.cod_formula) ??
+        shapeFormula
+    );
+    setFechaInicio(formatearFechaInput(parametro.fecha_calculo_inicio));
+    setFechaFin(formatearFechaInput(parametro.fecha_calculo_fin));
+    setOpenUpdateDatos(true);
+  };
+
+  const customToolbarSelect = (selectedRows, displayData, setSelectedRows) => {
+    const tooltips = [
+      createCustomIconTooltip(
+        "Factores de cálculo",
+        () => handleCustomAction(selectedRows, displayData),
+        "calculate"
+      ),
+      createCustomIconTooltip(
+        "Datos parámetro",
+        () => handleOpenUpdateDatos(selectedRows, displayData),
+        "edit"
+      ),
+      createCustomIconTooltip(
+        "Eliminar",
+        () => handleDelete(selectedRows, setSelectedRows),
+        "delete"
+      ),
+    ];
+    return <CustomSelectToolbar tooltips={tooltips} />;
+  };
+
+  const masterEmptyToolbarSelect = (
+    selectedRows,
+    displayData,
+    setSelectedRows
+  ) => {
+    return <></>;
+  };
+
+  const columnsMaster = [
+    {
+      name: "cod_proceso",
+      label: "Código",
+    },
+    {
+      name: "nombre",
+      label: "Nombre",
+    },
+    {
+      name: "estado",
+      label: "Estado",
+      options: createFunctionCustomBodyRender(formatearEstado),
+    },
+  ];
+
+  const optionsMaster = createTableOptions({
+    onRowSelectionChange: handleMasterRowSelectionChange,
+    customToolbarSelect: masterEmptyToolbarSelect,
+    features: createTableFeatures({ download: false, print: false }),
+  });
+
+  const columnsDetail = [
+    {
+      name: "cod_parametro",
+      label: "Código",
+    },
+    {
+      name: "nombre",
+      label: "Nombre",
+    },
+    {
+      name: "descripcion",
+      options: {
+        display: "excluded",
+      },
+    },
+    {
+      name: "orden_imprime",
+      label: "Orden",
+    },
+    {
+      name: "estado",
+      label: "Estado",
+      options: createFunctionCustomBodyRender(formatearEstado),
+    },
+  ];
+
+  const optionsDetail = createTableOptions({
+    onRowClick: handleClickOpenUpdate,
+    customToolbarSelect,
+    features: createTableFeatures({ download: false, print: false }),
+  });
+
+  const columnsParametros = [
+    {
+      name: "cod_parametro",
+      label: "Código",
+    },
+    {
+      name: "nombre",
+      label: "Nombre",
+      options: createTooltipCustomBodyRender(),
+    },
+    {
+      name: "descripcion",
+      label: "Descripción",
+      options: createTooltipCustomBodyRender(),
+    },
+    {
+      name: "estado",
+      label: "Estado",
+      options: createFunctionCustomBodyRender(formatearEstado),
+    },
+  ];
+
+  const optionsParametros = createTableOptions({
+    onRowClick: handleAdd,
+    selectable: TiposSeleccionTabla.NONE.key,
+    features: createTableFeatures({
+      download: false,
+      print: false,
+      viewColumns: false,
+      filter: false,
+    }),
+  });
+
+  const checkboxEstado = (
+    <Check
+      label="Activo"
+      checked={estadoParametro}
+      onChange={createDefaultSetter({
+        setter: setEstadoParametro,
+        isCheck: true,
+      })}
+    />
+  );
+
+  const updateContentItems = [
+    createTextFieldItem({
+      xs: 6,
+      id: "cod_parametro",
+      label: "Código",
+      value: codParametro,
+    }),
+    createTextFieldItem({
+      xs: 6,
+      id: "nombre",
+      label: "Nombre",
+      value: nombreParametro,
+    }),
+    createTextFieldItem({
+      xs: 12,
+      id: "descripcion",
+      label: "Descripción",
+      value: descripcionParametro,
+      rows: 3,
+    }),
+    createTextFieldItem({
+      xs: 12,
+      id: "orden",
+      label: "Orden",
+      value: ordenParametro,
+      setValue: createDefaultSetter({ setter: setOrdenParametro }),
+      type: "number",
+    }),
+    createCustomComponentItem(12, "checkboxEstado", checkboxEstado),
+  ];
+
+  const autocompleteFormulas = (
+    <AutocompleteObject
+      id="Fórmula"
+      value={formula}
+      optionId="cod_formula"
+      shape={shapeFormula}
+      options={formulas}
+      optionLabel="nombre"
+      onChange={(e, value) => {
+        setFormula(value ?? shapeFormula);
+      }}
+      required={false}
+    />
+  );
+
+  const updateDatosContentItems = [
+    createCustomComponentItem(12, "formula", autocompleteFormulas),
+    createTextFieldItem({
+      xs: 6,
+      id: "fecha_inicio",
+      label: "Fecha inicio",
+      value: fechaInicio,
+      setValue: createDefaultSetter({ setter: setFechaInicio }),
+      required: false,
+      type: "date",
+    }),
+    createTextFieldItem({
+      xs: 6,
+      id: "fecha_fin",
+      label: "Fecha fin",
+      value: fechaFin,
+      setValue: createDefaultSetter({ setter: setFechaFin }),
+      required: false,
+      type: "date",
+    }),
+  ];
+
+  const addContent = (
+    <Tabla
+      title="Parámetros"
+      data={parametros.filter(
+        (p) =>
+          !parametrosDetail.some((pd) => pd.cod_parametro === p.cod_parametro)
+      )}
+      columns={columnsParametros}
+      options={optionsParametros}
+    />
+  );
+
+  const updateContent = <CustomGrid items={updateContentItems} />;
+
+  const updateDatosContent = <CustomGrid items={updateDatosContentItems} />;
+
+  const header = <Header menus={menus} />;
+
+  const btnNuevo = (
+    <BtnNuevo
+      onClick={handleClickOpenAdd}
+      disabled={!codProceso}
+      texto={`Agregar parámetro a ${codProceso}`}
+    />
+  );
+
+  const boxMasterDetail = (
+    <BoxMasterDetail
+      master={
+        <Tabla
+          title="Procesos"
+          data={procesos}
+          columns={columnsMaster}
+          options={optionsMaster}
+        />
+      }
+      detail={
+        <Tabla
+          title={`Parámetros del Proceso ${codProceso ?? ""}`}
+          data={parametrosDetail}
+          columns={columnsDetail}
+          options={optionsDetail}
+        />
+      }
+    />
+  );
+
+  const addDialog = (
+    <CustomDialog
+      titulo="Agregar Parámetro"
+      contenido={addContent}
+      open={openAdd}
+      handleClose={handleClickCloseAdd}
+      handleCancel={handleClickCloseAdd}
+    />
+  );
+
+  const updateDialog = (
+    <CustomDialog
+      titulo={`Modificar Parámetro ${codParametro} Del Proceso ${codProceso}`}
+      contenido={updateContent}
+      open={openUpdate}
+      handleClose={handleClickCloseUpdate}
+      handleCancel={handleClickCloseUpdate}
+      handleConfirm={handleUpdate}
+      confirmText="Actualizar"
+    />
+  );
+
+  const updateDatosDialog = (
+    <CustomDialog
+      titulo={`Modificar Datos de Parámetro ${codParametro}`}
+      contenido={updateDatosContent}
+      open={openUpdateDatos}
+      handleClose={handleClickCloseUpdateDatos}
+      handleCancel={handleClickCloseUpdateDatos}
+      handleConfirm={handleUpdateDatos}
+      confirmText="Actualizar"
+    />
+  );
+
+  useEffect(() => {
+    document.title = "Parametros por Proceso";
+    getMenus();
+    getProcesos();
+    getParametros();
+    getFormulas();
+  }, []);
+
+  useEffect(() => {
+    if (codProceso !== "") {
+      getParametrosDetail();
+    }
+  }, [codProceso]);
+
+  return (
+    <MainComponent
+      components={[
+        header,
+        btnNuevo,
+        boxMasterDetail,
+        addDialog,
+        updateDialog,
+        updateDatosDialog,
+      ]}
+    />
+  );
+}
