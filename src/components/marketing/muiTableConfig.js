@@ -28,7 +28,7 @@ export const getTableOptions = (cabeceras = [], camposPlantilla = [], nombreArch
             displayRows: "de"
         },
         toolbar: {
-            downloadCsv: "Exportar CSV"
+            downloadCsv: "Exportar XLSX"
         }
     }
 });
@@ -41,14 +41,17 @@ export const getMuiTheme = () =>
                     root: {
                         paddingLeft: '3px',
                         paddingRight: '3px',
-                        paddingTop: '0px',
-                        paddingBottom: '0px',
-                        backgroundColor: '#00000',
-                        whiteSpace: 'nowrap',
-                        flex: 1,
+                        paddingTop: '4px',
+                        paddingBottom: '4px',
+                        backgroundColor: '#fff',
+                        whiteSpace: 'normal',
+                        wordBreak: 'break-word',
+                        overflowWrap: 'break-word',
+                        verticalAlign: 'top',
                         borderBottom: '1px solid #ddd',
                         borderRight: '1px solid #ddd',
-                        fontSize: '14px'
+                        fontSize: '14px',
+                        maxWidth: '500px',
                     },
                     head: {
                         backgroundColor: 'firebrick',

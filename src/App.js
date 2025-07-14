@@ -22,6 +22,7 @@ import Fideicomiso from "./components/Fideicomiso";
 import Negociacion from "./components/Negociacion";
 import NewNegociacion from "./components/NewNegociacion";
 import Costumer from "./components/Costumer";
+import Costumers from "./components/Costumers";
 import EditCabecera from "./components/EditCabecera";
 import EditContainer from "./components/EditContainer";
 import NewContainer from "./components/NewContainer";
@@ -44,6 +45,25 @@ import Reports12 from "./components/Reports12";
 import Reports13 from "./components/Reports13";
 import Reports14 from "./components/Reports14";
 import Reports15 from "./components/Reports15";
+import Reports16 from "./components/Reports16";
+import Reports17 from "./components/Reports17";
+import Reports18 from "./components/Reports18";
+import Reports19 from "./components/Reports19";
+import Reports20 from "./components/Reports20";
+import Reports21 from "./components/Reports21";
+import Reports22 from "./components/Reports22";
+import Reports23 from "./components/Reports23";
+import Reports24 from "./components/Reports24";
+import Reports25 from "./components/Reports25";
+import Reports26 from "./components/Reports26";
+import Reports27 from "./components/Reports27";
+import Reports28 from "./components/Reports28";
+import Reports29 from "./components/Reports29";
+import Reports30 from "./components/Reports30";
+import Reports31 from "./components/Reports31";
+import Reports32 from "./components/Reports32";
+import Reports33 from "./components/Reports33";
+
 import Settings from "./components/Settings";
 import Menus from "./components/Menus";
 import Details from "./components/Details";
@@ -78,6 +98,7 @@ import CatColor from "./components/marketing/catalogos/catColor";
 import CatImagenes from "./components/marketing/catalogos/catImagenes";
 import CatTransmision from "./components/marketing/catalogos/catTransmision";
 import CatCanal from "./components/marketing/catalogos/catCanal";
+import CatCliente from "./components/marketing/catalogos/catCliente";
 import CatMarca from "./components/marketing/catalogos/catMarca";
 import CatMarcRepuesto from "./components/marketing/catalogos/catMarcRepuesto";
 import CatPdrExterno from "./components/marketing/catalogos/catPdrExterno";
@@ -441,6 +462,15 @@ function App() {
               />
               <Route
                 exact
+                path="/costumers"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("FIN")}>
+                    <Costumers />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
                 path="/editCabecera"
                 element={
                   <Protected isLoggedIn={authorizedSystems.includes("IN")}>
@@ -603,6 +633,168 @@ function App() {
               />
               <Route
                 exact
+                path="/reports16"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
+                    <Reports16 />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/reports17"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
+                    <Reports17 />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/reports18"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
+                    <Reports18 />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/reports19"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
+                    <Reports19 />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/reports20"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
+                    <Reports20 />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/reports21"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
+                    <Reports21 />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/reports22"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
+                    <Reports22 />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/reports23"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
+                    <Reports23 />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/reports24"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
+                    <Reports24 />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/reports25"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
+                    <Reports25 />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/reports26"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
+                    <Reports26 />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/reports27"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
+                    <Reports27 />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/reports28"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
+                    <Reports28 />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/reports29"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
+                    <Reports29 />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/reports30"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
+                    <Reports30 />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/reports31"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
+                    <Reports31 />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/reports32"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
+                    <Reports32 />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/reports33"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
+                    <Reports33 />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
                 path="/electronicFile"
                 element={
                   <Protected isLoggedIn={authorizedSystems.includes("CON")}>
@@ -684,15 +876,6 @@ function App() {
               />
               <Route
                 exact
-                path="/pedidos"
-                element={
-                  <Protected isLoggedIn={authorizedSystems.includes("VE")}>
-                    <Pedidos />
-                  </Protected>
-                }
-              />
-              <Route
-                exact
                 path="/catalogo_chasis"
                 element={
                   <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
@@ -760,6 +943,15 @@ function App() {
                 element={
                   <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
                     <CatCanal />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/catalogo_cliente"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("MKT")}>
+                    <CatCliente />
                   </Protected>
                 }
               />
@@ -898,96 +1090,6 @@ function App() {
                   </Protected>
                 }
               />
-              <Route
-                exact
-                path="/procesos"
-                element={
-                  <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
-                    <Procesos />
-                  </Protected>
-                }
-              ></Route>
-              <Route
-                exact
-                path="/formulas"
-                element={
-                  <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
-                    <Formulas />
-                  </Protected>
-                }
-              ></Route>
-              <Route
-                exact
-                path="/parametros"
-                element={
-                  <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
-                    <Parametros />
-                  </Protected>
-                }
-              ></Route>
-              <Route
-                exact
-                path="/parametros-x-proceso"
-                element={
-                  <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
-                    <ParametrosProceso />
-                  </Protected>
-                }
-              ></Route>
-              <Route
-                exact
-                path="/factores-calculo"
-                element={
-                  <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
-                    <FactoresCalculo />
-                  </Protected>
-                }
-              ></Route>
-              <Route
-                exact
-                path="/funciones"
-                element={
-                  <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
-                    <Funciones />
-                  </Protected>
-                }
-              ></Route>
-              <Route
-                exact
-                path="/clientes-procesos"
-                element={
-                  <Protected isLoggedIn={authorizedSystems.includes("ADM")}>
-                    <Clientes />
-                  </Protected>
-                }
-              ></Route>
-              <Route
-                exact
-                path="/presupuesto-cantidades"
-                element={
-                  <Protected isLoggedIn={authorizedSystems.includes("IMP")}>
-                    <PresupuestoCantidades />
-                  </Protected>
-                }
-              ></Route>
-              <Route
-                exact
-                path="/cobertura-modelo"
-                element={
-                  <Protected isLoggedIn={authorizedSystems.includes("IMP")}>
-                    <CoberturaModelo />
-                  </Protected>
-                }
-              ></Route>
-              <Route
-                exact
-                path="/sell-out"
-                element={
-                  <Protected isLoggedIn={authorizedSystems.includes("IMP")}>
-                    <SellOut />
-                  </Protected>
-                }
-              ></Route>
               <Route exact path="/settings" element={<Settings />}></Route>
             </Routes>
           </>
