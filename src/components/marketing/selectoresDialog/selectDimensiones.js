@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, Table, TableHead,
     TableRow, TableCell, TableBody, Button, IconButton,
@@ -7,8 +7,9 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import Typography from "@mui/material/Typography";
 import CloseIcon from '@mui/icons-material/Close';
+import InputAdornment from "@mui/material/InputAdornment";
 
-export default function SelectorDimensiones({ dimensiones, selectedDimensionesId, onSelect }) {
+export default function SelectorDimensiones({ dimensiones, selectedDimensionesId, onSelect,error, helperText }) {
     const [open, setOpen] = useState(false);
 
     const handleOpenDialog = () => setOpen(true);
@@ -32,12 +33,16 @@ export default function SelectorDimensiones({ dimensiones, selectedDimensionesId
                 <TextField
                     label="Dimensiones/Peso"
                     value={dimensionesLabel}
+                    error={!!error}
+                    helperText={helperText}
                     fullWidth
                     disabled
                 />
-                <IconButton onClick={handleOpenDialog}>
-                    <SearchIcon />
-                </IconButton>
+                <InputAdornment position="end">
+                    <IconButton onClick={handleOpenDialog}>
+                        <SearchIcon />
+                    </IconButton>
+                </InputAdornment>
             </Box>
             <Dialog open={open} onClose={handleCloseDialog} fullWidth maxWidth={false}
                     sx={{ '& .MuiDialog-paper': { width: '45vw', maxWidth: '45vw' } }}>

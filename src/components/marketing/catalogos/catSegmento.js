@@ -160,7 +160,9 @@ function CatSegmento() {
         console.log("ITEM seleccionado:", item);
 
         if (item) {
-            const modelo = modelosComerciales?.find(mc => mc.nombre_modelo === item.nombre_modelo_comercial);
+            //const modelo = modelosComerciales?.find(mc => mc.nombre_modelo === item.nombre_modelo_comercial);
+            const modelo = modelosComerciales?.find(mc => mc.codigo_modelo_comercial === item.codigo_modelo_comercial);
+
             const linea = lineas.find(l => l.codigo_linea === item.codigo_linea);
             const lineaPadre = lineas.find(l => l.codigo_linea === linea?.codigo_linea_padre);
             setSelectedLineas(linea || null);
@@ -174,7 +176,8 @@ function CatSegmento() {
                 nombre_linea: linea?.nombre_linea || '',
                 nombre_linea_padre: linea?.nombre_linea_padre || '',
                 codigo_modelo_comercial: modelo?.codigo_modelo_comercial || '',
-                nombre_modelo_comercial: modelo?.nombre_modelo || '',
+                //nombre_modelo_comercial: modelo?.nombre_modelo || '',
+                nombre_modelo_comercial: modelo?.nombre_modelo || item.nombre_modelo || '',
                 codigo_marca: modelo?.codigo_marca || '',
                 nombre_marca: modelo?.nombre_marca || '',
                 estado_segmento: item.estado_segmento !== undefined ? item.estado_segmento : '',
@@ -203,7 +206,14 @@ function CatSegmento() {
     };
 
     const handleUploadExcel = (e) => {
-        const file = e.target.files[0];
+        const file = e.target.files?.[0];
+
+        if (!file || !(file instanceof Blob)) {
+            enqueueSnackbar('Por favor selecciona un archivo válido .xlsx', { variant: 'warning' });
+            console.error("Archivo inválido:", file);
+            return;
+        }
+
         const reader = new FileReader();
 
         reader.onload = async (evt) => {
@@ -235,6 +245,7 @@ function CatSegmento() {
                 }
 
             } catch (err) {
+                console.error("Error al leer el archivo:", err);
                 enqueueSnackbar('Error procesando archivo', { variant: 'error' });
             }
         };
@@ -249,7 +260,13 @@ function CatSegmento() {
 
 
     const handleUploadExcelUpdate = (e) => {
-        const file = e.target.files[0];
+        const file = e.target.files?.[0];
+
+        if (!file || !(file instanceof Blob)) {
+            enqueueSnackbar("Selecciona un archivo válido (.xlsx)", { variant: "warning" });
+            return;
+        }
+
         const reader = new FileReader();
 
         reader.onload = async (evt) => {
@@ -274,8 +291,7 @@ function CatSegmento() {
                 const duplicados = [];
                 const combinaciones = new Map();
                 rows.forEach((row, index) => {
-                    const clave = `${row.nombre_linea}_${row.nombre_segmento}_
-                ${row.nombre_modelo}_${row.estado_segmento}`;
+                    const clave = `${row.nombre_linea}_${row.nombre_segmento}_${row.nombre_modelo}_${row.estado_segmento}`;
                     if (combinaciones.has(clave)) {
                         const filaOriginal = combinaciones.get(clave);
                         duplicados.push({ filaOriginal, filaDuplicada: index + 2, clave });
