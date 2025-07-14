@@ -46,15 +46,15 @@ import {
 
 const shapePolitica = {
   cod_politica: "",
-  nombre: "Seleccione",
+  label_politica: "Seleccione",
 };
 const shapeVendedor = {
   cod_persona_vendor: "",
-  nombre: "Seleccione",
+  label_vendedor: "Seleccione",
 };
 const shapeCliente = {
   cod_persona: "",
-  nombre: "Seleccione",
+  label_cliente: "Seleccione",
 };
 
 const getMuiTheme = () =>
@@ -192,7 +192,12 @@ export default function RegistrarPedido() {
 
   const getPoliticas = async () => {
     try {
-      setPoliticas(await APIService.getPoliticas(COD_AGENCIA));
+      setPoliticas(
+        (await APIService.getPoliticas(COD_AGENCIA)).map((pol) => ({
+          ...pol,
+          label_politica: `${pol.cod_politica} - ${pol.nombre}`,
+        }))
+      );
     } catch (err) {
       toast.error(err.message);
     }
@@ -200,7 +205,12 @@ export default function RegistrarPedido() {
 
   const getVendedores = async () => {
     try {
-      setVendedores(await APIService.getVendedores(COD_AGENCIA));
+      setVendedores(
+        (await APIService.getVendedores(COD_AGENCIA)).map((ven) => ({
+          ...ven,
+          label_vendedor: `${ven.cod_persona_vendor} - ${ven.nombre}`,
+        }))
+      );
     } catch (err) {
       toast.error(err.message);
     }
@@ -221,7 +231,12 @@ export default function RegistrarPedido() {
       setMensajeCargando("Cargando clientes");
       setCargando(true);
       setClientes(
-        await APIService.getClientes(COD_AGENCIA, politica, COD_TIPO_PEDIDO)
+        (
+          await APIService.getClientes(COD_AGENCIA, politica, COD_TIPO_PEDIDO)
+        ).map((cli) => ({
+          ...cli,
+          label_cliente: `${cli.cod_persona} - ${cli.nombre}`,
+        }))
       );
       setMensajeCargando("");
       setCargando(false);
@@ -423,7 +438,7 @@ export default function RegistrarPedido() {
       optionId="cod_politica"
       shape={shapePolitica}
       options={politicas}
-      optionLabel="cod_politica"
+      optionLabel="label_politica"
       onChange={(e, value) => {
         setPolitica(value ?? shapePolitica);
       }}
@@ -437,7 +452,7 @@ export default function RegistrarPedido() {
       optionId="cod_persona_vendor"
       shape={shapeVendedor}
       options={vendedores}
-      optionLabel="cod_persona_vendor"
+      optionLabel="label_vendedor"
       onChange={(e, value) => {
         if (value) {
           setVendedor(value);
@@ -457,7 +472,7 @@ export default function RegistrarPedido() {
       optionId="cod_persona"
       shape={shapeCliente}
       options={clientes}
-      optionLabel="cod_persona"
+      optionLabel="label_cliente"
       onChange={(e, value) => {
         if (value) {
           setCliente(value);
@@ -492,13 +507,17 @@ export default function RegistrarPedido() {
           COD_TIPO_CLIENTE_H
         )
           .then((res) => {
+            const interes = res.por_interes_final ?? 0;
+            const factor = res.factor_credito_final ?? 0;
+            if (interes === 0 && factor === 0)
+              throw new Error("La política está inactiva");
             setCuotas(nuevasCuotas);
             setFormaPago(
               res.cod_forma_pago_final ??
                 (nuevasCuotas === 0 ? FormasPago.EFE.key : FormasPago.CRE.key)
             );
-            setPorcentajeInteres(res.por_interes_final ?? 0);
-            setFactorCredito(res.factor_credito_final ?? 0);
+            setPorcentajeInteres(interes);
+            setFactorCredito(factor);
           })
           .catch((err) => {
             toast.error(err.message);
@@ -536,16 +555,16 @@ export default function RegistrarPedido() {
   );
 
   const itemsCabeceraPedido = [
-    createCustomComponentItem(2, "politica", autocompletePoliticas),
+    createCustomComponentItem(3, "politica", autocompletePoliticas),
     createTextFieldItem({
-      xs: 4,
+      xs: 3,
       id: "nombre-politica",
       label: "Nombre política",
       value: nombrePolitica,
     }),
-    createCustomComponentItem(2, "agente", autocompleteVendedores),
+    createCustomComponentItem(3, "agente", autocompleteVendedores),
     createTextFieldItem({
-      xs: 4,
+      xs: 3,
       id: "nombre-agente",
       label: "Nombre agente",
       value: nombreVendedor,
