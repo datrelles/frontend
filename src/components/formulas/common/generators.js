@@ -246,3 +246,26 @@ export const createMTColumn = ({
     context,
   };
 };
+
+export const filtrarCampo = (obj, campo, valor) => {
+  const valorCampo = String(obj[campo]);
+  return valorCampo.toLowerCase().includes(String(valor).toLowerCase());
+};
+
+export const createAutocompleteCustomFilter =
+  (campo) =>
+  (options, { inputValue }) => {
+    const palabras = inputValue
+      .trim()
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(Boolean);
+    return palabras.length === 0
+      ? options
+      : options.filter((opt) =>
+          palabras.reduce(
+            (accum, p) => accum && filtrarCampo(opt, campo, p),
+            true
+          )
+        );
+  };

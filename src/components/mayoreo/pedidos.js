@@ -105,6 +105,7 @@ export default function PedidosManager() {
 
   // Detalle al seleccionar un pedido
   const handleVerDetalle = async (pedido) => {
+    console.log(pedido)
     try {
       setLoading(true);
       const detalle = await APIService.obtenerPedidoConDetalles({
@@ -125,7 +126,7 @@ export default function PedidosManager() {
   const columns = [
     { name: "COD_PEDIDO", label: "Código Pedido" },
     {
-      name: "FECHA_PEDIDO",
+      name: "FECHA_ADICION",
       label: "FECHA",
       options: {
         customBodyRender: (value) =>
@@ -145,7 +146,7 @@ export default function PedidosManager() {
             variant="contained"
             color="primary"
             style={{ background: "firebrick", margin: "5px" }}
-            onClick={() => handleVerDetalle(pedidos[dataIndex])}
+            onClick={() => handleVerDetalle(getPedidosFiltrados()[dataIndex])}
           >
             Ver Detalle
           </Button>
@@ -398,9 +399,7 @@ export default function PedidosManager() {
                           <th style={{ border: "1px solid #bbb", padding: 4 }}>
                             Precio Desc.
                           </th>
-                          <th style={{ border: "1px solid #bbb", padding: 4 }}>
-                            Valor Línea
-                          </th>
+  
                           <th style={{ border: "1px solid #bbb", padding: 4 }}>
                             IVA
                           </th>
@@ -444,11 +443,7 @@ export default function PedidosManager() {
                             >
                               {item.PRECIO_DESCONTADO}
                             </td>
-                            <td
-                              style={{ border: "1px solid #ccc", padding: 3 }}
-                            >
-                              {item.VALOR_LINEA}
-                            </td>
+
                             <td
                               style={{ border: "1px solid #ccc", padding: 3 }}
                             >
