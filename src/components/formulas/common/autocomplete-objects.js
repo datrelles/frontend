@@ -10,6 +10,7 @@ export default function AutocompleteObject({
   onChange,
   disabled = false,
   required = true,
+  customFilter = null,
 }) {
   return (
     <Autocomplete
@@ -22,6 +23,7 @@ export default function AutocompleteObject({
       isOptionEqualToValue={(option, value) =>
         option[optionId] === value?.[optionId]
       }
+      {...(customFilter && { filterOptions: customFilter })}
       fullWidth
       renderOption={(props, option) => (
         <li {...props} key={option[optionId]}>
