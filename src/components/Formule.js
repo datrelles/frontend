@@ -251,6 +251,29 @@ function Formules() {
     }
   }
 
+  const getLotesD = async (cod_producto) => {
+    const res = await fetch(`${API}/lotes_by_prod_d`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + jwt
+      },
+      body: JSON.stringify({
+        empresa: enterpriseShineray,
+        cod_producto: cod_producto,
+        cod_agencia: branchShineray
+      })
+    })
+    const data = await res.json();
+    console.log(data)
+    if (!data.error) {
+      setLotes(data.lotes)
+      console.log(data.lotes)
+    } else {
+      enqueueSnackbar(data.error, { variant: 'warning' });
+    }
+  }
+
   const options = {
     responsive: 'standard',
     textLabels: {
@@ -295,6 +318,12 @@ function Formules() {
     setCraft(craft)
     setCurrentFormule(cod_comprobante)
     const row = formules.filter(item => item.cod_formula === rowData[0])[0];
+    console.log(row)
+    if (row.debito_credito == 1) {
+      getLotes(row.cod_producto)
+    }else{
+      getLotesD(row.cod_producto)
+    }
     getLotes(row.cod_producto)
     const res = await fetch(`${API}/validar_existencia`,
       {
