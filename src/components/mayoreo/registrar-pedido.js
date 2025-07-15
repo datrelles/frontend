@@ -3,9 +3,11 @@ import { useAuthContext } from "../../context/authContext";
 import API from "../../services/mayoreo";
 import { toast } from "react-toastify";
 import {
+  createAutocompleteCustomFilter,
   createCustomComponentItem,
   createDefaultSetter,
   createTextFieldItem,
+  filtrarCampo,
 } from "../formulas/common/generators";
 import AutocompleteObject from "../formulas/common/autocomplete-objects";
 import CustomGrid from "../formulas/common/custom-grid";
@@ -40,6 +42,7 @@ import {
 } from "../formulas/common/enum";
 import CustomSelect from "../formulas/common/custom-select";
 import {
+  formatearDinero,
   formatearFechaInput,
   validarTipoRetornoYConvertir,
 } from "../../helpers/modulo-formulas";
@@ -107,14 +110,6 @@ const getMuiTheme = () =>
     },
   });
 
-const filtrarCampo = (obj, campo, valor) => {
-  const valorCampo = obj[campo];
-  return (
-    typeof valorCampo === "string" &&
-    valorCampo.toLowerCase().includes(valor.toLowerCase())
-  );
-};
-
 const filtrarProductos = (productos, codigo, nombre, codItemCat) =>
   codigo === "" && nombre === "" && codItemCat === ""
     ? []
@@ -125,29 +120,11 @@ const filtrarProductos = (productos, codigo, nombre, codItemCat) =>
           filtrarCampo(prod, "cod_item_cat", codItemCat)
       );
 
-const filtrarPalabras =
-  (campo) =>
-  (options, { inputValue }) => {
-    const palabras = inputValue
-      .trim()
-      .toLowerCase()
-      .split(/\s+/)
-      .filter(Boolean);
-    return palabras.length === 0
-      ? options
-      : options.filter((opt) =>
-          palabras.reduce(
-            (accum, p) => accum && filtrarCampo(opt, campo, p),
-            true
-          )
-        );
-  };
-
 const COD_AGENCIA = 25;
 const COD_TIPO_PEDIDO = "PE";
 const COD_TIPO_PERSONA_CLI = "CLI";
 const COD_MODELO_CAT = "PRO2";
-const COD_ITEM_CAT = "Y,E,T,L";
+const COD_ITEM_CAT = "Y,E,T,L,J";
 const COD_MODELO = "PRO1";
 const COD_TIPO_CLIENTE_H = "MY";
 const COD_UNIDAD = "U";
@@ -255,12 +232,11 @@ export default function RegistrarPedido() {
           label_cliente: `${cli.cod_persona} - ${cli.nombre}`,
         }))
       );
-      setMensajeCargando("");
-      setCargando(false);
     } catch (err) {
+      toast.error(err.message);
+    } finally {
       setMensajeCargando("");
       setCargando(false);
-      toast.error(err.message);
     }
   };
 
@@ -393,59 +369,6 @@ export default function RegistrarPedido() {
     });
   };
 
-  const handleCambiarDescuento = async (idx, descuento, consultar = true) => {
-    setMensajeCargando("Calculando descuento");
-    setCargando(true);
-    const productoPedido = { ...productosPedido[idx] };
-    productoPedido.descuento = descuento;
-    if (consultar) {
-      let precioProd;
-      try {
-        precioProd = await APIService.getPrecioProducto(
-          COD_AGENCIA,
-          politica.cod_politica,
-          COD_MODELO_CAT,
-          productoPedido.cod_item_cat,
-          productoPedido.cod_producto,
-          cuotas,
-          cliente.cod_persona,
-          COD_TIPO_PEDIDO,
-          productoPedido.cantidad,
-          COD_TIPO_PEDIDO,
-          COD_UNIDAD,
-          productoPedido.cantidad_pedida,
-          COD_UNIDAD,
-          formaPago,
-          COD_DIVISA,
-          formatearFechaInput(new Date()),
-          formaPago,
-          null,
-          null,
-          productoPedido.descuento,
-          factorCredito,
-          TIENE_IVA,
-          TIENE_ICE,
-          new Date().getFullYear()
-        );
-      } catch (err) {
-        toast.error(err.message);
-        setMensajeCargando("");
-        setCargando(false);
-        return;
-      }
-      productoPedido.precio_descontado = precioProd.precio_descontado;
-      productoPedido.subtotal =
-        productoPedido.cantidad_pedida * productoPedido.precio_descontado;
-    }
-    setProductosPedido((prev) => {
-      setMensajeCargando("");
-      setCargando(false);
-      const nuevosProductos = [...prev];
-      nuevosProductos[idx] = productoPedido;
-      return nuevosProductos;
-    });
-  };
-
   const autocompletePoliticas = (
     <AutocompleteObject
       id="Política"
@@ -457,7 +380,7 @@ export default function RegistrarPedido() {
       onChange={(e, value) => {
         setPolitica(value ?? shapePolitica);
       }}
-      customFilter={filtrarPalabras("label_politica")}
+      customFilter={createAutocompleteCustomFilter("label_politica")}
     />
   );
 
@@ -478,7 +401,7 @@ export default function RegistrarPedido() {
           setNombreVendedor("");
         }
       }}
-      customFilter={filtrarPalabras("label_vendedor")}
+      customFilter={createAutocompleteCustomFilter("label_vendedor")}
     />
   );
 
@@ -500,7 +423,7 @@ export default function RegistrarPedido() {
         }
       }}
       disabled={politica.cod_politica === ""}
-      customFilter={filtrarPalabras("label_cliente")}
+      customFilter={createAutocompleteCustomFilter("label_cliente")}
     />
   );
 
@@ -631,42 +554,6 @@ export default function RegistrarPedido() {
       value: ciudad,
       setValue: createDefaultSetter({ setter: setCiudad }),
     }),
-    // createTextFieldItem({
-    //   xs: 2,
-    //   id: "zona",
-    //   label: "Zona geográfica",
-    //   value: zona,
-    // }),
-    // createTextFieldItem({
-    //   xs: 3,
-    //   id: "credito",
-    //   label: "Cupo crédito",
-    //   value: credito,
-    // }),
-    // createTextFieldItem({
-    //   xs: 3,
-    //   id: "saldo",
-    //   label: "Saldo actual",
-    //   value: disponible,
-    // }),
-    // createTextFieldItem({
-    //   xs: 2,
-    //   id: "categoria",
-    //   label: "Categoría",
-    //   value: categoria,
-    // }),
-    // createTextFieldItem({
-    //   xs: 2,
-    //   id: "tipo",
-    //   label: "Tipo cliente",
-    //   value: tipoCliente,
-    // }),
-    // createTextFieldItem({
-    //   xs: 2,
-    //   id: "cartera_vencida",
-    //   label: "Cartera Vencida",
-    //   value: carteraVencida,
-    // }),
     createTextFieldItem({
       xs: 12,
       id: "observacion",
@@ -904,47 +791,19 @@ export default function RegistrarPedido() {
                   <TableRow key={idx}>
                     <TableCell>{prod.cod_producto}</TableCell>
                     <TableCell>{prod.nombre}</TableCell>
-                    <TableCell>{prod.precio.toFixed(2)}</TableCell>
+                    <TableCell>{formatearDinero(prod.precio)}</TableCell>
                     <TableCell>
                       <TextField
                         size="small"
+                        disabled={true}
                         value={prod.descuento}
-                        onChange={(e) => {
-                          let descuento = e.target.value;
-                          if (descuento) {
-                            try {
-                              let mensaje;
-                              descuento = validarTipoRetornoYConvertir(
-                                TiposRetorno.NUMERO,
-                                descuento
-                              );
-                              if (descuento < 0) {
-                                mensaje = "El descuento debe ser positivo";
-                                toast.error(mensaje);
-                                throw new Error(mensaje);
-                              }
-                              if (descuento > 100) {
-                                mensaje =
-                                  "El descuento debe ser máximo del 100%";
-                                toast.error(mensaje);
-                                throw new Error(mensaje);
-                              }
-                            } catch (err) {
-                              descuento = prod.descuento;
-                            }
-                          }
-                          handleCambiarDescuento(idx, descuento, false);
-                        }}
-                        onBlur={(e) => {
-                          let descuento = parseInt(e.target.value);
-                          descuento = Number.isNaN(descuento) ? 0 : descuento;
-                          handleCambiarDescuento(idx, descuento);
-                        }}
                         inputProps={{ style: { textAlign: "center" } }}
                         sx={{ width: "100%" }}
                       />
                     </TableCell>
-                    <TableCell>{prod.precio_descontado.toFixed(2)}</TableCell>
+                    <TableCell>
+                      {formatearDinero(prod.precio_descontado)}
+                    </TableCell>
                     <TableCell>
                       <TextField
                         size="small"
@@ -980,7 +839,7 @@ export default function RegistrarPedido() {
                         sx={{ width: "100%" }}
                       />
                     </TableCell>
-                    <TableCell>{prod.subtotal.toFixed(2)}</TableCell>
+                    <TableCell>{formatearDinero(prod.subtotal)}</TableCell>
                     <TableCell>
                       <SelectDirecciones idx={idx} valor={prod.cod_direccion} />
                     </TableCell>
@@ -1011,7 +870,7 @@ export default function RegistrarPedido() {
         align="right"
         style={{ fontWeight: "bold", marginTop: 15, marginRight: "2%" }}
       >
-        Total: {valorPedido.toFixed(2)}
+        Total: {formatearDinero(valorPedido)}
       </Typography>
     </ThemeProvider>
   );
@@ -1082,13 +941,13 @@ export default function RegistrarPedido() {
                       {prod.descuento}
                     </TableCell>
                     <TableCell style={{ width: "15%" }}>
-                      {prod.precio_descontado.toFixed(2)}
+                      {formatearDinero(prod.precio_descontado)}
                     </TableCell>
                     <TableCell style={{ width: "10%" }}>
                       {prod.cantidad_pedida}
                     </TableCell>
                     <TableCell style={{ width: "15%" }}>
-                      {prod.subtotal.toFixed(2)}
+                      {formatearDinero(prod.subtotal)}
                     </TableCell>
                     <TableCell style={{ width: "10%" }}>
                       {direccionesCliente[prod.cod_direccion].label}
@@ -1105,7 +964,7 @@ export default function RegistrarPedido() {
         align="right"
         style={{ fontWeight: "bold", marginTop: 15, marginRight: "2%" }}
       >
-        Total: {valorPedido.toFixed(2)}
+        Total: {formatearDinero(valorPedido)}
       </Typography>
       <Typography variant="body1" align="center" color={"red"} marginTop={"2%"}>
         <b>Importante:</b> verifique que los datos sean correctos antes de

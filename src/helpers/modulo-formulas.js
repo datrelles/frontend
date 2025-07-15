@@ -93,6 +93,14 @@ export function formatearSiNo(estado) {
   }
 }
 
+export function formatearDinero(valor) {
+  const formatoNumerico = new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return `$ ${formatoNumerico.format(valor)}`;
+}
+
 export const obtenerNombreTipoRetorno = (retorno) =>
   Enum.getLabel(TiposRetorno, retorno);
 
