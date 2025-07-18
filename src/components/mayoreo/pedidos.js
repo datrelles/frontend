@@ -28,16 +28,13 @@ import TextField from "@mui/material/TextField";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 
 export default function PedidosManager() {
-  const { jwt, userShineray, enterpriseShineray, systemShineray } =
-    useAuthContext();
+  const { jwt, userShineray, enterpriseShineray, systemShineray } =useAuthContext();
   const APIService = useMemo(
     () => new API(jwt, userShineray, enterpriseShineray, systemShineray),
     [jwt, userShineray, enterpriseShineray, systemShineray]
   );
 
   // Fechas por default: 30 días atrás y hoy
-  const [fechaFin] = useState(moment());
-  const [fechaIni] = useState(moment().subtract(30, "days"));
   const [fromDate, setFromDate] = useState(moment().subtract(1, "months"));
   const [toDate, setToDate] = useState(moment);
 
@@ -95,7 +92,7 @@ export default function PedidosManager() {
       }
     };
     menu();
-  }, []);
+  }, [userShineray, enterpriseShineray, jwt]);
 
   // Al montar, resetea el rango de fechas
   useEffect(() => {
@@ -231,6 +228,14 @@ export default function PedidosManager() {
       case "ANULADO":
         return pedidos.filter(
           (p) => p.ES_ANULADO === "S" && p.ADICIONADO_POR === userShineray
+        );
+      case "APROBADO VENTAS":
+        return pedidos.filter(
+          (p) => p.ES_APROBADO_VEN === "S" && p.ADICIONADO_POR === userShineray
+        );
+      case "APROBADO CARTERA":
+        return pedidos.filter(
+          (p) => p.ES_APROBADO_CART === "S" && p.ADICIONADO_POR === userShineray
         );
       default:
         return pedidos;
@@ -399,7 +404,7 @@ export default function PedidosManager() {
                           <th style={{ border: "1px solid #bbb", padding: 4 }}>
                             Precio Desc.
                           </th>
-  
+
                           <th style={{ border: "1px solid #bbb", padding: 4 }}>
                             IVA
                           </th>
