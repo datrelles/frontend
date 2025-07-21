@@ -26,9 +26,10 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import TextField from "@mui/material/TextField";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { ProgressBar } from "../garantias/caseManager/progressLine"; // Asegúrate de la ruta
 
 export default function PedidosManager() {
-  const { jwt, userShineray, enterpriseShineray, systemShineray } =useAuthContext();
+  const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
   const APIService = useMemo(
     () => new API(jwt, userShineray, enterpriseShineray, systemShineray),
     [jwt, userShineray, enterpriseShineray, systemShineray]
@@ -119,6 +120,16 @@ export default function PedidosManager() {
     }
   };
 
+  // Función para calcular el porcentaje de estado
+  const getEstadoPorcentaje = (pedido) => {
+    if (pedido.ES_FACTURADO === "S") return 100;
+    if (pedido.ES_APROBADO_CAR === "S" && pedido.ESTADO_ANTERIOR === "BOD") return 70;
+    if (pedido.ES_APROBADO_CAR === "S") return 60;
+    if (pedido.ES_APROBADO_VEN === "S") return 40;
+    if (pedido.ES_PENDIENTE === "S") return 20;
+    return 0;
+  };
+
   // DataTable columns
   const columns = [
     { name: "COD_PEDIDO", label: "Código Pedido" },
@@ -134,6 +145,16 @@ export default function PedidosManager() {
     { name: "CLIENTE", label: "CLIENTE" },
     { name: "VALOR_PEDIDO", label: "Valor Total" },
     { name: "ADICIONADO_POR", label: "VENDEDOR" },
+    {
+      name: "ESTADO",
+      label: "ESTADO",
+      options: {
+        customBodyRenderLite: (dataIndex) => {
+          const pedido = getPedidosFiltrados()[dataIndex];
+          return <ProgressBar percentage={getEstadoPorcentaje(pedido)} />;
+        },
+      },
+    },
     {
       name: "Detalles",
       label: "Ver Detalle",
@@ -215,8 +236,24 @@ export default function PedidosManager() {
     switch (estadoPedido) {
       case "PENDIENTE":
         return pedidos.filter(
-          (p) => p.ES_PENDIENTE === "S" && p.ADICIONADO_POR === userShineray
+          (p) => p.ES_PENDIENTE === "S" && p.VALOR_PEDIDO > 0 && p.ADICIONADO_POR === userShineray
         );
+
+      case "APROBADO VENTAS":
+        return pedidos.filter(
+          (p) => p.ES_APROBADO_VEN === "S" && p.VALOR_PEDIDO > 0 && p.ADICIONADO_POR === userShineray
+        );
+
+      case "APROBADO CARTERA":
+        return pedidos.filter(
+          (p) => p.ES_APROBADO_CAR === "S" && p.VALOR_PEDIDO && !["BOD", "CER"].includes(p.ESTADO_ANTERIOR) && p.ADICIONADO_POR === userShineray
+        );
+
+      case "BODEGA":
+        return pedidos.filter(
+          (p) => p.ES_APROBADO_CAR === "S" && p.VALOR_PEDIDO && ["BOD"].includes(p.ESTADO_ANTERIOR) && p.ADICIONADO_POR === userShineray
+        );
+
       case "FACTURADO":
         return pedidos.filter(
           (p) => p.ES_FACTURADO === "S" && p.ADICIONADO_POR === userShineray
@@ -229,14 +266,11 @@ export default function PedidosManager() {
         return pedidos.filter(
           (p) => p.ES_ANULADO === "S" && p.ADICIONADO_POR === userShineray
         );
-      case "APROBADO VENTAS":
+      case "TODOS":
         return pedidos.filter(
-          (p) => p.ES_APROBADO_VEN === "S" && p.ADICIONADO_POR === userShineray
-        );
-      case "APROBADO CARTERA":
-        return pedidos.filter(
-          (p) => p.ES_APROBADO_CART === "S" && p.ADICIONADO_POR === userShineray
-        );
+          (p) => p.ADICIONADO_POR === userShineray
+        ); // Solo pedidos del usuario respectivo
+
       default:
         return pedidos;
     }
@@ -299,9 +333,13 @@ export default function PedidosManager() {
                   onChange={(e) => setEstadoPedido(e.target.value)}
                 >
                   <MenuItem value="PENDIENTE">PENDIENTE</MenuItem>
+                  <MenuItem value="APROBADO VENTAS">APROBADO VENTAS</MenuItem>
+                  <MenuItem value="APROBADO CARTERA">APROBADO CARTERA</MenuItem>
+                  <MenuItem value="BODEGA">BODEGA</MenuItem>
                   <MenuItem value="FACTURADO">FACTURADO</MenuItem>
                   <MenuItem value="BLOQUEADO">BLOQUEADO</MenuItem>
                   <MenuItem value="ANULADO">ANULADO</MenuItem>
+                  <MenuItem value="TODOS">TODOS</MenuItem>
                 </Select>
               </FormControl>
             </div>
