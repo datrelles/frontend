@@ -1108,7 +1108,7 @@ export default function RegistrarPedido() {
             ES_ANULADO: "N",
             COD_PRODUCTO: prod.cod_producto,
             COD_TIPO_PRODUCTO,
-            VALOR_LINEA: prod.cod_item_cat=='T' ? ((prod.subtotal - prod.valor_iva*prod.cantidad_pedida)/(1+(prod.ice/100))).toFixed(2) : (prod.subtotal / 1.15).toFixed(2),//vALOR IVA PENDIENTE DEUDA TECNICA,
+            VALOR_LINEA: prod.cod_item_cat=='T' ? ((prod.subtotal - prod.valor_iva*prod.cantidad_pedida)/(1+(prod.ice/100))).toFixed(2) : (prod.valor_iva*prod.cantidad_pedida),//vALOR IVA PENDIENTE DEUDA TECNICA,
             PLAZO,
             ICE: prod.cod_item_cat=='T' ? ((prod.subtotal - prod.valor_iva*prod.cantidad_pedida)/(1+(prod.ice/100))*(prod.ice/100)).toFixed(2) : 0,
             COD_AGENCIA,
