@@ -200,7 +200,7 @@ export default function RegistrarPedido() {
   const getVendedores = async () => {
     try {
       setVendedores(
-        (await APIService.getVendedores(COD_AGENCIA)).map((ven) => ({
+        (await APIService.getVendedores(COD_AGENCIA, userShineray)).map((ven) => ({
           ...ven,
           label_vendedor: `${ven.cod_persona_vendor} - ${ven.nombre}`,
         }))
@@ -1108,13 +1108,13 @@ export default function RegistrarPedido() {
             ES_ANULADO: "N",
             COD_PRODUCTO: prod.cod_producto,
             COD_TIPO_PRODUCTO,
-            VALOR_LINEA: prod.valor_linea,
+            VALOR_LINEA: prod.cod_item_cat=='T' ? ((prod.subtotal - prod.valor_iva*prod.cantidad_pedida)/(1+(prod.ice/100))).toFixed(2) : (prod.valor_iva*prod.cantidad_pedida),//vALOR IVA PENDIENTE DEUDA TECNICA,
             PLAZO,
-            ICE: prod.ice,
+            ICE: prod.cod_item_cat=='T' ? ((prod.subtotal - prod.valor_iva*prod.cantidad_pedida)/(1+(prod.ice/100))*(prod.ice/100)).toFixed(2) : 0,
             COD_AGENCIA,
             EMPRESA: parseInt(enterpriseShineray),
             NUM_CUOTAS: parseInt(cuotas),
-            VALOR_IVA: prod.valor_iva,
+            VALOR_IVA: prod.valor_iva*prod.cantidad_pedida,
             COD_CLIENTE: cliente.cod_persona,
             PRECIO_LISTA: prod.precio_lista,
             PRECIO_DESCONTADO: prod.precio_descontado,
