@@ -200,7 +200,7 @@ export default function RegistrarPedido() {
   const getVendedores = async () => {
     try {
       setVendedores(
-        (await APIService.getVendedores(COD_AGENCIA)).map((ven) => ({
+        (await APIService.getVendedores(COD_AGENCIA, userShineray)).map((ven) => ({
           ...ven,
           label_vendedor: `${ven.cod_persona_vendor} - ${ven.nombre}`,
         }))

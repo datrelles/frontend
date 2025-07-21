@@ -82,14 +82,15 @@ export default class API {
     );
   });
 
-  getVendedores = this.#errorHandler(async (agencia) => {
-    return await axios.get(
-      `${this.#URL}/vendedores_agencia?empresa=${this.#enterprise
-      }&cod_agencia=${agencia}`,
-      this.#headers
-    );
+  getVendedores = this.#errorHandler(async (agencia, user_shineray = null) => {
+    let url = `${this.#URL}/vendedores_agencia?empresa=${this.#enterprise
+      }&cod_agencia=${agencia}`;
+    if (user_shineray) {
+      url += `&user_shineray=${encodeURIComponent(user_shineray)}`;
+    }
+    return await axios.get(url, this.#headers);
   });
-
+  
   getClientes = this.#errorHandler(async (agencia, politica, tipoPedido) => {
     return await axios.get(
       `${this.#URL}/clientes_mayoreo?empresa=${this.#enterprise
