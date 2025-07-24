@@ -354,12 +354,6 @@ export default function RegistrarPedido() {
     }
     newProd.cod_direccion = primeraDireccion;
     setProductosPedido((prev) => {
-      if (prev.find((prod) => prod.cod_producto === newProd.cod_producto)) {
-        setCargando(false);
-        setMensajeCargando("");
-        toast.warn("El producto ya fue agregado");
-        return prev;
-      }
       setAgregarProducto(false);
       setCodigoProducto("");
       setNombreProducto("");
