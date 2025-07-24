@@ -1167,6 +1167,21 @@ export default function RegistrarPedido() {
           await APIService.postPedido(pedido);
           toast.success(`Pedido ${codPedido.cod_pedido} grabado`);
           setPagina(0);
+          setPolitica(shapePolitica);
+          setNombrePolitica("");
+          setVendedor(shapeVendedor);
+          setNombreVendedor("");
+          setCliente(shapeCliente);
+          setNombreCliente("");
+          setDireccionEnvio("");
+          setTelefono("");
+          setCiudad("");
+          setObservacion("");
+          setCuotas(DefaultCuotas);
+          setFormaPago(DefaultFormaPago);
+          setPorcentajeInteres(0);
+          setFactorCredito(0);
+          setProductosPedido([]);
         } catch (err) {
           toast.error(err.message);
         } finally {
