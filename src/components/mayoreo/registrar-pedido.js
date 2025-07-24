@@ -137,6 +137,7 @@ const TIPO_CANTIDAD = "P";
 const COD_TIPO_PRODUCTO = "A";
 const DIAS_VALIDEZ = 30;
 const PLAZO = 60;
+const PALABRAS_EXLUIDAS = ["chasis", "motor"];
 
 export default function RegistrarPedido() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
@@ -214,9 +215,15 @@ export default function RegistrarPedido() {
 
   const getProductos = async () => {
     try {
-      setProductos(
+      const productos = (
         await APIService.getProductos(COD_MODELO_CAT, COD_ITEM_CAT, COD_MODELO)
+      ).filter(
+        (prod) =>
+          !PALABRAS_EXLUIDAS.some((palabra) =>
+            prod.nombre.toLowerCase().includes(palabra)
+          )
       );
+      setProductos(productos);
     } catch (err) {
       toast.error(err.message);
     }
