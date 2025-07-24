@@ -68,7 +68,8 @@ export default class API {
 
   getMenus = this.#errorHandler(async () => {
     return await axios.get(
-      `${this.#BASE_URL}/menus/${this.#user}/${this.#enterprise}/${this.#system
+      `${this.#BASE_URL}/menus/${this.#user}/${this.#enterprise}/${
+        this.#system
       }`,
       this.#headers
     );
@@ -76,24 +77,27 @@ export default class API {
 
   getPoliticas = this.#errorHandler(async (agencia) => {
     return await axios.get(
-      `${this.#URL}/credit_policies?empresa=${this.#enterprise
+      `${this.#URL}/credit_policies?empresa=${
+        this.#enterprise
       }&cod_agencia=${agencia}`,
       this.#headers
     );
   });
 
   getVendedores = this.#errorHandler(async (agencia, user_shineray = null) => {
-    let url = `${this.#URL}/vendedores_agencia?empresa=${this.#enterprise
-      }&cod_agencia=${agencia}`;
+    let url = `${this.#URL}/vendedores_agencia?empresa=${
+      this.#enterprise
+    }&cod_agencia=${agencia}`;
     if (user_shineray) {
       url += `&user_shineray=${encodeURIComponent(user_shineray)}`;
     }
     return await axios.get(url, this.#headers);
   });
-  
+
   getClientes = this.#errorHandler(async (agencia, politica, tipoPedido) => {
     return await axios.get(
-      `${this.#URL}/clientes_mayoreo?empresa=${this.#enterprise
+      `${this.#URL}/clientes_mayoreo?empresa=${
+        this.#enterprise
       }&cod_agencia=${agencia}&cod_politica=${politica}&pl_lv_cod_tipo_pedido=${tipoPedido}`,
       this.#headers
     );
@@ -102,7 +106,8 @@ export default class API {
   getCliente = this.#errorHandler(
     async (agencia, politica, tipoPedido, persona, tipoPersona) => {
       return await axios.get(
-        `${this.#URL}/cliente_info?empresa=${this.#enterprise
+        `${this.#URL}/cliente_info?empresa=${
+          this.#enterprise
         }&cod_agencia=${agencia}&cod_politica=${politica}&cod_tipo_pedido=${tipoPedido}&cod_persona_cli=${persona}&cod_tipo_persona_cli=${tipoPersona}`,
         this.#headers
       );
@@ -111,7 +116,8 @@ export default class API {
 
   getDireccionesCliente = this.#errorHandler(async (cliente) => {
     return await axios.get(
-      `${this.#URL}/direcciones_cliente?empresa=${this.#enterprise
+      `${this.#URL}/direcciones_cliente?empresa=${
+        this.#enterprise
       }&cod_persona_cli=${cliente}`,
       this.#headers
     );
@@ -120,7 +126,8 @@ export default class API {
   getProductos = this.#errorHandler(
     async (codModeloCat, codItemCat, codModelo) => {
       return await axios.get(
-        `${this.#URL}/productos_disponibles?empresa=${this.#enterprise
+        `${this.#URL}/productos_disponibles?empresa=${
+          this.#enterprise
         }&cod_modelo_cat=${codModeloCat}&cod_item_cat=${codItemCat}&cod_modelo=${codModelo}`,
         this.#headers
       );
@@ -138,8 +145,20 @@ export default class API {
       tipoClienteH
     ) => {
       return await axios.get(
-        `${this.#URL}/politica_credito_detalle?empresa=${this.#enterprise
+        `${this.#URL}/politica_credito_detalle?empresa=${
+          this.#enterprise
         }&cod_agencia=${agencia}&cod_politica=${politica}&cod_tipo_pedido=${tipoPedido}&cod_persona_cli=${persona}&cod_tipo_persona_cli=${tipoPersona}&num_cuotas=${cuotas}&cod_tipo_clienteh=${tipoClienteH}`,
+        this.#headers
+      );
+    }
+  );
+
+  getDetalleProducto = this.#errorHandler(
+    async (agencia, politica, modeloCat, itemCat, producto, cuotas) => {
+      return await axios.get(
+        `${this.#URL}/procesar_detalle_producto?empresa=${
+          this.#enterprise
+        }&cod_agencia=${agencia}&cod_politica=${politica}&lv_cod_modelo_cat=${modeloCat}&lv_cod_item_cat=${itemCat}&cod_producto=${producto}&num_cuotas=${cuotas}`,
         this.#headers
       );
     }
@@ -159,7 +178,8 @@ export default class API {
       secuencia
     ) => {
       return await axios.get(
-        `${this.#URL}/obtener_descuento?empresa=${this.#enterprise
+        `${this.#URL}/obtener_descuento?empresa=${
+          this.#enterprise
         }&cod_agencia=${agencia}&cod_politica=${politica}&lv_cod_modelo_cat=${modeloCat}&lv_cod_item_cat=${itemCat}&cod_producto=${producto}&num_cuotas=${cuotas}&cod_persona_cli=${persona}&cod_pedido=${pedido}&cod_tipo_pedido=${tipoPedido}&secuencia=${secuencia}`,
         this.#headers
       );
@@ -194,7 +214,8 @@ export default class API {
       anio
     ) => {
       return await axios.get(
-        `${this.#URL}/calcula_precios?empresa=${this.#enterprise
+        `${this.#URL}/calcula_precios?empresa=${
+          this.#enterprise
         }&cod_agencia=${agencia}&cod_politica=${politica}&lv_cod_modelo_cat=${modeloCat}&lv_cod_item_cat=${itemCat}&cod_producto=${producto}&num_cuotas=${cuotas}&cod_persona_cli=${persona}&cod_tipo_pedido=${codTipoPedido}&cantidad_pedida=${cantidad}&tipo_pedido=${tipoPedido}&lv_cod_unidad=${lvCodUnidad}&cantidad_calculo=${cantidadCalculo}&cod_unidad=${codigoUnidad}&cod_forma_pago=${formaPago}&cod_divisa=${divisa}&fecha=${fecha}&cod_forma_pago2=${formaPago2}&cod_comprobante_lote=${comprobanteLote}&tipo_comprobante_lote=${tipoComprobante}&descuento=${descuento}&pc_factor_credito=${factorCredito}&lv_tiene_iva=${iva}&lv_tiene_ice=${ice}&anio_modelo=${anio}`,
         this.#headers
       );
@@ -203,7 +224,8 @@ export default class API {
 
   getCodPedido = this.#errorHandler(async (agencia, tipoPedido) => {
     return await axios.get(
-      `${this.#URL}/generar__cod_pedido?empresa=${this.#enterprise
+      `${this.#URL}/generar__cod_pedido?empresa=${
+        this.#enterprise
       }&cod_agencia=${agencia}&cod_tipo_pedido=${tipoPedido}`,
       this.#headers
     );
@@ -211,7 +233,8 @@ export default class API {
 
   getCodLiquidacion = this.#errorHandler(async (agencia) => {
     return await axios.get(
-      `${this.#URL}/obtener_cod_liquidacion?empresa=${this.#enterprise
+      `${this.#URL}/obtener_cod_liquidacion?empresa=${
+        this.#enterprise
       }&cod_agencia=${agencia}`,
       this.#headers
     );
@@ -221,25 +244,28 @@ export default class API {
     return await axios.post(`${this.#URL}/guardar_pedido`, data, this.#headers);
   });
 
-
-  listarPedidosPorFecha = this.#errorHandler(async ({ fecha_ini, fecha_fin, cod_agencia }) => {
-    let params = `fecha_ini=${fecha_ini}&fecha_fin=${fecha_fin}`;
-    if (cod_agencia) {
-      params += `&cod_agencia=${cod_agencia}`;
+  listarPedidosPorFecha = this.#errorHandler(
+    async ({ fecha_ini, fecha_fin, cod_agencia }) => {
+      let params = `fecha_ini=${fecha_ini}&fecha_fin=${fecha_fin}`;
+      if (cod_agencia) {
+        params += `&cod_agencia=${cod_agencia}`;
+      }
+      return await axios.get(
+        `${this.#URL}/pedidos_list?${params}`,
+        this.#headers
+      );
     }
-    return await axios.get(
-      `${this.#URL}/pedidos_list?${params}`,
-      this.#headers
-    );
-  });
+  );
 
-  obtenerPedidoConDetalles = this.#errorHandler(async ({ cod_pedido, empresa, cod_tipo_pedido }) => {
-    let params = `cod_pedido=${cod_pedido}`;
-    if (empresa) params += `&empresa=${empresa}`;
-    if (cod_tipo_pedido) params += `&cod_tipo_pedido=${cod_tipo_pedido}`;
-    return await axios.get(
-      `${this.#URL}/pedido_detalle?${params}`,
-      this.#headers
-    );
-  });
+  obtenerPedidoConDetalles = this.#errorHandler(
+    async ({ cod_pedido, empresa, cod_tipo_pedido }) => {
+      let params = `cod_pedido=${cod_pedido}`;
+      if (empresa) params += `&empresa=${empresa}`;
+      if (cod_tipo_pedido) params += `&cod_tipo_pedido=${cod_tipo_pedido}`;
+      return await axios.get(
+        `${this.#URL}/pedido_detalle?${params}`,
+        this.#headers
+      );
+    }
+  );
 }
