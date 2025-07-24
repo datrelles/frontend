@@ -137,6 +137,7 @@ const TIPO_CANTIDAD = "P";
 const COD_TIPO_PRODUCTO = "A";
 const DIAS_VALIDEZ = 30;
 const PLAZO = 60;
+const PALABRAS_EXLUIDAS = ["chasis", "motor"];
 
 export default function RegistrarPedido() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } =
@@ -200,10 +201,12 @@ export default function RegistrarPedido() {
   const getVendedores = async () => {
     try {
       setVendedores(
-        (await APIService.getVendedores(COD_AGENCIA, userShineray)).map((ven) => ({
-          ...ven,
-          label_vendedor: `${ven.cod_persona_vendor} - ${ven.nombre}`,
-        }))
+        (await APIService.getVendedores(COD_AGENCIA, userShineray)).map(
+          (ven) => ({
+            ...ven,
+            label_vendedor: `${ven.cod_persona_vendor} - ${ven.nombre}`,
+          })
+        )
       );
     } catch (err) {
       toast.error(err.message);
@@ -212,9 +215,15 @@ export default function RegistrarPedido() {
 
   const getProductos = async () => {
     try {
-      setProductos(
+      const productos = (
         await APIService.getProductos(COD_MODELO_CAT, COD_ITEM_CAT, COD_MODELO)
+      ).filter(
+        (prod) =>
+          !PALABRAS_EXLUIDAS.some((palabra) =>
+            prod.nombre.toLowerCase().includes(palabra)
+          )
       );
+      setProductos(productos);
     } catch (err) {
       toast.error(err.message);
     }
@@ -269,6 +278,23 @@ export default function RegistrarPedido() {
     setMensajeCargando("Agregando producto");
     setCargando(true);
     const newProd = { ...prod };
+    try {
+      const detalle = await APIService.getDetalleProducto(
+        COD_AGENCIA,
+        politica.cod_politica,
+        COD_MODELO_CAT,
+        newProd.cod_item_cat,
+        newProd.cod_producto,
+        cuotas
+      );
+      if (!detalle.precios_actualizados)
+        throw new Error("Los precios están desactualizados");
+    } catch (err) {
+      setCargando(false);
+      setMensajeCargando("");
+      toast.error(err.message);
+      return;
+    }
     newProd.secuencia = (productosPedido.at(-1)?.secuencia ?? 0) + 1;
     newProd.cantidad_pedida = 1;
     let descuentoProd, precioProd;
@@ -335,12 +361,6 @@ export default function RegistrarPedido() {
     }
     newProd.cod_direccion = primeraDireccion;
     setProductosPedido((prev) => {
-      if (prev.find((prod) => prod.cod_producto === newProd.cod_producto)) {
-        setCargando(false);
-        setMensajeCargando("");
-        toast.warn("El producto ya fue agregado");
-        return prev;
-      }
       setAgregarProducto(false);
       setCodigoProducto("");
       setNombreProducto("");
@@ -1108,13 +1128,26 @@ export default function RegistrarPedido() {
             ES_ANULADO: "N",
             COD_PRODUCTO: prod.cod_producto,
             COD_TIPO_PRODUCTO,
-            VALOR_LINEA: prod.cod_item_cat=='T' ? ((prod.subtotal - prod.valor_iva*prod.cantidad_pedida)/(1+(prod.ice/100))).toFixed(2) : (prod.valor_iva*prod.cantidad_pedida),//vALOR IVA PENDIENTE DEUDA TECNICA,
+            VALOR_LINEA:
+              prod.cod_item_cat == "T"
+                ? (
+                    (prod.subtotal - prod.valor_iva * prod.cantidad_pedida) /
+                    (1 + prod.ice / 100)
+                  ).toFixed(2)
+                : prod.valor_iva * prod.cantidad_pedida, //vALOR IVA PENDIENTE DEUDA TECNICA,
             PLAZO,
-            ICE: prod.cod_item_cat=='T' ? ((prod.subtotal - prod.valor_iva*prod.cantidad_pedida)/(1+(prod.ice/100))*(prod.ice/100)).toFixed(2) : 0,
+            ICE:
+              prod.cod_item_cat == "T"
+                ? (
+                    ((prod.subtotal - prod.valor_iva * prod.cantidad_pedida) /
+                      (1 + prod.ice / 100)) *
+                    (prod.ice / 100)
+                  ).toFixed(2)
+                : 0,
             COD_AGENCIA,
             EMPRESA: parseInt(enterpriseShineray),
             NUM_CUOTAS: parseInt(cuotas),
-            VALOR_IVA: prod.valor_iva*prod.cantidad_pedida,
+            VALOR_IVA: prod.valor_iva * prod.cantidad_pedida,
             COD_CLIENTE: cliente.cod_persona,
             PRECIO_LISTA: prod.precio_lista,
             PRECIO_DESCONTADO: prod.precio_descontado,
