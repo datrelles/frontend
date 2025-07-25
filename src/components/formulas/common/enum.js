@@ -132,7 +132,6 @@ export const FormasPago = {
 export const DefaultFormaPago = FormasPago.EFE.key;
 
 export const CuotasPedido = {
-  0: new Enum("0"),
   1: new Enum("1"),
   2: new Enum("2"),
   3: new Enum("3"),
@@ -144,7 +143,5 @@ export const CuotasPedido = {
   9: new Enum("9"),
   10: new Enum("10"),
 };
-
-export const DefaultCuotas = CuotasPedido[0].key;
 
 export const CARACTER_RELLENO = "-";
