@@ -1,58 +1,53 @@
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
-import Navbar0 from "../../Navbar0";
+import Navbar0 from "../../../Navbar0";
 import MUIDataTable from "mui-datatables";
-import { ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import {IconButton, TextField} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
 import {SnackbarProvider, useSnackbar} from 'notistack';
-import { useAuthContext } from "../../../context/authContext";
+import { useAuthContext } from "../../../../context/authContext";
 import EditIcon from '@mui/icons-material/Edit';
 import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import * as XLSX from "xlsx";
-import GlobalLoading from "../selectoresDialog/GlobalLoading";
 import RefreshIcon from '@mui/icons-material/Refresh';
+import GlobalLoading from "../../selectoresDialog/GlobalLoading";
 import AddIcon from "@material-ui/icons/Add";
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Stack from "@mui/material/Stack";
-import {getTableOptions, getMuiTheme } from "../muiTableConfig";
-
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import {getTableOptions, getMuiTheme } from "../../muiTableConfig";
+import {ThemeProvider} from "@mui/material/styles";
 
 const API = process.env.REACT_APP_API;
 
-function CatChasis() {
+function CatElectronica() {
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
-    const [arosDel, setArosDel] = useState('');
-    const [arosPost, setArosPost] = useState('');
-    const [suspDel, setSuspDel] = useState('');
-    const [suspPost, setSuspPost] = useState('');
-    const [frenoDel, setFrenoDel] = useState('');
-    const [frenoPost, setFrenoPost] = useState('');
+    const [capCombustible, setCapCombustible] = useState('');
+    const [tablero, setTablero] = useState('');
+    const [lucesDelanteras, setLucesDelanteras] = useState('');
+    const [lucesPosteriores, setLucesPosteriores] = useState('');
+    const [garantia, setGarantia] = useState('');
+    const [velocidad_maxima, setVelocidadMaxima] = useState('');
     const [cabeceras, setCabeceras] = useState([]);
     const [menus, setMenus] = useState([]);
-    const [selectedChasis, setSelectedChasis] = useState(null);
+    const [selectedElectronica, setSelectedElectronica] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [neuDel, setNeuDel] = useState('');
-    const [neuPost, setNeuPost] = useState('');
-    const [errorNeuDel, setErrorNeuDel] = useState(false);
-    const [errorNeuPost, setErrorNeuPost] = useState(false);
     const [loadingGlobal, setLoadingGlobal] = useState(false);
 
-    const handleInsertChasis = async () => {
-        const url = selectedChasis && selectedChasis.codigo_chasis
-            ? `${API}/bench/update_chasis/${selectedChasis.codigo_chasis}`
-            : `${API}/bench/insert_chasis`;
+    const handleInsertElectronica = async () => {
+        const url = selectedElectronica && selectedElectronica.codigo_electronica
+            ? `${API}/bench/update_electronica/${selectedElectronica.codigo_electronica}`
+            : `${API}/bench/insert_electronica_otros`;
 
-        const method = selectedChasis && selectedChasis.codigo_chasis ? "PUT" : "POST";
+        const method = selectedElectronica && selectedElectronica.codigo_electronica ? "PUT" : "POST";
 
         try {
             const res = await fetch(url, {
@@ -62,21 +57,19 @@ function CatChasis() {
                     "Authorization": "Bearer " + jwt
                 },
                 body: JSON.stringify({
-                    aros_rueda_delantera: arosDel,
-                    aros_rueda_posterior: arosPost,
-                    neumatico_delantero: neuDel,
-                    neumatico_trasero: neuPost,
-                    suspension_delantera: suspDel,
-                    suspension_trasera: suspPost,
-                    frenos_delanteros: frenoDel,
-                    frenos_traseros: frenoPost
+                    capacidad_combustible: capCombustible,
+                    tablero: tablero,
+                    luces_delanteras: lucesDelanteras,
+                    luces_posteriores: lucesPosteriores,
+                    garantia: garantia,
+                    velocidad_maxima: velocidad_maxima
                 })
             });
 
             const data = await res.json();
             if (res.ok) {
                 enqueueSnackbar(data.message || "Operación exitosa", { variant: "success" });
-                fetchChasisData();
+                fetchElectronicaData();
                 setDialogOpen(false);
             } else {
                 enqueueSnackbar(data.error || "Error al guardar", { variant: "error" });
@@ -85,11 +78,6 @@ function CatChasis() {
             console.error(error);
             enqueueSnackbar("Error inesperado", { variant: "error" });
         }
-    };
-
-    const formatoNeumaticoValido = (valor) => {
-        const regex = /^\d{2,3}\/\d{2,3}-\d{2,3}$/;
-        return regex.test(valor.trim());
     };
 
     const getMenus = async () => {
@@ -112,30 +100,28 @@ function CatChasis() {
 
     useEffect(() => {
         getMenus();
-        fetchChasisData();
+        fetchElectronicaData();
 
     }, [])
 
-    const sanitizeChasis = (item) => {
+    const sanitizeElectronica = (item) => {
         const reemplazo = (val) =>
             val === null || val === undefined || val === '' ? 'N/A' : val;
 
         return {
             ...item,
-            aros_rueda_delantera: reemplazo(item.aros_rueda_delantera),
-            aros_rueda_posterior: reemplazo(item.aros_rueda_posterior),
-            neumatico_delantero: reemplazo(item.neumatico_delantero),
-            neumatico_trasero: reemplazo(item.neumatico_trasero),
-            suspension_delantera: reemplazo(item.suspension_delantera),
-            suspension_trasera: reemplazo(item.suspension_trasera),
-            frenos_delanteros: reemplazo(item.frenos_delanteros),
-            frenos_traseros: reemplazo(item.frenos_traseros),
+            capacidad_combustible: reemplazo(item.capacidad_combustible),
+            tablero: reemplazo(item.tablero),
+            luces_delanteras: reemplazo(item.luces_delanteras),
+            luces_posteriores: reemplazo(item.luces_posteriores),
+            garantia: reemplazo(item.garantia),
+            velocidad_maxima: reemplazo(item.velocidad_maxima),
         };
     };
 
-    const fetchChasisData = async () => {
+    const fetchElectronicaData = async () => {
         try {
-            const res = await fetch(`${API}/bench/get_chasis`, {
+            const res = await fetch(`${API}/bench/get_electronica`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -144,15 +130,41 @@ function CatChasis() {
             });
             const data = await res.json();
             if (res.ok) {
-                const dataSanitizada = data.map(sanitizeChasis);
+                const dataSanitizada = data.map(sanitizeElectronica);
                 setCabeceras(dataSanitizada);
             } else {
-                enqueueSnackbar(data.error || "Error al obtener data de chasis", { variant: "error" });
+                enqueueSnackbar(data.error || "Error al obtener data de electrónica", { variant: "error" });
             }
         } catch (error) {
             enqueueSnackbar("Error de conexión", { variant: "error" });
         }
     };
+
+    const columns = [
+        { name: "codigo_electronica", label: "Código" },
+        { name: "velocidad_maxima", label: "Velocidad maxima" },
+        { name: "capacidad_combustible", label: "Capacidad combustible" },
+        { name: "tablero", label: "Tablero" },
+        { name: "luces_delanteras", label: "Luces delanteras" },
+        { name: "luces_posteriores", label: "Luces posteriores" },
+        { name: "garantia", label: "Garantía" },
+        //{ name: "usuario_crea", label: "Usuario Crea" },
+        { name: "fecha_creacion", label: "Fecha Creación" },
+        {
+            name: "acciones",
+            label: "Acciones",
+            options: {
+                customBodyRenderLite: (dataIndex) => {
+                    const rowData = cabeceras[dataIndex];
+                    return (
+                        <IconButton onClick={() => openEditDialog(rowData)}>
+                            <EditIcon />
+                        </IconButton>
+                    );
+                }
+            }
+        }
+    ];
 
     const handleUploadExcel = (e) => {
         const file = e.target.files[0];
@@ -165,7 +177,7 @@ function CatChasis() {
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
             try {
-                const res = await fetch(`${API}/bench/insert_chasis`, {
+                const res = await fetch(`${API}/bench/insert_electronica_otros`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -175,14 +187,21 @@ function CatChasis() {
                 });
 
                 const responseData = await res.json();
+
                 if (res.ok) {
-                    enqueueSnackbar("Carga exitosa", { variant: "success" });
-                    fetchChasisData();
+                    enqueueSnackbar(responseData.message, { variant: "success" });
+
+                    if (responseData.omitidos > 0) {
+                        enqueueSnackbar(`${responseData.omitidos} registro(s) duplicado(s) fueron omitidos.`, { variant: "warning" });
+                    }
+
+                    fetchElectronicaData();
                 } else {
-                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
+                    enqueueSnackbar(responseData.error || "Error al cargar registros", { variant: "error" });
                 }
+
             } catch (error) {
-                enqueueSnackbar("Error inesperado", { variant: "error" });
+                enqueueSnackbar("Error inesperado durante la carga del archivo", { variant: "error" });
             }
         };
 
@@ -197,15 +216,13 @@ function CatChasis() {
             const data = evt.target.result;
             const workbook = XLSX.read(data, { type: "binary" });
             const sheetName = workbook.SheetNames[0];
-            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
 
-            const duplicados = [];
             const combinaciones = new Map();
+            const duplicados = [];
 
             rows.forEach((row, index) => {
-                const clave = `${row.aros_rueda_delantera}_${row.aros_rueda_posterior}_
-                ${row.neumatico_delantero}_${row.neumatico_trasero}_${row.suspension_delantera}_
-                ${row.suspension_trasera}_${row.frenos_delanteros}_${row.frenos_traseros}`;
+                const clave = `${row.velocidad_maxima}_${row.capacidad_combustible}_${row.tablero}_${row.luces_delanteras}_${row.luces_posteriores}_${row.garantia}`;
                 if (combinaciones.has(clave)) {
                     const filaOriginal = combinaciones.get(clave);
                     duplicados.push({ filaOriginal, filaDuplicada: index + 2, clave });
@@ -229,7 +246,7 @@ function CatChasis() {
             setLoadingGlobal(true);
 
             try {
-                const res = await fetch(`${API}/bench/update_chasis_masivo`, {
+                const res = await fetch(`${API}/bench/update_electronica_masivo`, {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
@@ -241,7 +258,7 @@ function CatChasis() {
                 const responseData = await res.json();
                 if (res.ok) {
                     enqueueSnackbar("Actualización exitosa", { variant: "success" });
-                    fetchChasisData();
+                    fetchElectronicaData();
                 } else {
                     enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
                 }
@@ -255,55 +272,28 @@ function CatChasis() {
         reader.readAsBinaryString(file);
     };
 
-    const camposPlantillaModelo = [
-        "codigo_chasis", "aros_rueda_delantera",
-        "aros_rueda_posterior", "neumatico_delantero",
-        "neumatico_trasero", "suspension_delantera",
-        "suspension_trasera", "frenos_delanteros",
-        "frenos_traseros"
-    ];
-    const tableOptions = getTableOptions(cabeceras, camposPlantillaModelo, "Actualizar_chasis.xlsx");
-
-    const columns = [
-        { name: "codigo_chasis", label: "Código Chasis" },
-        { name: "aros_rueda_posterior", label: "Aros Rueda Posterior" },
-        { name: "aros_rueda_delantera", label: "Aros Rueda Delantera" },
-        { name: "neumatico_delantero", label: "Neumático Delantero" },
-        { name: "neumatico_trasero", label: "Neumático Trasero" },
-        { name: "suspension_delantera", label: "Suspensión Delantera" },
-        { name: "suspension_trasera", label: "Suspensión Trasera" },
-        { name: "frenos_delanteros", label: "Frenos Delanteros" },
-        { name: "frenos_traseros", label: "Frenos Traseros" },
-       // { name: "usuario_crea", label: "Usuario Crea" },
-        { name: "fecha_creacion", label: "Fecha Creación" },
-        {
-            name: "acciones",
-            label: "Acciones",
-            options: {
-                customBodyRenderLite: (dataIndex) => {
-                    const rowData = cabeceras[dataIndex];
-                    return (
-                        <IconButton onClick={() => openEditDialog(rowData)}>
-                            <EditIcon />
-                        </IconButton>
-                    );
-                }
-            }
-        }
-    ];
-
     const openEditDialog = (rowData) => {
-        setSelectedChasis(rowData);
-        setArosDel(rowData.aros_rueda_delantera || '');
-        setArosPost(rowData.aros_rueda_posterior || '');
-        setNeuDel(rowData.neumatico_delantero || '');
-        setNeuPost(rowData.neumatico_trasero || '');
-        setSuspDel(rowData.suspension_delantera || '');
-        setSuspPost(rowData.suspension_trasera || '');
-        setFrenoDel(rowData.frenos_delanteros || '');
-        setFrenoPost(rowData.frenos_traseros || '');
+        setSelectedElectronica(rowData);
+        setCapCombustible(rowData.capacidad_combustible || '');
+        setTablero(rowData.tablero || '');
+        setLucesDelanteras(rowData.luces_delanteras || '');
+        setLucesPosteriores(rowData.luces_posteriores || '');
+        setGarantia(rowData.garantia || '');
+        setVelocidadMaxima(rowData.velocidad_maxima || '');
         setDialogOpen(true);
     };
+
+    const camposPlantillaModelo = [
+        "codigo_electronica", "velocidad_maxima",
+        "capacidad_combustible", "tablero",
+        "luces_delanteras", "luces_posteriores",
+        "garantia"
+
+
+    ];
+    const tableOptions = getTableOptions(cabeceras, camposPlantillaModelo, "Actualizar_electronica.xlsx");
+
+
 
     return (
         <>
@@ -323,15 +313,13 @@ function CatChasis() {
                             color="primary"
                             startIcon={<AddIcon />}
                             onClick={() => {
-                                setSelectedChasis(null);
-                                setArosDel('');
-                                setArosPost('');
-                                setNeuDel('');
-                                setNeuPost('');
-                                setSuspDel('');
-                                setSuspPost('');
-                                setFrenoDel('');
-                                setFrenoPost('');
+                                setSelectedElectronica(null);
+                                setCapCombustible('');
+                                setTablero('');
+                                setLucesDelanteras('');
+                                setLucesPosteriores('');
+                                setGarantia('');
+                                setVelocidadMaxima('');
                                 setDialogOpen(true);
                             }}
                             sx={{
@@ -375,7 +363,7 @@ function CatChasis() {
                         >Actualizar Masivo
                             <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
                         </Button>
-                        <IconButton onClick={fetchChasisData} style={{ color: 'firebrick' }}>
+                        <IconButton onClick={fetchElectronicaData} style={{ color: 'firebrick' }}>
                             <RefreshIcon />
                         </IconButton>
                     </Stack>
@@ -384,50 +372,20 @@ function CatChasis() {
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={tableOptions} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
-                    <DialogTitle>{selectedChasis ? 'Actualizar' : 'Nuevo'}</DialogTitle>
+                    <DialogTitle>{selectedElectronica ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Aros Rueda Delantera" value={arosDel} onChange={(e) => setArosDel(e.target.value.toUpperCase())} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Aros Rueda Posterior" value={arosPost} onChange={(e) => setArosPost(e.target.value.toUpperCase())} /></Grid>
-                            <Grid item xs={6}>
-                                <TextField
-                                    fullWidth
-                                    label="Neumático Delantero"
-                                    value={neuDel}
-                                    error={errorNeuDel}
-                                    helperText={errorNeuDel ? "Formato inválido. Usa 90/90-19" : ""}
-                                    onChange={(e) => {
-                                        const val = e.target.value.toUpperCase();
-                                        setNeuDel(val);
-                                        setErrorNeuDel(val && !formatoNeumaticoValido(val));
-                                    }}
-                                />
-                            </Grid>
-                            <Grid item xs={6}>
-                                <TextField
-                                    fullWidth
-                                    label="Neumático Trasero"
-                                    value={neuPost}
-                                    error={errorNeuPost}
-                                    helperText={errorNeuPost ? "Formato inválido. Usa 110/90-17" : ""}
-                                    onChange={(e) => {
-                                        const val = e.target.value.toUpperCase();
-                                        setNeuPost(val);
-                                        setErrorNeuPost(val && !formatoNeumaticoValido(val));
-                                    }}
-                                />
-                            </Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Suspensión Delantera" value={suspDel} onChange={(e) => setSuspDel(e.target.value.toUpperCase())} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Suspensión Trasera" value={suspPost} onChange={(e) => setSuspPost(e.target.value.toUpperCase())} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Frenos Delanteros" value={frenoDel} onChange={(e) => setFrenoDel(e.target.value.toUpperCase())} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Frenos Traseros" value={frenoPost} onChange={(e) => setFrenoPost(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Capacidad combustible" value={capCombustible} onChange={(e) => setCapCombustible(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Tablero" value={tablero} onChange={(e) => setTablero(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Luces delanteras" value={lucesDelanteras} onChange={(e) => setLucesDelanteras(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Luces posteriores" value={lucesPosteriores} onChange={(e) => setLucesPosteriores(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Garantía" value={garantia} onChange={(e) => setGarantia(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Velocidad Máxima" value={velocidad_maxima} onChange={(e) => setVelocidadMaxima(e.target.value.toUpperCase())} /></Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleInsertChasis} variant="contained"
-                                style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedChasis ? 'Actualizar' : 'Guardar'}
-                        </Button>
+                        <Button onClick={handleInsertElectronica} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedElectronica ? 'Actualizar' : 'Guardar'}</Button>
                     </DialogActions>
                 </Dialog>
             </div>
@@ -438,7 +396,7 @@ function CatChasis() {
 export default function IntegrationNotistack() {
     return (
         <SnackbarProvider maxSnack={3}>
-            <CatChasis />
+            <CatElectronica />
         </SnackbarProvider>
     );
 }

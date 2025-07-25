@@ -6,11 +6,11 @@ import Box from '@mui/material/Box';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
-import Navbar0 from "../../Navbar0";
+import Navbar0 from "../../../Navbar0";
 import MUIDataTable from "mui-datatables";
 import { ThemeProvider } from '@mui/material/styles';
 import { SnackbarProvider, useSnackbar } from 'notistack';
-import { useAuthContext } from "../../../context/authContext";
+import { useAuthContext } from "../../../../context/authContext";
 import EditIcon from '@mui/icons-material/Edit';
 import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
@@ -21,9 +21,9 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import AddIcon from "@material-ui/icons/Add";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Stack from "@mui/material/Stack";
-import {getTableOptions, getMuiTheme } from "../muiTableConfig";
-import GlobalLoading from "../selectoresDialog/GlobalLoading";
-import {NumericRender} from "../functions";
+import {getTableOptions, getMuiTheme } from "../../muiTableConfig";
+import GlobalLoading from "../../selectoresDialog/GlobalLoading";
+import {NumericRender} from "../../functions";
 
 
 const API = process.env.REACT_APP_API;

@@ -1,51 +1,58 @@
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
-import Navbar0 from "../../Navbar0";
+import Navbar0 from "../../../Navbar0";
 import MUIDataTable from "mui-datatables";
+import { ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import {IconButton, TextField} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
 import {SnackbarProvider, useSnackbar} from 'notistack';
-import { useAuthContext } from "../../../context/authContext";
+import { useAuthContext } from "../../../../context/authContext";
 import EditIcon from '@mui/icons-material/Edit';
 import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import * as XLSX from "xlsx";
+import GlobalLoading from "../../selectoresDialog/GlobalLoading";
 import RefreshIcon from '@mui/icons-material/Refresh';
-import GlobalLoading from "../selectoresDialog/GlobalLoading";
 import AddIcon from "@material-ui/icons/Add";
-import Stack from "@mui/material/Stack";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import {getTableOptions, getMuiTheme } from "../muiTableConfig";
-import {ThemeProvider} from "@mui/material/styles";
+import Stack from "@mui/material/Stack";
+import {getTableOptions, getMuiTheme } from "../../muiTableConfig";
+
 
 const API = process.env.REACT_APP_API;
 
-function CatDimensionesPeso() {
+function CatChasis() {
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
-    const [alturaTotal, setAlturaTotal] = useState('');
-    const [longTotal, setLongTotal] = useState('');
-    const [anchoTotal, setAnchoTotal] = useState('');
-    const [pesoSeco, setPesoSeco] = useState('');
+    const [arosDel, setArosDel] = useState('');
+    const [arosPost, setArosPost] = useState('');
+    const [suspDel, setSuspDel] = useState('');
+    const [suspPost, setSuspPost] = useState('');
+    const [frenoDel, setFrenoDel] = useState('');
+    const [frenoPost, setFrenoPost] = useState('');
     const [cabeceras, setCabeceras] = useState([]);
     const [menus, setMenus] = useState([]);
-    const [selectedDimensiones, setSelectedDimensiones] = useState(null);
+    const [selectedChasis, setSelectedChasis] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [neuDel, setNeuDel] = useState('');
+    const [neuPost, setNeuPost] = useState('');
+    const [errorNeuDel, setErrorNeuDel] = useState(false);
+    const [errorNeuPost, setErrorNeuPost] = useState(false);
     const [loadingGlobal, setLoadingGlobal] = useState(false);
 
-    const handleInsertDimensionesPeso = async () => {
-        const url = selectedDimensiones && selectedDimensiones.codigo_dim_peso
-            ? `${API}/bench/update_dimensiones/${selectedDimensiones.codigo_dim_peso}`
-            : `${API}/bench/insert_dimension`;
+    const handleInsertChasis = async () => {
+        const url = selectedChasis && selectedChasis.codigo_chasis
+            ? `${API}/bench/update_chasis/${selectedChasis.codigo_chasis}`
+            : `${API}/bench/insert_chasis`;
 
-        const method = selectedDimensiones && selectedDimensiones.codigo_dim_peso ? "PUT" : "POST";
+        const method = selectedChasis && selectedChasis.codigo_chasis ? "PUT" : "POST";
 
         try {
             const res = await fetch(url, {
@@ -55,17 +62,21 @@ function CatDimensionesPeso() {
                     "Authorization": "Bearer " + jwt
                 },
                 body: JSON.stringify({
-                    altura_total: alturaTotal,
-                    longitud_total: longTotal,
-                    ancho_total: anchoTotal,
-                    peso_seco: pesoSeco
+                    aros_rueda_delantera: arosDel,
+                    aros_rueda_posterior: arosPost,
+                    neumatico_delantero: neuDel,
+                    neumatico_trasero: neuPost,
+                    suspension_delantera: suspDel,
+                    suspension_trasera: suspPost,
+                    frenos_delanteros: frenoDel,
+                    frenos_traseros: frenoPost
                 })
             });
 
             const data = await res.json();
             if (res.ok) {
                 enqueueSnackbar(data.message || "Operación exitosa", { variant: "success" });
-                fetchDimensionesData();
+                fetchChasisData();
                 setDialogOpen(false);
             } else {
                 enqueueSnackbar(data.error || "Error al guardar", { variant: "error" });
@@ -74,6 +85,11 @@ function CatDimensionesPeso() {
             console.error(error);
             enqueueSnackbar("Error inesperado", { variant: "error" });
         }
+    };
+
+    const formatoNeumaticoValido = (valor) => {
+        const regex = /^\d{2,3}\/\d{2,3}-\d{2,3}$/;
+        return regex.test(valor.trim());
     };
 
     const getMenus = async () => {
@@ -96,26 +112,30 @@ function CatDimensionesPeso() {
 
     useEffect(() => {
         getMenus();
-        fetchDimensionesData();
+        fetchChasisData();
 
     }, [])
 
-    const sanitizeDimensiones = (item) => {
+    const sanitizeChasis = (item) => {
         const reemplazo = (val) =>
             val === null || val === undefined || val === '' ? 'N/A' : val;
 
         return {
             ...item,
-            altura_total: reemplazo(item.altura_total),
-            longitud_total: reemplazo(item.longitud_total),
-            ancho_total: reemplazo(item.ancho_total),
-            peso_seco: reemplazo(item.peso_seco),
+            aros_rueda_delantera: reemplazo(item.aros_rueda_delantera),
+            aros_rueda_posterior: reemplazo(item.aros_rueda_posterior),
+            neumatico_delantero: reemplazo(item.neumatico_delantero),
+            neumatico_trasero: reemplazo(item.neumatico_trasero),
+            suspension_delantera: reemplazo(item.suspension_delantera),
+            suspension_trasera: reemplazo(item.suspension_trasera),
+            frenos_delanteros: reemplazo(item.frenos_delanteros),
+            frenos_traseros: reemplazo(item.frenos_traseros),
         };
     };
 
-    const fetchDimensionesData = async () => {
+    const fetchChasisData = async () => {
         try {
-            const res = await fetch(`${API}/bench/get_dimensiones`, {
+            const res = await fetch(`${API}/bench/get_chasis`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -124,10 +144,10 @@ function CatDimensionesPeso() {
             });
             const data = await res.json();
             if (res.ok) {
-                const dataSanitizada = data.map(sanitizeDimensiones);
+                const dataSanitizada = data.map(sanitizeChasis);
                 setCabeceras(dataSanitizada);
             } else {
-                enqueueSnackbar(data.error || "Error al obtener data de dimensiones", { variant: "error" });
+                enqueueSnackbar(data.error || "Error al obtener data de chasis", { variant: "error" });
             }
         } catch (error) {
             enqueueSnackbar("Error de conexión", { variant: "error" });
@@ -145,7 +165,7 @@ function CatDimensionesPeso() {
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
             try {
-                const res = await fetch(`${API}/bench/insert_dimension`, {
+                const res = await fetch(`${API}/bench/insert_chasis`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -157,7 +177,7 @@ function CatDimensionesPeso() {
                 const responseData = await res.json();
                 if (res.ok) {
                     enqueueSnackbar("Carga exitosa", { variant: "success" });
-                    fetchDimensionesData();
+                    fetchChasisData();
                 } else {
                     enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
                 }
@@ -177,13 +197,15 @@ function CatDimensionesPeso() {
             const data = evt.target.result;
             const workbook = XLSX.read(data, { type: "binary" });
             const sheetName = workbook.SheetNames[0];
-            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
 
-            const combinaciones = new Map();
             const duplicados = [];
+            const combinaciones = new Map();
 
             rows.forEach((row, index) => {
-                const clave = `${row.altura_total}_${row.longitud_total}_${row.ancho_total}_${row.peso_seco}`;
+                const clave = `${row.aros_rueda_delantera}_${row.aros_rueda_posterior}_
+                ${row.neumatico_delantero}_${row.neumatico_trasero}_${row.suspension_delantera}_
+                ${row.suspension_trasera}_${row.frenos_delanteros}_${row.frenos_traseros}`;
                 if (combinaciones.has(clave)) {
                     const filaOriginal = combinaciones.get(clave);
                     duplicados.push({ filaOriginal, filaDuplicada: index + 2, clave });
@@ -207,7 +229,7 @@ function CatDimensionesPeso() {
             setLoadingGlobal(true);
 
             try {
-                const res = await fetch(`${API}/bench/update_dimemsiones_masivo`, {
+                const res = await fetch(`${API}/bench/update_chasis_masivo`, {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
@@ -219,7 +241,7 @@ function CatDimensionesPeso() {
                 const responseData = await res.json();
                 if (res.ok) {
                     enqueueSnackbar("Actualización exitosa", { variant: "success" });
-                    fetchDimensionesData();
+                    fetchChasisData();
                 } else {
                     enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
                 }
@@ -233,13 +255,26 @@ function CatDimensionesPeso() {
         reader.readAsBinaryString(file);
     };
 
+    const camposPlantillaModelo = [
+        "codigo_chasis", "aros_rueda_delantera",
+        "aros_rueda_posterior", "neumatico_delantero",
+        "neumatico_trasero", "suspension_delantera",
+        "suspension_trasera", "frenos_delanteros",
+        "frenos_traseros"
+    ];
+    const tableOptions = getTableOptions(cabeceras, camposPlantillaModelo, "Actualizar_chasis.xlsx");
+
     const columns = [
-        { name: "codigo_dim_peso", label: "Código" },
-        { name: "peso_seco", label: "Peso Seco" },
-        { name: "altura_total", label: "Altura total" },
-        { name: "longitud_total", label: "Longitud total" },
-        { name: "ancho_total", label: "Ancho total" },
-        //{ name: "usuario_crea", label: "Usuario Crea" },
+        { name: "codigo_chasis", label: "Código Chasis" },
+        { name: "aros_rueda_posterior", label: "Aros Rueda Posterior" },
+        { name: "aros_rueda_delantera", label: "Aros Rueda Delantera" },
+        { name: "neumatico_delantero", label: "Neumático Delantero" },
+        { name: "neumatico_trasero", label: "Neumático Trasero" },
+        { name: "suspension_delantera", label: "Suspensión Delantera" },
+        { name: "suspension_trasera", label: "Suspensión Trasera" },
+        { name: "frenos_delanteros", label: "Frenos Delanteros" },
+        { name: "frenos_traseros", label: "Frenos Traseros" },
+       // { name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
             name: "acciones",
@@ -258,21 +293,17 @@ function CatDimensionesPeso() {
     ];
 
     const openEditDialog = (rowData) => {
-        setSelectedDimensiones(rowData);
-        setAlturaTotal(rowData.altura_total || '');
-        setLongTotal(rowData.longitud_total || '');
-        setAnchoTotal(rowData.ancho_total || '');
-        setPesoSeco(rowData.peso_seco || '');
+        setSelectedChasis(rowData);
+        setArosDel(rowData.aros_rueda_delantera || '');
+        setArosPost(rowData.aros_rueda_posterior || '');
+        setNeuDel(rowData.neumatico_delantero || '');
+        setNeuPost(rowData.neumatico_trasero || '');
+        setSuspDel(rowData.suspension_delantera || '');
+        setSuspPost(rowData.suspension_trasera || '');
+        setFrenoDel(rowData.frenos_delanteros || '');
+        setFrenoPost(rowData.frenos_traseros || '');
         setDialogOpen(true);
     };
-
-    const camposPlantillaModelo = [
-        "codigo_dim_peso", "peso_seco",
-        "altura_total", "longitud_total",
-        "ancho_total"
-    ];
-    const tableOptions = getTableOptions(cabeceras, camposPlantillaModelo, "Actualizar_dimensiones.xlsx");
-
 
     return (
         <>
@@ -292,11 +323,15 @@ function CatDimensionesPeso() {
                             color="primary"
                             startIcon={<AddIcon />}
                             onClick={() => {
-                                setSelectedDimensiones(null);
-                                setAlturaTotal('');
-                                setLongTotal('');
-                                setAnchoTotal('');
-                                setPesoSeco('');
+                                setSelectedChasis(null);
+                                setArosDel('');
+                                setArosPost('');
+                                setNeuDel('');
+                                setNeuPost('');
+                                setSuspDel('');
+                                setSuspPost('');
+                                setFrenoDel('');
+                                setFrenoPost('');
                                 setDialogOpen(true);
                             }}
                             sx={{
@@ -340,7 +375,7 @@ function CatDimensionesPeso() {
                         >Actualizar Masivo
                             <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
                         </Button>
-                        <IconButton onClick={fetchDimensionesData} style={{ color: 'firebrick' }}>
+                        <IconButton onClick={fetchChasisData} style={{ color: 'firebrick' }}>
                             <RefreshIcon />
                         </IconButton>
                     </Stack>
@@ -349,18 +384,50 @@ function CatDimensionesPeso() {
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={tableOptions} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
-                    <DialogTitle>{selectedDimensiones ? 'Actualizar' : 'Nuevo'}</DialogTitle>
+                    <DialogTitle>{selectedChasis ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Altura Total" value={alturaTotal} onChange={(e) => setAlturaTotal(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Longitud Total" value={longTotal} onChange={(e) => setLongTotal(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Ancho Total" value={anchoTotal} onChange={(e) => setAnchoTotal(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Peso Seco" value={pesoSeco} onChange={(e) => setPesoSeco(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Aros Rueda Delantera" value={arosDel} onChange={(e) => setArosDel(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Aros Rueda Posterior" value={arosPost} onChange={(e) => setArosPost(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}>
+                                <TextField
+                                    fullWidth
+                                    label="Neumático Delantero"
+                                    value={neuDel}
+                                    error={errorNeuDel}
+                                    helperText={errorNeuDel ? "Formato inválido. Usa 90/90-19" : ""}
+                                    onChange={(e) => {
+                                        const val = e.target.value.toUpperCase();
+                                        setNeuDel(val);
+                                        setErrorNeuDel(val && !formatoNeumaticoValido(val));
+                                    }}
+                                />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <TextField
+                                    fullWidth
+                                    label="Neumático Trasero"
+                                    value={neuPost}
+                                    error={errorNeuPost}
+                                    helperText={errorNeuPost ? "Formato inválido. Usa 110/90-17" : ""}
+                                    onChange={(e) => {
+                                        const val = e.target.value.toUpperCase();
+                                        setNeuPost(val);
+                                        setErrorNeuPost(val && !formatoNeumaticoValido(val));
+                                    }}
+                                />
+                            </Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Suspensión Delantera" value={suspDel} onChange={(e) => setSuspDel(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Suspensión Trasera" value={suspPost} onChange={(e) => setSuspPost(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Frenos Delanteros" value={frenoDel} onChange={(e) => setFrenoDel(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Frenos Traseros" value={frenoPost} onChange={(e) => setFrenoPost(e.target.value.toUpperCase())} /></Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleInsertDimensionesPeso} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedDimensiones ? 'Actualizar' : 'Guardar'}</Button>
+                        <Button onClick={handleInsertChasis} variant="contained"
+                                style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedChasis ? 'Actualizar' : 'Guardar'}
+                        </Button>
                     </DialogActions>
                 </Dialog>
             </div>
@@ -371,7 +438,7 @@ function CatDimensionesPeso() {
 export default function IntegrationNotistack() {
     return (
         <SnackbarProvider maxSnack={3}>
-            <CatDimensionesPeso />
+            <CatChasis />
         </SnackbarProvider>
     );
 }

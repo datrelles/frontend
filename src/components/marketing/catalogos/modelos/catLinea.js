@@ -1,53 +1,61 @@
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
-import Navbar0 from "../../Navbar0";
+import Navbar0 from "../../../Navbar0";
 import MUIDataTable from "mui-datatables";
 import Grid from '@mui/material/Grid';
-import LoadingCircle from "../../contabilidad/loader";
-import { IconButton, TextField } from '@mui/material';
+import LoadingCircle from "../../../contabilidad/loader";
+import { Autocomplete, IconButton, TextField } from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
 import { SnackbarProvider, useSnackbar } from 'notistack';
-import { useAuthContext } from "../../../context/authContext";
+import { useAuthContext } from "../../../../context/authContext";
 import EditIcon from '@mui/icons-material/Edit';
 import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
-import RefreshIcon from '@mui/icons-material/Refresh';
 import * as XLSX from "xlsx";
+import RefreshIcon from '@mui/icons-material/Refresh';
 import AddIcon from "@material-ui/icons/Add";
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Stack from "@mui/material/Stack";
-import {getTableOptions, getMuiTheme } from "../muiTableConfig";
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import {getTableOptions, getMuiTheme } from "../../muiTableConfig";
 import {ThemeProvider} from "@mui/material/styles";
 
 const API = process.env.REACT_APP_API;
 
-function CatMarcaRepuesto() {
+function CatLinea() {
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
-    const [nombreComercial, setNombreComercial] = useState('');
-    const [estadoMarcaRep, setEstadoMarcaRep] = useState('');
-    const [nombreFabricante, setNombreFabricante] = useState('');
+    const [nombreLinea, setNombreLinea] = useState('');
+    const [estadoLinea, setEstadoLinea] = useState('');
+    const [descripcionLinea, setDescripcionLinea] = useState('');
+    const [lineaPadreSeleccionada, setLineaPadreSeleccionada] = useState(null);
     const [cabeceras, setCabeceras] = useState([]);
     const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
-    const [selectedMarca, setSelectedMarca] = useState(null);
+    const [selectedLinea, setSelectedLinea] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [lineasPadre, setLineasPadre] = useState([]);
+    const [lineas, setLineas] = useState([]);
+    const [lineaPadre, setLineaPadre] = useState('');
 
-    const handleInsertMarca = async () => {
-        const url = selectedMarca && selectedMarca.codigo_marca_rep
-            ? `${API}/bench/update_marca_repuesto/${selectedMarca.codigo_marca_rep}`
-            : `${API}/bench/insert_marca_repuestos`;
 
-        const method = selectedMarca && selectedMarca.codigo_marca_rep ? "PUT" : "POST";
+    const handleInsertLinea = async () => {
+        const url = selectedLinea && selectedLinea.codigo_linea
+            ? `${API}/bench/update_linea/${selectedLinea.codigo_linea}`
+            : `${API}/bench/insert_linea`;
 
-        const estadoNumerico = estadoMarcaRep === "ACTIVO" ? 1 : 0;
+        const method = selectedLinea && selectedLinea.codigo_linea ? "PUT" : "POST";
+        const estadoNumerico = estadoLinea === "ACTIVO" ? 1 : 0;
+
+        const codigoPadre = lineaPadre && typeof lineaPadre === 'object'
+            ? lineaPadre.codigo_linea
+            : null;
 
         try {
             const res = await fetch(url, {
@@ -57,16 +65,17 @@ function CatMarcaRepuesto() {
                     "Authorization": "Bearer " + jwt
                 },
                 body: JSON.stringify({
-                    nombre_comercial: nombreComercial,
-                    estado_marca_rep: estadoNumerico,
-                    nombre_fabricante: nombreFabricante
+                    nombre_linea: nombreLinea,
+                    estado_linea: estadoNumerico,
+                    descripcion_linea: descripcionLinea,
+                    codigo_linea_padre: codigoPadre
                 })
             });
 
             const data = await res.json();
             if (res.ok) {
                 enqueueSnackbar(data.message || "Operación exitosa", { variant: "success" });
-                fetchMarcaData();
+                fetchLineaData();
                 setDialogOpen(false);
             } else {
                 enqueueSnackbar(data.error || "Error al guardar", { variant: "error" });
@@ -96,12 +105,12 @@ function CatMarcaRepuesto() {
 
     useEffect(() => {
         getMenus();
-        fetchMarcaData();
+        fetchLineaData();
     }, []);
 
-    const fetchMarcaData = async () => {
+    const fetchLineaData = async () => {
         try {
-            const res = await fetch(`${API}/bench/get_marca_repuestos`, {
+            const res = await fetch(`${API}/bench/get_lineas`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -111,8 +120,10 @@ function CatMarcaRepuesto() {
             const data = await res.json();
             if (res.ok) {
                 setCabeceras(data);
+                setLineasPadre(data);
+                setLineas(data); 
             } else {
-                enqueueSnackbar(data.error || "Error al obtener datos de Marca Repuesto", { variant: "error" });
+                enqueueSnackbar(data.error || "Error al obtener líneas", { variant: "error" });
             }
         } catch (error) {
             enqueueSnackbar("Error de conexión", { variant: "error" });
@@ -120,10 +131,16 @@ function CatMarcaRepuesto() {
     };
 
     const columns = [
-        //{ name: "codigo_marca_rep", label: "Código" },
-        { name: "nombre_comercial", label: "Nombre Comercial" },
+        { name: "codigo_linea", label: "Código" },
+        { name: "nombre_linea", label: "Línea" },
         {
-            name: "estado_marca_rep",
+            name: "nombre_linea_padre", label: "Línea Padre",
+            options: {
+                customBodyRender: (value) => value || "-"
+            }
+        },
+        {
+            name: "estado_linea",
             label: "Estado",
             options: {
                 customBodyRender: (value) => (
@@ -139,12 +156,12 @@ function CatMarcaRepuesto() {
                             minWidth: '70px'
                         }}
                     >
-                        {value === 1 ? "Activo" : "Inactivo"}
+                        {value === 1 ? "ACTIVO" : "INACTIVO"}
                     </div>
                 )
             }
         },
-        { name: "nombre_fabricante", label: "Nombre Fabricante" },
+        { name: "descripcion_linea", label: "Descripción" },
         //{ name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
@@ -175,13 +192,13 @@ function CatMarcaRepuesto() {
 
             const processedRows = rows.map(row => ({
                 ...row,
-                estado_marca_rep: row.estado_marca_rep === "ACTIVO" ? 1
-                    : row.estado_marca_rep === "INACTIVO" ? 0
-                        : row.estado_marca_rep
+                estado_linea: row.estado_linea === "ACTIVO" ? 1
+                    : row.estado_linea === "INACTIVO" ? 0
+                        : row.estado_linea
             }));
 
             try {
-                const res = await fetch(`${API}/bench/insert_marca_repuestos`, {
+                const res = await fetch(`${API}/bench/insert_linea`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -193,7 +210,7 @@ function CatMarcaRepuesto() {
                 const responseData = await res.json();
                 if (res.ok) {
                     enqueueSnackbar("Carga exitosa", { variant: "success" });
-                    fetchMarcaData();
+                    fetchLineaData();
                 } else {
                     enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
                 }
@@ -206,10 +223,12 @@ function CatMarcaRepuesto() {
     };
 
     const openEditDialog = (rowData) => {
-        setSelectedMarca(rowData);
-        setNombreComercial(rowData.nombre_comercial || '');
-        setEstadoMarcaRep(rowData.estado_marca_rep === 1 ? "ACTIVO" : "INACTIVO");
-        setNombreFabricante(rowData.nombre_fabricante || '');
+        setSelectedLinea(rowData);
+        setNombreLinea(rowData.nombre_linea || '');
+        setEstadoLinea(rowData.estado_linea === 1 ? "ACTIVO" : "INACTIVO");
+        setDescripcionLinea(rowData.descripcion_linea || '');
+        const padre = lineasPadre.find(p => p.codigo_linea === rowData.codigo_linea_padre);
+        setLineaPadreSeleccionada(padre || null);
         setDialogOpen(true);
     };
 
@@ -230,10 +249,11 @@ function CatMarcaRepuesto() {
                             color="primary"
                             startIcon={<AddIcon />}
                             onClick={() => {
-                                setSelectedMarca(null);
-                                setNombreComercial('');
-                                setEstadoMarcaRep('');
-                                setNombreFabricante('');
+                                setSelectedLinea(null);
+                                setNombreLinea('');
+                                setEstadoLinea('');
+                                setDescripcionLinea('');
+                                setLineaPadreSeleccionada(null);
                                 setDialogOpen(true);
                             }}
                             sx={{
@@ -269,7 +289,8 @@ function CatMarcaRepuesto() {
                         >Insertar Masivo
                             <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
                         </Button>
-                        <IconButton onClick={fetchMarcaData} style={{ color: 'firebrick' }}>
+
+                        <IconButton onClick={fetchLineaData} style={{ color: 'firebrick' }}>
                             <RefreshIcon />
                         </IconButton>
                     </Stack>
@@ -278,29 +299,50 @@ function CatMarcaRepuesto() {
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={getTableOptions()} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
-                    <DialogTitle>{selectedMarca ? 'Actualizar' : 'Nuevo'}</DialogTitle>
+                    <DialogTitle>{selectedLinea ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Nombre Comercial" value={nombreComercial} onChange={(e) => setNombreComercial(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}>
+                                <TextField
+                                    fullWidth
+                                    label="Nombre Línea"
+                                    value={nombreLinea}
+                                    onChange={(e) => setNombreLinea(e.target.value.toUpperCase())}
+                                />
+                            </Grid>
                             <Grid item xs={6}>
                                 <FormControl fullWidth>
-                                    <InputLabel id="estado-marca-rep-label">Estado</InputLabel>
+                                    <InputLabel id="estado-linea-label">Estado</InputLabel>
                                     <Select
-                                        labelId="estado-marca-rep-label"
-                                        value={estadoMarcaRep}
-                                        onChange={(e) => setEstadoMarcaRep(e.target.value.toUpperCase())}
-                                        variant="outlined">
+                                        labelId="estado-linea-label"
+                                        value={estadoLinea}
+                                        onChange={(e) => setEstadoLinea(e.target.value.toUpperCase())}
+                                    >
                                         <MenuItem value="ACTIVO">ACTIVO</MenuItem>
                                         <MenuItem value="INACTIVO">INACTIVO</MenuItem>
                                     </Select>
                                 </FormControl>
                             </Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Nombre Fabricante" value={nombreFabricante} onChange={(e) => setNombreFabricante(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Descripción" value={descripcionLinea} onChange={(e) => setDescripcionLinea(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}>
+                                <Autocomplete
+                                    fullWidth
+                                    options={lineas}
+                                    getOptionLabel={(option) => option?.nombre_linea || ''}
+                                    value={lineaPadre}
+                                    onChange={(event, newValue) => setLineaPadre(newValue)}
+                                    renderInput={(params) => (
+                                        <TextField {...params} label="Línea Padre" />
+                                    )}
+                                />
+                            </Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleInsertMarca} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedMarca ? 'Actualizar' : 'Guardar'}</Button>
+                        <Button onClick={handleInsertLinea} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>
+                            {selectedLinea ? 'Actualizar' : 'Guardar'}
+                        </Button>
                     </DialogActions>
                 </Dialog>
             </div>
@@ -311,7 +353,7 @@ function CatMarcaRepuesto() {
 export default function IntegrationNotistack() {
     return (
         <SnackbarProvider maxSnack={3}>
-            <CatMarcaRepuesto />
+            <CatLinea />
         </SnackbarProvider>
     );
 }
