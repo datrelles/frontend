@@ -160,7 +160,7 @@ export default function RegistrarPedido() {
   const [nombreCliente, setNombreCliente] = useState("");
   const [productos, setProductos] = useState([]);
   const [productosFiltrados, setProductosFiltrados] = useState([]);
-  const [cuotas, setCuotas] = useState("");
+  const [cuotas, setCuotas] = useState("Seleccione");
   const [formaPago, setFormaPago] = useState(DefaultFormaPago);
   const [porcentajeInteres, setPorcentajeInteres] = useState(0);
   const [factorCredito, setFactorCredito] = useState(0);
@@ -451,8 +451,10 @@ export default function RegistrarPedido() {
         setMensajeCargando("Calculando valores");
         setCargando(true);
         const nuevasCuotas = e.target.value;
-        if (nuevasCuotas === "Seleccione")
-          throw new Error("Debe seleccionar un número de cuotas");
+        if (nuevasCuotas === "Seleccione") {
+          setCuotas(nuevasCuotas);
+          return;
+        }
         APIService.getDetallePolitica(
           COD_AGENCIA,
           politica.cod_politica,
@@ -470,7 +472,7 @@ export default function RegistrarPedido() {
             setCuotas(nuevasCuotas);
             setFormaPago(
               res.cod_forma_pago_final ??
-                (nuevasCuotas === 0 ? FormasPago.EFE.key : FormasPago.CRE.key)
+                (nuevasCuotas === 1 ? FormasPago.EFE.key : FormasPago.CRE.key)
             );
             setPorcentajeInteres(interes);
             setFactorCredito(factor);
@@ -1173,7 +1175,7 @@ export default function RegistrarPedido() {
           setTelefono("");
           setCiudad("");
           setObservacion("");
-          setCuotas("");
+          setCuotas("Seleccione");
           setFormaPago(DefaultFormaPago);
           setPorcentajeInteres(0);
           setFactorCredito(0);
@@ -1221,9 +1223,9 @@ export default function RegistrarPedido() {
         COD_TIPO_PERSONA_CLI
       )
         .then((cliente) => {
-          setDireccionEnvio(cliente.direccion_envio);
-          setTelefono(cliente.telefono);
-          setCiudad(cliente.ciudad);
+          setDireccionEnvio(cliente.direccion_envio ?? "");
+          setTelefono(cliente.telefono ?? "");
+          setCiudad(cliente.ciudad ?? "");
           setMensajeCargando("Cargando direcciones del cliente");
           APIService.getDireccionesCliente(cliente.cod_persona_cli)
             .then((res) => {
@@ -1288,7 +1290,7 @@ export default function RegistrarPedido() {
       vendedor.cod_persona_vendor === "" ||
       cliente.cod_persona === ""
     ) {
-      setCuotas("");
+      setCuotas("Seleccione");
       setFormaPago(DefaultFormaPago);
       setPorcentajeInteres(0);
       setFactorCredito(0);

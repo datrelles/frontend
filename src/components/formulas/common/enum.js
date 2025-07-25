@@ -144,6 +144,4 @@ export const CuotasPedido = {
   10: new Enum("10"),
 };
 
-export const DefaultCuotas = CuotasPedido[0].key;
-
 export const CARACTER_RELLENO = "-";
