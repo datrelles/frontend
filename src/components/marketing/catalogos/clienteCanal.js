@@ -38,6 +38,11 @@ function ClienteCanal() {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [cabeceras, setCabeceras] = useState([]);
     const [loadingGlobal, setLoadingGlobal] = useState(false);
+    const [itemCategoriaSeleccionada, setItemCategoriaSeleccionada] = useState('');
+    const categoriasItem = Array.from(
+        new Set(modeloVersionRepuesto.map(m => m.nombre_item))
+    ).sort();
+
     const [form, setForm] = useState({
         codigo_cliente_canal: '',
         codigo_canal: '',
@@ -45,6 +50,7 @@ function ClienteCanal() {
         codigo_mod_vers_repuesto: '',
         empresa: '',
         cod_producto: '',
+        cod_item_cat1:'',
         codigo_version: '',
         descripcion_cliente_canal: '',
     });
@@ -175,6 +181,7 @@ function ClienteCanal() {
             codigo_mod_vers_repuesto: '',
             empresa: '',
             cod_producto: '',
+            cod_item_cat1: '',
             codigo_version: '',
             descripcion_cliente_canal: '' });
         setSelectedItem(item);
@@ -308,6 +315,7 @@ function ClienteCanal() {
                                     codigo_mod_vers_repuesto: '',
                                     empresa: '',
                                     cod_producto: '',
+                                    cod_item_cat1: '',
                                     codigo_version: '',
                                     descripcion_cliente_canal: '',
                                 });
@@ -365,10 +373,22 @@ function ClienteCanal() {
                     <DialogTitle>{selectedItem ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
+                            <Grid item xs={12} >
+                                <Autocomplete
+                                    options={categoriasItem}
+                                    value={itemCategoriaSeleccionada || null}
+                                    onChange={(e, value) => setItemCategoriaSeleccionada(value || '')}
+                                    renderInput={(params) => (
+                                        <TextField {...params} label="Filtrar por Categoría de Ítem" fullWidth />
+                                    )}
+                                />
+                            </Grid>
                             <Grid item xs={12}>
                                 <Grid item xs={12}>
                                     <Autocomplete
-                                        options={modeloVersionRepuesto}
+                                        options={itemCategoriaSeleccionada
+                                            ? modeloVersionRepuesto.filter(m => m.nombre_item === itemCategoriaSeleccionada)
+                                            : modeloVersionRepuesto}
                                         getOptionLabel={(option) => `${option.codigo_mod_vers_repuesto} - ${option.nombre_producto || ''}`}
                                         value={modeloVersionRepuesto.find(m => m.codigo_mod_vers_repuesto === form.codigo_mod_vers_repuesto) || null}
                                         onChange={(e, v) => {

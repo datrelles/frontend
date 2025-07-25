@@ -114,6 +114,7 @@ import CatSegmento from "./components/marketing/catalogos/catSegmento";
 import ModeloVersion from "./components/marketing/catalogos/modeloVersion";
 import BenchModelos from "./components/marketing/benchModelo/benchModelos";
 import BenchRepuestos from "./components/marketing/benchRepuesto/benchRepuestos";
+import  RepCompatible from "./components/marketing/benchRepuesto/repCompatible";
 import Procesos from "./components/formulas/procesos";
 import Formulas from "./components/formulas/formulas";
 import Parametros from "./components/formulas/parametros";
@@ -1180,6 +1181,7 @@ function App() {
                   </Protected>
                 }
               ></Route>
+              <Route exact path="/compatibilidad_repuesto" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><RepCompatible/></Protected>}/>
               <Route
                 exact
                 path="/sell-out"

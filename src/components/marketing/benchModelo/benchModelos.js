@@ -29,7 +29,6 @@ function CompararModelos()  {
     const [cilindradaSeleccionada, setCilindradaSeleccionada] = useState(null);
     const [cilindradasDisponibles, setCilindradasDisponibles] = useState([]);
 
-
     const numeroModelos = 5;
 
     const [bloques, setBloques] = useState(
@@ -470,14 +469,12 @@ function CompararModelos()  {
         } else {
             nuevosBloques[index].cilindrada = cilindrada;
         }
-
         setBloques(nuevosBloques);
 
         if (index === 0 && nuevosBloques[0].segmento) {
             await handleSegmentoChange(0, nuevosBloques[0].segmento);
         }
     };
-
 
     useEffect(() => {
         const fetchCilindradas = async () => {
@@ -498,7 +495,6 @@ function CompararModelos()  {
                 console.error('Error al cargar cilindradas disponibles', err);
             }
         };
-
         fetchCilindradas();
     }, []);
 
@@ -608,7 +604,7 @@ function CompararModelos()  {
                                                 size="small"
                                                 options={modelosPorBloque[index] || []}
                                                 value={bloque.modelo}
-                                                getOptionLabel={(op) => op?.nombre_modelo_comercial || ''}
+                                                getOptionLabel={(op) => op?.nombre_modelo_version || ''}
                                                 onChange={(e, v) => handleModeloChange(index, v)}
                                                 renderInput={(params) => <TextField {...params} label="Modelo" sx={textFieldSmallSx} />}
                                                 disabled={bloquearInputs || !bloque.marca}

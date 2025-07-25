@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
     Box, Button, Grid, DialogTitle, DialogContent,
-    DialogActions, Dialog, Autocomplete, TextField
+    DialogActions, Dialog, Autocomplete, TextField, IconButton
 } from '@mui/material';
 import { useAuthContext } from "../../../context/authContext";
 import {enqueueSnackbar, SnackbarProvider} from "notistack";
@@ -10,8 +10,15 @@ import {toast} from "react-toastify";
 import Navbar0 from "../../Navbar0";
 import LoadingCircle from "../../contabilidad/loader";
 import ButtonGroup from "@mui/material/ButtonGroup";
-import MUIDataTable from "mui-datatables";
-import {createTheme, ThemeProvider} from "@mui/material/styles";
+import LinearProgress from "@mui/material/LinearProgress";
+import Typography from "@mui/material/Typography";
+import Stack from "@mui/material/Stack";
+import Paper from "@mui/material/Paper";
+import {Card, Divider} from "@mui/material";
+import dayjs from "dayjs";
+import {CardContent} from "@material-ui/core";
+import { ChevronLeft, ChevronRight } from '@mui/icons-material';
+
 
 const API = process.env.REACT_APP_API;
 
@@ -20,17 +27,30 @@ function BenchRepuestosCompatibles () {
     const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
     const navigate = useNavigate();
-    const [codProducto, setCodProducto] = useState('');
+    const [codigoMarca, setCodigoMarca] = useState(null);
+    const [codigoModelo, setCodigoModelo] = useState(null);
     const [productos, setProductos] = useState([]);
     const [compatibles, setCompatibles] = useState([]);
     const [selectedImagen, setSelectedImagen] = useState(null);
     const [imagenModal, setImagenModal] = useState(null);
     const [openModalImagen, setOpenModalImagen] = useState(false);
     const [productoSeleccionado, setProductoSeleccionado] = useState('');
+    const [marcasActivas, setMarcasActivas] = useState([]);
+    const [marcas, setMarcas] = useState([]);
+    const [modelosComerciales, setModelosComerciales] = useState([]);
+    const [marcaSeleccionada, setMarcaSeleccionada] = useState(null);
+    const [modeloSeleccionado, setModeloSeleccionado] = useState(null);
+    const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('');
+    const [busquedaEjecutada, setBusquedaEjecutada] = useState(false);
+    const [categoriaStartIndex, setCategoriaStartIndex] = useState(0);
+    const categoriasVisibles = 9;
+
+
+    const [modeloComercialMarca, setModeloComercialMarca] = useState([]);
 
     const fetchProductos = async () => {
         try {
-            const res = await fetch(`${API}/bench/get_modelo_version`, {
+            const res = await fetch(`${API}/bench/get_cliente_canal_modelo`, {
                 headers: { "Authorization": "Bearer " + jwt }
             });
             const data = await res.json();
@@ -48,15 +68,24 @@ function BenchRepuestosCompatibles () {
     };
 
     const buscarCompatibles = async () => {
-        if (!codProducto) return;
+        console.log('Ejecutando buscarCompatibles');
+
+        if (!codigoMarca || !codigoModelo) {
+            console.warn('Faltan parámetros para buscar compatibles');
+            return;
+        }
 
         try {
-            const res = await fetch(`${API}/bench_rep/repuesto_compatibilidad?cod_producto=${codProducto}&empresa=${enterpriseShineray}`, {
+            const res = await fetch(`${API}/bench_rep/repuestos_compatibles_por_modelo?codigo_marca=${codigoMarca}&codigo_modelo_comercial=${codigoModelo}`, {
                 headers: { "Authorization": "Bearer " + jwt }
             });
             const data = await res.json();
             if (res.ok) {
+                console.log("Datos recibidos:", data);
                 setCompatibles(data);
+                setCategoriaSeleccionada('');
+                setBusquedaEjecutada(true);
+
             } else {
                 enqueueSnackbar(data.error || "Error en consulta", { variant: "error" });
             }
@@ -136,12 +165,88 @@ function BenchRepuestosCompatibles () {
         link.remove();
     };
 
+    const fetchMarcas = async () => {
+        try {
+            const res = await fetch(`${API}/bench/get_marca`, {
+                headers: { "Authorization": "Bearer " + jwt }
+            });
+            const data = await res.json();
+
+            if (res.ok && Array.isArray(data)) {
+                const marcasActivas = data.filter(marca => marca.estado_marca === 1);
+                setMarcasActivas(marcasActivas);
+                setMarcas(data);
+            } else {
+                enqueueSnackbar('Error al obtener marcas activas', { variant: 'error' });
+            }
+        } catch (err) {
+            enqueueSnackbar('Error cargando marcas', { variant: 'error' });
+        }
+    };
+
+    const fetchModeloComercial = async () => {
+        try {
+            const res = await fetch(`${API}/bench/get_modelos_comerciales`, {
+                headers: { "Authorization": "Bearer " + jwt }
+            });
+            const data = await res.json();
+            setModelosComerciales(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error("Error:", error);
+            enqueueSnackbar('Error al obtener modelos comerciales', { variant: 'error' });
+        }
+    };
+
+    const fetchModeloComercialMarca = async (marca) => {
+        if (!marca || !marca.codigo_marca) return;
+
+        try {
+            const res = await fetch(`${API}/bench_rep/modelos_comerciales_por_marca?codigo_marca=${marca.codigo_marca}`, {
+                headers: { Authorization: "Bearer " + jwt }
+            });
+
+            const data = await res.json();
+
+            if (res.ok && Array.isArray(data)) {
+                setModeloComercialMarca(data);
+            } else {
+                enqueueSnackbar('Error al obtener modelos comerciales', { variant: 'error' });
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            enqueueSnackbar("Error de conexión", { variant: "error" });
+        }
+    };
+
+    const categoriasUnicas = Object.entries(compatibles || {});
+
+
+    const getColor = (nivel) => {
+        if (nivel >= 95) return 'green';
+        if (nivel >= 85) return 'orange';
+        return 'red';
+    };
+
+    const getLabel = (nivel) => {
+        if (nivel >= 95) return 'Alta';
+        if (nivel >= 85) return 'Media';
+        return 'Baja';
+    };
+    useEffect(() => {
+        if (categoriasUnicas.length > 0 && !categoriaSeleccionada) {
+            setCategoriaSeleccionada(categoriasUnicas[0][0]);
+        }
+    }, [categoriasUnicas]);
+
+
     useEffect(() => {
         const cargarDatos = async () => {
             try {
                 await getMenus();
                 await fetchProductos();
                 await fetchImagenData();
+                await fetchMarcas();
+                await fetchModeloComercial();
             } catch (err) {
                 console.error("Error cargando datos iniciales .!:", err);
             }
@@ -149,81 +254,18 @@ function BenchRepuestosCompatibles () {
         cargarDatos();
     }, []);
 
-    const options = {
-        responsive: 'standard',
-        selectableRows: 'none',
-        download: false,
-        print: false,
-        textLabels: {
-            body: {
-                noMatch: "Lo siento, no se encontraron registros",
-                toolTip: "Ordenar"
-            },
-            pagination: {
-                next: "Siguiente", previous: "Anterior",
-                rowsPerPage: "Filas por página:", displayRows: "de"
-            }
+    const handleAnterior = () => {
+        if (categoriaStartIndex > 0) {
+            setCategoriaStartIndex(prev => prev - 1);
         }
     };
 
-    const columns = [
-        { name: "nombre_modelo_comercial", label: "Modelo Comercial" },
-        { name: "nombre_empresa", label: "Empresa" },
-        { name: "nombre_version", label: "Versión" },
-        { name: "nombre_marca", label: "Marca" },
-        { name: "nombre_linea", label: "Línea" },
-        { name: "nombre_segmento", label: "Segmento" },
-        {
-            name: "path_imagen",
-            label: "Imágen Referencial",
-            options: {
-                customBodyRender: (value) => (
-                    <Button
-                        onClick={() => {
-                            setImagenModal(value);
-                            setOpenModalImagen(true);
-                        }}
-                        variant="outlined"
-                        size="small"
-                    >
-                        Ver imagen
-                    </Button>
-                )
-            }
+    const handleSiguiente = () => {
+        if (categoriaStartIndex + categoriasVisibles < categoriasUnicas.length) {
+            setCategoriaStartIndex(prev => prev + 1);
         }
-    ];
+    };
 
-    const getMuiTheme = () =>
-        createTheme({
-            components: {
-                MuiTableCell: {
-                    styleOverrides: {
-                        root: {
-                            paddingLeft: '3px', paddingRight: '3px', paddingTop: '0px', paddingBottom: '0px',
-                            backgroundColor: '#00000', whiteSpace: 'nowrap', flex: 1,
-                            borderBottom: '1px solid #ddd', borderRight: '1px solid #ddd', fontSize: '14px'
-                        },
-                        head: {
-                            backgroundColor: 'firebrick', color: '#ffffff', fontWeight: 'bold',
-                            paddingLeft: '0px', paddingRight: '0px', fontSize: '12px'
-                        },
-                    }
-                },
-                MUIDataTableToolbar: {
-                    styleOverrides: {
-                        root: {
-                            justifyContent: 'center'
-                        },
-                        titleText: {
-                            width: '100%',
-                            textAlign: 'right',
-                            fontWeight: 'bold',
-                            fontSize: '22px'
-                        }
-                    }
-                }
-            }
-        });
 
     return (
         <>
@@ -237,75 +279,188 @@ function BenchRepuestosCompatibles () {
                         </ButtonGroup>
                     </Box>
                     <Box padding={4} sx={{ mt: 2, borderCollapse: 'collapse', width: '100%' }} >
-                        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold' }} >Modelos compatibles con el repuesto seleccionado</DialogTitle>
-                        <Grid container spacing={2} alignItems="center">
-                            <Grid item xs={5}>
-                                <Autocomplete
-                                    options={productos}
-                                    getOptionLabel={(option) => option.nombre_producto || ''}
-                                    value={productos.find(p => p.cod_producto === codProducto) || null}
-                                    onChange={(e, v) => {
-                                        setCodProducto(v ? v.cod_producto : null);
-                                        setProductoSeleccionado(v || null);
-                                    }}
-                                    renderInput={(params) => (
-                                        <TextField {...params} label="Seleccionar Repuesto" variant="outlined" fullWidth />
-                                    )}
-                                />
-                            </Grid>
-                            <Grid item>
-                                <Button
-                                    variant="contained"
-                                    onClick={buscarCompatibles}
-                                    sx={{
-                                        backgroundColor: 'firebrick',
-                                        color: '#fff',
-                                        fontSize: '12px',
-                                        minWidth: '180px',
-                                        '&:hover': {
-                                            backgroundColor: '#b22222'
+                        <Typography variant="h5" align="center" sx={{ fontWeight: 'bold', mb: 3 }}>
+                            Repuestos Compatibles con el Modelo Seleccionado
+                        </Typography>
+                        <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
+                            <Grid container spacing={2} alignItems="center">
+                                <Grid item xs={12} sm={6} md={4}>
+                                    <Autocomplete
+                                        options={marcas}
+                                        getOptionLabel={(option) => option.nombre_marca || ''}
+                                        value={marcaSeleccionada || null}
+                                        isOptionEqualToValue={(option, value) => option.codigo_marca === value?.codigo_marca}
+                                        onChange={(e, v) => {
+                                            setMarcaSeleccionada(v);
+                                            setCodigoMarca(v?.codigo_marca || null);
+                                            setModeloSeleccionado(null);
+                                            setCodigoModelo(null);
+                                            fetchModeloComercialMarca(v);
+                                        }}
+                                        renderInput={(params) => (
+                                            <TextField {...params} label="Seleccionar Marca" variant="outlined" fullWidth />
+                                        )}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} sm={6} md={4}>
+                                    <Autocomplete
+                                        options={modeloComercialMarca}
+                                        getOptionLabel={(option) =>
+                                            option.nombre_modelo && option.anio_modelo
+                                                ? `${option.nombre_modelo} – ${option.anio_modelo}`
+                                                : option.nombre_modelo || ''
                                         }
-                                    }}>Buscar modelos compatibles
-                                </Button>
-                            </Grid>
-                            <Grid item>
-                                <Button
-                                    variant="outlined"
-                                    onClick={() => {
-                                        setCodProducto('');
-                                        setCompatibles([]);
-                                        setProductoSeleccionado('');
-                                        setImagenModal(null);
-                                        setSelectedImagen(null);
-                                        if (productos.length === 0) fetchProductos();
-                                    }}
-                                    sx={{
-                                        backgroundColor: '#535353',
-                                        color: '#fff',
-                                        fontSize: '12px',
-                                        '&:hover': {
-                                            backgroundColor: '#535353'
+                                        value={
+                                            modeloComercialMarca.length > 0
+                                                ? modeloSeleccionado
+                                                : null
                                         }
-                                    }}>Nueva Consulta
-                                </Button>
+                                        onChange={(e, v) => {
+                                            setModeloSeleccionado(v);
+                                            setCodigoModelo(v?.codigo_modelo_comercial || null);
+                                        }}
+                                        isOptionEqualToValue={(option, value) => option.codigo_modelo_comercial === value?.codigo_modelo_comercial}
+                                        renderInput={(params) => (
+                                            <TextField {...params} label="Seleccionar Modelo Comercial" variant="outlined" fullWidth />
+                                        )}
+                                        disabled={!marcaSeleccionada}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} sm={12} md={4}>
+                                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                                        <Button
+                                            variant="contained"
+                                            onClick={buscarCompatibles}
+                                            sx={{
+                                                backgroundColor: 'firebrick',
+                                                color: '#fff',
+                                                fontSize: '12px',
+                                                minWidth: '160px',
+                                                '&:hover': { backgroundColor: '#b22222' }
+                                            }}
+                                        >
+                                            Buscar
+                                        </Button>
+                                        <Button
+                                            variant="outlined"
+                                            onClick={() => {
+                                                setCodigoMarca('');
+                                                setCompatibles([]);
+                                                setProductoSeleccionado('');
+                                                setModeloSeleccionado(null);
+                                                setMarcaSeleccionada(null);
+                                                setImagenModal(null);
+                                                setSelectedImagen(null);
+                                                setBusquedaEjecutada(false);
+                                                setCategoriaSeleccionada('');
+                                                if (productos.length === 0) fetchProductos();
+                                            }}
+                                            sx={{
+                                                backgroundColor: '#535353',
+                                                color: '#fff',
+                                                fontSize: '12px',
+                                                minWidth: '160px',
+                                                '&:hover': { backgroundColor: '#434343' }
+                                            }}
+                                        >
+                                            Nueva Consulta
+                                        </Button>
+                                        <Button
+                                            variant="outlined"
+                                            onClick={exportarExcel}
+                                            sx={{
+                                                backgroundColor: 'green',
+                                                color: '#fff',
+                                                fontSize: '12px',
+                                                minWidth: '160px',
+                                                '&:hover': { backgroundColor: '#1b5e20' }
+                                            }}
+                                        >
+                                            EXPORTAR INF.
+                                        </Button>
+                                    </Stack>
+                                </Grid>
                             </Grid>
-                            <Grid item>
-                                <Button
-                                    variant="outlined"
-                                    onClick={exportarExcel}
-                                    sx={{
-                                        backgroundColor: 'green',
-                                        color: '#fff',
-                                        fontSize: '12px',
-                                        '&:hover': { backgroundColor: '#1b5e20' }
-                                    }}>Exportar a Excel
-                                </Button>
-                            </Grid>
+                        </Paper>
+                    </Box>
+                    <Box sx={{ px: 2, py: 3 }}>
+                        <Box sx={{ display: 'flex', overflowX: 'auto', gap: 2, mb: 3 }}>
+                            {busquedaEjecutada && (
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                                    <IconButton onClick={handleAnterior} disabled={categoriaStartIndex === 0}>
+                                        <ChevronLeft />
+                                    </IconButton>
+                                    <Box sx={{ display: 'flex', gap: 2, overflow: 'hidden' }}>
+                                        {categoriasUnicas
+                                            .slice(categoriaStartIndex, categoriaStartIndex + categoriasVisibles)
+                                            .map(([categoria]) => (
+                                                <Box
+                                                    key={categoria}
+                                                    onClick={() => setCategoriaSeleccionada(categoria)}
+                                                    sx={{
+                                                        minWidth: 160,
+                                                        px: 2,
+                                                        py: 1,
+                                                        borderRadius: 2,
+                                                        textAlign: 'center',
+                                                        cursor: 'pointer',
+                                                        bgcolor: categoriaSeleccionada === categoria ? 'primary.main' : 'grey.200',
+                                                        color: categoriaSeleccionada === categoria ? 'white' : 'text.primary',
+                                                        fontWeight: categoriaSeleccionada === categoria ? 'bold' : 'normal',
+                                                        boxShadow: 2,
+                                                        transition: '0.2s',
+                                                    }}
+                                                >
+                                                    {categoria.toUpperCase()}
+                                                </Box>
+                                            ))}
+                                    </Box>
+                                    <IconButton
+                                        onClick={handleSiguiente}
+                                        disabled={categoriaStartIndex + categoriasVisibles >= categoriasUnicas.length}
+                                    >
+                                        <ChevronRight />
+                                    </IconButton>
+                                </Box>
+                            )}
+                        </Box>
+                        <Grid container spacing={3}>
+                            {(categoriasUnicas.find(([cat]) => cat === categoriaSeleccionada)?.[1] || []).map((rep, idx) => (
+                                <Grid item xs={12} sm={6} md={4} lg={3} key={idx}>
+                                    <Card sx={{ height: '100%', p: 2 }}>
+                                        <CardContent>
+                                            <Typography variant="subtitle2" gutterBottom>
+                                                <strong>MODELO COMERCIAL:</strong> {rep.nombre_modelo_comercial} – {rep.anio_modelo}
+                                            </Typography>
+                                            <Typography variant="body2">
+                                                <strong>NOMBRE PRODUCTO:</strong> {rep.nombre_producto}
+                                            </Typography>
+                                            <Typography variant="body2">
+                                                <strong>ORIGEN VALIDACIÓN:</strong> {rep.origen_validacion}
+                                            </Typography>
+                                            <Typography variant="body2">
+                                                <strong>FECHA VALIDACIÓN:</strong> {new Date(rep.fecha_validacion).toLocaleDateString()}
+                                            </Typography>
+                                            <Box sx={{ mt: 2 }}>
+                                                <Typography variant="body2">
+                                                    <strong>Nivel de Confianza:</strong> {rep.nivel_confianza}% –
+                                                    <span style={{ color: getColor(rep.nivel_confianza), fontWeight: 'bold' }}>
+                                                        {getLabel(rep.nivel_confianza)}
+                                                    </span>
+                                                </Typography>
+                                                <LinearProgress
+                                                    variant="determinate"
+                                                    value={rep.nivel_confianza}
+                                                    sx={{ height: 6, borderRadius: 5, mt: 1 }}
+                                                    color={getColor(rep.nivel_confianza) === 'green' ? 'success' : 'warning'}
+                                                />
+                                            </Box>
+                                        </CardContent>
+                                    </Card>
+                                </Grid>
+                            ))}
                         </Grid>
                     </Box>
-                    <ThemeProvider theme={getMuiTheme()}>
-                        <MUIDataTable title="Modelos Compatibles"  data={compatibles} columns={columns} options={options} />
-                    </ThemeProvider>
                     <Dialog open={openModalImagen} onClose={() => setOpenModalImagen(false)} maxWidth="md" fullWidth>
                         <DialogTitle>Vista de Imagen</DialogTitle>
                         <DialogContent>

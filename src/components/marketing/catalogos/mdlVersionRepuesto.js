@@ -46,7 +46,7 @@ function CatModeloVersionRepuesto() {
     const [loadingGlobal, setLoadingGlobal] = useState(false);
     const [form, setForm] = useState({
         cod_producto: '',
-        cod_item: '',
+        cod_item_cat1: '',
         empresa: '',
         codigo_prod_externo: '',
         codigo_version: '',
@@ -82,6 +82,10 @@ function CatModeloVersionRepuesto() {
             });
             const data = await res.json();
             setProductos(Array.isArray(data) ? data : []);
+            console.log(productos.map(p => ({
+                cod_item_cat1: p.cod_item_cat1,
+                nombre_item: p.nombre_item
+            })));
         } catch (err) {
             enqueueSnackbar('Error cargando productos', { variant: 'error' });
         }
@@ -109,8 +113,8 @@ function CatModeloVersionRepuesto() {
         }
     };
 
-    const uniqueItems = [...new Map(productos.map(p => [p.cod_item, {
-        cod_item: p.cod_item,
+    const uniqueItems = [...new Map(productos.map(p => [p.cod_item_cat1, {
+        cod_item_cat1: p.cod_item_cat1,
         nombre_item: p.nombre_item
     }])).values()];
 
@@ -176,7 +180,7 @@ function CatModeloVersionRepuesto() {
 
             setForm({
                 cod_producto: prod?.cod_producto || '',
-                cod_item: cat?.cod_item || '',
+                cod_item_cat1: cat?.cod_item_cat1 || '',
                 empresa: prod?.empresa || '',
                 nombre_empresa: prod?.nombre_empresa || '',
                 codigo_prod_externo: prodExt?.codigo_prod_externo || '',
@@ -193,7 +197,7 @@ function CatModeloVersionRepuesto() {
 
             setForm({
                 cod_producto: '',
-                cod_item: '',
+                cod_item_cat1: '',
                 empresa: '',
                 nombre_empresa: '',
                 codigo_prod_externo: '',
@@ -203,7 +207,6 @@ function CatModeloVersionRepuesto() {
                 precio_venta_distribuidor: ''
             });
         }
-
         setSelectedItem(item);
         setDialogOpen(true);
     };
@@ -370,7 +373,7 @@ function CatModeloVersionRepuesto() {
                                 setSelectedItem(null);
                                 setForm({
                                     cod_producto:  '',
-                                    cod_item: '',
+                                    cod_item_cat1: '',
                                     empresa:  '',
                                     nombre_empresa:  '',
                                     codigo_prod_externo: '',
@@ -441,18 +444,18 @@ function CatModeloVersionRepuesto() {
                             <Grid item xs={12}>
                                 <Autocomplete
                                     options={uniqueItems}
-                                    getOptionLabel={(option) => `${option.cod_item} - ${option.nombre_item || ''}`}
+                                    getOptionLabel={(option) => `${option.cod_item_cat1} - ${option.nombre_item || ''}`}
                                     value={selectedCategoria}
                                     onChange={(e, v) => {
-
                                         setSelectedCategoria(v);
                                     }}
                                     renderInput={(params) => <TextField {...params} label="Categoría" />}
+                                    isOptionEqualToValue={(opt, val) => opt.cod_item_cat1 === val?.cod_item_cat1}
                                 />
                             </Grid>
                             <Grid item xs={12}>
                                 <Autocomplete
-                                    options={productos.filter(p => p.cod_item === selectedCategoria?.cod_item)}
+                                    options={productos.filter(p => p.cod_item_cat1 === selectedCategoria?.cod_item_cat1)}
                                     getOptionLabel={(p) => p.nombre_producto || ''}
                                     value={selectedProducto}
                                     onChange={(e, v) => {
