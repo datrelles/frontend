@@ -34,7 +34,6 @@ import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import {
   CuotasPedido,
-  DefaultCuotas,
   DefaultFormaPago,
   Enum,
   FormasPago,
@@ -161,19 +160,13 @@ export default function RegistrarPedido() {
   const [nombreCliente, setNombreCliente] = useState("");
   const [productos, setProductos] = useState([]);
   const [productosFiltrados, setProductosFiltrados] = useState([]);
-  const [cuotas, setCuotas] = useState(DefaultCuotas);
+  const [cuotas, setCuotas] = useState("Seleccione");
   const [formaPago, setFormaPago] = useState(DefaultFormaPago);
   const [porcentajeInteres, setPorcentajeInteres] = useState(0);
   const [factorCredito, setFactorCredito] = useState(0);
   const [direccionEnvio, setDireccionEnvio] = useState("");
   const [telefono, setTelefono] = useState("");
   const [ciudad, setCiudad] = useState("");
-  const [zona, setZona] = useState("");
-  const [credito, setCredito] = useState(0);
-  const [disponible, setDisponible] = useState(0);
-  const [categoria, setCategoria] = useState("");
-  const [tipoCliente, setTipoCliente] = useState("");
-  const [carteraVencida, setCarteraVencida] = useState(0);
   const [codigoProducto, setCodigoProducto] = useState("");
   const [nombreProducto, setNombreProducto] = useState("");
   const [codItemCatProducto, setCodItemCatProducto] = useState("");
@@ -453,11 +446,15 @@ export default function RegistrarPedido() {
       disabled={politica.cod_politica === "" || cliente.cod_persona === ""}
       options={CuotasPedido}
       value={cuotas}
-      blankOption={false}
+      blankOption={true}
       onChange={(e) => {
         setMensajeCargando("Calculando valores");
         setCargando(true);
         const nuevasCuotas = e.target.value;
+        if (nuevasCuotas === "Seleccione") {
+          setCuotas(nuevasCuotas);
+          return;
+        }
         APIService.getDetallePolitica(
           COD_AGENCIA,
           politica.cod_politica,
@@ -475,7 +472,7 @@ export default function RegistrarPedido() {
             setCuotas(nuevasCuotas);
             setFormaPago(
               res.cod_forma_pago_final ??
-                (nuevasCuotas === 0 ? FormasPago.EFE.key : FormasPago.CRE.key)
+                (nuevasCuotas === 1 ? FormasPago.EFE.key : FormasPago.CRE.key)
             );
             setPorcentajeInteres(interes);
             setFactorCredito(factor);
@@ -1004,10 +1001,11 @@ export default function RegistrarPedido() {
         if (
           politica.cod_politica === "" ||
           vendedor.cod_persona_vendor === "" ||
-          cliente.cod_persona === ""
+          cliente.cod_persona === "" ||
+          cuotas === ""
         ) {
           toast.warn(
-            "Debe seleccionar: política, agente y cliente para avanzar"
+            "Debe seleccionar: política, agente, cliente y número de cuotas para avanzar"
           );
           return;
         }
@@ -1167,6 +1165,21 @@ export default function RegistrarPedido() {
           await APIService.postPedido(pedido);
           toast.success(`Pedido ${codPedido.cod_pedido} grabado`);
           setPagina(0);
+          setPolitica(shapePolitica);
+          setNombrePolitica("");
+          setVendedor(shapeVendedor);
+          setNombreVendedor("");
+          setCliente(shapeCliente);
+          setNombreCliente("");
+          setDireccionEnvio("");
+          setTelefono("");
+          setCiudad("");
+          setObservacion("");
+          setCuotas("Seleccione");
+          setFormaPago(DefaultFormaPago);
+          setPorcentajeInteres(0);
+          setFactorCredito(0);
+          setProductosPedido([]);
         } catch (err) {
           toast.error(err.message);
         } finally {
@@ -1210,15 +1223,9 @@ export default function RegistrarPedido() {
         COD_TIPO_PERSONA_CLI
       )
         .then((cliente) => {
-          setDireccionEnvio(cliente.direccion_envio);
-          setTelefono(cliente.telefono);
-          setCiudad(cliente.ciudad);
-          setZona(cliente.zona_geografica);
-          setCredito(cliente.cupo_credito);
-          setDisponible(cliente.cupo_disponible);
-          setCategoria(cliente.cod_cat_cliente);
-          setTipoCliente(cliente.cod_tipo_clienteh);
-          setCarteraVencida(cliente.cartera_vencida);
+          setDireccionEnvio(cliente.direccion_envio ?? "");
+          setTelefono(cliente.telefono ?? "");
+          setCiudad(cliente.ciudad ?? "");
           setMensajeCargando("Cargando direcciones del cliente");
           APIService.getDireccionesCliente(cliente.cod_persona_cli)
             .then((res) => {
@@ -1283,7 +1290,7 @@ export default function RegistrarPedido() {
       vendedor.cod_persona_vendor === "" ||
       cliente.cod_persona === ""
     ) {
-      setCuotas(DefaultCuotas);
+      setCuotas("Seleccione");
       setFormaPago(DefaultFormaPago);
       setPorcentajeInteres(0);
       setFactorCredito(0);
