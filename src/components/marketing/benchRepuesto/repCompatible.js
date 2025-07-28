@@ -43,6 +43,7 @@ function RepCompatible()  {
     const [selectedItem, setSelectedItem] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [loadingGlobal, setLoadingGlobal] = useState(false);
+    const [erroresCarga, setErroresCarga] = useState([]);
 
     const [form, setForm] = useState({
         codigo_cliente_canal: '',
@@ -287,21 +288,14 @@ function RepCompatible()  {
     };
 
     useEffect(() => {
-        const cargarDatos = async () => {
-            try {
-                await getMenus();
-                await fetchClienteCanal();
-                await fetchCanal();
-                await fetchProductos();
-                await fetchModeloVersRepuesto();
-                await fetchRepuestoCompatible();
-                await fetchModeloVersion();
-                await fetchClienteCanalModelo();
-            } catch (err) {
-                console.error("Error cargando datos iniciales:", err);
-            }
-        };
-        cargarDatos();
+        getMenus();
+        fetchClienteCanal();
+        fetchCanal();
+        fetchProductos();
+        fetchModeloVersRepuesto();
+        fetchRepuestoCompatible();
+        fetchModeloVersion();
+        fetchClienteCanalModelo();
     }, []);
 
     const openDialog = (item = null) => {
@@ -461,27 +455,109 @@ function RepCompatible()  {
 
     const handleUploadExcel = (e) => {
         const file = e.target.files[0];
-        const reader = new FileReader();
-        reader.onload = async (evt) => {
-            try {
-                const wb = XLSX.read(evt.target.result, { type: 'binary' });
-                const sheet = wb.Sheets[wb.SheetNames[0]];
-                const rows = XLSX.utils.sheet_to_json(sheet);
-                const res = await fetch(`${API}/bench_rep/insert_repuesto_compatibilidad_masivo`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
-                    body: JSON.stringify({ repuestos: rows })
-                });
-                const json = await res.json();
-                if (res.ok) enqueueSnackbar(json.message, { variant: 'success' });
-                else enqueueSnackbar(json.error || 'Error en carga', { variant: 'error' });
-                fetchRepuestoCompatible();
-                fetchClienteCanalModelo();
-            } catch (err) {
-                enqueueSnackbar('Error procesando archivo', { variant: 'error' });
-            }
-        };
-        reader.readAsBinaryString(file);
+        try {
+            const reader = new FileReader();
+            reader.onload = async (evt) => {
+                try {
+                    const wb = XLSX.read(evt.target.result, { type: 'binary' });
+                    const sheet = wb.Sheets[wb.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet);
+
+                    const claves = new Map();
+                    const duplicadosLocales = [];
+
+                    rows.forEach((row, idx) => {
+
+                        const clave = `${row.nombre_modelo_comercial}|${row.nombre_cliente}|${row.nombre_canal}|${row.nombre_producto}`;
+
+                        if (claves.has(clave)) {
+                            claves.get(clave).push(idx + 2);
+                        } else {
+                            claves.set(clave, [idx + 2]);
+                        }
+                    });
+
+                    claves.forEach((filas, clave) => {
+                        if (filas.length > 1) {
+                            duplicadosLocales.push(...filas);
+                        }
+                    });
+                    if (duplicadosLocales.length > 0) {
+                        const mensaje = duplicadosLocales.map(f => `Fila ${f}`).join(', ');
+                        enqueueSnackbar(`Registros duplicados en Excel (${duplicadosLocales.length}): ${mensaje}`, {
+                            variant: 'warning',
+                            autoHideDuration: 10000,
+                            anchorOrigin: { vertical: 'bottom', horizontal: 'center' }
+                        });
+                        return;
+                    }
+                    const res = await fetch(`${API}/bench_rep/insert_repuesto_compatibilidad_masivo`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + jwt
+                        },
+                        body: JSON.stringify({ repuestos: rows })
+                    });
+                    const result = await res.json();
+
+                    if (res.ok) {
+                        if (result.insertados > 0) {
+                            enqueueSnackbar(`Registros insertados: ${result.insertados}`, {
+                                variant: 'success',
+                                anchorOrigin: { vertical: 'bottom', horizontal: 'center' }
+                            });
+                        }
+                        if (result.duplicados?.length > 0) {
+                            const filasDuplicadas = result.duplicados
+                                .map(d => d?.fila ? `Fila ${d.fila}` : 'Fila desconocida')
+                                .join(', ');
+
+                            enqueueSnackbar(`Registros duplicados (${result.duplicados.length}): ${filasDuplicadas}`, {
+                                variant: 'warning',
+                                autoHideDuration: 10000,
+                                anchorOrigin: { vertical: 'bottom', horizontal: 'center' }
+                            });
+                            setErroresCarga(result.duplicados);
+                        }
+
+                        if (result.errores?.length > 0) {
+                            const erroresDetallados = result.errores
+                                .map(err => `${err.fila}: ${err.error}`)
+                                .join(' | ');
+
+                            enqueueSnackbar(`Errores en ${result.errores.length} fila(s): ${erroresDetallados}`, {
+                                variant: 'error',
+                                autoHideDuration: 10000,
+                                anchorOrigin: { vertical: 'bottom', horizontal: 'center' }
+                            });
+                            setErroresCarga(result.errores);
+                        }
+                        fetchRepuestoCompatible();
+                        fetchClienteCanalModelo();
+                    } else {
+                        enqueueSnackbar(result.error || 'Error en carga', {
+                            variant: 'error',
+                            anchorOrigin: { vertical: 'bottom', horizontal: 'center' }
+                        });
+                    }
+
+                } catch (err) {
+                    console.error("Error al procesar archivo:", err);
+                    enqueueSnackbar("Error procesando archivo", {
+                        variant: 'error',
+                        anchorOrigin: { vertical: 'bottom', horizontal: 'center' }
+                    });
+                }
+            };
+            reader.readAsBinaryString(file);
+        } catch (err) {
+            console.error("Error al leer archivo:", err);
+            enqueueSnackbar("Error al leer o enviar el archivo", {
+                variant: "error",
+                anchorOrigin: { vertical: 'bottom', horizontal: 'center' }
+            });
+        }
     };
 
     const handleUploadExcelUpdate = (e) => {
