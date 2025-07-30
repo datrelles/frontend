@@ -17,6 +17,7 @@ import Paper from "@mui/material/Paper";
 import {Card} from "@mui/material";
 import {CardContent} from "@material-ui/core";
 import { ChevronLeft, ChevronRight } from '@mui/icons-material';
+import { Snackbar, Alert } from '@mui/material';
 
 
 const API = process.env.REACT_APP_API;
@@ -43,6 +44,8 @@ function BenchRepuestosCompatibles () {
     const [busquedaEjecutada, setBusquedaEjecutada] = useState(false);
     const [categoriaStartIndex, setCategoriaStartIndex] = useState(0);
     const categoriasVisibles = 9;
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
 
 
     const [modeloComercialMarca, setModeloComercialMarca] = useState([]);
@@ -79,15 +82,25 @@ function BenchRepuestosCompatibles () {
                 headers: { "Authorization": "Bearer " + jwt }
             });
             const data = await res.json();
-            if (res.ok) {
-                console.log("Datos recibidos:", data);
-                setCompatibles(data);
-                setCategoriaSeleccionada('');
-                setBusquedaEjecutada(true);
 
+            if (res.ok) {
+                setCompatibles(data);
+                setBusquedaEjecutada(true);
+                setCategoriaSeleccionada('');
+
+                // Evaluar si el objeto recibido está vacío (sin repuestos por categoría)
+                const sinCompatibles = Object.keys(data).length === 0;
+
+                if (sinCompatibles) {
+                    const nombreMarca = marcaSeleccionada?.nombre_marca?.toUpperCase() || 'DESCONOCIDA';
+                    const nombreModelo = modeloSeleccionado?.nombre_modelo?.toUpperCase() || 'DESCONOCIDO';
+                    setSnackbarMessage(`NO EXISTEN MODELOS COMPATIBLES PARA LA MARCA ${nombreMarca} MODELO ${nombreModelo}`);
+                    setOpenSnackbar(true);
+                }
             } else {
                 enqueueSnackbar(data.error || "Error en consulta", { variant: "error" });
             }
+
         } catch (e) {
             enqueueSnackbar("Error en servidor", { variant: "error" });
         }
@@ -265,7 +278,6 @@ function BenchRepuestosCompatibles () {
         }
     };
 
-
     return (
         <>
             {loading ? (<LoadingCircle />) : (
@@ -382,6 +394,20 @@ function BenchRepuestosCompatibles () {
                             </Grid>
                         </Paper>
                     </Box>
+                    <Snackbar
+                        open={openSnackbar}
+                        autoHideDuration={6000}
+                        onClose={() => setOpenSnackbar(false)}
+                        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                    >
+                        <Alert
+                            onClose={() => setOpenSnackbar(false)}
+                            severity="warning"
+                            sx={{ width: '100%', backgroundColor: '#ffa726', color: '#000' }}
+                        >
+                            {snackbarMessage}
+                        </Alert>
+                    </Snackbar>
                     <Box sx={{ px: 2, py: 3 }}>
                         <Box sx={{ display: 'flex', overflowX: 'auto', gap: 2, mb: 3 }}>
                             {busquedaEjecutada && (

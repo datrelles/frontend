@@ -80,7 +80,8 @@ export default function CatModeloVersionExpandible({
                             [
                                 "NOMBRE",
                                 "TIPO",
-                                "CILINDRADA",
+                                "CILINDRADA TEC.",
+                                "CILINDRADA COM.",
                                 "POTENCIA",
                                 "TORQUE",
                                 "ARRANQUE",
@@ -89,6 +90,7 @@ export default function CatModeloVersionExpandible({
                             detalleMotor?.nombre_motor,
                             tipoMotor?.nombre_tipo,
                             detalleMotor?.cilindrada,
+                            detalleMotor?.cilindrada_comercial,
                             detalleMotor?.caballos_fuerza,
                             detalleMotor?.torque_maximo,
                             detalleMotor?.arranque,

@@ -287,7 +287,7 @@ function CompararModelos()  {
 
         setBloques(nuevosBloques);
 
-        const cilindrada = nuevosBloques[index]?.cilindrada || cilindradaSeleccionada;
+        const cilindrada = nuevosBloques[index]?.cilindrada_comercial || cilindradaSeleccionada;
         const cilMin = cilindrada?.min ?? null;
         const cilMax = cilindrada?.max ?? null;
 
@@ -388,7 +388,7 @@ function CompararModelos()  {
         const segmento = nuevosBloques[index].segmento;
 
 
-        const cilindrada = nuevosBloques[index]?.cilindrada || cilindradaSeleccionada;
+        const cilindrada = nuevosBloques[index]?.cilindrada_comercial || cilindradaSeleccionada;
         const cilMin = cilindrada?.min ?? null;
         const cilMax = cilindrada?.max ?? null;
 
@@ -464,10 +464,10 @@ function CompararModelos()  {
 
         if (index === 0) {
             for (let i = 0; i < nuevosBloques.length; i++) {
-                nuevosBloques[i].cilindrada = cilindrada;
+                nuevosBloques[i].cilindrada_comercial = cilindrada;
             }
         } else {
-            nuevosBloques[index].cilindrada = cilindrada;
+            nuevosBloques[index].cilindrada_comercial = cilindrada;
         }
         setBloques(nuevosBloques);
 
@@ -583,7 +583,7 @@ function CompararModelos()  {
                                                 size="small"
                                                 options={Array.isArray(cilindradasDisponibles) ? cilindradasDisponibles : []}
                                                 getOptionLabel={(option) => option?.label || ''}
-                                                value={bloque.cilindrada || null}
+                                                value={bloque.cilindrada_comercial || null}
                                                 onChange={(e, newValue) => handleCilindradaChange(index, newValue)}
                                                 isOptionEqualToValue={(option, value) => option?.min === value?.min && option?.max === value?.max}
                                                 renderInput={(params) => (

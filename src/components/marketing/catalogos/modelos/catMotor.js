@@ -42,6 +42,7 @@ function CatMotor() {
         tipo_motor_nombre: '',
         nombre_motor: '',
         cilindrada: '',
+        cilindrada_comercial: '',
         caballos_fuerza: '',
         torque_maximo: '',
         sistema_combustible: '',
@@ -210,7 +211,7 @@ function CatMotor() {
             const duplicados = [];
             const combinaciones = new Map();
             rows.forEach((row, index) => {
-                const clave = `${row.nombre_motor}_${row.cilindrada}_
+                const clave = `${row.nombre_motor}_${row.cilindrada}_${row.cilindrada_comercial}_
                 ${row.caballos_fuerza}_${row.torque_maximo}_${row.sistema_combustible}_
                 ${row.arranque}_${row.sistema_refrigeracion}`;
                 if (combinaciones.has(clave)) {
@@ -268,6 +269,7 @@ function CatMotor() {
             tipo_motor_nombre: rowData.nombre_tipo_motor,
             nombre_motor: rowData.nombre_motor,
             cilindrada: rowData.cilindrada,
+            cilindrada_comercial: rowData.cilindrada_comercial,
             caballos_fuerza: rowData.caballos_fuerza,
             torque_maximo: rowData.torque_maximo,
             sistema_combustible: rowData.sistema_combustible,
@@ -291,7 +293,7 @@ function CatMotor() {
     };
     const camposPlantillaModelo = [
         "codigo_motor", "nombre_tipo_motor",
-        "nombre_motor", "cilindrada",
+        "nombre_motor", "cilindrada", "cilindrada_comercial",
         "caballos_fuerza","torque_maximo",
         "sistema_combustible","arranque",
         "sistema_refrigeracion","descripcion_motor"
@@ -309,7 +311,8 @@ function CatMotor() {
         { name: 'codigo_motor', label: 'Código' },
         { name: "nombre_tipo_motor", label: "Tipo de Motor" },
         { name: 'nombre_motor', label: 'Nombre Motor' },
-        { name: 'cilindrada', label: 'Cilindrada' },
+        { name: 'cilindrada', label: 'Cilindrada Técnica' },
+        { name: 'cilindrada_comercial', label: 'Cilindrada Comercial' },
         { name: 'caballos_fuerza', label: 'Potencia' },
         { name: 'torque_maximo', label: 'Torque Máximo' },
         { name: 'sistema_combustible', label: 'Sistema de Combustible' },
@@ -420,7 +423,8 @@ function CatMotor() {
                                 />
                             </Grid>
                             <Grid item xs={6}><TextField fullWidth label="Nombre Motor" value={form.nombre_motor || ''} onChange={(e) => handleChange('nombre_motor', e.target.value.toUpperCase())} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Cilindrada" value={form.cilindrada || ''} onChange={(e) => handleChange('cilindrada', e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Cilindrada Técnica" value={form.cilindrada || ''} onChange={(e) => handleChange('cilindrada', e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Cilindrada Comercial" value={form.cilindrada_comercial || ''} onChange={(e) => handleChange('cilindrada_comercial', e.target.value.toUpperCase())} /></Grid>
                             <Grid item xs={6}><TextField fullWidth label="Potencia" value={form.caballos_fuerza || ''} onChange={(e) => handleChange('caballos_fuerza', e.target.value.toUpperCase())} /></Grid>
                             <Grid item xs={6}><TextField fullWidth label="Torque Máximo" value={form.torque_maximo || ''} onChange={(e) => handleChange('torque_maximo', e.target.value.toUpperCase())} /></Grid>
                             <Grid item xs={6}><TextField fullWidth label="Sistema de Combustible" value={form.sistema_combustible || ''} onChange={(e) => handleChange('sistema_combustible', e.target.value.toUpperCase())} /></Grid>
