@@ -1,0 +1,912 @@
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import React, { useState, useEffect } from "react";
+import Navbar0 from "../../../Navbar0";
+import Grid from '@mui/material/Grid';
+import {Autocomplete, IconButton, TextField} from '@mui/material';
+import Button from '@mui/material/Button';
+import ButtonGroup from '@mui/material/ButtonGroup';
+import Box from '@mui/material/Box';
+import { SnackbarProvider, useSnackbar } from 'notistack';
+import { useAuthContext } from "../../../../context/authContext";
+import DialogTitle from "@mui/material/DialogTitle";
+import Dialog from "@mui/material/Dialog";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import CatModeloVersionExpandible from "../../uploadImages/tablaExpandible";
+import SelectorChasis from "../../selectoresDialog/selectChasis";
+import SelectorDimensiones from "../../selectoresDialog/selectDimensiones";
+import SelectorMotor from "../../selectoresDialog/selectMotor";
+import SelectorElectronica from "../../selectoresDialog/selectElectronica";
+import * as XLSX from "xlsx";
+import RefreshIcon from '@mui/icons-material/Refresh';
+import AddIcon from "@material-ui/icons/Add";
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import Stack from "@mui/material/Stack";
+import EditIcon from '@mui/icons-material/Edit';
+import GlobalLoading from "../../selectoresDialog/GlobalLoading";
+
+const API = process.env.REACT_APP_API;
+
+function CatModeloVersion() {
+    const navigate = useNavigate();
+    const [menus, setMenus] = useState([]);
+    const { enqueueSnackbar } = useSnackbar();
+    const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
+    const [modelosComerciales, setModelosComerciales] = useState([]);
+    const [versiones, setVersiones] = useState([]);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [selectedElectronica, setSelectedElectronica] = useState(null);
+    const [selectedChasis, setSelectedChasis] = useState(null);
+    const [selectedMotor, setSelectedMotor] = useState(null);
+    const [selectedColor, setSelectedColor] = useState(null);
+    const [selectedImagen, setSelectedImagen] = useState(null);
+    const [selectedTransmision, setselectedTransmision] = useState(null);
+    const [selectedModeloComercial, setSelectedModeloComercial] = useState(null);
+    const [selectedVersion, setSelectedVersion] = useState(null);
+    const [cabeceras, setCabeceras] = useState([]);
+    const [chasis, setChasis] = useState([]);
+    const [motores, setMotores] = useState([]);
+    const [tiposMotor, setTiposMotor] = useState([]);
+    const [selectedTipoMotor, setSelectedTipoMotor] = useState(null);
+    const [transmisiones, setTransmisiones] = useState([]);
+    const [dimensiones, setDimensiones] = useState([]);
+    const [electronica, setElectronica] = useState([]);
+    const [colores, setColores] = useState([]);
+    const [images, setImages] = useState([]);
+    const [imagenModal, setImagenModal] = useState(null);
+    const [openModalImagen, setOpenModalImagen] = useState(false);
+    const [erroresCarga, setErroresCarga] = useState([]);
+    const [form, setForm] = useState({
+        codigo_modelo_version: '',
+        codigo_dim_peso: '',
+        codigo_imagen: '',
+        codigo_electronica: '',
+        codigo_tipo_motor: '',
+        codigo_motor: '',
+        codigo_transmision: '',
+        codigo_color_bench: '',
+        codigo_chasis: '',
+        codigo_modelo_comercial: '',
+        codigo_marca: '',
+        codigo_canal: '',
+        descripcion_imagen: '',
+        nombre_canal: '',
+        nombre_color: '',
+        codigo_version: '',
+        nombre_modelo_version: '',
+        nombre_version: '',
+        anio_modelo_version: '',
+        precio_producto_modelo: '',
+        precio_venta_distribuidor: ''
+    });
+    const [formErrors, setFormErrors] = useState({});
+    const [loadingGlobal, setLoadingGlobal] = useState(false);
+
+    const fetchModeloVersion = async () => {
+        try {
+            const res = await fetch(`${API}/bench/get_modelo_version`, {
+                headers: { "Authorization": "Bearer " + jwt }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setCabeceras(data);
+            } else {
+                enqueueSnackbar(data.error || "Error al obtener modelos", { variant: "error" });
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            enqueueSnackbar("Error de conexión", { variant: "error" });
+        }
+
+    };
+
+    const fetchChasis = async () => {
+        try {
+            const res = await fetch(`${API}/bench/get_chasis`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + jwt
+                }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setChasis(data);
+            } else {
+                enqueueSnackbar(data.error || "Error al obtener datos de chasis", { variant: "error" });
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            enqueueSnackbar("Error de conexión", { variant: "error" });
+        }
+
+    };
+
+    const fetchModeloComercial = async () => {
+        try {
+            const res = await fetch(`${API}/bench/get_modelos_comerciales`, {
+                headers: { "Authorization": "Bearer " + jwt }
+            });
+            const data = await res.json();
+            setModelosComerciales(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error("Error:", error);
+            enqueueSnackbar("Error de conexión", { variant: "error" });
+        }
+    };
+
+    const fetchVersiones = async () => {
+        try {
+            const res = await fetch(`${API}/bench/get_version`, { headers: { "Authorization": "Bearer " + jwt } });
+            const data = await res.json();
+            setVersiones(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error("Error:", error);
+            enqueueSnackbar("Error de conexión", { variant: "error" });
+        }
+    };
+    const fetchColores = async () => {
+        try {
+            const res = await fetch(`${API}/bench/get_color`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + jwt
+                }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setColores(data);
+            } else {
+                enqueueSnackbar(data.error || "Error al obtener datos de colores", { variant: "error" });
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            enqueueSnackbar("Error de conexión", { variant: "error" });
+        }
+
+    };
+    const fetchDimensiones = async () => {
+        try {
+            const res = await fetch(`${API}/bench/get_dimensiones`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + jwt
+                }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setDimensiones(data);
+            } else {
+                enqueueSnackbar(data.error || "Error al obtener datos de dimensiones", { variant: "error" });
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            enqueueSnackbar("Error de conexión", { variant: "error" });
+        }
+
+    };
+    const fetchMotores = async () => {
+        try {
+            const res = await fetch(`${API}/bench/get_motores`, {
+                headers: { "Authorization": "Bearer " + jwt }
+            });
+            const data = await res.json();
+            setMotores(data);
+        } catch (error) {
+            console.error("Error:", error);
+            enqueueSnackbar("Error de conexión", { variant: "error" });
+        }
+
+    };
+    const fetchTiposMotor = async () => {
+        try {
+            const res = await fetch(`${API}/bench/get_tipo_motor`, {
+                headers: { "Authorization": "Bearer " + jwt }
+            });
+            const data = await res.json();
+            setTiposMotor(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error("Error:", error);
+            enqueueSnackbar("Error de conexión", { variant: "error" });
+        }
+
+    };
+    const fetchTransmisiones = async () => {
+        try {
+            const res = await fetch(`${API}/bench/get_transmision`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + jwt
+                }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setTransmisiones(data);
+            } else {
+                enqueueSnackbar(data.error || "Error al obtener datos de transmisión", { variant: "error" });
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            enqueueSnackbar("Error de conexión", { variant: "error" });
+        }
+
+    };
+    const fetchElectronica = async () => {
+        try {
+            const res = await fetch(`${API}/bench/get_electronica`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + jwt
+                }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setElectronica(data);
+            } else {
+                enqueueSnackbar(data.error || "Error al obtener datos de electrónica", { variant: "error" });
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            enqueueSnackbar("Error de conexión", { variant: "error" });
+        }
+
+    };
+    const fetchImagen = async () => {
+        try {
+            const res = await fetch(`${API}/bench/get_imagenes`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + jwt
+                }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setImages(data);
+            } else {
+                enqueueSnackbar(data.error || "Error al obtener datos de imágenes", { variant: "error" });
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            enqueueSnackbar("Error de conexión", { variant: "error" });
+        }
+
+    };
+
+    useEffect(() => {
+        getMenus();
+        fetchModeloVersion();
+        fetchModeloComercial();
+        fetchVersiones();
+        fetchChasis();
+        fetchMotores();
+        fetchTiposMotor();
+        fetchTransmisiones();
+        fetchDimensiones();
+        fetchElectronica();
+        fetchColores();
+        fetchImagen();
+    }, []);
+
+    const handleInsertOrUpdate = async () => {
+
+        if (!validarFormulario()) {
+            enqueueSnackbar("Completa todos los campos obligatorios", { variant: "error" });
+            return;
+        }
+
+        const method = selectedItem ? "PUT" : "POST";
+        const url = selectedItem ?
+            `${API}/bench/update_modelo_version/${selectedItem.codigo_modelo_version}` :
+            `${API}/bench/insert_modelo_version`;
+
+        const payload = {
+            codigo_imagen: form.codigo_imagen,
+            codigo_dim_peso: form.codigo_dim_peso,
+            codigo_electronica: form.codigo_electronica,
+            codigo_motor: form.codigo_motor,
+            codigo_tipo_motor: form.codigo_tipo_motor,
+            codigo_transmision: form.codigo_transmision,
+            codigo_color_bench: form.codigo_color_bench,
+            codigo_chasis: form.codigo_chasis,
+
+            codigo_modelo_comercial: selectedModeloComercial?.codigo_modelo_comercial,
+            codigo_marca: selectedModeloComercial?.codigo_marca,
+            codigo_version: form.codigo_version,
+
+            codigo_cliente_canal: form.codigo_cliente_canal,
+            codigo_mod_vers_repuesto: form.codigo_mod_vers_repuesto,
+            empresa: form.empresa,
+            cod_producto: form.cod_producto,
+
+            nombre_modelo_version: form.nombre_modelo_version,
+            anio_modelo_version: parseInt(form.anio_modelo_version),
+            precio_producto_modelo: parseFloat(form.precio_producto_modelo),
+            precio_venta_distribuidor: parseFloat(form.precio_venta_distribuidor)
+        };
+        console.log("PAYLOAD:", payload);
+
+
+        const res = await fetch(url, {
+            method,
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + jwt
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            fetchModeloVersion();
+            enqueueSnackbar(data.message || "Registro guardado correctamente", { variant: 'success' });
+            setDialogOpen(false);
+        } else {
+            enqueueSnackbar(data.error || "Error al guardar", { variant: 'error' });
+        }
+    };
+
+    const handleChange = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
+
+    const validarFormulario = () => {
+        const errors = {};
+
+        if (!form.codigo_chasis) errors.codigo_chasis = 'Chasis requerido';
+        if (!form.codigo_motor) errors.codigo_motor = 'Motor requerido';
+        if (!form.codigo_tipo_motor) errors.codigo_tipo_motor = 'Tipo de motor requerido';
+        if (!form.codigo_transmision) errors.codigo_transmision = 'Transmisión requerida';
+        if (!form.codigo_electronica) errors.codigo_electronica = 'Electrónica requerida';
+        if (!form.codigo_color_bench) errors.codigo_color_bench = 'Color requerido';
+        if (!form.codigo_imagen) errors.codigo_imagen = 'Imágen requerida';
+        if (!form.nombre_modelo_version?.trim()) errors.nombre_modelo_version = 'Nombre del modelo requerido';
+        if (!form.codigo_modelo_comercial) errors.codigo_modelo_comercial = 'Modelo comercial requerido';
+        if (!form.codigo_version) errors.codigo_version = 'Versión requerida';
+        if (!form.anio_modelo_version) errors.anio_modelo_version = 'Año requerido';
+        if (!form.codigo_dim_peso) errors.codigo_dim_peso = 'Dimensiones requeridas';
+
+        setFormErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
+    const openDialog = async (item = null) => {
+
+        if (item) {
+            const modelo = modelosComerciales?.find(mc => mc.nombre_modelo === item.nombre_modelo_comercial);
+            const ver = versiones?.find(v => v.nombre_version === item.nombre_version);
+            const cha = chasis?.find(c => c.codigo_chasis === item.codigo_chasis);
+            const motor = motores?.find(m => m.nombre_motor === item.nombre_motor);
+            const tipoMotor = tiposMotor?.find(tm => tm.codigo_tipo_motor === item.codigo_tipo_motor);
+            const elect = electronica?.find(e => e.codigo_electronica === item.codigo_electronica);
+            const transmision = transmisiones.find(t => t.codigo_transmision === item.codigo_transmision);
+            const color = colores.find(c => c.codigo_color_bench === item.codigo_color_bench);
+            const imagen = images.find(i => i.codigo_imagen === item.codigo_imagen);
+
+            setSelectedModeloComercial(modelo || null);
+            setSelectedVersion(ver || null);
+            setSelectedTipoMotor(tipoMotor || null);
+            setSelectedMotor(motor || null);
+            setSelectedElectronica(elect || null);
+            setSelectedChasis(cha || null);
+            setselectedTransmision(transmision || null);
+            setSelectedColor(color || null);
+            setSelectedImagen(imagen || null);
+
+            setForm({
+                codigo_modelo_version: item.codigo_modelo_version || '',
+                codigo_dim_peso: item.codigo_dim_peso || '',
+                codigo_electronica: item.codigo_electronica || '',
+                codigo_tipo_motor: item.codigo_tipo_motor || '',
+                codigo_motor: item.codigo_motor || '',
+                codigo_transmision: item.codigo_transmision || '',
+                nombre_color: color?.nombre_color || '',
+                descripcion_imagen: imagen?.descripcion_imagen || '',
+                nombre_canal: item.nombre_canal || '',
+                codigo_color_bench: color?.codigo_color_bench || '',
+                codigo_imagen: item.codigo_imagen || '',
+                codigo_chasis: item.codigo_chasis || '',
+                codigo_modelo_comercial: modelo?.codigo_modelo_comercial || '',
+                codigo_marca: modelo?.codigo_marca || '',
+                codigo_version: ver?.codigo_version || '',
+                nombre_modelo_version: item.nombre_modelo_version || '',
+                nombre_version: ver?.nombre_version || '',
+                anio_modelo_version: item.anio_modelo_version || '',
+                precio_producto_modelo: item.precio_producto_modelo || '',
+                precio_venta_distribuidor: item.precio_venta_distribuidor || ''
+            });
+        } else {
+            setForm({
+                codigo_modelo_version: '',
+                codigo_dim_peso: '',
+                codigo_imagen: '',
+                codigo_electronica: '',
+                codigo_tipo_motor: '',
+                codigo_motor: '',
+                codigo_transmision: '',
+                codigo_color_bench: '',
+                codigo_chasis: '',
+                codigo_modelo_comercial: '',
+                codigo_marca: '',
+                descripcion_imagen: '',
+                nombre_color: '',
+                codigo_version: '',
+                nombre_modelo_version: '',
+                nombre_version: '',
+                anio_modelo_version: '',
+                precio_producto_modelo: '',
+                precio_venta_distribuidor: ''
+            });
+        }
+
+        setSelectedItem(item);
+        setDialogOpen(true);
+    };
+
+    const getMenus = async () => {
+        try {
+            const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + jwt
+                }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setMenus(data);
+            }
+        } catch (error) {
+            toast.error('Error cargando menús');
+        }
+    };
+
+    const handleUploadExcel = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                const data = new Uint8Array(event.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+                const response = await fetch(`${API}/bench/insert_modelo_version_masivo`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + jwt,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(jsonData),
+                });
+
+                const result = await response.json();
+
+                if (result.insertados) {
+                    enqueueSnackbar(`Modelos insertados: ${result.insertados}`, { variant: 'success' });
+                }
+                if (result.errores?.length > 0) {
+                    console.error("Errores:", result.errores);
+
+                    const erroresDetallados = result.errores
+                        .map(err => `Fila ${err.fila}: ${err.error}`)
+                        .join('\n');
+
+                    enqueueSnackbar(`Errores en ${result.errores.length} fila(s):\n${erroresDetallados}`, {
+                        variant: 'error',
+                        autoHideDuration: 8000,
+                    });
+
+                    setErroresCarga(result.errores);
+                }
+                fetchModeloVersion();
+            };
+
+            reader.readAsArrayBuffer(file);
+        } catch (err) {
+            console.error("Error al procesar archivo:", err);
+            enqueueSnackbar("Error al leer o enviar el archivo", { variant: "error" });
+        }
+    };
+    const handleUploadExcelUpdate = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = async (event) => {
+            setLoadingGlobal(true);
+            try {
+                const data = new Uint8Array(event.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+                const res = await fetch(`${API}/bench/update_modelo_version_masivo`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'Bearer ' + jwt,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(jsonData),
+                });
+
+                const responseData = await res.json();
+
+                if (res.ok) {
+                    if (responseData.actualizados?.length) {
+                        enqueueSnackbar(`Modelos actualizados: ${responseData.actualizados.length}`, { variant: 'success' });
+                    }
+
+                    if (responseData.errores?.length) {
+                        enqueueSnackbar(`Errores en ${responseData.errores.length} fila(s)`, { variant: 'warning' });
+                    }
+
+                    fetchModeloVersion();
+                } else {
+                    enqueueSnackbar(responseData.error || "Error al actualizar", { variant: "error" });
+                }
+
+            } catch (error) {
+                enqueueSnackbar("Error inesperado durante la carga", { variant: "error" });
+            } finally {
+                setLoadingGlobal(false);
+            }
+        };
+
+        reader.readAsArrayBuffer(file);
+    };
+
+    return (
+        <>
+            <GlobalLoading open={loadingGlobal} />
+            <Dialog open={openModalImagen} onClose={() => setOpenModalImagen(false)} maxWidth="md" fullWidth>
+                <DialogTitle>Vista de Imagen</DialogTitle>
+                <DialogContent>
+                    <img
+                        src={imagenModal}
+                        title="Vista previa imagen"
+                        style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain' }}
+                        alt="Vista previa imagen"
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenModalImagen(false)} color="primary">
+                        Cerrar
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            <div style={{ marginTop: '150px', width: "100%" }}>
+                <Navbar0 menus={menus} />
+                <Box>
+                    <ButtonGroup variant="text">
+                        <Button onClick={() => navigate('/dashboard')}>Módulos</Button>
+                        <Button onClick={() => navigate(-1)}>Catálogos</Button>
+                    </ButtonGroup>
+                </Box>
+                <Box sx={{ mt: 2 }}>
+                    <Stack direction="row" spacing={1}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<AddIcon />}
+                            onClick={() => {
+                                setSelectedItem(null);
+                                setForm({
+                                    codigo_modelo_version: '',
+                                    codigo_dim_peso: '',
+                                    codigo_imagen: '',
+                                    codigo_electronica: '',
+                                    codigo_tipo_motor: '',
+                                    codigo_motor: '',
+                                    codigo_transmision: '',
+                                    codigo_color_bench: '',
+                                    codigo_chasis: '',
+                                    codigo_modelo_comercial: '',
+                                    codigo_marca: '',
+                                    codigo_canal: '',
+                                    descripcion_imagen: '',
+                                    nombre_color: '',
+                                    codigo_version: '',
+                                    nombre_modelo_version: '',
+                                    nombre_version: '',
+                                    anio_modelo_version: '',
+                                    precio_producto_modelo: '',
+                                    precio_venta_distribuidor: ''
+                                });
+                                setSelectedModeloComercial(null);
+                                setSelectedVersion( null);
+                                setSelectedTipoMotor(null);
+                                setSelectedMotor( null);
+                                setSelectedElectronica( null);
+                                setSelectedChasis( null);
+                                setselectedTransmision( null);
+                                setSelectedColor( null);
+                                setSelectedImagen(null);
+                                fetchVersiones();
+                                setDialogOpen(true);
+                            } }
+                            sx={{
+                                textTransform: 'none',
+                                fontWeight: 500,
+                                backgroundColor: 'firebrick',
+                                '&:hover': {
+                                    backgroundColor: 'firebrick',
+                                },
+                                '&:active': {
+                                    backgroundColor: 'firebrick',
+                                    boxShadow: 'none'
+                                }
+                            }}
+                        >Nuevo
+                        </Button>
+                        <Button
+                            variant="contained"
+                            component="label"
+                            startIcon={<CloudUploadIcon />}
+                            sx={{
+                                textTransform: 'none',
+                                fontWeight: 500,
+                                backgroundColor: 'green',
+                                '&:hover': {
+                                    backgroundColor: 'green',
+                                },
+                                '&:active': {
+                                    backgroundColor: 'green',
+                                    boxShadow: 'none'
+                                }
+                            }}
+                        >Insertar Masivo
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                        </Button>
+                        <Button
+                            variant="contained"
+                            component="label"
+                            startIcon={<EditIcon />}
+                            sx={{ textTransform: 'none', fontWeight: 600,backgroundColor: 'littleseashell' }}
+                        >Actualizar Masivo
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
+                        </Button>
+                        <IconButton onClick={fetchModeloVersion} style={{ color: 'firebrick' }}>
+                            <RefreshIcon />
+                        </IconButton>
+                    </Stack>
+                </Box>
+                <CatModeloVersionExpandible
+                    cabeceras={cabeceras}
+                    electronica={electronica}
+                    transmisiones={transmisiones}
+                    dimensiones={dimensiones}
+                    motores={motores}
+                    imagenes={images}
+                    tiposMotor={tiposMotor}
+                    chasis={chasis}
+                    onEdit={openDialog}
+                />
+                <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
+                    <DialogTitle>{selectedItem ? 'Actualizar' : 'Nuevo'}</DialogTitle>
+                    <DialogContent>
+                        <Grid container spacing={2}>
+                            <SelectorChasis
+                                chasis={chasis}
+                                selectedChasisId={form.codigo_chasis}
+                                onSelect={(codigo) => handleChange('codigo_chasis', codigo)}
+                                error={!!formErrors.codigo_chasis}
+                                helperText={formErrors.codigo_chasis}
+                            />
+                            <SelectorDimensiones
+                                dimensiones={dimensiones}
+                                selectedDimensionesId={form.codigo_dim_peso}
+                                onSelect={(codigo) => handleChange('codigo_dim_peso', codigo)}
+                                error={!!formErrors.codigo_dim_peso}
+                                helperText={formErrors.codigo_dim_peso}
+                            />
+                            <SelectorMotor
+                                motores={motores}
+                                tiposMotor={tiposMotor}
+                                error={!!formErrors.codigo_motor}
+                                helperText={formErrors.codigo_motor}
+                                selectedMotorId={form.codigo_motor}
+                                onSelect={({ codigo_motor, codigo_tipo_motor, nombre_tipo_motor }) => {
+                                    handleChange('codigo_motor', codigo_motor);
+                                    handleChange('codigo_tipo_motor', codigo_tipo_motor);
+                                    setSelectedTipoMotor({ nombre_tipo: nombre_tipo_motor });
+                                }}/>
+                            <Grid item xs={6}>
+                                <TextField
+                                    label="Tipo Motor"
+                                    error={!!formErrors.codigo_tipo_motor}
+                                    helperText={formErrors.codigo_tipo_motor}
+                                    value={selectedTipoMotor?.nombre_tipo || ''}
+                                    fullWidth
+                                    disabled/>
+                            </Grid>
+                            <Grid item xs={6}>
+                                <Autocomplete
+                                    options={transmisiones}
+                                    getOptionLabel={(x) => x.caja_cambios}
+                                    value={selectedTransmision}
+                                    onChange={(e, v) => {
+                                        setselectedTransmision(v || null);
+                                        handleChange('codigo_transmision', v?.codigo_transmision || '');
+                                    }}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Transmisión"
+                                            error={!!formErrors.codigo_transmision}
+                                            helperText={formErrors.codigo_transmision}
+                                        />
+                                    )}
+                                />
+                            </Grid>
+                            <SelectorElectronica
+                                electronica={electronica}
+                                selectedElectronicaId={form.codigo_electronica}
+                                onSelect={(codigo) => handleChange('codigo_electronica', codigo)}
+                                error={!!formErrors.codigo_electronica}
+                                helperText={formErrors.codigo_electronica}
+                            />
+                            <Grid item xs={6}>
+                                <Autocomplete
+                                    options={colores}
+                                    getOptionLabel={(x) => x.nombre_color}
+                                    value={selectedColor}
+                                    onChange={(e, v) => {
+                                        setSelectedColor(v || null);
+                                        handleChange('codigo_color_bench', v?.codigo_color_bench || '');
+                                    }}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Color"
+                                            error={!!formErrors.codigo_color_bench}
+                                            helperText={formErrors.codigo_color_bench}
+                                        />
+                                    )}
+                                />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <Autocomplete
+                                    options={images}
+                                    getOptionLabel={(x) => x.descripcion_imagen}
+                                    value={selectedImagen}
+                                    onChange={(e, v) => {
+                                        setSelectedImagen(v || null);
+                                        handleChange('codigo_imagen', v?.codigo_imagen || '');
+                                    }}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Imágen"
+                                            error={!!formErrors.codigo_imagen}
+                                            helperText={formErrors.codigo_imagen}
+                                        />
+                                    )}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField
+                                    fullWidth
+                                    label="Nombre Modelo Version"
+                                    value={form.nombre_modelo_version || ''}
+                                    onChange={(e) =>
+                                        handleChange('nombre_modelo_version', e.target.value.toUpperCase())
+                                    }
+                                    error={!!formErrors.nombre_modelo_version}
+                                    helperText={formErrors.nombre_modelo_version}
+                                    inputProps={{ style: { textTransform: 'uppercase' } }}
+                                />
+                            </Grid>
+                            <Grid item xs={9}>
+                                <Autocomplete
+                                    options={versiones.filter(v => v.estado_version === 1)}
+                                    getOptionLabel={(v) => v?.nombre_version || ''}
+                                    value={selectedVersion}
+                                    onChange={(e, v) => {
+                                        handleChange('codigo_version', v ? v.codigo_version : '');
+                                        setSelectedVersion(v);
+                                    }}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Versión"
+                                            error={!!formErrors.codigo_version}
+                                            helperText={formErrors.codigo_version}
+                                        />
+                                    )}
+                                />
+                            </Grid>
+                            <Grid item xs={3}><
+                                TextField fullWidth
+                                          label="Año" type="number"
+                                          value={form.anio_modelo_version || ''}
+                                          onChange={(e) =>
+                                              handleChange('anio_modelo_version', e.target.value)}
+                                          error={!!formErrors.anio_modelo_version}
+                                          helperText={formErrors.anio_modelo_version}
+                                          inputProps={{ style: { textTransform: 'uppercase' } }}
+                            />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <TextField
+                                    label="Precio Producto Modelo"
+                                    value={form.precio_producto_modelo}
+                                    onChange={(e) => {
+                                        const raw = e.target.value;
+                                        const formatted = raw.replace(/[^\d.,]/g, '');
+                                        handleChange('precio_producto_modelo', formatted);
+                                    }}
+                                    fullWidth
+                                />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <TextField
+                                    label="Precio Venta Distribuidor"
+                                    value={form.precio_venta_distribuidor}
+                                    onChange={(e) => {
+                                        const raw = e.target.value;
+                                        const formatted = raw.replace(/[^\d.,]/g, '');
+                                        handleChange('precio_venta_distribuidor', formatted);
+                                    }}
+                                    fullWidth
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Autocomplete
+                                    options={modelosComerciales.filter(v => v.estado_modelo === 1)}
+                                    getOptionLabel={(v) =>
+                                        `${v?.nombre_modelo ?? ''} (${v?.anio_modelo ?? ''})`
+                                    }
+                                    value={selectedModeloComercial}
+                                    onChange={(e, v) => {
+                                        handleChange('codigo_modelo_comercial', v ? v.codigo_modelo_comercial : '');
+                                        handleChange('codigo_marca', v ? v.codigo_marca : '');
+                                        setSelectedModeloComercial(v);
+                                    }}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Modelo Comercial"
+                                            error={!!formErrors.codigo_modelo_comercial}
+                                            helperText={formErrors.codigo_modelo_comercial}
+                                        />
+                                    )}
+                                />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <TextField
+                                    label="Marca"
+                                    value={selectedModeloComercial?.nombre_marca || ''}
+                                    fullWidth
+                                    disabled
+                                />
+                            </Grid>
+                        </Grid>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
+                        <Button onClick={handleInsertOrUpdate} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedItem ? 'Actualizar' : 'Guardar'}</Button>
+                    </DialogActions>
+                </Dialog>
+            </div>
+        </>
+    );
+}
+
+export default function IntegrationNotistackWrapper() {
+    return (
+        <SnackbarProvider maxSnack={3}>
+            <CatModeloVersion/>
+        </SnackbarProvider>
+    );
+}

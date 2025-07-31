@@ -80,7 +80,8 @@ export default function CatModeloVersionExpandible({
                             [
                                 "NOMBRE",
                                 "TIPO",
-                                "CILINDRADA",
+                                "CILINDRADA TEC.",
+                                "CILINDRADA COM.",
                                 "POTENCIA",
                                 "TORQUE",
                                 "ARRANQUE",
@@ -89,6 +90,7 @@ export default function CatModeloVersionExpandible({
                             detalleMotor?.nombre_motor,
                             tipoMotor?.nombre_tipo,
                             detalleMotor?.cilindrada,
+                            detalleMotor?.cilindrada_comercial,
                             detalleMotor?.caballos_fuerza,
                             detalleMotor?.torque_maximo,
                             detalleMotor?.arranque,
@@ -153,11 +155,9 @@ export default function CatModeloVersionExpandible({
     };
 
     const columns = [
-        //{ name: 'codigo_modelo_version', label: 'CÓDIGO' },
-        { name: 'nombre_modelo_version', label: 'MODELO' },
-        { name: 'nombre_producto', label: 'REPUESTO' },
+        { name: 'nombre_modelo_version', label: 'MODELO VERSIÓN' },
+        { name: 'nombre_modelo_comercial', label: 'MODELO' },
         { name: 'nombre_marca', label: 'MARCA' },
-        { name: 'nombre_empresa', label: 'EMPRESA' },
         {
             name: 'path_imagen', label: 'IMAGEN', options: {
                 customBodyRender: (value) => value ? (
@@ -201,7 +201,6 @@ export default function CatModeloVersionExpandible({
         'codigo_motor',
         'codigo_electronica',
         'codigo_chasis',
-        'codigo_cliente_canal',
         'nombre_color',
         'descripcion_imagen',
         'caja_cambios',

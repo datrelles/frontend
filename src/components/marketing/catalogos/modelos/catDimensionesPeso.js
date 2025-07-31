@@ -1,55 +1,51 @@
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
-import Navbar0 from "../../Navbar0";
+import Navbar0 from "../../../Navbar0";
 import MUIDataTable from "mui-datatables";
-import {ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
-import { IconButton, TextField } from '@mui/material';
+import {IconButton, TextField} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
-import { SnackbarProvider, useSnackbar } from 'notistack';
-import { useAuthContext } from "../../../context/authContext";
+import {SnackbarProvider, useSnackbar} from 'notistack';
+import { useAuthContext } from "../../../../context/authContext";
 import EditIcon from '@mui/icons-material/Edit';
 import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
-import RefreshIcon from '@mui/icons-material/Refresh';
 import * as XLSX from "xlsx";
-import GlobalLoading from "../selectoresDialog/GlobalLoading";
+import RefreshIcon from '@mui/icons-material/Refresh';
+import GlobalLoading from "../../selectoresDialog/GlobalLoading";
 import AddIcon from "@material-ui/icons/Add";
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Stack from "@mui/material/Stack";
-import {getTableOptions, getMuiTheme } from "../muiTableConfig";
-
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import {getTableOptions, getMuiTheme } from "../../muiTableConfig";
+import {ThemeProvider} from "@mui/material/styles";
 
 const API = process.env.REACT_APP_API;
 
-function CatModSri() {
+function CatDimensionesPeso() {
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
-    const [nombreModelo, setNombreModelo] = useState('');
-    const [estadoModelo, setEstadoModelo] = useState('');
-    const [anioModelo, setAnioModelo] = useState('');
-    const [modeloImportacion, setModeloImportacion] = useState('');
+    const [alturaTotal, setAlturaTotal] = useState('');
+    const [longTotal, setLongTotal] = useState('');
+    const [anchoTotal, setAnchoTotal] = useState('');
+    const [pesoSeco, setPesoSeco] = useState('');
     const [cabeceras, setCabeceras] = useState([]);
     const [menus, setMenus] = useState([]);
-    const [selectedModelo, setSelectedModelo] = useState(null);
+    const [selectedDimensiones, setSelectedDimensiones] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [loadingGlobal, setLoadingGlobal] = useState(false);
 
-    const handleInsertMarca = async () => {
-        const url = selectedModelo && selectedModelo.codigo_modelo_sri
-            ? `${API}/bench/update_modelo_sri/${selectedModelo.codigo_modelo_sri}`
-            : `${API}/bench/insert_modelo_sri`;
+    const handleInsertDimensionesPeso = async () => {
+        const url = selectedDimensiones && selectedDimensiones.codigo_dim_peso
+            ? `${API}/bench/update_dimensiones/${selectedDimensiones.codigo_dim_peso}`
+            : `${API}/bench/insert_dimension`;
 
-        const method = selectedModelo && selectedModelo.codigo_modelo_sri ? "PUT" : "POST";
-
-        const estadoNumerico = estadoModelo === "ACTIVO" ? 1 : 0;
+        const method = selectedDimensiones && selectedDimensiones.codigo_dim_peso ? "PUT" : "POST";
 
         try {
             const res = await fetch(url, {
@@ -59,17 +55,17 @@ function CatModSri() {
                     "Authorization": "Bearer " + jwt
                 },
                 body: JSON.stringify({
-                    nombre_modelo: nombreModelo,
-                    estado_modelo: estadoNumerico,
-                    anio_modelo: anioModelo,
-                    cod_mdl_importacion: modeloImportacion
+                    altura_total: alturaTotal,
+                    longitud_total: longTotal,
+                    ancho_total: anchoTotal,
+                    peso_seco: pesoSeco
                 })
             });
 
             const data = await res.json();
             if (res.ok) {
                 enqueueSnackbar(data.message || "Operación exitosa", { variant: "success" });
-                fetchModeloData();
+                fetchDimensionesData();
                 setDialogOpen(false);
             } else {
                 enqueueSnackbar(data.error || "Error al guardar", { variant: "error" });
@@ -82,12 +78,13 @@ function CatModSri() {
 
     const getMenus = async () => {
         try {
-            const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + jwt
-                }
-            });
+            const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + jwt
+                    }
+                });
             if (res.ok) {
                 const data = await res.json();
                 setMenus(data);
@@ -99,12 +96,26 @@ function CatModSri() {
 
     useEffect(() => {
         getMenus();
-        fetchModeloData();
-    }, []);
+        fetchDimensionesData();
 
-    const fetchModeloData = async () => {
+    }, [])
+
+    const sanitizeDimensiones = (item) => {
+        const reemplazo = (val) =>
+            val === null || val === undefined || val === '' ? 'N/A' : val;
+
+        return {
+            ...item,
+            altura_total: reemplazo(item.altura_total),
+            longitud_total: reemplazo(item.longitud_total),
+            ancho_total: reemplazo(item.ancho_total),
+            peso_seco: reemplazo(item.peso_seco),
+        };
+    };
+
+    const fetchDimensionesData = async () => {
         try {
-            const res = await fetch(`${API}/bench/get_modelos_sri`, {
+            const res = await fetch(`${API}/bench/get_dimensiones`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -113,59 +124,15 @@ function CatModSri() {
             });
             const data = await res.json();
             if (res.ok) {
-                setCabeceras(data);
+                const dataSanitizada = data.map(sanitizeDimensiones);
+                setCabeceras(dataSanitizada);
             } else {
-                enqueueSnackbar(data.error || "Error al obtener datos de Modelo SRI", { variant: "error" });
+                enqueueSnackbar(data.error || "Error al obtener data de dimensiones", { variant: "error" });
             }
         } catch (error) {
             enqueueSnackbar("Error de conexión", { variant: "error" });
         }
     };
-
-    const columns = [
-        { name: "codigo_modelo_sri", label: "Código" },
-        { name: "nombre_modelo", label: "Nombre Modelo" },
-        { name: "anio_modelo", label: "Año de Modelo" },
-        { name: "cod_mdl_importacion", label: "Código Importación" },
-        {
-            name: "estado_modelo",
-            label: "Estado",
-            options: {
-                customBodyRender: (value) => (
-                    <div
-                        style={{
-                            backgroundColor: value === 1 ? 'green' : 'red',
-                            color: 'white',
-                            padding: '4px 8px',
-                            borderRadius: '10px',
-                            fontSize: '12px',
-                            display: 'inline-block',
-                            textAlign: 'center',
-                            minWidth: '70px'
-                        }}
-                    >
-                        {value === 1 ? "ACTIVO" : "INACTIVO"}
-                    </div>
-                )
-            }
-        },
-        //{ name: "usuario_crea", label: "Usuario Crea" },
-        { name: "fecha_creacion", label: "Fecha Creación" },
-        {
-            name: "acciones",
-            label: "Acciones",
-            options: {
-                customBodyRenderLite: (dataIndex) => {
-                    const rowData = cabeceras[dataIndex];
-                    return (
-                        <IconButton onClick={() => openEditDialog(rowData)}>
-                            <EditIcon />
-                        </IconButton>
-                    );
-                }
-            }
-        }
-    ];
 
     const handleUploadExcel = (e) => {
         const file = e.target.files[0];
@@ -176,36 +143,26 @@ function CatModSri() {
             const workbook = XLSX.read(data, { type: "binary" });
             const sheetName = workbook.SheetNames[0];
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-            setLoadingGlobal(true);
-
-            const processedRows = rows.map(row => ({
-                ...row,
-                estado_modelo: row.estado_modelo === "ACTIVO" ? 1
-                    : row.estado_modelo === "INACTIVO" ? 0
-                        : row.estado_modelo
-            }));
 
             try {
-                const res = await fetch(`${API}/bench/insert_modelo_sri`, {
+                const res = await fetch(`${API}/bench/insert_dimension`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         "Authorization": "Bearer " + jwt,
                     },
-                    body: JSON.stringify(processedRows)
+                    body: JSON.stringify(rows)
                 });
 
                 const responseData = await res.json();
                 if (res.ok) {
                     enqueueSnackbar("Carga exitosa", { variant: "success" });
-                    fetchModeloData();
+                    fetchDimensionesData();
                 } else {
                     enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
                 }
             } catch (error) {
-                enqueueSnackbar("Error inesperado durante la carga", { variant: "error" });
-            } finally {
-                setLoadingGlobal(false);
+                enqueueSnackbar("Error inesperado", { variant: "error" });
             }
         };
 
@@ -220,13 +177,13 @@ function CatModSri() {
             const data = evt.target.result;
             const workbook = XLSX.read(data, { type: "binary" });
             const sheetName = workbook.SheetNames[0];
-            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
 
-            const duplicados = [];
             const combinaciones = new Map();
+            const duplicados = [];
 
             rows.forEach((row, index) => {
-                const clave = `${row.nombre_modelo}_${row.anio_modelo}`;
+                const clave = `${row.altura_total}_${row.longitud_total}_${row.ancho_total}_${row.peso_seco}`;
                 if (combinaciones.has(clave)) {
                     const filaOriginal = combinaciones.get(clave);
                     duplicados.push({ filaOriginal, filaDuplicada: index + 2, clave });
@@ -246,29 +203,23 @@ function CatModSri() {
                 });
                 return;
             }
+
             setLoadingGlobal(true);
 
-            const processedRows = rows.map(row => ({
-                ...row,
-                estado_modelo: row.estado_modelo === "ACTIVO" ? 1
-                    : row.estado_modelo === "INACTIVO" ? 0
-                        : row.estado_modelo
-            }));
-
             try {
-                const res = await fetch(`${API}/bench/update_modelo_sri_masivo`, {
+                const res = await fetch(`${API}/bench/update_dimemsiones_masivo`, {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
                         "Authorization": "Bearer " + jwt,
                     },
-                    body: JSON.stringify(processedRows)
+                    body: JSON.stringify(rows)
                 });
 
                 const responseData = await res.json();
                 if (res.ok) {
                     enqueueSnackbar("Actualización exitosa", { variant: "success" });
-                    fetchModeloData();
+                    fetchDimensionesData();
                 } else {
                     enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
                 }
@@ -282,21 +233,46 @@ function CatModSri() {
         reader.readAsBinaryString(file);
     };
 
-    const camposPlantillaModelo = [
-        "codigo_modelo_sri", "nombre_modelo",
-        "anio_modelo", "estado_modelo",
-        "cod_mdl_importacion"
+    const columns = [
+        { name: "codigo_dim_peso", label: "Código" },
+        { name: "peso_seco", label: "Peso Seco" },
+        { name: "altura_total", label: "Altura total" },
+        { name: "longitud_total", label: "Longitud total" },
+        { name: "ancho_total", label: "Ancho total" },
+        //{ name: "usuario_crea", label: "Usuario Crea" },
+        { name: "fecha_creacion", label: "Fecha Creación" },
+        {
+            name: "acciones",
+            label: "Acciones",
+            options: {
+                customBodyRenderLite: (dataIndex) => {
+                    const rowData = cabeceras[dataIndex];
+                    return (
+                        <IconButton onClick={() => openEditDialog(rowData)}>
+                            <EditIcon />
+                        </IconButton>
+                    );
+                }
+            }
+        }
     ];
-    const tableOptions = getTableOptions(cabeceras, camposPlantillaModelo, "Actualizar_modelo_sri.xlsx");
 
     const openEditDialog = (rowData) => {
-        setSelectedModelo(rowData);
-        setNombreModelo(rowData.nombre_modelo || '');
-        setEstadoModelo(rowData.estado_modelo === 1 ? "ACTIVO" : "INACTIVO");
-        setAnioModelo(rowData.anio_modelo || '');
-        setModeloImportacion(rowData.cod_mdl_importacion || '');
+        setSelectedDimensiones(rowData);
+        setAlturaTotal(rowData.altura_total || '');
+        setLongTotal(rowData.longitud_total || '');
+        setAnchoTotal(rowData.ancho_total || '');
+        setPesoSeco(rowData.peso_seco || '');
         setDialogOpen(true);
     };
+
+    const camposPlantillaModelo = [
+        "codigo_dim_peso", "peso_seco",
+        "altura_total", "longitud_total",
+        "ancho_total"
+    ];
+    const tableOptions = getTableOptions(cabeceras, camposPlantillaModelo, "Actualizar_dimensiones.xlsx");
+
 
     return (
         <>
@@ -316,11 +292,11 @@ function CatModSri() {
                             color="primary"
                             startIcon={<AddIcon />}
                             onClick={() => {
-                                setSelectedModelo(null);
-                                setNombreModelo('');
-                                setEstadoModelo('');
-                                setAnioModelo('');
-                                setModeloImportacion('');
+                                setSelectedDimensiones(null);
+                                setAlturaTotal('');
+                                setLongTotal('');
+                                setAnchoTotal('');
+                                setPesoSeco('');
                                 setDialogOpen(true);
                             }}
                             sx={{
@@ -364,7 +340,7 @@ function CatModSri() {
                         >Actualizar Masivo
                             <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
                         </Button>
-                        <IconButton onClick={fetchModeloData} style={{ color: 'firebrick' }}>
+                        <IconButton onClick={fetchDimensionesData} style={{ color: 'firebrick' }}>
                             <RefreshIcon />
                         </IconButton>
                     </Stack>
@@ -373,30 +349,18 @@ function CatModSri() {
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={tableOptions} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
-                    <DialogTitle>{selectedModelo ? 'Actualizar' : 'Nuevo'}</DialogTitle>
+                    <DialogTitle>{selectedDimensiones ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Nombre Modelo" value={nombreModelo} onChange={(e) => setNombreModelo(e.target.value.toUpperCase())} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Código Importación" value={modeloImportacion} onChange={(e) => setModeloImportacion(e.target.value.toUpperCase())} /></Grid>
-                            <Grid item xs={6}>
-                                <FormControl fullWidth>
-                                    <InputLabel id="estado-modelo-label">Estado</InputLabel>
-                                    <Select
-                                        labelId="estado-marca-rep-label"
-                                        value={estadoModelo}
-                                        onChange={(e) => setEstadoModelo(e.target.value.toUpperCase())}
-                                        variant="outlined">
-                                        <MenuItem value="ACTIVO">ACTIVO</MenuItem>
-                                        <MenuItem value="INACTIVO">INACTIVO</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Año Modelo" value={anioModelo} onChange={(e) => setAnioModelo(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Altura Total" value={alturaTotal} onChange={(e) => setAlturaTotal(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Longitud Total" value={longTotal} onChange={(e) => setLongTotal(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Ancho Total" value={anchoTotal} onChange={(e) => setAnchoTotal(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Peso Seco" value={pesoSeco} onChange={(e) => setPesoSeco(e.target.value)} /></Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleInsertMarca} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedModelo ? 'Actualizar' : 'Guardar'}</Button>
+                        <Button onClick={handleInsertDimensionesPeso} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedDimensiones ? 'Actualizar' : 'Guardar'}</Button>
                     </DialogActions>
                 </Dialog>
             </div>
@@ -407,7 +371,7 @@ function CatModSri() {
 export default function IntegrationNotistack() {
     return (
         <SnackbarProvider maxSnack={3}>
-            <CatModSri />
+            <CatDimensionesPeso />
         </SnackbarProvider>
     );
 }

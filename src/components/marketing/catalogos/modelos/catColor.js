@@ -1,61 +1,48 @@
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
-import Navbar0 from "../../Navbar0";
+import Navbar0 from "../../../Navbar0";
 import MUIDataTable from "mui-datatables";
 import Grid from '@mui/material/Grid';
-import LoadingCircle from "../../contabilidad/loader";
-import { Autocomplete, IconButton, TextField } from '@mui/material';
+import LoadingCircle from "../../../contabilidad/loader";
+import {IconButton, TextField} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
-import { SnackbarProvider, useSnackbar } from 'notistack';
-import { useAuthContext } from "../../../context/authContext";
+import {SnackbarProvider, useSnackbar} from 'notistack';
+import { useAuthContext } from "../../../../context/authContext";
 import EditIcon from '@mui/icons-material/Edit';
 import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import * as XLSX from "xlsx";
 import RefreshIcon from '@mui/icons-material/Refresh';
 import AddIcon from "@material-ui/icons/Add";
-import Stack from "@mui/material/Stack";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import {getTableOptions, getMuiTheme } from "../muiTableConfig";
+import Stack from "@mui/material/Stack";
+import {getTableOptions, getMuiTheme } from "../../muiTableConfig";
 import {ThemeProvider} from "@mui/material/styles";
 
 const API = process.env.REACT_APP_API;
 
-function CatLinea() {
+function CatColor() {
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
-    const [nombreLinea, setNombreLinea] = useState('');
-    const [estadoLinea, setEstadoLinea] = useState('');
-    const [descripcionLinea, setDescripcionLinea] = useState('');
-    const [lineaPadreSeleccionada, setLineaPadreSeleccionada] = useState(null);
+    const [nombreColor, setnombreColor] = useState('');
     const [cabeceras, setCabeceras] = useState([]);
     const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
-    const [selectedLinea, setSelectedLinea] = useState(null);
+    const [selectedColor, setSelectedColor] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [lineasPadre, setLineasPadre] = useState([]);
-    const [lineas, setLineas] = useState([]);
-    const [lineaPadre, setLineaPadre] = useState('');
 
+    const handleInsertColor = async () => {
+        const url = selectedColor && selectedColor.codigo_color_bench
+            ? `${API}/bench/update_color/${selectedColor.codigo_color_bench}`
+            : `${API}/bench/insert_color`;
 
-    const handleInsertLinea = async () => {
-        const url = selectedLinea && selectedLinea.codigo_linea
-            ? `${API}/bench/update_linea/${selectedLinea.codigo_linea}`
-            : `${API}/bench/insert_linea`;
-
-        const method = selectedLinea && selectedLinea.codigo_linea ? "PUT" : "POST";
-        const estadoNumerico = estadoLinea === "ACTIVO" ? 1 : 0;
-
-        const codigoPadre = lineaPadre && typeof lineaPadre === 'object'
-            ? lineaPadre.codigo_linea
-            : null;
+        const method = selectedColor && selectedColor.codigo_color_bench ? "PUT" : "POST";
 
         try {
             const res = await fetch(url, {
@@ -65,17 +52,14 @@ function CatLinea() {
                     "Authorization": "Bearer " + jwt
                 },
                 body: JSON.stringify({
-                    nombre_linea: nombreLinea,
-                    estado_linea: estadoNumerico,
-                    descripcion_linea: descripcionLinea,
-                    codigo_linea_padre: codigoPadre
+                    nombre_color: nombreColor
                 })
             });
 
             const data = await res.json();
             if (res.ok) {
                 enqueueSnackbar(data.message || "Operación exitosa", { variant: "success" });
-                fetchLineaData();
+                fetchColorData();
                 setDialogOpen(false);
             } else {
                 enqueueSnackbar(data.error || "Error al guardar", { variant: "error" });
@@ -88,12 +72,13 @@ function CatLinea() {
 
     const getMenus = async () => {
         try {
-            const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + jwt
-                }
-            });
+            const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + jwt
+                    }
+                });
             if (res.ok) {
                 const data = await res.json();
                 setMenus(data);
@@ -105,12 +90,13 @@ function CatLinea() {
 
     useEffect(() => {
         getMenus();
-        fetchLineaData();
-    }, []);
+        fetchColorData();
 
-    const fetchLineaData = async () => {
+    }, [])
+
+    const fetchColorData = async () => {
         try {
-            const res = await fetch(`${API}/bench/get_lineas`, {
+            const res = await fetch(`${API}/bench/get_color`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -120,10 +106,8 @@ function CatLinea() {
             const data = await res.json();
             if (res.ok) {
                 setCabeceras(data);
-                setLineasPadre(data);
-                setLineas(data); 
             } else {
-                enqueueSnackbar(data.error || "Error al obtener líneas", { variant: "error" });
+                enqueueSnackbar(data.error || "Error al obtener data de colores", { variant: "error" });
             }
         } catch (error) {
             enqueueSnackbar("Error de conexión", { variant: "error" });
@@ -131,37 +115,8 @@ function CatLinea() {
     };
 
     const columns = [
-        { name: "codigo_linea", label: "Código" },
-        { name: "nombre_linea", label: "Línea" },
-        {
-            name: "nombre_linea_padre", label: "Línea Padre",
-            options: {
-                customBodyRender: (value) => value || "-"
-            }
-        },
-        {
-            name: "estado_linea",
-            label: "Estado",
-            options: {
-                customBodyRender: (value) => (
-                    <div
-                        style={{
-                            backgroundColor: value === 1 ? 'green' : 'red',
-                            color: 'white',
-                            padding: '4px 8px',
-                            borderRadius: '10px',
-                            fontSize: '12px',
-                            display: 'inline-block',
-                            textAlign: 'center',
-                            minWidth: '70px'
-                        }}
-                    >
-                        {value === 1 ? "ACTIVO" : "INACTIVO"}
-                    </div>
-                )
-            }
-        },
-        { name: "descripcion_linea", label: "Descripción" },
+
+        { name: "nombre_color", label: "Nombre color" },
         //{ name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
@@ -190,27 +145,20 @@ function CatLinea() {
             const sheetName = workbook.SheetNames[0];
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-            const processedRows = rows.map(row => ({
-                ...row,
-                estado_linea: row.estado_linea === "ACTIVO" ? 1
-                    : row.estado_linea === "INACTIVO" ? 0
-                        : row.estado_linea
-            }));
-
             try {
-                const res = await fetch(`${API}/bench/insert_linea`, {
+                const res = await fetch(`${API}/bench/insert_color`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         "Authorization": "Bearer " + jwt,
                     },
-                    body: JSON.stringify(processedRows)
+                    body: JSON.stringify(rows)
                 });
 
                 const responseData = await res.json();
                 if (res.ok) {
                     enqueueSnackbar("Carga exitosa", { variant: "success" });
-                    fetchLineaData();
+                    fetchColorData();
                 } else {
                     enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
                 }
@@ -223,12 +171,8 @@ function CatLinea() {
     };
 
     const openEditDialog = (rowData) => {
-        setSelectedLinea(rowData);
-        setNombreLinea(rowData.nombre_linea || '');
-        setEstadoLinea(rowData.estado_linea === 1 ? "ACTIVO" : "INACTIVO");
-        setDescripcionLinea(rowData.descripcion_linea || '');
-        const padre = lineasPadre.find(p => p.codigo_linea === rowData.codigo_linea_padre);
-        setLineaPadreSeleccionada(padre || null);
+        setSelectedColor(rowData);
+        setnombreColor(rowData.nombre_color || '');
         setDialogOpen(true);
     };
 
@@ -249,11 +193,8 @@ function CatLinea() {
                             color="primary"
                             startIcon={<AddIcon />}
                             onClick={() => {
-                                setSelectedLinea(null);
-                                setNombreLinea('');
-                                setEstadoLinea('');
-                                setDescripcionLinea('');
-                                setLineaPadreSeleccionada(null);
+                                setSelectedColor(null);
+                                setnombreColor('');
                                 setDialogOpen(true);
                             }}
                             sx={{
@@ -289,8 +230,7 @@ function CatLinea() {
                         >Insertar Masivo
                             <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
                         </Button>
-
-                        <IconButton onClick={fetchLineaData} style={{ color: 'firebrick' }}>
+                        <IconButton onClick={fetchColorData} style={{ color: 'firebrick' }}>
                             <RefreshIcon />
                         </IconButton>
                     </Stack>
@@ -299,50 +239,15 @@ function CatLinea() {
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={getTableOptions()} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
-                    <DialogTitle>{selectedLinea ? 'Actualizar' : 'Nuevo'}</DialogTitle>
+                    <DialogTitle>{selectedColor ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}>
-                                <TextField
-                                    fullWidth
-                                    label="Nombre Línea"
-                                    value={nombreLinea}
-                                    onChange={(e) => setNombreLinea(e.target.value.toUpperCase())}
-                                />
-                            </Grid>
-                            <Grid item xs={6}>
-                                <FormControl fullWidth>
-                                    <InputLabel id="estado-linea-label">Estado</InputLabel>
-                                    <Select
-                                        labelId="estado-linea-label"
-                                        value={estadoLinea}
-                                        onChange={(e) => setEstadoLinea(e.target.value.toUpperCase())}
-                                    >
-                                        <MenuItem value="ACTIVO">ACTIVO</MenuItem>
-                                        <MenuItem value="INACTIVO">INACTIVO</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Descripción" value={descripcionLinea} onChange={(e) => setDescripcionLinea(e.target.value.toUpperCase())} /></Grid>
-                            <Grid item xs={6}>
-                                <Autocomplete
-                                    fullWidth
-                                    options={lineas}
-                                    getOptionLabel={(option) => option?.nombre_linea || ''}
-                                    value={lineaPadre}
-                                    onChange={(event, newValue) => setLineaPadre(newValue)}
-                                    renderInput={(params) => (
-                                        <TextField {...params} label="Línea Padre" />
-                                    )}
-                                />
-                            </Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Nombre color" value={nombreColor} onChange={(e) => setnombreColor(e.target.value.toUpperCase())} /></Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleInsertLinea} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>
-                            {selectedLinea ? 'Actualizar' : 'Guardar'}
-                        </Button>
+                        <Button onClick={handleInsertColor} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedColor ? 'Actualizar' : 'Guardar'}</Button>
                     </DialogActions>
                 </Dialog>
             </div>
@@ -353,7 +258,7 @@ function CatLinea() {
 export default function IntegrationNotistack() {
     return (
         <SnackbarProvider maxSnack={3}>
-            <CatLinea />
+            <CatColor/>
         </SnackbarProvider>
     );
 }

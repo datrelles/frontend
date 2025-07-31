@@ -1,50 +1,53 @@
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
-import Navbar0 from "../../Navbar0";
+import Navbar0 from "../../../Navbar0";
 import MUIDataTable from "mui-datatables";
-import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
-import LoadingCircle from "../../contabilidad/loader";
-import {IconButton, TextField} from '@mui/material';
+import LoadingCircle from "../../../contabilidad/loader";
+import { IconButton, TextField } from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
-import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
-import {SnackbarProvider, useSnackbar} from 'notistack';
-import { useAuthContext } from "../../../context/authContext";
+import { SnackbarProvider, useSnackbar } from 'notistack';
+import { useAuthContext } from "../../../../context/authContext";
 import EditIcon from '@mui/icons-material/Edit';
 import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-import * as XLSX from "xlsx";
+import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import * as XLSX from "xlsx";
 import AddIcon from "@material-ui/icons/Add";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Stack from "@mui/material/Stack";
-import {getTableOptions, getMuiTheme } from "../muiTableConfig";
-
+import {getTableOptions, getMuiTheme } from "../../muiTableConfig";
+import {ThemeProvider} from "@mui/material/styles";
 
 const API = process.env.REACT_APP_API;
 
-function CatTransmision() {
+function CatMarcaRepuesto() {
+    const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
-    const [cajaCambios, setcajaCambios] = useState('');
-    const [descripcionTransmision, setdescripcionTransmision] = useState('');
+    const [nombreComercial, setNombreComercial] = useState('');
+    const [estadoMarcaRep, setEstadoMarcaRep] = useState('');
+    const [nombreFabricante, setNombreFabricante] = useState('');
     const [cabeceras, setCabeceras] = useState([]);
-    const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
-    const [selectedTransmision, setSelectedTransmison] = useState(null);
+    const [selectedMarca, setSelectedMarca] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
 
-    const handleInsertTransmision = async () => {
-        const url = selectedTransmision && selectedTransmision.codigo_transmision
-            ? `${API}/bench/update_transmision/${selectedTransmision.codigo_transmision}`
-            : `${API}/bench/insert_transmision`;
+    const handleInsertMarca = async () => {
+        const url = selectedMarca && selectedMarca.codigo_marca_rep
+            ? `${API}/bench/update_marca_repuesto/${selectedMarca.codigo_marca_rep}`
+            : `${API}/bench/insert_marca_repuestos`;
 
-        const method = selectedTransmision && selectedTransmision.codigo_transmision ? "PUT" : "POST";
+        const method = selectedMarca && selectedMarca.codigo_marca_rep ? "PUT" : "POST";
+
+        const estadoNumerico = estadoMarcaRep === "ACTIVO" ? 1 : 0;
 
         try {
             const res = await fetch(url, {
@@ -54,15 +57,16 @@ function CatTransmision() {
                     "Authorization": "Bearer " + jwt
                 },
                 body: JSON.stringify({
-                    caja_cambios: cajaCambios,
-                    descripcion_transmision: descripcionTransmision
+                    nombre_comercial: nombreComercial,
+                    estado_marca_rep: estadoNumerico,
+                    nombre_fabricante: nombreFabricante
                 })
             });
 
             const data = await res.json();
             if (res.ok) {
                 enqueueSnackbar(data.message || "Operación exitosa", { variant: "success" });
-                fetchTransmisionData();
+                fetchMarcaData();
                 setDialogOpen(false);
             } else {
                 enqueueSnackbar(data.error || "Error al guardar", { variant: "error" });
@@ -75,13 +79,12 @@ function CatTransmision() {
 
     const getMenus = async () => {
         try {
-            const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + jwt
-                    }
-                });
+            const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + jwt
+                }
+            });
             if (res.ok) {
                 const data = await res.json();
                 setMenus(data);
@@ -93,13 +96,12 @@ function CatTransmision() {
 
     useEffect(() => {
         getMenus();
-        fetchTransmisionData();
+        fetchMarcaData();
+    }, []);
 
-    }, [])
-
-    const fetchTransmisionData = async () => {
+    const fetchMarcaData = async () => {
         try {
-            const res = await fetch(`${API}/bench/get_transmision`, {
+            const res = await fetch(`${API}/bench/get_marca_repuestos`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -110,7 +112,7 @@ function CatTransmision() {
             if (res.ok) {
                 setCabeceras(data);
             } else {
-                enqueueSnackbar(data.error || "Error al obtener data de transmisión", { variant: "error" });
+                enqueueSnackbar(data.error || "Error al obtener datos de Marca Repuesto", { variant: "error" });
             }
         } catch (error) {
             enqueueSnackbar("Error de conexión", { variant: "error" });
@@ -118,9 +120,31 @@ function CatTransmision() {
     };
 
     const columns = [
-        { name: "codigo_transmision", label: "Código" },
-        { name: "caja_cambios", label: "Caja de cambios" },
-        { name: "descripcion_transmision", label: "Descripción Transmisión" },
+        //{ name: "codigo_marca_rep", label: "Código" },
+        { name: "nombre_comercial", label: "Nombre Comercial" },
+        {
+            name: "estado_marca_rep",
+            label: "Estado",
+            options: {
+                customBodyRender: (value) => (
+                    <div
+                        style={{
+                            backgroundColor: value === 1 ? 'green' : 'red',
+                            color: 'white',
+                            padding: '4px 8px',
+                            borderRadius: '10px',
+                            fontSize: '12px',
+                            display: 'inline-block',
+                            textAlign: 'center',
+                            minWidth: '70px'
+                        }}
+                    >
+                        {value === 1 ? "Activo" : "Inactivo"}
+                    </div>
+                )
+            }
+        },
+        { name: "nombre_fabricante", label: "Nombre Fabricante" },
         //{ name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
@@ -149,20 +173,27 @@ function CatTransmision() {
             const sheetName = workbook.SheetNames[0];
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
+            const processedRows = rows.map(row => ({
+                ...row,
+                estado_marca_rep: row.estado_marca_rep === "ACTIVO" ? 1
+                    : row.estado_marca_rep === "INACTIVO" ? 0
+                        : row.estado_marca_rep
+            }));
+
             try {
-                const res = await fetch(`${API}/bench/insert_transmision`, {
+                const res = await fetch(`${API}/bench/insert_marca_repuestos`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         "Authorization": "Bearer " + jwt,
                     },
-                    body: JSON.stringify(rows)
+                    body: JSON.stringify(processedRows)
                 });
 
                 const responseData = await res.json();
                 if (res.ok) {
                     enqueueSnackbar("Carga exitosa", { variant: "success" });
-                    fetchTransmisionData();
+                    fetchMarcaData();
                 } else {
                     enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
                 }
@@ -175,13 +206,12 @@ function CatTransmision() {
     };
 
     const openEditDialog = (rowData) => {
-        setSelectedTransmison(rowData);
-        setcajaCambios(rowData.caja_cambios || '');
-        setdescripcionTransmision(rowData.descripcion_transmision || '');
+        setSelectedMarca(rowData);
+        setNombreComercial(rowData.nombre_comercial || '');
+        setEstadoMarcaRep(rowData.estado_marca_rep === 1 ? "ACTIVO" : "INACTIVO");
+        setNombreFabricante(rowData.nombre_fabricante || '');
         setDialogOpen(true);
     };
-
-
 
     return (
         <>{loading ? (<LoadingCircle />) : (
@@ -200,9 +230,10 @@ function CatTransmision() {
                             color="primary"
                             startIcon={<AddIcon />}
                             onClick={() => {
-                                setSelectedTransmison(null);
-                                setcajaCambios('');
-                                setdescripcionTransmision('');
+                                setSelectedMarca(null);
+                                setNombreComercial('');
+                                setEstadoMarcaRep('');
+                                setNombreFabricante('');
                                 setDialogOpen(true);
                             }}
                             sx={{
@@ -238,7 +269,7 @@ function CatTransmision() {
                         >Insertar Masivo
                             <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
                         </Button>
-                        <IconButton onClick={fetchTransmisionData} style={{ color: 'firebrick' }}>
+                        <IconButton onClick={fetchMarcaData} style={{ color: 'firebrick' }}>
                             <RefreshIcon />
                         </IconButton>
                     </Stack>
@@ -247,16 +278,29 @@ function CatTransmision() {
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={getTableOptions()} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
-                    <DialogTitle>{selectedTransmision ? 'Actualizar' : 'Nuevo'}</DialogTitle>
+                    <DialogTitle>{selectedMarca ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Caja de Cambios" value={cajaCambios} onChange={(e) => setcajaCambios(e.target.value.toUpperCase())} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Descripcion" value={descripcionTransmision} onChange={(e) => setdescripcionTransmision(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Nombre Comercial" value={nombreComercial} onChange={(e) => setNombreComercial(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}>
+                                <FormControl fullWidth>
+                                    <InputLabel id="estado-marca-rep-label">Estado</InputLabel>
+                                    <Select
+                                        labelId="estado-marca-rep-label"
+                                        value={estadoMarcaRep}
+                                        onChange={(e) => setEstadoMarcaRep(e.target.value.toUpperCase())}
+                                        variant="outlined">
+                                        <MenuItem value="ACTIVO">ACTIVO</MenuItem>
+                                        <MenuItem value="INACTIVO">INACTIVO</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Nombre Fabricante" value={nombreFabricante} onChange={(e) => setNombreFabricante(e.target.value.toUpperCase())} /></Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleInsertTransmision} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedTransmision ? 'Actualizar' : 'Guardar'}</Button>
+                        <Button onClick={handleInsertMarca} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedMarca ? 'Actualizar' : 'Guardar'}</Button>
                     </DialogActions>
                 </Dialog>
             </div>
@@ -267,7 +311,7 @@ function CatTransmision() {
 export default function IntegrationNotistack() {
     return (
         <SnackbarProvider maxSnack={3}>
-            <CatTransmision/>
+            <CatMarcaRepuesto />
         </SnackbarProvider>
     );
 }

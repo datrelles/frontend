@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
-import Navbar0 from "../../Navbar0";
+import Navbar0 from "../../../Navbar0";
 import MUIDataTable from "mui-datatables";
 import {ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
@@ -10,7 +10,7 @@ import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
 import { SnackbarProvider, useSnackbar } from 'notistack';
-import { useAuthContext } from "../../../context/authContext";
+import { useAuthContext } from "../../../../context/authContext";
 import EditIcon from '@mui/icons-material/Edit';
 import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
@@ -21,8 +21,8 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import AddIcon from "@material-ui/icons/Add";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Stack from "@mui/material/Stack";
-import {getTableOptions, getMuiTheme } from "../muiTableConfig";
-import GlobalLoading from "../selectoresDialog/GlobalLoading";
+import {getTableOptions, getMuiTheme } from "../../muiTableConfig";
+import GlobalLoading from "../../selectoresDialog/GlobalLoading";
 
 const API = process.env.REACT_APP_API;
 
@@ -38,6 +38,11 @@ function ClienteCanal() {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [cabeceras, setCabeceras] = useState([]);
     const [loadingGlobal, setLoadingGlobal] = useState(false);
+    const [itemCategoriaSeleccionada, setItemCategoriaSeleccionada] = useState('');
+    const categoriasItem = Array.from(
+        new Set(modeloVersionRepuesto.map(m => m.nombre_item))
+    ).sort();
+
     const [form, setForm] = useState({
         codigo_cliente_canal: '',
         codigo_canal: '',
@@ -45,6 +50,7 @@ function ClienteCanal() {
         codigo_mod_vers_repuesto: '',
         empresa: '',
         cod_producto: '',
+        cod_item_cat1:'',
         codigo_version: '',
         descripcion_cliente_canal: '',
     });
@@ -175,6 +181,7 @@ function ClienteCanal() {
             codigo_mod_vers_repuesto: '',
             empresa: '',
             cod_producto: '',
+            cod_item_cat1: '',
             codigo_version: '',
             descripcion_cliente_canal: '' });
         setSelectedItem(item);
@@ -308,6 +315,7 @@ function ClienteCanal() {
                                     codigo_mod_vers_repuesto: '',
                                     empresa: '',
                                     cod_producto: '',
+                                    cod_item_cat1: '',
                                     codigo_version: '',
                                     descripcion_cliente_canal: '',
                                 });
@@ -365,10 +373,22 @@ function ClienteCanal() {
                     <DialogTitle>{selectedItem ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
+                            <Grid item xs={12} >
+                                <Autocomplete
+                                    options={categoriasItem}
+                                    value={itemCategoriaSeleccionada || null}
+                                    onChange={(e, value) => setItemCategoriaSeleccionada(value || '')}
+                                    renderInput={(params) => (
+                                        <TextField {...params} label="Filtrar por Categoría de Ítem" fullWidth />
+                                    )}
+                                />
+                            </Grid>
                             <Grid item xs={12}>
                                 <Grid item xs={12}>
                                     <Autocomplete
-                                        options={modeloVersionRepuesto}
+                                        options={itemCategoriaSeleccionada
+                                            ? modeloVersionRepuesto.filter(m => m.nombre_item === itemCategoriaSeleccionada)
+                                            : modeloVersionRepuesto}
                                         getOptionLabel={(option) => `${option.codigo_mod_vers_repuesto} - ${option.nombre_producto || ''}`}
                                         value={modeloVersionRepuesto.find(m => m.codigo_mod_vers_repuesto === form.codigo_mod_vers_repuesto) || null}
                                         onChange={(e, v) => {

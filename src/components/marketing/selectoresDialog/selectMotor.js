@@ -65,9 +65,11 @@ export default function SelectorMotor({ motores, tiposMotor, selectedMotorId, on
                     <Table size="small">
                         <TableHead>
                             <TableRow>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Cod.</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold' }}>Nombre</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold' }}>Tipo Motor</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold' }}>Cilindrada</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Cilindrada Tec.</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Cilindrada Com.</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold' }}>Potencia</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold' }}>Torque Máximo</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold' }}>Sistema de Combustible</TableCell>
@@ -82,9 +84,11 @@ export default function SelectorMotor({ motores, tiposMotor, selectedMotorId, on
                                 const tipo = tiposMotor.find(t => t.codigo_tipo_motor === motor.codigo_tipo_motor);
                                 return (
                                     <TableRow key={`${motor.codigo_motor}-${motor.codigo_tipo_motor}`} hover>
+                                        <TableCell>{safeValue(motor.codigo_motor)}</TableCell>
                                         <TableCell>{safeValue(motor.nombre_motor)}</TableCell>
                                         <TableCell>{safeValue(tipo?.nombre_tipo || '')}</TableCell>
                                         <TableCell>{safeValue(motor.cilindrada)}</TableCell>
+                                        <TableCell>{safeValue(motor.cilindrada_comercial)}</TableCell>
                                         <TableCell>{safeValue(motor.caballos_fuerza)}</TableCell>
                                         <TableCell>{safeValue(motor.torque_maximo)}</TableCell>
                                         <TableCell>{safeValue(motor.sistema_combustible)}</TableCell>

@@ -45,8 +45,6 @@ export const getMuiTheme = () =>
                         paddingBottom: '4px',
                         backgroundColor: '#fff',
                         whiteSpace: 'normal',
-                        wordBreak: 'break-word',
-                        overflowWrap: 'break-word',
                         verticalAlign: 'top',
                         borderBottom: '1px solid #ddd',
                         borderRight: '1px solid #ddd',

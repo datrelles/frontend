@@ -1,54 +1,50 @@
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import React, { useState, useEffect } from "react";
-import Navbar0 from "../../Navbar0";
+import Navbar0 from "../../../Navbar0";
 import MUIDataTable from "mui-datatables";
-import {ThemeProvider } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
-import LoadingCircle from "../../contabilidad/loader";
-import { IconButton, TextField } from '@mui/material';
+import LoadingCircle from "../../../contabilidad/loader";
+import {FormControl, IconButton, InputLabel, MenuItem, Select, TextField} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
-import { SnackbarProvider, useSnackbar } from 'notistack';
-import { useAuthContext } from "../../../context/authContext";
+import {SnackbarProvider, useSnackbar} from 'notistack';
+import { useAuthContext } from "../../../../context/authContext";
 import EditIcon from '@mui/icons-material/Edit';
 import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import {getTableOptions, getMuiTheme } from "../muiTableConfig";
 import * as XLSX from "xlsx";
+import RefreshIcon from '@mui/icons-material/Refresh';
 import AddIcon from "@material-ui/icons/Add";
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Stack from "@mui/material/Stack";
-
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import {getTableOptions, getMuiTheme } from "../../muiTableConfig";
+import {ThemeProvider} from "@mui/material/styles";
 
 const API = process.env.REACT_APP_API;
 
-function CatVersion() {
+function CatMarca() {
     const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
-    const [nombreVersion, setNombreVersion] = useState('');
-    const [estadoVersion, setEstadoVersion] = useState('');
-    const [descripcionVersion, setdescripcionVersion] = useState('');
+    const [nombreMarca, setnombreMarca] = useState('');
+    const [estadoMarca, setestadoMarca] = useState('');
     const [cabeceras, setCabeceras] = useState([]);
     const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
-    const [selectedVersion, setSelectedVersion] = useState(null);
+    const [selectedMarca, setSelectedMarca] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
 
-    const handleInsertVersion = async () => {
-        const url = selectedVersion && selectedVersion.codigo_version
-            ? `${API}/bench/update_version/${selectedVersion.codigo_version}`
-            : `${API}/bench/insert_version`;
+    const handleInsertMarca = async () => {
+        const url = selectedMarca && selectedMarca.codigo_marca
+            ? `${API}/bench/update_marca/${selectedMarca.codigo_marca}`
+            : `${API}/bench/insert_marca`;
 
-        const method = selectedVersion && selectedVersion.codigo_version ? "PUT" : "POST";
-
-        const estadoNumerico = estadoVersion === "ACTIVO" ? 1 : 0;
+        const method = selectedMarca && selectedMarca.codigo_marca ? "PUT" : "POST";
+        const estadoNumerico = estadoMarca === "ACTIVO" ? 1 : 0;
 
         try {
             const res = await fetch(url, {
@@ -58,16 +54,15 @@ function CatVersion() {
                     "Authorization": "Bearer " + jwt
                 },
                 body: JSON.stringify({
-                    nombre_version: nombreVersion,
-                    estado_version: estadoNumerico,
-                    descripcion_version: descripcionVersion
+                    nombre_marca: nombreMarca,
+                    estado_marca: estadoNumerico
                 })
             });
 
             const data = await res.json();
             if (res.ok) {
                 enqueueSnackbar(data.message || "Operación exitosa", { variant: "success" });
-                fetchVersionData();
+                fetchMarcaData();
                 setDialogOpen(false);
             } else {
                 enqueueSnackbar(data.error || "Error al guardar", { variant: "error" });
@@ -80,12 +75,13 @@ function CatVersion() {
 
     const getMenus = async () => {
         try {
-            const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + jwt
-                }
-            });
+            const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + jwt
+                    }
+                });
             if (res.ok) {
                 const data = await res.json();
                 setMenus(data);
@@ -97,12 +93,12 @@ function CatVersion() {
 
     useEffect(() => {
         getMenus();
-        fetchVersionData();
-    }, []);
+        fetchMarcaData();
+    }, [])
 
-    const fetchVersionData = async () => {
+    const fetchMarcaData = async () => {
         try {
-            const res = await fetch(`${API}/bench/get_version`, {
+            const res = await fetch(`${API}/bench/get_marca`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -113,7 +109,7 @@ function CatVersion() {
             if (res.ok) {
                 setCabeceras(data);
             } else {
-                enqueueSnackbar(data.error || "Error al obtener datos de las versiones", { variant: "error" });
+                enqueueSnackbar(data.error || "Error al obtener marcas", { variant: "error" });
             }
         } catch (error) {
             enqueueSnackbar("Error de conexión", { variant: "error" });
@@ -121,10 +117,10 @@ function CatVersion() {
     };
 
     const columns = [
-        //{ name: "codigo_version", label: "Código" },
-        { name: "nombre_version", label: "Versión" },
+        { name: "codigo_marca", label: "Código" },
+        { name: "nombre_marca", label: "Nombre marca" },
         {
-            name: "estado_version",
+            name: "estado_marca",
             label: "Estado",
             options: {
                 customBodyRender: (value) => (
@@ -145,7 +141,6 @@ function CatVersion() {
                 )
             }
         },
-        { name: "descripcion_version", label: "Descripción" },
         //{ name: "usuario_crea", label: "Usuario Crea" },
         { name: "fecha_creacion", label: "Fecha Creación" },
         {
@@ -174,27 +169,20 @@ function CatVersion() {
             const sheetName = workbook.SheetNames[0];
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-            const processedRows = rows.map(row => ({
-                ...row,
-                estado_version: row.estado_version === "ACTIVO" ? 1
-                    : row.estado_version === "INACTIVO" ? 0
-                        : row.estado_version
-            }));
-
             try {
-                const res = await fetch(`${API}/bench/insert_version`, {
+                const res = await fetch(`${API}/bench/insert_marca`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         "Authorization": "Bearer " + jwt,
                     },
-                    body: JSON.stringify(processedRows)
+                    body: JSON.stringify(rows)
                 });
 
                 const responseData = await res.json();
                 if (res.ok) {
                     enqueueSnackbar("Carga exitosa", { variant: "success" });
-                    fetchVersionData();
+                    fetchMarcaData();
                 } else {
                     enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
                 }
@@ -207,10 +195,9 @@ function CatVersion() {
     };
 
     const openEditDialog = (rowData) => {
-        setSelectedVersion(rowData);
-        setNombreVersion(rowData.nombre_version || '');
-        setEstadoVersion(rowData.estado_version === 1 ? "ACTIVO" : "INACTIVO");
-        setdescripcionVersion(rowData.descripcion_version || '');
+        setSelectedMarca(rowData);
+        setnombreMarca(rowData.nombre_marca || '');
+        setestadoMarca(rowData.estado_marca === 1 ? "ACTIVO" : "INACTIVO");
         setDialogOpen(true);
     };
 
@@ -231,10 +218,9 @@ function CatVersion() {
                             color="primary"
                             startIcon={<AddIcon />}
                             onClick={() => {
-                                setSelectedVersion(null);
-                                setNombreVersion('');
-                                setEstadoVersion('');
-                                setdescripcionVersion('');
+                                setSelectedMarca(null);
+                                setnombreMarca('');
+                                setestadoMarca('');
                                 setDialogOpen(true);
                             }}
                             sx={{
@@ -270,7 +256,7 @@ function CatVersion() {
                         >Insertar Masivo
                             <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
                         </Button>
-                        <IconButton onClick={fetchVersionData} style={{ color: 'firebrick' }}>
+                        <IconButton onClick={fetchMarcaData} style={{ color: 'firebrick' }}>
                             <RefreshIcon />
                         </IconButton>
                     </Stack>
@@ -279,31 +265,35 @@ function CatVersion() {
                     <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={getTableOptions()} />
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
-                    <DialogTitle>{selectedVersion ? 'Actualizar' : 'Nuevo'}</DialogTitle>
+                    <DialogTitle>{selectedMarca ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Versión" value={nombreVersion} onChange={(e) => setNombreVersion(e.target.value.toUpperCase())} /></Grid>
                             <Grid item xs={6}>
-                                <FormControl fullWidth>
-                                    <InputLabel id="estado-version-label">Estado</InputLabel>
+                                <TextField
+                                    fullWidth label="Nombre marca"
+                                    value={nombreMarca}
+                                    onChange={(e) => setnombreMarca(e.target.value.toUpperCase())}
+                                />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <FormControl fullWidth variant="outlined" size="small" sx={{ mt: 1 }}>
+                                    <InputLabel id="estado-marca-label">Estado</InputLabel>
                                     <Select
-                                        labelId="estado-version-label"
-                                        value={estadoVersion}
-                                        onChange={(e) => setEstadoVersion(e.target.value.toUpperCase())}
-                                        variant="outlined">
+                                        labelId="estado-marca-label"
+                                        value={estadoMarca}
+                                        label="Estado"
+                                        onChange={(e) => setestadoMarca(e.target.value)}
+                                     variant="outlined">
                                         <MenuItem value="ACTIVO">ACTIVO</MenuItem>
                                         <MenuItem value="INACTIVO">INACTIVO</MenuItem>
                                     </Select>
                                 </FormControl>
                             </Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Descripción" value={descripcionVersion} onChange={(e) => setdescripcionVersion(e.target.value.toUpperCase())} /></Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleInsertVersion} variant="contained"
-                                style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedVersion ? 'Actualizar' : 'Guardar'}
-                        </Button>
+                        <Button onClick={handleInsertMarca} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedMarca ? 'Actualizar' : 'Guardar'}</Button>
                     </DialogActions>
                 </Dialog>
             </div>
@@ -314,7 +304,7 @@ function CatVersion() {
 export default function IntegrationNotistack() {
     return (
         <SnackbarProvider maxSnack={3}>
-            <CatVersion/>
+            <CatMarca/>
         </SnackbarProvider>
     );
 }
