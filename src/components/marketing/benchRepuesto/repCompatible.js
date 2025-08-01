@@ -339,7 +339,6 @@ function RepCompatible()  {
         setDialogOpen(true);
     };
 
-
     const columns = [
         // { name: 'codigo_cliente_canal', label: 'CÓDIGO' },
         //{ name: 'nombre_canal', label: 'CANAL' },
@@ -608,6 +607,7 @@ function RepCompatible()  {
                             startIcon={<AddIcon />}
                             onClick={() => {
                                 setSelectedItem(null);
+                                setSelectedClienteCanal(null);
                                 setForm({
                                     codigo_cliente_canal: '',
                                     codigo_canal: '',

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-    Box, Button, Grid, DialogTitle, DialogContent,
-    DialogActions, Dialog, Autocomplete, TextField, IconButton
+    Box, Button, Grid, Autocomplete, TextField, IconButton
 } from '@mui/material';
 import { useAuthContext } from "../../../context/authContext";
 import {enqueueSnackbar, SnackbarProvider} from "notistack";
@@ -17,7 +16,12 @@ import Paper from "@mui/material/Paper";
 import {Card} from "@mui/material";
 import {CardContent} from "@material-ui/core";
 import { ChevronLeft, ChevronRight } from '@mui/icons-material';
-import { Snackbar, Alert } from '@mui/material';
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import {AddCircleOutline} from "@material-ui/icons";
+import { Snackbar, Alert} from '@mui/material';
 
 
 const API = process.env.REACT_APP_API;
@@ -33,7 +37,6 @@ function BenchRepuestosCompatibles () {
     const [compatibles, setCompatibles] = useState([]);
     const [selectedImagen, setSelectedImagen] = useState(null);
     const [imagenModal, setImagenModal] = useState(null);
-    const [openModalImagen, setOpenModalImagen] = useState(false);
     const [productoSeleccionado, setProductoSeleccionado] = useState('');
     const [marcasActivas, setMarcasActivas] = useState([]);
     const [marcas, setMarcas] = useState([]);
@@ -46,6 +49,8 @@ function BenchRepuestosCompatibles () {
     const categoriasVisibles = 9;
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [openModalImagen, setOpenModalImagen] = useState(false);
+    const [imagenActual, setImagenActual] = useState(null);
 
 
     const [modeloComercialMarca, setModeloComercialMarca] = useState([]);
@@ -76,19 +81,15 @@ function BenchRepuestosCompatibles () {
             console.warn('Faltan parámetros para buscar compatibles');
             return;
         }
-
         try {
             const res = await fetch(`${API}/bench_rep/repuestos_compatibles_por_modelo?codigo_marca=${codigoMarca}&codigo_modelo_comercial=${codigoModelo}`, {
                 headers: { "Authorization": "Bearer " + jwt }
             });
             const data = await res.json();
-
             if (res.ok) {
                 setCompatibles(data);
                 setBusquedaEjecutada(true);
                 setCategoriaSeleccionada('');
-
-                // Evaluar si el objeto recibido está vacío (sin repuestos por categoría)
                 const sinCompatibles = Object.keys(data).length === 0;
 
                 if (sinCompatibles) {
@@ -100,7 +101,6 @@ function BenchRepuestosCompatibles () {
             } else {
                 enqueueSnackbar(data.error || "Error en consulta", { variant: "error" });
             }
-
         } catch (e) {
             enqueueSnackbar("Error en servidor", { variant: "error" });
         }
@@ -143,11 +143,24 @@ function BenchRepuestosCompatibles () {
         }
     };
 
+    const agruparPorCategoria = (lista) => {
+        return lista.reduce((acc, item) => {
+            const categoria = item.cod_item_cat1 || 'SIN_CATEGORIA';
+            if (!acc[categoria]) acc[categoria] = [];
+            acc[categoria].push(item);
+            return acc;
+        }, {});
+    };
+
     const exportarExcel = async () => {
-        if (!productoSeleccionado || !productoSeleccionado.nombre_producto) {
-            console.error("No hay producto seleccionado.");
+        if (!modeloSeleccionado || !modeloSeleccionado.codigo_modelo_comercial) {
+            console.error("No hay modelo comercial seleccionado.");
             return;
         }
+
+        const modelosAgrupados = agruparPorCategoria(Object.values(compatibles).flat());
+        const nombre_modelo = Object.values(compatibles)[0]?.[0]?.nombre_modelo_comercial || "Modelo Desconocido";
+        const nombre_marca = Object.values(compatibles)[0]?.[0]?.nombre_marca || "Marca Desconocida";
 
         const res = await fetch(`${API}/bench_rep/exportar_modelos_compatibles_xlsx`, {
             method: 'POST',
@@ -156,8 +169,10 @@ function BenchRepuestosCompatibles () {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                nombre_producto: productoSeleccionado.nombre_producto,
-                modelos: compatibles
+                codigo_modelo_comercial: modeloSeleccionado.codigo_modelo_comercial,
+                modelos: modelosAgrupados,
+                nombre_modelo: nombre_modelo,
+                nombre_marca: nombre_marca
             })
         });
 
@@ -171,7 +186,7 @@ function BenchRepuestosCompatibles () {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', 'modelos_compatibles.xlsx');
+        link.setAttribute('download', 'repuestos_compatibles.xlsx');
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -232,24 +247,32 @@ function BenchRepuestosCompatibles () {
 
     const categoriasUnicas = Object.entries(compatibles || {});
 
-
-    const getColor = (nivel) => {
-        if (nivel >= 95) return 'green';
-        if (nivel >= 85) return 'orange';
-        return 'red';
+    const getConfidenceProps = (nivel) => {
+        if (nivel >= 95) return { label: 'Alta', color: '#4CAF50' };
+        if (nivel >= 85) return { label: 'Media', color: '#FFB03A' };
+        return { label: 'Baja', color: '#F44336' };
     };
 
-    const getLabel = (nivel) => {
-        if (nivel >= 95) return 'Alta';
-        if (nivel >= 85) return 'Media';
-        return 'Baja';
+    const handleMostrarImagen = async (codigoProducto) => {
+        try {
+            const res = await fetch(`${API}/s3/repuesto-url?cod_producto=${codigoProducto}`, {
+                headers: { Authorization: 'Bearer ' + jwt }
+            });
+            const data = await res.json();
+            if (data.url) {
+                setImagenActual(data.url);
+                setOpenModalImagen(true);
+            }
+        } catch (e) {
+            enqueueSnackbar("No se pudo cargar la imagen del repuesto", { variant: "error" });
+        }
     };
+
     useEffect(() => {
         if (categoriasUnicas.length > 0 && !categoriaSeleccionada) {
             setCategoriaSeleccionada(categoriasUnicas[0][0]);
         }
     }, [categoriasUnicas]);
-
 
     useEffect(() => {
         const cargarDatos = async () => {
@@ -289,110 +312,155 @@ function BenchRepuestosCompatibles () {
                             <Button onClick={() => navigate(-1)}>Catálogos</Button>
                         </ButtonGroup>
                     </Box>
-                    <Box padding={4} sx={{ mt: 2, borderCollapse: 'collapse', width: '100%' }} >
+                    <Box padding={4} sx={{ mt: 2, borderCollapse: 'collapse', width: '100%' }}>
                         <Typography variant="h5" align="center" sx={{ fontWeight: 'bold', mb: 3 }}>
-                            Repuestos Compatibles con el Modelo Seleccionado
+                            BENCHMARKING REPUESTOS
                         </Typography>
-                        <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
-                            <Grid container spacing={2} alignItems="center">
-                                <Grid item xs={12} sm={6} md={4}>
-                                    <Autocomplete
-                                        options={marcas}
-                                        getOptionLabel={(option) => option.nombre_marca || ''}
-                                        value={marcaSeleccionada || null}
-                                        isOptionEqualToValue={(option, value) => option.codigo_marca === value?.codigo_marca}
-                                        onChange={(e, v) => {
-                                            setMarcaSeleccionada(v);
-                                            setCodigoMarca(v?.codigo_marca || null);
-                                            setModeloSeleccionado(null);
-                                            setCodigoModelo(null);
-                                            fetchModeloComercialMarca(v);
-                                        }}
-                                        renderInput={(params) => (
-                                            <TextField {...params} label="Seleccionar Marca" variant="outlined" fullWidth />
-                                        )}
-                                    />
-                                </Grid>
-                                <Grid item xs={12} sm={6} md={4}>
-                                    <Autocomplete
-                                        options={modeloComercialMarca}
-                                        getOptionLabel={(option) =>
-                                            option.nombre_modelo && option.anio_modelo
-                                                ? `${option.nombre_modelo} – ${option.anio_modelo}`
-                                                : option.nombre_modelo || ''
-                                        }
-                                        value={
-                                            modeloComercialMarca.length > 0
-                                                ? modeloSeleccionado
-                                                : null
-                                        }
-                                        onChange={(e, v) => {
-                                            setModeloSeleccionado(v);
-                                            setCodigoModelo(v?.codigo_modelo_comercial || null);
-                                        }}
-                                        isOptionEqualToValue={(option, value) => option.codigo_modelo_comercial === value?.codigo_modelo_comercial}
-                                        renderInput={(params) => (
-                                            <TextField {...params} label="Seleccionar Modelo Comercial" variant="outlined" fullWidth />
-                                        )}
-                                        disabled={!marcaSeleccionada}
-                                    />
-                                </Grid>
-                                <Grid item xs={12} sm={12} md={4}>
-                                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-                                        <Button
-                                            variant="contained"
-                                            onClick={buscarCompatibles}
+                        <Grid container spacing={2}>
+                            <Grid item xs={12} md={6}>
+                                <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
+                                    <Grid container spacing={2}>
+                                        <Grid item xs={12} sm={6}>
+                                            <Autocomplete
+                                                options={marcas}
+                                                getOptionLabel={(option) => option.nombre_marca || ''}
+                                                value={marcaSeleccionada || null}
+                                                isOptionEqualToValue={(option, value) => option.codigo_marca === value?.codigo_marca}
+                                                onChange={(e, v) => {
+                                                    setMarcaSeleccionada(v);
+                                                    setCodigoMarca(v?.codigo_marca || null);
+                                                    setModeloSeleccionado(null);
+                                                    setCodigoModelo(null);
+                                                    fetchModeloComercialMarca(v);
+                                                    setCompatibles([]);
+                                                    setCategoriaSeleccionada('');
+                                                    setProductoSeleccionado('');
+                                                    setSelectedImagen(null);
+                                                    setImagenModal(null);
+                                                    setBusquedaEjecutada(false);
+                                                }}
+                                                renderInput={(params) => (
+                                                    <TextField {...params} label="Seleccionar Marca" variant="outlined" fullWidth />
+                                                )}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} sm={6}>
+                                            <Autocomplete
+                                                options={modeloComercialMarca}
+                                                renderOption={(props, option) => (
+                                                    <li {...props} key={option.codigo_modelo_comercial}>
+                                                        {option.nombre_modelo} – {option.anio_modelo}
+                                                    </li>
+                                                )}
+                                                getOptionLabel={(option) =>
+                                                    option.nombre_modelo && option.anio_modelo
+                                                        ? `${option.nombre_modelo} – ${option.anio_modelo}`
+                                                        : option.nombre_modelo || ''
+                                                }
+                                                value={modeloComercialMarca.length > 0 ? modeloSeleccionado : null}
+                                                onChange={(e, v) => {
+                                                    setModeloSeleccionado(v);
+                                                    setCodigoModelo(v?.codigo_modelo_comercial || null);
+                                                    setCompatibles([]);
+                                                    setCategoriaSeleccionada('');
+                                                    setProductoSeleccionado('');
+                                                    setSelectedImagen(null);
+                                                    setImagenModal(null);
+                                                    setBusquedaEjecutada(false);
+                                                }}
+                                                isOptionEqualToValue={(option, value) => option.codigo_modelo_comercial === value?.codigo_modelo_comercial}
+                                                renderInput={(params) => (
+                                                    <TextField {...params} label="Seleccionar Modelo Comercial" variant="outlined" fullWidth />
+                                                )}
+                                                disabled={!marcaSeleccionada}
+                                            />
+                                        </Grid>
+                                        <Grid
+                                            item
+                                            xs={12}
                                             sx={{
-                                                backgroundColor: 'firebrick',
-                                                color: '#fff',
-                                                fontSize: '12px',
-                                                minWidth: '160px',
-                                                '&:hover': { backgroundColor: '#b22222' }
+                                                display: 'flex',
+                                                justifyContent: 'center',
+                                                alignItems: 'center'
                                             }}
                                         >
-                                            Buscar
-                                        </Button>
-                                        <Button
-                                            variant="outlined"
-                                            onClick={() => {
-                                                setCodigoMarca('');
-                                                setCompatibles([]);
-                                                setProductoSeleccionado('');
-                                                setModeloSeleccionado(null);
-                                                setMarcaSeleccionada(null);
-                                                setImagenModal(null);
-                                                setSelectedImagen(null);
-                                                setBusquedaEjecutada(false);
-                                                setCategoriaSeleccionada('');
-                                                if (productos.length === 0) fetchProductos();
-                                            }}
-                                            sx={{
-                                                backgroundColor: '#535353',
-                                                color: '#fff',
-                                                fontSize: '12px',
-                                                minWidth: '160px',
-                                                '&:hover': { backgroundColor: '#434343' }
-                                            }}
-                                        >
-                                            Nueva Consulta
-                                        </Button>
-                                        <Button
-                                            variant="outlined"
-                                            onClick={exportarExcel}
-                                            sx={{
-                                                backgroundColor: 'green',
-                                                color: '#fff',
-                                                fontSize: '12px',
-                                                minWidth: '160px',
-                                                '&:hover': { backgroundColor: '#1b5e20' }
-                                            }}
-                                        >
-                                            EXPORTAR INF.
-                                        </Button>
-                                    </Stack>
-                                </Grid>
+                                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} mt={2}>
+                                                <Button
+                                                    variant="contained"
+                                                    onClick={buscarCompatibles}
+                                                    sx={{
+                                                        backgroundColor: 'firebrick',
+                                                        color: '#fff',
+                                                        fontSize: '12px',
+                                                        minWidth: '160px',
+                                                        '&:hover': { backgroundColor: '#b22222' }
+                                                    }}
+                                                >
+                                                    Buscar
+                                                </Button>
+                                                <Button
+                                                    variant="outlined"
+                                                    onClick={() => {
+                                                        setCodigoMarca('');
+                                                        setCompatibles([]);
+                                                        setProductoSeleccionado('');
+                                                        setModeloSeleccionado(null);
+                                                        setMarcaSeleccionada(null);
+                                                        setImagenModal(null);
+                                                        setSelectedImagen(null);
+                                                        setBusquedaEjecutada(false);
+                                                        setCategoriaSeleccionada('');
+                                                        if (productos.length === 0) fetchProductos();
+                                                    }}
+                                                    sx={{
+                                                        backgroundColor: '#1565C0',
+                                                        color: '#fff',
+                                                        fontSize: '12px',
+                                                        minWidth: '160px',
+                                                        '&:hover': { backgroundColor: '#1565C0' }
+                                                    }}
+                                                >
+                                                    Nueva Consulta
+                                                </Button>
+                                                <Button
+                                                    variant="outlined"
+                                                    onClick={exportarExcel}
+                                                    sx={{
+                                                        backgroundColor: 'green',
+                                                        color: '#fff',
+                                                        fontSize: '12px',
+                                                        minWidth: '160px',
+                                                        '&:hover': { backgroundColor: '#1b5e20' }
+                                                    }}
+                                                >
+                                                    EXPORTAR INF.
+                                                </Button>
+                                            </Stack>
+                                        </Grid>
+                                    </Grid>
+                                </Paper>
                             </Grid>
-                        </Paper>
+                            <Grid item xs={12} md={6} display="flex" justifyContent="center" alignItems="center">
+                                {modeloSeleccionado?.path_imagen && (
+                                    <Box
+                                        component="img"
+                                        src={modeloSeleccionado.path_imagen}
+                                        alt="Modelo seleccionado"
+                                        sx={{
+                                            maxHeight: 250,
+                                            maxWidth: '100%',
+                                            objectFit: 'contain',
+                                            borderRadius: 2,
+                                            transition: 'transform 0.3s ease-in-out',
+                                            '&:hover': {
+                                                transform: 'scale(2.2)',
+                                                zIndex: 10
+                                            }
+                                        }}
+                                    />
+                                )}
+                            </Grid>
+                        </Grid>
                     </Box>
                     <Snackbar
                         open={openSnackbar}
@@ -401,9 +469,9 @@ function BenchRepuestosCompatibles () {
                         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
                     >
                         <Alert
+                            severity="info"
+                            sx={{ width: '100%' }}
                             onClose={() => setOpenSnackbar(false)}
-                            severity="warning"
-                            sx={{ width: '100%', backgroundColor: '#ffa726', color: '#000' }}
                         >
                             {snackbarMessage}
                         </Alert>
@@ -429,7 +497,7 @@ function BenchRepuestosCompatibles () {
                                                         borderRadius: 2,
                                                         textAlign: 'center',
                                                         cursor: 'pointer',
-                                                        bgcolor: categoriaSeleccionada === categoria ? 'primary.main' : 'grey.200',
+                                                        bgcolor: categoriaSeleccionada === categoria ? 'firebrick' : 'grey.200',
                                                         color: categoriaSeleccionada === categoria ? 'white' : 'text.primary',
                                                         fontWeight: categoriaSeleccionada === categoria ? 'bold' : 'normal',
                                                         boxShadow: 2,
@@ -450,55 +518,63 @@ function BenchRepuestosCompatibles () {
                             )}
                         </Box>
                         <Grid container spacing={3}>
-                            {(categoriasUnicas.find(([cat]) => cat === categoriaSeleccionada)?.[1] || []).map((rep, idx) => (
-                                <Grid item xs={12} sm={6} md={4} lg={3} key={idx}>
-                                    <Card sx={{ height: '100%', p: 2 }}>
-                                        <CardContent>
-                                            <Typography variant="subtitle2" gutterBottom>
-                                                <strong>MODELO COMERCIAL:</strong> {rep.nombre_modelo_comercial} – {rep.anio_modelo}
-                                            </Typography>
-                                            <Typography variant="body2">
-                                                <strong>NOMBRE PRODUCTO:</strong> {rep.nombre_producto}
-                                            </Typography>
-                                            <Typography variant="body2">
-                                                <strong>ORIGEN VALIDACIÓN:</strong> {rep.origen_validacion}
-                                            </Typography>
-                                            <Typography variant="body2">
-                                                <strong>FECHA VALIDACIÓN:</strong> {new Date(rep.fecha_validacion).toLocaleDateString()}
-                                            </Typography>
-                                            <Box sx={{ mt: 2 }}>
-                                                <Typography variant="body2">
-                                                    <strong>Nivel de Confianza:</strong> {rep.nivel_confianza}% –
-                                                    <span style={{ color: getColor(rep.nivel_confianza), fontWeight: 'bold' }}>
-                                                        {getLabel(rep.nivel_confianza)}
-                                                    </span>
+                            {(categoriasUnicas.find(([cat]) => cat === categoriaSeleccionada)?.[1] || []).map((rep, idx) => {
+                                const { label, color } = getConfidenceProps(rep.nivel_confianza);
+                                return (
+                                    <Grid item xs={12} sm={6} md={4} lg={3} key={idx}>
+                                        <Card sx={{ height: '100%', p: 2 }}>
+                                            <IconButton
+                                                onClick={() => handleMostrarImagen(rep.cod_producto)}
+                                                style={{ float: 'right' }}
+                                            >
+                                                <AddCircleOutline />
+                                            </IconButton>
+                                            <CardContent>
+                                                <Typography variant="subtitle2" gutterBottom>
+                                                    <strong>MODELO COMERCIAL:</strong> {rep.nombre_modelo_comercial} – {rep.anio_modelo}
                                                 </Typography>
-                                                <LinearProgress
-                                                    variant="determinate"
-                                                    value={rep.nivel_confianza}
-                                                    sx={{ height: 6, borderRadius: 5, mt: 1 }}
-                                                    color={getColor(rep.nivel_confianza) === 'green' ? 'success' : 'warning'}
-                                                />
-                                            </Box>
-                                        </CardContent>
-                                    </Card>
-                                </Grid>
-                            ))}
+                                                <Typography variant="body2">
+                                                    <strong>NOMBRE PRODUCTO:</strong> {rep.nombre_producto}
+                                                </Typography>
+                                                <Typography variant="body2">
+                                                    <strong>ORIGEN VALIDACIÓN:</strong> {rep.origen_validacion}
+                                                </Typography>
+                                                <Typography variant="body2">
+                                                    <strong>FECHA VALIDACIÓN:</strong> {new Date(rep.fecha_validacion).toLocaleDateString()}
+                                                </Typography>
+                                                <Box sx={{ mt: 2 }}>
+                                                    <Typography variant="body2">
+                                                        <strong>Nivel de Confianza:</strong> {rep.nivel_confianza}% –{' '}
+                                                        <span style={{ color, fontWeight: 'bold' }}>{label}</span>
+                                                    </Typography>
+                                                    <LinearProgress
+                                                        variant="determinate"
+                                                        value={rep.nivel_confianza}
+                                                        sx={{
+                                                            height: 6,
+                                                            borderRadius: 5,
+                                                            mt: 1,
+                                                            backgroundColor: '#e0e0e0',
+                                                            '& .MuiLinearProgress-bar': {
+                                                                backgroundColor: color
+                                                            }
+                                                        }}
+                                                    />
+                                                </Box>
+                                            </CardContent>
+                                        </Card>
+                                    </Grid>
+                                );
+                            })}
                         </Grid>
                     </Box>
-                    <Dialog open={openModalImagen} onClose={() => setOpenModalImagen(false)} maxWidth="md" fullWidth>
-                        <DialogTitle>Vista de Imagen</DialogTitle>
+                    <Dialog open={openModalImagen} onClose={() => setOpenModalImagen(false)} maxWidth="sm" fullWidth>
+                        <DialogTitle>Imágen referencial</DialogTitle>
                         <DialogContent>
-                            <img
-                                src={imagenModal}
-                                title="Vista previa imagen"
-                                style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain' }}
-                                alt="Vista previa imagen"/>
+                            <img src={imagenActual} alt="Imagen referencial" style={{ width: '100%', objectFit: 'contain' }} />
                         </DialogContent>
                         <DialogActions>
-                            <Button onClick={() => setOpenModalImagen(false)} color="primary">
-                                Cerrar
-                            </Button>
+                            <Button onClick={() => setOpenModalImagen(false)}>Cerrar</Button>
                         </DialogActions>
                     </Dialog>
                 </div>
