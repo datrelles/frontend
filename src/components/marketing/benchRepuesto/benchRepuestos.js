@@ -534,6 +534,9 @@ function BenchRepuestosCompatibles () {
                                                     <strong>MODELO COMERCIAL:</strong> {rep.nombre_modelo_comercial} – {rep.anio_modelo}
                                                 </Typography>
                                                 <Typography variant="body2">
+                                                    <strong>CÓDIGO PRODUCTO:</strong> {rep.cod_producto}
+                                                </Typography>
+                                                <Typography variant="body2">
                                                     <strong>NOMBRE PRODUCTO:</strong> {rep.nombre_producto}
                                                 </Typography>
                                                 <Typography variant="body2">
@@ -571,7 +574,33 @@ function BenchRepuestosCompatibles () {
                     <Dialog open={openModalImagen} onClose={() => setOpenModalImagen(false)} maxWidth="sm" fullWidth>
                         <DialogTitle>Imágen referencial</DialogTitle>
                         <DialogContent>
-                            <img src={imagenActual} alt="Imagen referencial" style={{ width: '100%', objectFit: 'contain' }} />
+                            <img
+                                src={imagenActual || "/favicon.ico"}
+                                alt="Imagen referencial"
+                                ref={(ref) => {
+                                    if (ref) {
+                                        ref.onload = () => {
+                                            if (ref.naturalWidth <= 64 && ref.naturalHeight <= 64) {
+                                                ref.style.width = "100px";
+                                                ref.style.height = "100px";
+                                                ref.style.objectFit = "contain";
+                                            } else {
+                                                ref.style.width = "100%";
+                                                ref.style.height = "auto";
+                                                ref.style.objectFit = "contain";
+                                            }
+                                        };
+                                    }
+                                }}
+                                style={{
+                                    display: 'block',
+                                    margin: '0 auto'
+                                }}
+                                onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = "/favicon.ico";
+                                }}
+                            />
                         </DialogContent>
                         <DialogActions>
                             <Button onClick={() => setOpenModalImagen(false)}>Cerrar</Button>
