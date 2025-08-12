@@ -506,6 +506,7 @@ function CatSegmento() {
                                 <TextField
                                     fullWidth
                                     label="Nombre Segmento"
+                                    sx={{ mt: 1 }}
                                     value={form.nombre_segmento || ''}
                                     onChange={(e) =>
                                         handleChange('nombre_segmento', e.target.value.toUpperCase())}
@@ -535,15 +536,16 @@ function CatSegmento() {
                                 <TextField label="AÑO" value={selectedModeloComercial?.anio_modelo || ''} fullWidth disabled />
                             </Grid>
                             <Grid item xs={6}>
-                                <FormControl fullWidth>
+                                <FormControl fullWidth variant="outlined" size="medium">
                                     <InputLabel id="estado-segmento-label">Estado</InputLabel>
                                     <Select
                                         labelId="estado-segmento-label"
                                         value={form.estado_segmento}
                                         onChange={(e) => handleChange('estado_segmento', e.target.value)}
-                                        variant="outlined">
-                                        <MenuItem value={1}>ACTIVO</MenuItem>
-                                        <MenuItem value={0}>INACTIVO</MenuItem>
+                                        variant="outlined"
+                                        label="Estado">
+                                        <MenuItem value="ACTIVO">ACTIVO</MenuItem>
+                                        <MenuItem value="INACTIVO">INACTIVO</MenuItem>
                                     </Select>
                                 </FormControl>
                             </Grid>

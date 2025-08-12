@@ -317,7 +317,7 @@ function CatLinea() {
                                         labelId="estado-linea-label"
                                         value={estadoLinea}
                                         onChange={(e) => setEstadoLinea(e.target.value.toUpperCase())}
-                                    >
+                                     variant="outlined">
                                         <MenuItem value="ACTIVO">ACTIVO</MenuItem>
                                         <MenuItem value="INACTIVO">INACTIVO</MenuItem>
                                     </Select>

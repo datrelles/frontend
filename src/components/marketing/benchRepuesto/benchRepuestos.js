@@ -248,9 +248,9 @@ function BenchRepuestosCompatibles () {
     const categoriasUnicas = Object.entries(compatibles || {});
 
     const getConfidenceProps = (nivel) => {
-        if (nivel >= 95) return { label: 'Alta', color: '#4CAF50' };
-        if (nivel >= 85) return { label: 'Media', color: '#FFB03A' };
-        return { label: 'Baja', color: '#F44336' };
+        if (nivel === 100) return { label: 'SI', color: '#4CAF50' };
+        if (nivel === 0) return { label: 'NO', color: '#F44336' };
+        return { label: '', color: '#e0e0e0' };
     };
 
     const handleMostrarImagen = async (codigoProducto) => {
@@ -547,8 +547,8 @@ function BenchRepuestosCompatibles () {
                                                 </Typography>
                                                 <Box sx={{ mt: 2 }}>
                                                     <Typography variant="body2">
-                                                        <strong>Nivel de Confianza:</strong> {rep.nivel_confianza}% –{' '}
-                                                        <span style={{ color, fontWeight: 'bold' }}>{label}</span>
+                                                        <strong>Nivel de Confianza:</strong> {rep.nivel_confianza}%{' '}
+                                                        {label && <>– <span style={{ color, fontWeight: 'bold' }}>{label}</span></>}
                                                     </Typography>
                                                     <LinearProgress
                                                         variant="determinate"
@@ -557,7 +557,7 @@ function BenchRepuestosCompatibles () {
                                                             height: 6,
                                                             borderRadius: 5,
                                                             mt: 1,
-                                                            backgroundColor: '#e0e0e0',
+                                                            backgroundColor: '#F44336',
                                                             '& .MuiLinearProgress-bar': {
                                                                 backgroundColor: color
                                                             }

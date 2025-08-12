@@ -242,7 +242,7 @@ function CatColor() {
                     <DialogTitle>{selectedColor ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Nombre color" value={nombreColor} onChange={(e) => setnombreColor(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Nombre color" sx={{ mt: 1 }} value={nombreColor} onChange={(e) => setnombreColor(e.target.value.toUpperCase())} /></Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>

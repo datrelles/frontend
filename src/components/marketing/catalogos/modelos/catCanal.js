@@ -1,9 +1,9 @@
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import React, { useState, useEffect } from "react";
+import {useNavigate} from 'react-router-dom';
+import {toast} from 'react-toastify';
+import React, {useState, useEffect} from "react";
 import Navbar0 from "../../../Navbar0";
 import MUIDataTable from "mui-datatables";
-import {ThemeProvider } from '@mui/material/styles';
+import {ThemeProvider} from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import LoadingCircle from "../../../contabilidad/loader";
 import {IconButton, TextField} from '@mui/material';
@@ -11,25 +11,25 @@ import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
 import {SnackbarProvider, useSnackbar} from 'notistack';
-import { useAuthContext } from "../../../../context/authContext";
+import {useAuthContext} from "../../../../context/authContext";
 import EditIcon from '@mui/icons-material/Edit';
 import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import {Select, MenuItem, FormControl, InputLabel} from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import * as XLSX from "xlsx";
 import AddIcon from "@material-ui/icons/Add";
 import Stack from "@mui/material/Stack";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import {getTableOptions, getMuiTheme } from "../../muiTableConfig";
+import {getTableOptions, getMuiTheme} from "../../muiTableConfig";
 
 const API = process.env.REACT_APP_API;
 
 function CatCanal() {
-    const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
-    const { enqueueSnackbar } = useSnackbar();
+    const {jwt, userShineray, enterpriseShineray, systemShineray} = useAuthContext();
+    const {enqueueSnackbar} = useSnackbar();
     const navigate = useNavigate();
     const [nombreCanal, setnombreCanal] = useState('');
     const [estadoCanal, setestadoCanal] = useState('');
@@ -65,15 +65,15 @@ function CatCanal() {
 
             const data = await res.json();
             if (res.ok) {
-                enqueueSnackbar(data.message || "Operación exitosa", { variant: "success" });
+                enqueueSnackbar(data.message || "Operación exitosa", {variant: "success"});
                 fetchCanalData();
                 setDialogOpen(false);
             } else {
-                enqueueSnackbar(data.error || "Error al guardar", { variant: "error" });
+                enqueueSnackbar(data.error || "Error al guardar", {variant: "error"});
             }
         } catch (error) {
             console.error(error);
-            enqueueSnackbar("Error inesperado", { variant: "error" });
+            enqueueSnackbar("Error inesperado", {variant: "error"});
         }
     };
 
@@ -114,16 +114,16 @@ function CatCanal() {
             if (res.ok) {
                 setCabeceras(data);
             } else {
-                enqueueSnackbar(data.error || "Error al obtener data de Canal", { variant: "error" });
+                enqueueSnackbar(data.error || "Error al obtener data de Canal", {variant: "error"});
             }
         } catch (error) {
-            enqueueSnackbar("Error de conexión", { variant: "error" });
+            enqueueSnackbar("Error de conexión", {variant: "error"});
         }
     };
 
     const columns = [
-        { name: "codigo_canal", label: "Código" },
-        { name: "nombre_canal", label: "Nombre Canal" },
+        {name: "codigo_canal", label: "Código"},
+        {name: "nombre_canal", label: "Nombre Canal"},
         {
             name: "estado_canal",
             label: "Estado Canal",
@@ -146,9 +146,9 @@ function CatCanal() {
                 )
             }
         },
-        { name: "descripcion_canal", label: "Descripción Canal" },
+        {name: "descripcion_canal", label: "Descripción Canal"},
         //{ name: "usuario_crea", label: "Usuario Crea" },
-        { name: "fecha_creacion", label: "Fecha Creación" },
+        {name: "fecha_creacion", label: "Fecha Creación"},
         {
             name: "acciones",
             label: "Acciones",
@@ -157,7 +157,7 @@ function CatCanal() {
                     const rowData = cabeceras[dataIndex];
                     return (
                         <IconButton onClick={() => openEditDialog(rowData)}>
-                            <EditIcon />
+                            <EditIcon/>
                         </IconButton>
                     );
                 }
@@ -171,7 +171,7 @@ function CatCanal() {
 
         reader.onload = async (evt) => {
             const data = evt.target.result;
-            const workbook = XLSX.read(data, { type: "binary" });
+            const workbook = XLSX.read(data, {type: "binary"});
             const sheetName = workbook.SheetNames[0];
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
@@ -194,13 +194,13 @@ function CatCanal() {
 
                 const responseData = await res.json();
                 if (res.ok) {
-                    enqueueSnackbar("Carga exitosa", { variant: "success" });
+                    enqueueSnackbar("Carga exitosa", {variant: "success"});
                     fetchCanalData();
                 } else {
-                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
+                    enqueueSnackbar(responseData.error || "Error al cargar", {variant: "error"});
                 }
             } catch (error) {
-                enqueueSnackbar("Error inesperado", { variant: "error" });
+                enqueueSnackbar("Error inesperado", {variant: "error"});
             }
         };
         reader.readAsBinaryString(file);
@@ -215,21 +215,21 @@ function CatCanal() {
     };
 
     return (
-        <>{loading ? (<LoadingCircle />) : (
-            <div style={{ marginTop: '150px', width: "100%" }}>
-                <Navbar0 menus={menus} />
+        <>{loading ? (<LoadingCircle/>) : (
+            <div style={{marginTop: '150px', width: "100%"}}>
+                <Navbar0 menus={menus}/>
                 <Box>
                     <ButtonGroup variant="text">
                         <Button onClick={() => navigate('/dashboard')}>Módulos</Button>
                         <Button onClick={() => navigate(-1)}>Catálogos</Button>
                     </ButtonGroup>
                 </Box>
-                <Box sx={{ mt: 2 }}>
+                <Box sx={{mt: 2}}>
                     <Stack direction="row" spacing={1}>
                         <Button
                             variant="contained"
                             color="primary"
-                            startIcon={<AddIcon />}
+                            startIcon={<AddIcon/>}
                             onClick={() => {
                                 setSelectedCanal(null);
                                 setnombreCanal('');
@@ -254,7 +254,7 @@ function CatCanal() {
                         <Button
                             variant="contained"
                             component="label"
-                            startIcon={<CloudUploadIcon />}
+                            startIcon={<CloudUploadIcon/>}
                             sx={{
                                 textTransform: 'none',
                                 fontWeight: 500,
@@ -268,40 +268,47 @@ function CatCanal() {
                                 }
                             }}
                         >Insertar Masivo
-                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel}/>
                         </Button>
-                        <IconButton onClick={fetchCanalData} style={{ color: 'firebrick' }}>
-                            <RefreshIcon />
+                        <IconButton onClick={fetchCanalData} style={{color: 'firebrick'}}>
+                            <RefreshIcon/>
                         </IconButton>
                     </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={getTableOptions()} />
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns}
+                                  options={getTableOptions()}/>
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selectedCanal ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Nombre canal" value={nombreCanal} onChange={(e) => setnombreCanal(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Nombre canal" value={nombreCanal}
+                                                         onChange={(e) => setnombreCanal(e.target.value.toUpperCase())}/></Grid>
                             <Grid item xs={6}>
-                                <FormControl fullWidth>
+                                <FormControl fullWidth variant="outlined" size="medium">
                                     <InputLabel id="estado-canal-label">Estado</InputLabel>
                                     <Select
                                         labelId="estado-canal-label"
                                         value={estadoCanal}
                                         onChange={(e) => setestadoCanal(e.target.value.toUpperCase())}
-                                     variant="outlined">
+                                        variant="outlined"
+                                        label="Estado">
                                         <MenuItem value="ACTIVO">ACTIVO</MenuItem>
                                         <MenuItem value="INACTIVO">INACTIVO</MenuItem>
                                     </Select>
                                 </FormControl>
                             </Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Descripcion" value={descripcionCanal} onChange={(e) => setdescripcionCanal(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Descripcion" value={descripcionCanal}
+                                                         onChange={(e) => setdescripcionCanal(e.target.value.toUpperCase())}/></Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleInsertCanal} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedCanal ? 'Actualizar' : 'Guardar'}</Button>
+                        <Button onClick={handleInsertCanal} variant="contained" style={{
+                            backgroundColor: 'firebrick',
+                            color: 'white'
+                        }}>{selectedCanal ? 'Actualizar' : 'Guardar'}</Button>
                     </DialogActions>
                 </Dialog>
             </div>
