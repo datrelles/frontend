@@ -631,7 +631,7 @@ function CompararModelos()  {
                                     color: '#fff',
                                     fontSize: '12px',
                                     '&:hover': { backgroundColor: '#1b5e20' }
-                                }}>Exportar
+                                }}>EXPORTAR INF.
                             </Button>
                             <Button
                                 variant="outlined"
@@ -650,10 +650,11 @@ function CompararModelos()  {
                                     setCilindradaPorBloque(Array(numeroModelos).fill([]));
                                 }}
                                 sx={{
-                                    backgroundColor: '#535353',
+                                    backgroundColor: '#1565C0',
                                     color: '#fff',
                                     fontSize: '12px',
-                                    '&:hover': { backgroundColor: '#535353' }
+                                    minWidth: '160px',
+                                    '&:hover': { backgroundColor: '#1565C0' }
                                 }}
                             >
                                 Nueva Consulta
