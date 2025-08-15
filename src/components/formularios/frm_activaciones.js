@@ -57,7 +57,24 @@ const FrmActivaciones = () => {
 
     const todayISO = () => dayjs().format('YYYY-MM-DD');
 
+    const [loadingTabla, setLoadingTabla] = useState(false);
 
+    const cargarActivacionesIniciales = async (codPromotor) => {
+        try {
+            setLoadingTabla(true);
+            const resp = await APIService.getActivaciones(enterpriseShineray, codPromotor); // ← SIN filtros
+            const data = Array.isArray(resp) ? resp : (resp?.data ?? []);
+            const tiposDict = mapTipoById(tipoActivaciones);
+            const rows = data.map(it => obtenerActivacion(it, tiposDict));
+            setActivaciones(rows);
+            setMostrarTabla(true);
+        } catch (e) {
+            const msg = e?.response?.data?.mensaje || e?.message || 'No se pudieron cargar las activaciones iniciales.';
+            setAlerta({ open: true, msg, severity: 'error' });
+        } finally {
+            setLoadingTabla(false);
+        }
+    };
 
     const setField = (key, value) => setForm(prev => ({...prev, [key]: value}));
 
@@ -107,9 +124,10 @@ const FrmActivaciones = () => {
                 const p = await APIService.getPromotorActual();
                 setPromotorActual(p);
                 const codPromotor = String(p.identificacion || '').trim();
-                setForm(prev => ({ ...prev, promotor: codPromotor }));
 
+                setForm(prev => ({ ...prev, promotor: codPromotor }));
                 await fetchClientesPromotor(codPromotor);
+                await cargarActivacionesIniciales(codPromotor);
             } catch (e) {
                 console.error(e);
                 toast.error(e.message || 'No se pudo obtener el promotor del usuario');
