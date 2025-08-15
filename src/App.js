@@ -107,6 +107,7 @@ import CatLinea from "./components/marketing/catalogos/modelos/catLinea";
 import CatModSri from "./components/marketing/catalogos/modelos/catModSri";
 import CatMdlHomologado from "./components/marketing/catalogos/modelos/catMdlHomologado";
 import CatMatriculacionMarca from "./components/marketing/catalogos/modelos/catMatriculacionMarca";
+import CatClCanalModelo from "./components/marketing/catalogos/catClCanalModelo";
 import CatMdlComercial from "./components/marketing/catalogos/modelos/catMdlComercial";
 import MdlVersionRepuesto from "./components/marketing/catalogos/repuestos/mdlVersionRepuesto";
 import ClienteCanal from "./components/marketing/catalogos/repuestos/clienteCanal";
@@ -126,6 +127,8 @@ import PresupuestoCantidades from "./components/importaciones/presupuesto-cantid
 import CoberturaModelo from "./components/importaciones/cobertura-modelo";
 import SellOut from "./components/formulas/sell-out";
 import Pedidos from "./components/mayoreo/pedidos";
+///////////////////////////////////////////////////
+import FrmActivaciones from "./components/formularios/frm_activaciones";
 
 ///SellManagerB2B
 const API = process.env.REACT_APP_API;
@@ -1181,7 +1184,9 @@ function App() {
                   </Protected>
                 }
               ></Route>
+              <Route exact path="/nuevo_bench" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatClCanalModelo/></Protected>}/>
               <Route exact path="/compatibilidad_repuesto" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><RepCompatible/></Protected>}/>
+              <Route exact path="/frm_activaciones" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><FrmActivaciones/></Protected>}/>
               <Route
                 exact
                 path="/sell-out"

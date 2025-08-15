@@ -463,6 +463,7 @@ function CatMatriculaMarca() {
                                     options={homologados}
                                     getOptionLabel={(option) => option?.nombre_modelo_sri || ''}
                                     value={selectedHomologado}
+                                    sx={{ mt: 1 }}
                                     onChange={(e, v) => {
                                         handleChange('codigo_modelo_homologado', v ? v.codigo_modelo_homologado : '');
                                         setSelectedHomologado(v);

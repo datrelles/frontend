@@ -410,6 +410,7 @@ function CatMotor() {
                             <Grid item xs={6}><Autocomplete
                                 freeSolo
                                 options={tiposMotor.map((item) => item.nombre_tipo)}
+                                sx={{ mt: 1 }}
                                 value={form.tipo_motor_nombre || ''}
                                 onInputChange={(e, newValue) => handleChange('tipo_motor_nombre', newValue?.toUpperCase() || '')}
                                 renderInput={(params) => <TextField {...params} label="Tipo de Motor" />}

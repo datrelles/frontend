@@ -376,8 +376,8 @@ function CatModSri() {
                     <DialogTitle>{selectedModelo ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Nombre Modelo" value={nombreModelo} onChange={(e) => setNombreModelo(e.target.value.toUpperCase())} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Código Importación" value={modeloImportacion} onChange={(e) => setModeloImportacion(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Nombre Modelo" sx={{ mt: 1 }} value={nombreModelo} onChange={(e) => setNombreModelo(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Código Importación" sx={{ mt: 1 }} value={modeloImportacion} onChange={(e) => setModeloImportacion(e.target.value.toUpperCase())} /></Grid>
                             <Grid item xs={6}>
                                 <FormControl fullWidth>
                                     <InputLabel id="estado-modelo-label">Estado</InputLabel>

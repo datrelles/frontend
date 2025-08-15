@@ -1,4 +1,4 @@
-import { createTheme } from '@mui/material/styles';
+import {createTheme} from '@mui/material/styles';
 import React from "react";
 import BotonExportarXLSX from "./BotonExportarXLSX";
 
@@ -43,7 +43,6 @@ export const getMuiTheme = () =>
                         paddingRight: '3px',
                         paddingTop: '4px',
                         paddingBottom: '4px',
-                        backgroundColor: '#fff',
                         whiteSpace: 'normal',
                         verticalAlign: 'top',
                         borderBottom: '1px solid #ddd',
@@ -52,23 +51,28 @@ export const getMuiTheme = () =>
                         maxWidth: '500px',
                     },
                     head: {
-                        backgroundColor: 'firebrick',
-                        color: '#ffffff',
+                        backgroundColor: 'firebrick !important',
+                        color: '#ffffff !important',
                         fontWeight: 'bold',
-                        paddingLeft: '0px',
-                        paddingRight: '0px',
-                        fontSize: '12px'
+                        fontSize: '12px',
+                        paddingLeft: '3px',
+                        paddingRight: '3px',
                     }
                 }
             },
             MuiTable: {
                 styleOverrides: {
-                    root: { borderCollapse: 'collapse' }
+                    root: {
+                        borderCollapse: 'collapse',
+                        width: '100%',
+                    }
                 }
             },
             MuiToolbar: {
                 styleOverrides: {
-                    regular: { minHeight: '10px' }
+                    regular: {
+                        minHeight: '10px'
+                    }
                 }
             }
         }

@@ -286,6 +286,7 @@ function CatModeloHomologado() {
                                         `${option?.nombre_modelo ?? ''} (${option?.anio_modelo ?? ''})`
                                     }
                                     value={modeloSri}
+                                    sx={{ mt: 1 }}
                                     onChange={(e, newValue) => setModeloSri(newValue)}
                                     renderInput={(params) => <TextField {...params} label="Modelo SRI" />}
                                 />
