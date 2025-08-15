@@ -1,16 +1,16 @@
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import React, { useState, useEffect } from "react";
+import {useNavigate} from 'react-router-dom';
+import {toast} from 'react-toastify';
+import React, {useState, useEffect} from "react";
 import Navbar0 from "../../../Navbar0";
 import MUIDataTable from "mui-datatables";
-import { ThemeProvider } from '@mui/material/styles';
+import {ThemeProvider} from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import {IconButton, TextField} from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
 import {SnackbarProvider, useSnackbar} from 'notistack';
-import { useAuthContext } from "../../../../context/authContext";
+import {useAuthContext} from "../../../../context/authContext";
 import EditIcon from '@mui/icons-material/Edit';
 import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
@@ -22,14 +22,14 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import AddIcon from "@material-ui/icons/Add";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Stack from "@mui/material/Stack";
-import {getTableOptions, getMuiTheme } from "../../muiTableConfig";
+import {getTableOptions, getMuiTheme} from "../../muiTableConfig";
 
 
 const API = process.env.REACT_APP_API;
 
 function CatChasis() {
-    const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
-    const { enqueueSnackbar } = useSnackbar();
+    const {jwt, userShineray, enterpriseShineray, systemShineray} = useAuthContext();
+    const {enqueueSnackbar} = useSnackbar();
     const navigate = useNavigate();
     const [arosDel, setArosDel] = useState('');
     const [arosPost, setArosPost] = useState('');
@@ -75,15 +75,15 @@ function CatChasis() {
 
             const data = await res.json();
             if (res.ok) {
-                enqueueSnackbar(data.message || "Operación exitosa", { variant: "success" });
+                enqueueSnackbar(data.message || "Operación exitosa", {variant: "success"});
                 fetchChasisData();
                 setDialogOpen(false);
             } else {
-                enqueueSnackbar(data.error || "Error al guardar", { variant: "error" });
+                enqueueSnackbar(data.error || "Error al guardar", {variant: "error"});
             }
         } catch (error) {
             console.error(error);
-            enqueueSnackbar("Error inesperado", { variant: "error" });
+            enqueueSnackbar("Error inesperado", {variant: "error"});
         }
     };
 
@@ -147,10 +147,10 @@ function CatChasis() {
                 const dataSanitizada = data.map(sanitizeChasis);
                 setCabeceras(dataSanitizada);
             } else {
-                enqueueSnackbar(data.error || "Error al obtener data de chasis", { variant: "error" });
+                enqueueSnackbar(data.error || "Error al obtener data de chasis", {variant: "error"});
             }
         } catch (error) {
-            enqueueSnackbar("Error de conexión", { variant: "error" });
+            enqueueSnackbar("Error de conexión", {variant: "error"});
         }
     };
 
@@ -160,7 +160,7 @@ function CatChasis() {
 
         reader.onload = async (evt) => {
             const data = evt.target.result;
-            const workbook = XLSX.read(data, { type: "binary" });
+            const workbook = XLSX.read(data, {type: "binary"});
             const sheetName = workbook.SheetNames[0];
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
@@ -176,13 +176,13 @@ function CatChasis() {
 
                 const responseData = await res.json();
                 if (res.ok) {
-                    enqueueSnackbar("Carga exitosa", { variant: "success" });
+                    enqueueSnackbar("Carga exitosa", {variant: "success"});
                     fetchChasisData();
                 } else {
-                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
+                    enqueueSnackbar(responseData.error || "Error al cargar", {variant: "error"});
                 }
             } catch (error) {
-                enqueueSnackbar("Error inesperado", { variant: "error" });
+                enqueueSnackbar("Error inesperado", {variant: "error"});
             }
         };
 
@@ -195,9 +195,9 @@ function CatChasis() {
 
         reader.onload = async (evt) => {
             const data = evt.target.result;
-            const workbook = XLSX.read(data, { type: "binary" });
+            const workbook = XLSX.read(data, {type: "binary"});
             const sheetName = workbook.SheetNames[0];
-            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {defval: ""});
 
             const duplicados = [];
             const combinaciones = new Map();
@@ -208,7 +208,7 @@ function CatChasis() {
                 ${row.suspension_trasera}_${row.frenos_delanteros}_${row.frenos_traseros}`;
                 if (combinaciones.has(clave)) {
                     const filaOriginal = combinaciones.get(clave);
-                    duplicados.push({ filaOriginal, filaDuplicada: index + 2, clave });
+                    duplicados.push({filaOriginal, filaDuplicada: index + 2, clave});
                 } else {
                     combinaciones.set(clave, index + 2);
                 }
@@ -240,13 +240,13 @@ function CatChasis() {
 
                 const responseData = await res.json();
                 if (res.ok) {
-                    enqueueSnackbar("Actualización exitosa", { variant: "success" });
+                    enqueueSnackbar("Actualización exitosa", {variant: "success"});
                     fetchChasisData();
                 } else {
-                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
+                    enqueueSnackbar(responseData.error || "Error al cargar", {variant: "error"});
                 }
             } catch (error) {
-                enqueueSnackbar("Error inesperado durante la carga", { variant: "error" });
+                enqueueSnackbar("Error inesperado durante la carga", {variant: "error"});
             } finally {
                 setLoadingGlobal(false);
             }
@@ -265,17 +265,17 @@ function CatChasis() {
     const tableOptions = getTableOptions(cabeceras, camposPlantillaModelo, "Actualizar_chasis.xlsx");
 
     const columns = [
-        { name: "codigo_chasis", label: "Código Chasis" },
-        { name: "aros_rueda_posterior", label: "Aros Rueda Posterior" },
-        { name: "aros_rueda_delantera", label: "Aros Rueda Delantera" },
-        { name: "neumatico_delantero", label: "Neumático Delantero" },
-        { name: "neumatico_trasero", label: "Neumático Trasero" },
-        { name: "suspension_delantera", label: "Suspensión Delantera" },
-        { name: "suspension_trasera", label: "Suspensión Trasera" },
-        { name: "frenos_delanteros", label: "Frenos Delanteros" },
-        { name: "frenos_traseros", label: "Frenos Traseros" },
-       // { name: "usuario_crea", label: "Usuario Crea" },
-        { name: "fecha_creacion", label: "Fecha Creación" },
+        {name: "codigo_chasis", label: "Código Chasis"},
+        {name: "aros_rueda_posterior", label: "Aros Rueda Posterior"},
+        {name: "aros_rueda_delantera", label: "Aros Rueda Delantera"},
+        {name: "neumatico_delantero", label: "Neumático Delantero"},
+        {name: "neumatico_trasero", label: "Neumático Trasero"},
+        {name: "suspension_delantera", label: "Suspensión Delantera"},
+        {name: "suspension_trasera", label: "Suspensión Trasera"},
+        {name: "frenos_delanteros", label: "Frenos Delanteros"},
+        {name: "frenos_traseros", label: "Frenos Traseros"},
+        // { name: "usuario_crea", label: "Usuario Crea" },
+        {name: "fecha_creacion", label: "Fecha Creación"},
         {
             name: "acciones",
             label: "Acciones",
@@ -284,7 +284,7 @@ function CatChasis() {
                     const rowData = cabeceras[dataIndex];
                     return (
                         <IconButton onClick={() => openEditDialog(rowData)}>
-                            <EditIcon />
+                            <EditIcon/>
                         </IconButton>
                     );
                 }
@@ -307,21 +307,21 @@ function CatChasis() {
 
     return (
         <>
-            <GlobalLoading open={loadingGlobal} />
-            <div style={{ marginTop: '150px', width: "100%" }}>
-                <Navbar0 menus={menus} />
+            <GlobalLoading open={loadingGlobal}/>
+            <div style={{marginTop: '150px', width: "100%"}}>
+                <Navbar0 menus={menus}/>
                 <Box>
                     <ButtonGroup variant="text">
                         <Button onClick={() => navigate('/dashboard')}>Módulos</Button>
                         <Button onClick={() => navigate(-1)}>Catálogos</Button>
                     </ButtonGroup>
                 </Box>
-                <Box sx={{ mt: 2 }}>
+                <Box sx={{mt: 2}}>
                     <Stack direction="row" spacing={1}>
                         <Button
                             variant="contained"
                             color="primary"
-                            startIcon={<AddIcon />}
+                            startIcon={<AddIcon/>}
                             onClick={() => {
                                 setSelectedChasis(null);
                                 setArosDel('');
@@ -351,7 +351,7 @@ function CatChasis() {
                         <Button
                             variant="contained"
                             component="label"
-                            startIcon={<CloudUploadIcon />}
+                            startIcon={<CloudUploadIcon/>}
                             sx={{
                                 textTransform: 'none',
                                 fontWeight: 500,
@@ -365,30 +365,34 @@ function CatChasis() {
                                 }
                             }}
                         >Insertar Masivo
-                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel}/>
                         </Button>
                         <Button
                             variant="contained"
                             component="label"
-                            startIcon={<EditIcon />}
-                            sx={{ textTransform: 'none', fontWeight: 600,backgroundColor: 'littleseashell' }}
+                            startIcon={<EditIcon/>}
+                            sx={{textTransform: 'none', fontWeight: 600, backgroundColor: 'littleseashell'}}
                         >Actualizar Masivo
-                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate}/>
                         </Button>
-                        <IconButton onClick={fetchChasisData} style={{ color: 'firebrick' }}>
-                            <RefreshIcon />
+                        <IconButton onClick={fetchChasisData} style={{color: 'firebrick'}}>
+                            <RefreshIcon/>
                         </IconButton>
                     </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={tableOptions} />
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={tableOptions}/>
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selectedChasis ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Aros Rueda Delantera" value={arosDel} onChange={(e) => setArosDel(e.target.value.toUpperCase())} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Aros Rueda Posterior" value={arosPost} onChange={(e) => setArosPost(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Aros Rueda Delantera" sx={{mt: 1}}
+                                                         value={arosDel}
+                                                         onChange={(e) => setArosDel(e.target.value.toUpperCase())}/></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Aros Rueda Posterior" sx={{mt: 1}}
+                                                         value={arosPost}
+                                                         onChange={(e) => setArosPost(e.target.value.toUpperCase())}/></Grid>
                             <Grid item xs={6}>
                                 <TextField
                                     fullWidth
@@ -417,16 +421,23 @@ function CatChasis() {
                                     }}
                                 />
                             </Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Suspensión Delantera" value={suspDel} onChange={(e) => setSuspDel(e.target.value.toUpperCase())} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Suspensión Trasera" value={suspPost} onChange={(e) => setSuspPost(e.target.value.toUpperCase())} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Frenos Delanteros" value={frenoDel} onChange={(e) => setFrenoDel(e.target.value.toUpperCase())} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Frenos Traseros" value={frenoPost} onChange={(e) => setFrenoPost(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Suspensión Delantera" value={suspDel}
+                                                         onChange={(e) => setSuspDel(e.target.value.toUpperCase())}/></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Suspensión Trasera" value={suspPost}
+                                                         onChange={(e) => setSuspPost(e.target.value.toUpperCase())}/></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Frenos Delanteros" value={frenoDel}
+                                                         onChange={(e) => setFrenoDel(e.target.value.toUpperCase())}/></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Frenos Traseros" value={frenoPost}
+                                                         onChange={(e) => setFrenoPost(e.target.value.toUpperCase())}/></Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
                         <Button onClick={handleInsertChasis} variant="contained"
-                                style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedChasis ? 'Actualizar' : 'Guardar'}
+                                style={{
+                                    backgroundColor: 'firebrick',
+                                    color: 'white'
+                                }}>{selectedChasis ? 'Actualizar' : 'Guardar'}
                         </Button>
                     </DialogActions>
                 </Dialog>
@@ -438,7 +449,7 @@ function CatChasis() {
 export default function IntegrationNotistack() {
     return (
         <SnackbarProvider maxSnack={3}>
-            <CatChasis />
+            <CatChasis/>
         </SnackbarProvider>
     );
 }

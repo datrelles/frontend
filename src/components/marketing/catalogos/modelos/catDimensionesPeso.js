@@ -1,6 +1,6 @@
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import React, { useState, useEffect } from "react";
+import {useNavigate} from 'react-router-dom';
+import {toast} from 'react-toastify';
+import React, {useState, useEffect} from "react";
 import Navbar0 from "../../../Navbar0";
 import MUIDataTable from "mui-datatables";
 import Grid from '@mui/material/Grid';
@@ -9,7 +9,7 @@ import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
 import {SnackbarProvider, useSnackbar} from 'notistack';
-import { useAuthContext } from "../../../../context/authContext";
+import {useAuthContext} from "../../../../context/authContext";
 import EditIcon from '@mui/icons-material/Edit';
 import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
@@ -21,14 +21,14 @@ import GlobalLoading from "../../selectoresDialog/GlobalLoading";
 import AddIcon from "@material-ui/icons/Add";
 import Stack from "@mui/material/Stack";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import {getTableOptions, getMuiTheme } from "../../muiTableConfig";
+import {getTableOptions, getMuiTheme} from "../../muiTableConfig";
 import {ThemeProvider} from "@mui/material/styles";
 
 const API = process.env.REACT_APP_API;
 
 function CatDimensionesPeso() {
-    const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
-    const { enqueueSnackbar } = useSnackbar();
+    const {jwt, userShineray, enterpriseShineray, systemShineray} = useAuthContext();
+    const {enqueueSnackbar} = useSnackbar();
     const navigate = useNavigate();
     const [alturaTotal, setAlturaTotal] = useState('');
     const [longTotal, setLongTotal] = useState('');
@@ -64,15 +64,15 @@ function CatDimensionesPeso() {
 
             const data = await res.json();
             if (res.ok) {
-                enqueueSnackbar(data.message || "Operación exitosa", { variant: "success" });
+                enqueueSnackbar(data.message || "Operación exitosa", {variant: "success"});
                 fetchDimensionesData();
                 setDialogOpen(false);
             } else {
-                enqueueSnackbar(data.error || "Error al guardar", { variant: "error" });
+                enqueueSnackbar(data.error || "Error al guardar", {variant: "error"});
             }
         } catch (error) {
             console.error(error);
-            enqueueSnackbar("Error inesperado", { variant: "error" });
+            enqueueSnackbar("Error inesperado", {variant: "error"});
         }
     };
 
@@ -127,10 +127,10 @@ function CatDimensionesPeso() {
                 const dataSanitizada = data.map(sanitizeDimensiones);
                 setCabeceras(dataSanitizada);
             } else {
-                enqueueSnackbar(data.error || "Error al obtener data de dimensiones", { variant: "error" });
+                enqueueSnackbar(data.error || "Error al obtener data de dimensiones", {variant: "error"});
             }
         } catch (error) {
-            enqueueSnackbar("Error de conexión", { variant: "error" });
+            enqueueSnackbar("Error de conexión", {variant: "error"});
         }
     };
 
@@ -140,7 +140,7 @@ function CatDimensionesPeso() {
 
         reader.onload = async (evt) => {
             const data = evt.target.result;
-            const workbook = XLSX.read(data, { type: "binary" });
+            const workbook = XLSX.read(data, {type: "binary"});
             const sheetName = workbook.SheetNames[0];
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
@@ -156,13 +156,13 @@ function CatDimensionesPeso() {
 
                 const responseData = await res.json();
                 if (res.ok) {
-                    enqueueSnackbar("Carga exitosa", { variant: "success" });
+                    enqueueSnackbar("Carga exitosa", {variant: "success"});
                     fetchDimensionesData();
                 } else {
-                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
+                    enqueueSnackbar(responseData.error || "Error al cargar", {variant: "error"});
                 }
             } catch (error) {
-                enqueueSnackbar("Error inesperado", { variant: "error" });
+                enqueueSnackbar("Error inesperado", {variant: "error"});
             }
         };
 
@@ -175,9 +175,9 @@ function CatDimensionesPeso() {
 
         reader.onload = async (evt) => {
             const data = evt.target.result;
-            const workbook = XLSX.read(data, { type: "binary" });
+            const workbook = XLSX.read(data, {type: "binary"});
             const sheetName = workbook.SheetNames[0];
-            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {defval: ''});
 
             const combinaciones = new Map();
             const duplicados = [];
@@ -186,7 +186,7 @@ function CatDimensionesPeso() {
                 const clave = `${row.altura_total}_${row.longitud_total}_${row.ancho_total}_${row.peso_seco}`;
                 if (combinaciones.has(clave)) {
                     const filaOriginal = combinaciones.get(clave);
-                    duplicados.push({ filaOriginal, filaDuplicada: index + 2, clave });
+                    duplicados.push({filaOriginal, filaDuplicada: index + 2, clave});
                 } else {
                     combinaciones.set(clave, index + 2);
                 }
@@ -218,13 +218,13 @@ function CatDimensionesPeso() {
 
                 const responseData = await res.json();
                 if (res.ok) {
-                    enqueueSnackbar("Actualización exitosa", { variant: "success" });
+                    enqueueSnackbar("Actualización exitosa", {variant: "success"});
                     fetchDimensionesData();
                 } else {
-                    enqueueSnackbar(responseData.error || "Error al cargar", { variant: "error" });
+                    enqueueSnackbar(responseData.error || "Error al cargar", {variant: "error"});
                 }
             } catch (error) {
-                enqueueSnackbar("Error inesperado durante la carga", { variant: "error" });
+                enqueueSnackbar("Error inesperado durante la carga", {variant: "error"});
             } finally {
                 setLoadingGlobal(false);
             }
@@ -234,13 +234,13 @@ function CatDimensionesPeso() {
     };
 
     const columns = [
-        { name: "codigo_dim_peso", label: "Código" },
-        { name: "peso_seco", label: "Peso Seco" },
-        { name: "altura_total", label: "Altura total" },
-        { name: "longitud_total", label: "Longitud total" },
-        { name: "ancho_total", label: "Ancho total" },
+        {name: "codigo_dim_peso", label: "Código"},
+        {name: "peso_seco", label: "Peso Seco"},
+        {name: "altura_total", label: "Altura total"},
+        {name: "longitud_total", label: "Longitud total"},
+        {name: "ancho_total", label: "Ancho total"},
         //{ name: "usuario_crea", label: "Usuario Crea" },
-        { name: "fecha_creacion", label: "Fecha Creación" },
+        {name: "fecha_creacion", label: "Fecha Creación"},
         {
             name: "acciones",
             label: "Acciones",
@@ -249,7 +249,7 @@ function CatDimensionesPeso() {
                     const rowData = cabeceras[dataIndex];
                     return (
                         <IconButton onClick={() => openEditDialog(rowData)}>
-                            <EditIcon />
+                            <EditIcon/>
                         </IconButton>
                     );
                 }
@@ -276,21 +276,21 @@ function CatDimensionesPeso() {
 
     return (
         <>
-            <GlobalLoading open={loadingGlobal} />
-            <div style={{ marginTop: '150px', width: "100%" }}>
-                <Navbar0 menus={menus} />
+            <GlobalLoading open={loadingGlobal}/>
+            <div style={{marginTop: '150px', width: "100%"}}>
+                <Navbar0 menus={menus}/>
                 <Box>
                     <ButtonGroup variant="text">
                         <Button onClick={() => navigate('/dashboard')}>Módulos</Button>
                         <Button onClick={() => navigate(-1)}>Catálogos</Button>
                     </ButtonGroup>
                 </Box>
-                <Box sx={{ mt: 2 }}>
+                <Box sx={{mt: 2}}>
                     <Stack direction="row" spacing={1}>
                         <Button
                             variant="contained"
                             color="primary"
-                            startIcon={<AddIcon />}
+                            startIcon={<AddIcon/>}
                             onClick={() => {
                                 setSelectedDimensiones(null);
                                 setAlturaTotal('');
@@ -316,7 +316,7 @@ function CatDimensionesPeso() {
                         <Button
                             variant="contained"
                             component="label"
-                            startIcon={<CloudUploadIcon />}
+                            startIcon={<CloudUploadIcon/>}
                             sx={{
                                 textTransform: 'none',
                                 fontWeight: 500,
@@ -330,37 +330,44 @@ function CatDimensionesPeso() {
                                 }
                             }}
                         >Insertar Masivo
-                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel} />
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcel}/>
                         </Button>
                         <Button
                             variant="contained"
                             component="label"
-                            startIcon={<EditIcon />}
-                            sx={{ textTransform: 'none', fontWeight: 600,backgroundColor: 'littleseashell' }}
+                            startIcon={<EditIcon/>}
+                            sx={{textTransform: 'none', fontWeight: 600, backgroundColor: 'littleseashell'}}
                         >Actualizar Masivo
-                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate} />
+                            <input type="file" hidden accept=".xlsx, .xls" onChange={handleUploadExcelUpdate}/>
                         </Button>
-                        <IconButton onClick={fetchDimensionesData} style={{ color: 'firebrick' }}>
-                            <RefreshIcon />
+                        <IconButton onClick={fetchDimensionesData} style={{color: 'firebrick'}}>
+                            <RefreshIcon/>
                         </IconButton>
                     </Stack>
                 </Box>
                 <ThemeProvider theme={getMuiTheme()}>
-                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={tableOptions} />
+                    <MUIDataTable title="Lista completa" data={cabeceras} columns={columns} options={tableOptions}/>
                 </ThemeProvider>
                 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
                     <DialogTitle>{selectedDimensiones ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Altura Total" value={alturaTotal} onChange={(e) => setAlturaTotal(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Longitud Total" value={longTotal} onChange={(e) => setLongTotal(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Ancho Total" value={anchoTotal} onChange={(e) => setAnchoTotal(e.target.value)} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Peso Seco" value={pesoSeco} onChange={(e) => setPesoSeco(e.target.value)} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Altura Total" sx={{mt: 1}} value={alturaTotal}
+                                                         onChange={(e) => setAlturaTotal(e.target.value)}/></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Longitud Total" sx={{mt: 1}} value={longTotal}
+                                                         onChange={(e) => setLongTotal(e.target.value)}/></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Ancho Total" value={anchoTotal}
+                                                         onChange={(e) => setAnchoTotal(e.target.value)}/></Grid>
+                            <Grid item xs={6}><TextField fullWidth label="Peso Seco" value={pesoSeco}
+                                                         onChange={(e) => setPesoSeco(e.target.value)}/></Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleInsertDimensionesPeso} variant="contained" style={{ backgroundColor: 'firebrick', color: 'white' }}>{selectedDimensiones ? 'Actualizar' : 'Guardar'}</Button>
+                        <Button onClick={handleInsertDimensionesPeso} variant="contained" style={{
+                            backgroundColor: 'firebrick',
+                            color: 'white'
+                        }}>{selectedDimensiones ? 'Actualizar' : 'Guardar'}</Button>
                     </DialogActions>
                 </Dialog>
             </div>
@@ -371,7 +378,7 @@ function CatDimensionesPeso() {
 export default function IntegrationNotistack() {
     return (
         <SnackbarProvider maxSnack={3}>
-            <CatDimensionesPeso />
+            <CatDimensionesPeso/>
         </SnackbarProvider>
     );
 }

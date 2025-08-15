@@ -375,8 +375,8 @@ function CatElectronica() {
                     <DialogTitle>{selectedElectronica ? 'Actualizar' : 'Nuevo'}</DialogTitle>
                     <DialogContent>
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><TextField fullWidth label="Capacidad combustible" value={capCombustible} onChange={(e) => setCapCombustible(e.target.value.toUpperCase())} /></Grid>
-                            <Grid item xs={6}><TextField fullWidth label="Tablero" value={tablero} onChange={(e) => setTablero(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth sx={{ mt: 1 }} label="Capacidad combustible" value={capCombustible} onChange={(e) => setCapCombustible(e.target.value.toUpperCase())} /></Grid>
+                            <Grid item xs={6}><TextField fullWidth sx={{ mt: 1 }} label="Tablero" value={tablero} onChange={(e) => setTablero(e.target.value.toUpperCase())} /></Grid>
                             <Grid item xs={6}><TextField fullWidth label="Luces delanteras" value={lucesDelanteras} onChange={(e) => setLucesDelanteras(e.target.value.toUpperCase())} /></Grid>
                             <Grid item xs={6}><TextField fullWidth label="Luces posteriores" value={lucesPosteriores} onChange={(e) => setLucesPosteriores(e.target.value.toUpperCase())} /></Grid>
                             <Grid item xs={6}><TextField fullWidth label="Garantía" value={garantia} onChange={(e) => setGarantia(e.target.value.toUpperCase())} /></Grid>

@@ -687,6 +687,7 @@ function RepCompatible()  {
                                             `${option.codigo_cliente_canal} - ${option.nombre_canal} - ${option.nombre_cliente} - ${option.nombre_producto}`
                                         }
                                         value={selectedClienteCanal}
+                                        sx={{ mt: 1 }}
                                         isOptionEqualToValue={(opt, val) => opt.codigo_cliente_canal === val?.codigo_cliente_canal}
                                         onChange={(e, v) => {
                                             if (!v) return;

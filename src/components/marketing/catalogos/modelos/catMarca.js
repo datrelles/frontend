@@ -271,12 +271,13 @@ function CatMarca() {
                             <Grid item xs={6}>
                                 <TextField
                                     fullWidth label="Nombre marca"
+                                    sx={{ mt: 1 }}
                                     value={nombreMarca}
                                     onChange={(e) => setnombreMarca(e.target.value.toUpperCase())}
                                 />
                             </Grid>
                             <Grid item xs={6}>
-                                <FormControl fullWidth variant="outlined" size="small" sx={{ mt: 1 }}>
+                                <FormControl fullWidth variant="outlined" size="medium" sx={{ mt: 1 }}>
                                     <InputLabel id="estado-marca-label">Estado</InputLabel>
                                     <Select
                                         labelId="estado-marca-label"

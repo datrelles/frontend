@@ -576,6 +576,7 @@ function CatModeloComercial() {
                                     freeSolo
                                     options={marcasActivas.map(m => m.nombre_marca)}
                                     value={form.nombre_marca || ''}
+                                    sx={{ mt: 1 }}
                                     onInputChange={(e, v) => handleChange('nombre_marca', v)}
                                     renderInput={(params) => <TextField {...params} label="Marca"/>}
                                 />
@@ -601,13 +602,14 @@ function CatModeloComercial() {
                                                          value={form.anio_modelo || ''}
                                                          onChange={(e) => handleChange('anio_modelo', e.target.value)}/></Grid>
                             <Grid item xs={3}>
-                                <FormControl fullWidth>
+                                <FormControl fullWidth variant="outlined" size="medium">
                                     <InputLabel id="estado-modelo-label">Estado</InputLabel>
                                     <Select
                                         labelId="estado-modelo-label"
                                         value={estadoModelo}
                                         onChange={(e) => setEstadoModelo(e.target.value.toUpperCase())}
-                                        variant="outlined">
+                                        variant="outlined"
+                                        label="Estado">
                                         <MenuItem value="ACTIVO">ACTIVO</MenuItem>
                                         <MenuItem value="INACTIVO">INACTIVO</MenuItem>
                                     </Select>
