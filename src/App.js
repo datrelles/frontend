@@ -63,6 +63,8 @@ import Reports30 from "./components/Reports30";
 import Reports31 from "./components/Reports31";
 import Reports32 from "./components/Reports32";
 import Reports33 from "./components/Reports33";
+import Reports34 from "./components/Reports34";
+
 
 import Settings from "./components/Settings";
 import Menus from "./components/Menus";
@@ -791,6 +793,15 @@ function App() {
                 element={
                   <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
                     <Reports33 />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/reports34"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
+                    <Reports34 />
                   </Protected>
                 }
               />
