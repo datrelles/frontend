@@ -126,8 +126,8 @@ export default class API {
         return await axios.put(`${this.#URL}/activaciones/${cod_activacion}`, data, this.#headers);
     })
 
-    getActivaciones = this.#errorHandler(async (empresa,cod_promotor) => {
-        return axios.get(`${this.#URL}/empresas/${empresa}/promotores/${cod_promotor}/activaciones`,
+    getActivaciones = this.#errorHandler(async (empresa) => {
+        return axios.get(`${this.#URL}/empresas/${empresa}/activaciones`,
             this.#headers
         );
     })
@@ -140,17 +140,32 @@ export default class API {
         );
     });
 
-
     getActivacionesPromotor = this.#errorHandler(async (empresa, cod_promotor, params = {}) => {
         return await axios.get(
             `${this.#URL}/empresas/${empresa}/promotores/${cod_promotor}/activaciones`,
-            { params, ...this.#headers }
+            {params, ...this.#headers}
         );
     });
-
 
 
     //----------------------------------------- SERVICIOS PARA FORMULARIO DE ENCUESTA ----------------------------------
     //------------------------------------------------------------------------------------------------------------------
 
+    guardarEncuesta = this.#errorHandler(async (empresa, data) => {
+        return await axios.post(`${this.#URL}/empresas/${empresa}/encuestas`, data, this.#headers);
+    })
+
+    getCanalPromotor = this.#errorHandler(async (usuarioOracle) => {
+        return axios.get(`${this.#URL}/canal-promotor/${usuarioOracle}`,
+            this.#headers
+        );
+    })
+
+    // ------------------------- MODULO ADMINISTRACIION (MOSTRAR TODAS LAS ENCUESTAS POR PROMOTOR)
+
+    getEncuestas = this.#errorHandler(async (empresa) => {
+        return axios.get(`${this.#URL}/empresas/${empresa}/encuestas`,
+            this.#headers
+        );
+    })
 }

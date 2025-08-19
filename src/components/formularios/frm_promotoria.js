@@ -1,3 +1,4 @@
+// *********************************** creación de formulario promotoría visita tienda modelos **
 import React, {useEffect, useMemo, useState} from 'react';
 import {
     TextField, Button, Grid, Typography,
@@ -26,7 +27,7 @@ import MUIDataTable from "mui-datatables";
 import {ThemeProvider} from "@mui/material/styles";
 import Paper from "@mui/material/Paper";
 
-const FrmActivaciones = () => {
+const FrmPromotoria= () => {
     const {jwt, userShineray, enterpriseShineray, systemShineray} = useAuthContext();
     const APIService = useMemo(
         () => new API(jwt, userShineray, enterpriseShineray, systemShineray),
@@ -59,17 +60,17 @@ const FrmActivaciones = () => {
 
     const [loadingTabla, setLoadingTabla] = useState(false);
 
-    const cargarActivacionesIniciales = async () => {
+    const cargarActivacionesIniciales = async (codPromotor) => {
         try {
             setLoadingTabla(true);
-            const resp = await APIService.getActivaciones(enterpriseShineray);
+            const resp = await APIService.getActivaciones(enterpriseShineray, codPromotor);
             const data = Array.isArray(resp) ? resp : (resp?.data ?? []);
             const tiposDict = mapTipoById(tipoActivaciones);
             const rows = data.map(it => obtenerActivacion(it, tiposDict));
             setActivaciones(rows);
             setMostrarTabla(true);
         } catch (e) {
-            const msg = e?.response?.data?.mensaje || e?.message || 'No se pudieron cargar las activaciones iniciales.';
+            const msg = e?.response?.data?.mensaje || e?.message || 'No se pudieron cargar las activaciones iniciales...';
             setAlerta({ open: true, msg, severity: 'error' });
         } finally {
             setLoadingTabla(false);
@@ -188,6 +189,7 @@ const FrmActivaciones = () => {
     }
 
     const handleSubmit = async () => {
+
         const required = [
             'fecha', 'horaInicio', 'horaFinal',
             'promotor', 'distribuidorId', 'codTienda',
@@ -198,12 +200,14 @@ const FrmActivaciones = () => {
             setAlerta({ open: true, msg: 'Por favor completa todos los campos obligatorios.', severity: 'warning' });
             return;
         }
+
         const tiendaSel = (direcciones || []).find(d => String(d.id) === String(form.codTienda)) || null;
         const nombreActual    = (tiendaSel?.nombre || '').trim().toUpperCase();
         const nombreIngresado = (form.tiendaNombre || '').trim();
         const faltaNombre     = !nombreActual || nombreActual === 'SIN NOMBRE';
 
         const payload = buildActivacionPayload(form, enterpriseShineray);
+
         payload.fecha_act = String(form.fecha || dayjs().format('YYYY-MM-DD')).trim();
 
         try {
@@ -216,6 +220,7 @@ const FrmActivaciones = () => {
                     cod_zona_ciudad: tiendaSel?.cod_zona_ciudad || '',
                     nombre: nombreIngresado.toUpperCase(),
                 };
+
                 await APIService.putDireccionGuia(
                     enterpriseShineray,
                     String(form.distribuidorId),
@@ -258,6 +263,7 @@ const FrmActivaciones = () => {
         }
     };
 
+
     const limpiarFormulario = () => {
         setForm(prev => ({
             ...prev,
@@ -279,6 +285,7 @@ const FrmActivaciones = () => {
             tiendaNombre: '',
             codProveedor: '',
             animadoraNombre: '',
+
         }));
         setModoEdicion(false);
         setIndexEditar(null);
@@ -332,6 +339,7 @@ const FrmActivaciones = () => {
         }
     };
 
+
     useEffect(() => {
         if (form.horaInicio && form.horaFinal) {
             const inicio = dayjs(`2023-01-01T${form.horaInicio}`);
@@ -348,18 +356,18 @@ const FrmActivaciones = () => {
 
     const columns = [
         { name: "cod_activacion", label: "CÓDIGO" },
-        { name: "tipoActivacion", label: "TIPO ACTIVACIÓN" },
-        { name: "promotor", label: "AGENCIA" },
+        { name: "tipoActivacion", label: "PROMOTOR" },
+        { name: "promotor", label: "TIENDA" },
         { name: "distribuidor", label: "DISTRIBUIDOR" },
-        { name: "canal", label: "CANAL" },
-        { name: "ciudad", label: "CIUDAD" },
-        { name: "tienda", label: "TIENDA" },
-        { name: "fecha", label: "FECHA" },
-        { name: "horaInicio", label: "HORAS INICIO" },
-        { name: "horaFinal", label: "HORA FINAL" },
-        { name: "horas", label: "HORAS" },
-        { name: "motos", label: "# MOTOS EXHIBICIÓN" },
-        { name: "animadora", label: "ANIMADORA" },
+        { name: "canal", label: "CIUDAD" },
+        { name: "ciudad", label: "JEFE TIENDA" },
+        { name: "tienda", label: "CORREO TIENDA" },
+        { name: "fecha", label: "TLF. JEFE TIENDA" },
+        { name: "horaInicio", label: "PROMEDIO VENTA" },
+        { name: "horaFinal", label: "# VENDEDORES" },
+        { name: "horas", label: "T. MOTOS PISO" },
+        { name: "motos", label: "# MOTOS SHINERAY" },
+        { name: "animadora", label: "MODELO" },
         {
             name: "acciones",
             label: "ACCIONES",
@@ -410,12 +418,12 @@ const FrmActivaciones = () => {
     ];
 
     const camposPlantillaModelo = [
-        "cod_activacion", "fecha",
+        "cod_promotoria", "fecha",
         "horaInicio", "horaFinal",
         "horas", "canal", "ciudad", "distribuidor", "tienda",
         "motos", "tipoActivacion", "promotor", "animadora",
     ];
-    const tableOptions = getTableOptions(activaciones, camposPlantillaModelo, "Actualizar_activaciones_shineray_bultaco.xlsx");
+    const tableOptions = getTableOptions(activaciones, camposPlantillaModelo, "Actualizar_activaciones.xlsx");
 
     const fetchPromotores = async () => {
         try {
@@ -776,7 +784,7 @@ const FrmActivaciones = () => {
                                     gutterBottom
                                     sx={{textAlign: 'center', mt: 2}}
                                 >
-                                    ACTIVACIONES SHINERAY-BULTACO
+                                    VISITA TIENDA PROMOTORÍA
                                 </Typography>
                                 <Paper elevation={1} sx={{p: 2, mt: 3}}>
                                     <Grid container columnSpacing={2} rowSpacing={2}>
@@ -1008,7 +1016,7 @@ const FrmActivaciones = () => {
                                 <ThemeProvider theme={getMuiTheme()}>
                                     <Box sx={{width: '100%', '& .MuiPaper-root': {width: '100%'}}}>
                                         <MUIDataTable
-                                            title="ACTIVACIONES REGISTRADAS"
+                                            title="REGISTROS VISITA TIENDA PROMOTORÍA"
                                             data={activaciones}
                                             columns={columns}
                                             options={{
@@ -1037,7 +1045,7 @@ const FrmActivaciones = () => {
 export default function IntegrationNotistack() {
     return (
         <SnackbarProvider maxSnack={3}>
-            <FrmActivaciones/>
+            <FrmPromotoria/>
         </SnackbarProvider>
     );
 }
