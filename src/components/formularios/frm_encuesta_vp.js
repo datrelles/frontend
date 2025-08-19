@@ -5,10 +5,10 @@ import { Box, Typography, TextField,
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {Grid} from "@material-ui/core";
 
-function RadioEscala({ label, value, onChange, required = false, showNA = false, disabled = false }) {
+function RadioEscala({ label, value, onChange, required = false, showNA = false, naLabel = "N/A", disabled = false }) {
     return (
         <Grid container alignItems="center" spacing={2}>
-            <Grid item xs={6}>
+            <Grid item xs={5}>
                 <Typography
                     sx={{
                         whiteSpace: 'normal',
@@ -20,7 +20,7 @@ function RadioEscala({ label, value, onChange, required = false, showNA = false,
                     {label}{required && ' *'}
                 </Typography>
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={7}>
                 <FormControl component="fieldset" fullWidth disabled={disabled}>
                     <RadioGroup row value={value} onChange={onChange}>
                         {[1, 2, 3, 4, 5].map((num) => (
@@ -32,12 +32,8 @@ function RadioEscala({ label, value, onChange, required = false, showNA = false,
                                         size="small"
                                         disabled={disabled}
                                         sx={{
-                                            '&.Mui-checked': {
-                                                color: 'firebrick',
-                                            },
-                                            '&:hover': {
-                                                backgroundColor: 'rgba(178, 34, 34, 0.08)',
-                                            }
+                                            '&.Mui-checked': { color: 'firebrick' },
+                                            '&:hover': { backgroundColor: 'rgba(178, 34, 34, 0.08)' }
                                         }}
                                     />
                                 }
@@ -54,16 +50,12 @@ function RadioEscala({ label, value, onChange, required = false, showNA = false,
                                         size="small"
                                         disabled={disabled}
                                         sx={{
-                                            '&.Mui-checked': {
-                                                color: 'firebrick',
-                                            },
-                                            '&:hover': {
-                                                backgroundColor: 'rgba(178, 34, 34, 0.08)',
-                                            }
+                                            '&.Mui-checked': { color: 'firebrick' },
+                                            '&:hover': { backgroundColor: 'rgba(178, 34, 34, 0.08)' }
                                         }}
                                     />
                                 }
-                                label="N/A"
+                                label={naLabel}
                                 labelPlacement="end"
                                 sx={{ mx: 1 }}
                             />
@@ -75,65 +67,35 @@ function RadioEscala({ label, value, onChange, required = false, showNA = false,
     );
 }
 
-function RadioSiNo({ label, value, onChange, required = false, showNA = false, disabled = false }) {
+
+function RadioSiNo({ label, value, onChange, required = false, naLabel = null, disabled = false }) {
     return (
         <Grid container alignItems="center" spacing={2}>
-            <Grid item xs={6}>
-                <Typography
-                    sx={{
-                        whiteSpace: 'normal',
-                        overflow: 'visible',
-                        textOverflow: 'unset',
-                        fontSize: '16px'
-                    }}
-                >
+            <Grid item xs={5}>
+                <Typography sx={{ whiteSpace: "normal", fontSize: "16px" }}>
                     {label}{required && ' *'}
                 </Typography>
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={7}>
                 <FormControl component="fieldset" fullWidth disabled={disabled}>
                     <RadioGroup row value={value} onChange={onChange}>
                         <FormControlLabel
                             value="SI"
-                            control={<Radio size="small" disabled={disabled} sx={{
-                                '&.Mui-checked': {
-                                    color: 'firebrick',
-                                },
-                                '&:hover': {
-                                    backgroundColor: 'rgba(178, 34, 34, 0.08)',
-                                }
-                            }} />}
+                            control={<Radio size="small" disabled={disabled} sx={{ '&.Mui-checked': { color: 'firebrick' } }} />}
                             label="SI"
-                            labelPlacement="end"
                             sx={{ mx: 1 }}
                         />
                         <FormControlLabel
                             value="NO"
-                            control={<Radio size="small" disabled={disabled} sx={{
-                                '&.Mui-checked': {
-                                    color: 'firebrick',
-                                },
-                                '&:hover': {
-                                    backgroundColor: 'rgba(178, 34, 34, 0.08)',
-                                }
-                            }} />}
+                            control={<Radio size="small" disabled={disabled} sx={{ '&.Mui-checked': { color: 'firebrick' } }} />}
                             label="NO"
-                            labelPlacement="end"
                             sx={{ mx: 1 }}
                         />
-                        {showNA && (
+                        {naLabel && (
                             <FormControlLabel
                                 value="N/A"
-                                control={<Radio size="small" sx={{
-                                    '&.Mui-checked': {
-                                        color: 'firebrick',
-                                    },
-                                    '&:hover': {
-                                        backgroundColor: 'rgba(178, 34, 34, 0.08)',
-                                    }
-                                }} />}
-                                label="N/A"
-                                labelPlacement="end"
+                                control={<Radio size="small" disabled={disabled} sx={{ '&.Mui-checked': { color: 'firebrick' } }} />}
+                                label={naLabel}
                                 sx={{ mx: 1 }}
                             />
                         )}
@@ -160,12 +122,12 @@ function CampoTexto({ label, value, onChange, required = false, disabled = false
 
     return (
         <Grid container alignItems="center" spacing={2}>
-            <Grid item xs={6}>
+            <Grid item xs={5}>
                 <Typography sx={{ fontSize: "16px" }}>
                     {label}{required && ' *'}
                 </Typography>
             </Grid>
-            <Grid item xs={6} sx={{ display: "flex", alignItems: "center" }}>
+            <Grid item xs={7} sx={{ display: "flex", alignItems: "center" }}>
                 <TextField
                     type="number"
                     value={value}
@@ -176,7 +138,7 @@ function CampoTexto({ label, value, onChange, required = false, disabled = false
                     inputProps={{ min: 0, max: 100, step: 1 }}
                     sx={{
                         width: "100px",
-                        ml: 2
+                        ml: 1
                     }}
                 />
             </Grid>
@@ -217,21 +179,28 @@ function EncuestaExhibicion({ form, handleChange, esRetail, disabled }) {
                             value={form.prec_vis_corr || ''}
                             onChange={handleChange('prec_vis_corr')}
                             required
+                            showNA
+                            naLabel="NO APLICA"
                             disabled={disabled}
                         />
                     )}
                     <RadioSiNo label="5. Existen motos con imperfectos"
                                value={form.motos_desper || ''} onChange={handleChange('motos_desper')} disabled={disabled} />
-                    {form.motos_desper === 'NO' && (
+                    {form.motos_desper === 'SI' && (
                         <TextField label="Observaciones"
                                    value={form.motos_desper_obs || ''}
                                    onChange={(e) => handleChange('motos_desper_obs')({ target: { value: e.target.value.toUpperCase() } })}
                                    required fullWidth
                                    disabled={disabled}/>
                     )}
-                    <RadioSiNo label="6. Estado de publicidad de la marca"
-                               value={form.estado_publi || ''} onChange={handleChange('estado_publi')} showNA disabled={disabled} />
-                    {form.estado_publi === 'SI' && (
+                    <RadioSiNo
+                        label="6. Estado de publicidad de la marca"
+                        value={form.estado_publi || ''}
+                        onChange={handleChange('estado_publi')}
+                        naLabel="NO HAY PUBLICIDAD"
+                        disabled={disabled}
+                    />
+                    {form.estado_publi === 'NO' && (
                         <TextField
                             label="Observaciones"
                             value={form.estado_publi_obs || ''}
@@ -249,7 +218,6 @@ function EncuestaExhibicion({ form, handleChange, esRetail, disabled }) {
     );
 }
 
-
 function EncuestaInteraccion({ form, handleChange , disabled }) {
     return (
         <Accordion defaultExpanded>
@@ -262,16 +230,29 @@ function EncuestaInteraccion({ form, handleChange , disabled }) {
                     <RadioEscala label="8. Conocimiento del producto"   value={form.conoc_prod   || ''} onChange={handleChange('conoc_prod')} required  disabled={disabled}/>
                     <RadioEscala label="9. Conocimiento de garantía y postventa" value={form.conoc_garan || ''} onChange={handleChange('conoc_garan')} required disabled={disabled} />
 
-                    <RadioSiNo   label="10. Conocimiento de promocional actual"
-                                 value={form.conoc_promo || ''} onChange={handleChange('conoc_promo')} showNA disabled={disabled}/>
-
-
-                    <RadioEscala label="11. Conformidad incentivo Shineray"
-                                 value={form.confor_shine || ''} onChange={handleChange('confor_shine')} showNA  disabled={disabled}/>
-
-                    <RadioEscala label="12. Conformidad incentivo competencia"
-                                 value={form.confor_compe || ''} onChange={handleChange('confor_compe')} showNA disabled={disabled} />
-
+                    <RadioSiNo
+                        label="10. Conocimiento de promocional actual"
+                        value={form.conoc_promo || ''}
+                        onChange={handleChange('conoc_promo')}
+                        naLabel="NO HAY PROMOCIONAL"
+                        disabled={disabled}
+                    />
+                    <RadioEscala
+                        label="11. Conformidad incentivo Shineray"
+                        value={form.confor_shine || ''}
+                        onChange={handleChange('confor_shine')}
+                        showNA
+                        disabled={disabled}
+                        naLabel="NO HAY INCENTIVO ACTUALMENTE"
+                    />
+                    <RadioEscala
+                        label="12. Conformidad incentivo competencia"
+                        value={form.confor_compe || ''}
+                        onChange={handleChange('confor_compe')}
+                        showNA
+                        disabled={disabled}
+                        naLabel="NO HAY INCENTIVO"
+                    />
                     {form.confor_compe && form.confor_compe !== 'N/A' && (
                         <TextField
                             label="Detalle de incentivos"
@@ -284,7 +265,6 @@ function EncuestaInteraccion({ form, handleChange , disabled }) {
                             disabled={disabled}
                         />
                     )}
-
                     <RadioEscala label="13. Conocimiento de shibot" value={form.conoc_shibot || ''} onChange={handleChange('conoc_shibot')} required disabled={disabled}/>
                     <RadioEscala label="14. Ubicación de talleres cercanos" value={form.ubi_talleres || ''} onChange={handleChange('ubi_talleres')} required disabled={disabled}/>
                 </Box>
@@ -292,8 +272,6 @@ function EncuestaInteraccion({ form, handleChange , disabled }) {
         </Accordion>
     );
 }
-
-
 
 
 export { EncuestaExhibicion, EncuestaInteraccion };

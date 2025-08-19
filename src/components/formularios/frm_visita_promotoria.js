@@ -99,17 +99,22 @@ const VisitaPromotoria = () => {
         if (!num(f.ubi_talleres)) faltan.push('ubi_talleres');
 
         if (up(f.pop_actual) === 'NO' && !clean(f.pop_actual_obs)) faltan.push('pop_actual_obs');
-        if (up(f.motos_desper) === 'NO' && !clean(f.motos_desper_obs)) faltan.push('motos_desper_obs');
+        if (up(f.motos_desper) === 'SI' && !clean(f.motos_desper_obs)) faltan.push('motos_desper_obs');
 
-
-        if (up(f.estado_publi) === 'SI' && !clean(f.estado_publi_obs)) {
+        if (up(f.estado_publi) === 'NO' && !clean(f.estado_publi_obs)) {
             faltan.push('estado_publi_obs');
+        }
+
+        if (up(f.estado_publi) === 'N/A' && clean(f.estado_publi_obs)) {
+            errores.push('estado_publi_obs (no debe existir cuando es N/A)');
         }
         if (esRetailUI) {
             const v4 = Number(f.prec_vis_corr);
-            if (!(v4 >= 1 && v4 <= 5)) faltan.push('prec_vis_corr');
+            if (!( (v4 >= 1 && v4 <= 5) || up(f.prec_vis_corr) === "N/A")) {
+                faltan.push('prec_vis_corr');
+            }
         }
-        return {completa: faltan.length === 0 && errores.length === 0, faltan, errores};
+        return { completa: faltan.length === 0 && errores.length === 0, faltan, errores };
     };
 
     const validarTodo = (f) => {
@@ -121,12 +126,11 @@ const VisitaPromotoria = () => {
     const todoCompleto = validarTodo(form).completa;
 
     const sanitizeBusinessRules = (e) => {
-        const out = {...e};
-
-        if (out.estado_publi !== 1) {
+        const out = { ...e };
+        if (up(out.estado_publi) === "N/A") {
             out.estado_publi_obs = null;
         }
-        if (out.estado_publi === 1 && !clean(out.estado_publi_obs)) {
+        if (up(out.estado_publi) === "SI") {
             out.estado_publi_obs = null;
         }
         if (out.confor_compe == null) {
