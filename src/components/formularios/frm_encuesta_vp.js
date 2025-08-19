@@ -144,6 +144,46 @@ function RadioSiNo({ label, value, onChange, required = false, showNA = false, d
     );
 }
 
+function CampoTexto({ label, value, onChange, required = false, disabled = false, placeholder }) {
+    const handleChange = (e) => {
+        const newValue = e.target.value;
+        if (newValue === "") {
+            onChange(e);
+            return;
+        }
+        const num = Number(newValue);
+        if (!Number.isInteger(num)) return;
+        if (num >= 0 && num <= 100) {
+            onChange(e);
+        }
+    };
+
+    return (
+        <Grid container alignItems="center" spacing={2}>
+            <Grid item xs={6}>
+                <Typography sx={{ fontSize: "16px" }}>
+                    {label}{required && ' *'}
+                </Typography>
+            </Grid>
+            <Grid item xs={6} sx={{ display: "flex", alignItems: "center" }}>
+                <TextField
+                    type="number"
+                    value={value}
+                    onChange={handleChange}
+                    size="small"
+                    placeholder={placeholder}
+                    disabled={disabled}
+                    inputProps={{ min: 0, max: 100, step: 1 }}
+                    sx={{
+                        width: "100px",
+                        ml: 2
+                    }}
+                />
+            </Grid>
+        </Grid>
+    );
+}
+
 function EncuestaExhibicion({ form, handleChange, esRetail, disabled }) {
     return (
         <Accordion defaultExpanded>
@@ -154,8 +194,7 @@ function EncuestaExhibicion({ form, handleChange, esRetail, disabled }) {
                 <Box display="flex" flexDirection="column" gap={2}>
                     <RadioEscala label="1. Limpio y ordenado *"
                                  value={form.limp_orden || ''} onChange={handleChange('limp_orden')} disabled={disabled} required />
-
-                    <RadioSiNo label="2. Material POP actualizado"
+                    <RadioSiNo label="2. Material POP actualizado *"
                                value={form.pop_actual || ''} onChange={handleChange('pop_actual')} disabled={disabled} />
                     {form.pop_actual === 'NO' && (
                         <TextField label="Observaciones"
@@ -163,11 +202,15 @@ function EncuestaExhibicion({ form, handleChange, esRetail, disabled }) {
                                    onChange={(e) => handleChange('pop_actual_obs')({ target: { value: e.target.value.toUpperCase() } })}
                                    required fullWidth />
                     )}
-
-                    <TextField label="3. Material POP suficiente (%) *"
-                               type="number" inputProps={{ min: 0, max: 100, step: 0.01 }}
-                               value={form.pop_sufic ?? ''} onChange={handleChange('pop_sufic')} disabled={disabled} required />
-
+                    <CampoTexto
+                        label="3. Material POP suficiente (%) "
+                        value={form.pop_sufic ?? ''}
+                        onChange={(e) => handleChange('pop_sufic')({ target: { value: e.target.value } })}
+                        type="number"
+                        required
+                        disabled={disabled}
+                        placeholder="%"
+                    />
                     {esRetail && (
                         <RadioEscala
                             label="4. Precios visibles y correctos"
@@ -177,7 +220,6 @@ function EncuestaExhibicion({ form, handleChange, esRetail, disabled }) {
                             disabled={disabled}
                         />
                     )}
-
                     <RadioSiNo label="5. Existen motos con imperfectos"
                                value={form.motos_desper || ''} onChange={handleChange('motos_desper')} disabled={disabled} />
                     {form.motos_desper === 'NO' && (
@@ -187,7 +229,6 @@ function EncuestaExhibicion({ form, handleChange, esRetail, disabled }) {
                                    required fullWidth
                                    disabled={disabled}/>
                     )}
-
                     <RadioSiNo label="6. Estado de publicidad de la marca"
                                value={form.estado_publi || ''} onChange={handleChange('estado_publi')} showNA disabled={disabled} />
                     {form.estado_publi === 'SI' && (
