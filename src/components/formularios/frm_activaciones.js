@@ -59,10 +59,14 @@ const FrmActivaciones = () => {
 
     const [loadingTabla, setLoadingTabla] = useState(false);
 
-    const cargarActivacionesIniciales = async () => {
+    const cargarActivacionesIniciales = async (codPromotor) => {
         try {
             setLoadingTabla(true);
-            const resp = await APIService.getActivaciones(enterpriseShineray);
+
+            const params = {
+                cod_promotor: codPromotor
+            };
+            const resp = await APIService.getActivaciones(enterpriseShineray, params);
             const data = Array.isArray(resp) ? resp : (resp?.data ?? []);
             const tiposDict = mapTipoById(tipoActivaciones);
             const rows = data.map(it => obtenerActivacion(it, tiposDict));
@@ -235,7 +239,12 @@ const FrmActivaciones = () => {
             if (fIni && fFin) { params.fecha_inicio = fIni; params.fecha_fin = fFin; }
             if (buscarDistribuidorId) { params.cod_cliente = String(buscarDistribuidorId); }
 
-            const resp = await APIService.getActivacionesPromotor(enterpriseShineray, form.promotor, params);
+            const resp = await APIService.getActivacionesPromotor(
+                enterpriseShineray,
+                userShineray?.cod_promotor,
+                params
+            );
+
             const data = Array.isArray(resp) ? resp : (resp?.data ?? []);
             const tiposDict = mapTipoById(tipoActivaciones);
             const rows = data.map(it => obtenerActivacion(it, tiposDict));
@@ -311,7 +320,12 @@ const FrmActivaciones = () => {
 
         try {
             const params = { fecha_inicio: fIni, fecha_fin: fFin, cod_cliente: codCliente };
-            const resp = await APIService.getActivacionesPromotor(enterpriseShineray, form.promotor, params);
+            const resp = await APIService.getActivacionesPromotor(
+                enterpriseShineray,
+                userShineray?.cod_promotor,
+                params
+            );
+
             const data = Array.isArray(resp) ? resp : (resp?.data ?? []);
             const tiposDict = mapTipoById(tipoActivaciones);
             const rows = data.map(it => obtenerActivacion(it, tiposDict));
@@ -349,7 +363,7 @@ const FrmActivaciones = () => {
     const columns = [
         { name: "cod_activacion", label: "CÓDIGO" },
         { name: "tipoActivacion", label: "TIPO ACTIVACIÓN" },
-        { name: "promotor", label: "AGENCIA" },
+        { name: "promotor", label: "PROMOTOR" },
         { name: "distribuidor", label: "DISTRIBUIDOR" },
         { name: "canal", label: "CANAL" },
         { name: "ciudad", label: "CIUDAD" },

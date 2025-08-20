@@ -126,11 +126,12 @@ export default class API {
         return await axios.put(`${this.#URL}/activaciones/${cod_activacion}`, data, this.#headers);
     })
 
-    getActivaciones = this.#errorHandler(async (empresa) => {
-        return axios.get(`${this.#URL}/empresas/${empresa}/activaciones`,
-            this.#headers
+    getActivaciones = this.#errorHandler(async (empresa, params = {}) => {
+        return await axios.get(
+            `${this.#URL}/empresas/${empresa}/activaciones`,
+            {params, ...this.#headers}
         );
-    })
+    });
 
     putDireccionGuia = this.#errorHandler(async (empresa, cod_cliente, cod_direccion, data) => {
         return await axios.put(
@@ -142,7 +143,7 @@ export default class API {
 
     getActivacionesPromotor = this.#errorHandler(async (empresa, cod_promotor, params = {}) => {
         return await axios.get(
-            `${this.#URL}/empresas/${empresa}/promotores/${cod_promotor}/activaciones`,
+            `${this.#URL}/empresas/${empresa}/activaciones`,
             {params, ...this.#headers}
         );
     });
