@@ -8,7 +8,7 @@ import {Grid} from "@material-ui/core";
 function RadioEscala({ label, value, onChange, required = false, showNA = false, naLabel = "N/A", disabled = false }) {
     return (
         <Grid container alignItems="center" spacing={2}>
-            <Grid item xs={5}>
+            <Grid item xs={6}>
                 <Typography
                     sx={{
                         whiteSpace: 'normal',
@@ -20,7 +20,7 @@ function RadioEscala({ label, value, onChange, required = false, showNA = false,
                     {label}{required && ' *'}
                 </Typography>
             </Grid>
-            <Grid item xs={7}>
+            <Grid item xs={6}>
                 <FormControl component="fieldset" fullWidth disabled={disabled}>
                     <RadioGroup row value={value} onChange={onChange}>
                         {[1, 2, 3, 4, 5].map((num) => (
@@ -71,12 +71,12 @@ function RadioEscala({ label, value, onChange, required = false, showNA = false,
 function RadioSiNo({ label, value, onChange, required = false, naLabel = null, disabled = false }) {
     return (
         <Grid container alignItems="center" spacing={2}>
-            <Grid item xs={5}>
+            <Grid item xs={6}>
                 <Typography sx={{ whiteSpace: "normal", fontSize: "16px" }}>
                     {label}{required && ' *'}
                 </Typography>
             </Grid>
-            <Grid item xs={7}>
+            <Grid item xs={6}>
                 <FormControl component="fieldset" fullWidth disabled={disabled}>
                     <RadioGroup row value={value} onChange={onChange}>
                         <FormControlLabel
@@ -122,12 +122,12 @@ function CampoTexto({ label, value, onChange, required = false, disabled = false
 
     return (
         <Grid container alignItems="center" spacing={2}>
-            <Grid item xs={5}>
+            <Grid item xs={6}>
                 <Typography sx={{ fontSize: "16px" }}>
                     {label}{required && ' *'}
                 </Typography>
             </Grid>
-            <Grid item xs={7} sx={{ display: "flex", alignItems: "center" }}>
+            <Grid item xs={6} sx={{ display: "flex", alignItems: "center" }}>
                 <TextField
                     type="number"
                     value={value}
@@ -154,9 +154,9 @@ function EncuestaExhibicion({ form, handleChange, esRetail, disabled }) {
             </AccordionSummary>
             <AccordionDetails>
                 <Box display="flex" flexDirection="column" gap={2}>
-                    <RadioEscala label="1. Limpio y ordenado *"
+                    <RadioEscala label="1. ¿La exhibición se encuentra limpia y ordenada?"
                                  value={form.limp_orden || ''} onChange={handleChange('limp_orden')} disabled={disabled} required />
-                    <RadioSiNo label="2. Material POP actualizado *"
+                    <RadioSiNo label="2. ¿El material POP se encuentra actualizado? *"
                                value={form.pop_actual || ''} onChange={handleChange('pop_actual')} disabled={disabled} />
                     {form.pop_actual === 'NO' && (
                         <TextField label="Observaciones"
@@ -165,7 +165,7 @@ function EncuestaExhibicion({ form, handleChange, esRetail, disabled }) {
                                    required fullWidth />
                     )}
                     <CampoTexto
-                        label="3. Material POP suficiente (%) "
+                        label="3. Indicar la cobertura del material POP en la tienda (%) "
                         value={form.pop_sufic ?? ''}
                         onChange={(e) => handleChange('pop_sufic')({ target: { value: e.target.value } })}
                         type="number"
@@ -175,7 +175,7 @@ function EncuestaExhibicion({ form, handleChange, esRetail, disabled }) {
                     />
                     {esRetail && (
                         <RadioEscala
-                            label="4. Precios visibles y correctos"
+                            label="4. ¿Se encuentran los precios visibles y correctos?"
                             value={form.prec_vis_corr || ''}
                             onChange={handleChange('prec_vis_corr')}
                             required
@@ -184,7 +184,7 @@ function EncuestaExhibicion({ form, handleChange, esRetail, disabled }) {
                             disabled={disabled}
                         />
                     )}
-                    <RadioSiNo label="5. Existen motos con imperfectos"
+                    <RadioSiNo label="5. ¿Existen motos con imperfectos? *"
                                value={form.motos_desper || ''} onChange={handleChange('motos_desper')} disabled={disabled} />
                     {form.motos_desper === 'SI' && (
                         <TextField label="Observaciones"
@@ -194,7 +194,7 @@ function EncuestaExhibicion({ form, handleChange, esRetail, disabled }) {
                                    disabled={disabled}/>
                     )}
                     <RadioSiNo
-                        label="6. Estado de publicidad de la marca"
+                        label="6. ¿La publicidad/branding de la marca se encuentra actualizada y en buen estado? *"
                         value={form.estado_publi || ''}
                         onChange={handleChange('estado_publi')}
                         naLabel="NO HAY PUBLICIDAD"
@@ -226,19 +226,19 @@ function EncuestaInteraccion({ form, handleChange , disabled }) {
             </AccordionSummary>
             <AccordionDetails>
                 <Box display="flex" flexDirection="column" gap={2}>
-                    <RadioEscala label="7. Conocimiento del portafolio" value={form.conoc_portaf || ''} onChange={handleChange('conoc_portaf')} required disabled={disabled} />
-                    <RadioEscala label="8. Conocimiento del producto"   value={form.conoc_prod   || ''} onChange={handleChange('conoc_prod')} required  disabled={disabled}/>
-                    <RadioEscala label="9. Conocimiento de garantía y postventa" value={form.conoc_garan || ''} onChange={handleChange('conoc_garan')} required disabled={disabled} />
+                    <RadioEscala label="7. Califique el conocimiento del portafolio que tienen los vendedores de piso" value={form.conoc_portaf || ''} onChange={handleChange('conoc_portaf')} required disabled={disabled} />
+                    <RadioEscala label="8. Califique el conocimiento del producto que tienen los vendedores de piso"   value={form.conoc_prod   || ''} onChange={handleChange('conoc_prod')} required  disabled={disabled}/>
+                    <RadioEscala label="9. Califique el conocimiento de garantías y postventa que tienen los vendedores de piso" value={form.conoc_garan || ''} onChange={handleChange('conoc_garan')} required disabled={disabled} />
 
                     <RadioSiNo
-                        label="10. Conocimiento de promocional actual"
+                        label="10. ¿Tienen los vendedores de piso conocimiento de promocional actual de la marca? (Dirigido al cliente final) *"
                         value={form.conoc_promo || ''}
                         onChange={handleChange('conoc_promo')}
                         naLabel="NO HAY PROMOCIONAL"
                         disabled={disabled}
                     />
                     <RadioEscala
-                        label="11. Conformidad incentivo Shineray"
+                        label="11. ¿Cuál es la conformidad de los vendedores de piso / jefe de tienda con el incentivo actual de Shineray? (Dirigido al vendedor/jefe de tienda) *"
                         value={form.confor_shine || ''}
                         onChange={handleChange('confor_shine')}
                         showNA
@@ -246,7 +246,7 @@ function EncuestaInteraccion({ form, handleChange , disabled }) {
                         naLabel="NO HAY INCENTIVO ACTUALMENTE"
                     />
                     <RadioEscala
-                        label="12. Conformidad incentivo competencia"
+                        label="12. ¿Cuál es la conformidad de los vendedores de piso / jefe de tienda con el incentivo actual de la competencia? (Dirigido al vendedor/jefe de tienda)*"
                         value={form.confor_compe || ''}
                         onChange={handleChange('confor_compe')}
                         showNA
@@ -265,8 +265,8 @@ function EncuestaInteraccion({ form, handleChange , disabled }) {
                             disabled={disabled}
                         />
                     )}
-                    <RadioEscala label="13. Conocimiento de shibot" value={form.conoc_shibot || ''} onChange={handleChange('conoc_shibot')} required disabled={disabled}/>
-                    <RadioEscala label="14. Ubicación de talleres cercanos" value={form.ubi_talleres || ''} onChange={handleChange('ubi_talleres')} required disabled={disabled}/>
+                    <RadioEscala label="13. Califique el conocimiento sobre el Shibot  que tienen los vendedores de piso" value={form.conoc_shibot || ''} onChange={handleChange('conoc_shibot')} required disabled={disabled}/>
+                    <RadioEscala label="14. ¿Qué tan bien conocen los vendedores de piso la ubicación de talleres autorizados cercanos?" value={form.ubi_talleres || ''} onChange={handleChange('ubi_talleres')} required disabled={disabled}/>
                 </Box>
             </AccordionDetails>
         </Accordion>

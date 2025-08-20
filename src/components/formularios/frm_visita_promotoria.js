@@ -450,7 +450,7 @@ const VisitaPromotoria = () => {
                                     mx="auto"
                                     width="100%"
                                     sx={{
-                                        maxWidth: {xs: '100%', sm: 900, md: 900, lg: 1040, xl: 1200},
+                                        maxWidth: {xs: '100%', sm: 100, md: 100, lg: 1140, xl: 1500},
                                     }}
                                 >
                                     <Grid container spacing={2} alignItems="center">
