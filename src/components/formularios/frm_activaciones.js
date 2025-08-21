@@ -319,10 +319,22 @@ const FrmActivaciones = () => {
         }
 
         try {
-            const params = { fecha_inicio: fIni, fecha_fin: fFin, cod_cliente: codCliente };
+
+            const p = await APIService.getPromotorActual();
+            setPromotorActual(p);
+            const codPromotor = String(p.identificacion || '').trim();
+
+            setForm(prev => ({ ...prev, promotor: codPromotor }));
+            const params = {
+                cod_promotor: codPromotor,
+                fecha_inicio: fIni,
+                fecha_fin: fFin,
+                cod_cliente: codCliente
+            };
+
             const resp = await APIService.getActivacionesPromotor(
                 enterpriseShineray,
-                userShineray?.cod_promotor,
+                codPromotor,
                 params
             );
 
