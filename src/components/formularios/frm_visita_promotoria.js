@@ -450,7 +450,7 @@ const VisitaPromotoria = () => {
                                     mx="auto"
                                     width="100%"
                                     sx={{
-                                        maxWidth: {xs: '100%', sm: 100, md: 100, lg: 1140, xl: 1500},
+                                        maxWidth: {xs: '100%', sm: 1500, md: 1000, lg: 1140, xl: 1500},
                                     }}
                                 >
                                     <Grid container spacing={2} alignItems="center">
@@ -552,7 +552,7 @@ const VisitaPromotoria = () => {
                                 <Button
                                     variant="outlined"
                                     onClick={() => setMostrarSegundo(true)}
-                                    disabled={!guardada}
+                                    // disabled={!guardada}
                                 >
                                     Siguiente
                                 </Button>
