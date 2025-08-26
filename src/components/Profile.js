@@ -14,7 +14,7 @@ const API = process.env.REACT_APP_API;
 
 
 function Profile() {
-  const {jwt, userShineray, setHandleenterprise, setHandleBranch, setHandleSystemShineray}=useAuthContext();
+  const { jwt, userShineray, setHandleenterprise, setHandleBranch, setHandleSystemShineray } = useAuthContext();
   const { removeToken } = useToken();
   const navigate = useNavigate();
 
@@ -25,7 +25,7 @@ function Profile() {
 
 
   const getEnterprises = async () => {
-    
+
 
     const res = await fetch(`${API}/enterprise/${userShineray}`, {
       method: 'GET',
@@ -54,8 +54,8 @@ function Profile() {
       })
 
       const data1 = await res1.json();
-       setHandleenterprise(data1[0].EMPRESA_ACTUAL);
-       setHandleBranch(data1[0].AGENCIA_ACTUAL);
+      setHandleenterprise(data1[0].EMPRESA_ACTUAL);
+      setHandleBranch(data1[0].AGENCIA_ACTUAL);
       setEnterprise(newData.find((objeto) => objeto.key === data1[0].EMPRESA_ACTUAL).value)
 
       const res2 = await fetch(`${API}/branch/${userShineray}/${data1[0].EMPRESA_ACTUAL}`, {
@@ -141,7 +141,7 @@ function Profile() {
               id="empresa"
               options={enterprises.map((enterprise) => enterprise.value)}
               value={enterprise}
-              style={{ marginBottom: '20px'}}
+              style={{ marginBottom: '20px' }}
               onChange={handleChange}
               fullWidth
               renderInput={(params) => (
@@ -162,7 +162,7 @@ function Profile() {
               id="agencia"
               options={branches.map((branch) => branch.value)}
               value={branch}
-              style={{ marginBottom: '20px'}}
+              style={{ marginBottom: '20px' }}
               onChange={handleChange1}
               fullWidth
               renderInput={(params) => (
@@ -178,22 +178,32 @@ function Profile() {
                 />
               )}
             />
-            <button
-              className="btn btn-primary btn-block rounded"
-              type="button"
-              style={{ backgroundColor: 'firebrick' }}
-              onClick={handleChange2}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '10px', 
+              }}
             >
-              {'Ingresar'}
-            </button>
-            <Header/>
+              <button
+                className="btn btn-primary btn-block rounded"
+                type="button"
+                style={{ backgroundColor: 'firebrick', width: '160px'}}
+                onClick={handleChange2}
+              >
+                {'Ingresar'}
+              </button>
+
+              <Header />
+            </div>
           </Grid>
         </Grid>
-        </div>
       </div>
+    </div>
 
 
-      );
+  );
 }
 
-      export default Profile;
+export default Profile;

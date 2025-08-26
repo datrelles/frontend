@@ -22,6 +22,7 @@ import LoadingCircle from './contabilidad/crafter';
 import Functions from "../helpers/Functions";
 import { IconButton, Tooltip, Modal, Box } from '@mui/material';
 import TwoWheelerIcon from '@mui/icons-material/TwoWheeler';
+import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import { useSnackbar } from 'notistack';
 
 const API = process.env.REACT_APP_API;
@@ -195,6 +196,43 @@ function Dispatch() {
         })));
     };
 
+    const sendMotoInfo = async (value, rowData) => {
+        const row = motos.filter(item => item.COD_PRODUCTO === rowData[1])[0];
+        console.log(row)
+        try {
+            const res = await fetch(`http://172.17.23.2:5000/log/info_moto`, {     //await fetch(`${API}/log/info_moto`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + jwt
+                },
+                body: JSON.stringify({
+                    cod_comprobante: row.COD_COMPROBANTE,
+                    tipo_comprobante: row.TIPO_COMPROBANTE,
+                    cod_producto: row.COD_PRODUCTO,
+                    empresa: enterpriseShineray,
+                    cod_bodega: branchShineray,
+                    current_identification: currentIdentificacion,
+                    cod_motor: 'XY169FMM2TA021714'
+
+                })
+            });
+
+            if (!res.ok) {
+                if (res.status === 401) {
+                    toast.error('Sesión caducada.');
+                }
+            } else {
+                const data = await res.json();
+                setDispatchs(data);
+                console.log(data)
+            }
+        } catch (error) {
+            toast.error(error.message);
+        }
+    };
+
+
 
 
     const CustomToolbarSelect = ({ selectedRows }) => {
@@ -210,6 +248,7 @@ function Dispatch() {
             </>
         );
     };
+
 
     const handleRowSelection = (currentRowsSelected, allRowsSelected) => {
         if (allRowsSelected.length > 0) {
@@ -253,7 +292,7 @@ function Dispatch() {
                         orden: dispatchs[selectedRow].COD_ORDEN
                     })
                 });
-    
+
                 if (!res.ok) {
                     if (res.status === 401) {
                         toast.error('Sesión caducada.');
@@ -298,27 +337,25 @@ function Dispatch() {
             },
         },
         {
-            name: "cod_formula",
+            name: "scan",
             label: "Escanear",
             options: {
-              customBodyRender: (value, tableMeta) => {
-                const isButtonEnabled = tableMeta.rowData[3] === 2;
-                return (
-                  <div style={{ textAlign: "center" }}>
-                  </div>
-                );
-              },
+                customBodyRender: (value, tableMeta) => {
+                    return (
+                    <div style={{ textAlign: "center" }}>
+                        <IconButton onClick={() => sendMotoInfo(value, tableMeta.rowData)} color="primary" >
+                            <QrCodeScannerIcon />
+                        </IconButton>
+                    </div>
+                    )
+                },
             },
-          },
+        },
     ];
 
     const optionsMotos = {
         responsive: 'standard',
-        onRowSelectionChange: handleRowSelection,
         selectableRows: 'single',
-        customToolbarSelect: (selectedRows) => (
-            <CustomToolbarSelect selectedRows={selectedRows} />
-        ),
         textLabels: {
             body: {
                 noMatch: "Lo siento, no se encontraron registros",
@@ -736,14 +773,14 @@ function Dispatch() {
                                 </Grid>
                             </Grid>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginTop: '15px' }}>
-                            <ThemeProvider theme={getMuiTheme()}>
-                                <MUIDataTable
-                                    title={"Detalle Pedido"}
-                                    data={motos}
-                                    columns={columnsMotos}
-                                    options={optionsMotos}
-                                />
-                            </ThemeProvider>
+                                <ThemeProvider theme={getMuiTheme()}>
+                                    <MUIDataTable
+                                        title={"Detalle Pedido"}
+                                        data={motos}
+                                        columns={columnsMotos}
+                                        options={optionsMotos}
+                                    />
+                                </ThemeProvider>
                             </div>
                             <IconButton onClick={handleCloseModal}>Cerrar</IconButton>
                         </Box>
