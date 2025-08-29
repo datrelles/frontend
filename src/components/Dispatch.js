@@ -647,5 +647,3 @@ export default function DispatchMobile() {
     </ThemeProvider>
   );
 }
-
-
