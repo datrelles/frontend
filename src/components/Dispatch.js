@@ -1,802 +1,651 @@
-import React, { useState, useEffect } from "react";
-import { makeStyles } from '@mui/styles';
-import { toast } from 'react-toastify';
-import MUIDataTable from "mui-datatables";
-import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { useNavigate } from 'react-router-dom';
-import dayjs from 'dayjs';
-import Autocomplete from '@mui/material/Autocomplete';
-import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { SnackbarProvider } from 'notistack';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { TextField } from '@mui/material';
-import Grid from '@mui/material/Grid';
-import Button from '@mui/material/Button';
-import ButtonGroup from '@mui/material/ButtonGroup';
-import EditIcon from '@mui/icons-material/Edit';
+import React, { useEffect, useMemo, useRef, useState, useCallback, useTransition } from "react";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import {
+  AppBar, Box, Card, CardActionArea, CardContent, Divider, IconButton,
+  InputAdornment, Modal, TextField, Toolbar, Typography, Stack, Chip,
+  Drawer, Button, Backdrop, CircularProgress, Skeleton, Tooltip, Badge,
+  Alert, Snackbar
+} from "@mui/material";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import SearchIcon from "@mui/icons-material/Search";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import CloseIcon from "@mui/icons-material/Close";
+import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
+import ClearIcon from "@mui/icons-material/Clear";
+import DoneIcon from "@mui/icons-material/Done";
+import dayjs from "dayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import Navbar0 from "./Navbar0";
 import { useAuthContext } from "../context/authContext";
-import LoadingCircle from './contabilidad/crafter';
-import Functions from "../helpers/Functions";
-import { IconButton, Tooltip, Modal, Box } from '@mui/material';
-import TwoWheelerIcon from '@mui/icons-material/TwoWheeler';
-import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
-import { useSnackbar } from 'notistack';
 
-const API = process.env.REACT_APP_API;
+// >>> APIs externas centralizadas
+import {
+  setAuthToken,
+  getMenus as apiGetMenus,
+  getDispatchs as apiGetDispatchs,
+  getDetallePedido as apiGetDetallePedido,
+} from "../services/dispatchApi";
 
-const useStyles = makeStyles({
-    datePickersContainer: {
-        display: 'flex',
-        gap: '15px',
-    },
-    textField: {
-        marginBottom: '15px',
-    },
+const STATUS_OPTIONS = [
+  { code: "BOD", label: "EN BODEGA" },
+  { code: "DEP", label: "PARCIAL" },
+  { code: "DES", label: "DESPACHADOS" },
+  { code: "CAD", label: "CADUCADOS" },
+  { code: "A", label: "ANULADOS" },
+  { code: "T", label: "TODOS" },
+];
 
-});
+// NUEVO: opciones de BODEGA (prefijo de COD_PEDIDO)
+const BODEGA_OPTIONS = [
+  { code: "ALL", label: "TODAS" },
+  { code: "RET", label: "A3 - RETAIL" },
+  { code: "MAY", label: "N2 - MAYOREO" },
+];
 
-function Dispatch() {
-    const { jwt, userShineray, enterpriseShineray, systemShineray, branchShineray } = useAuthContext();
-    const [dispatchs, setDispatchs] = useState([]);
-    const [statusList, setStatusList] = useState([]);
-    const [pedido, setPedido] = useState("");
-    const [orden, setOrden] = useState("");
-    const [identificacion, setIdentificacion] = useState("");
-    const [cliente, setCliente] = useState("");
-    const [bodega, setBodega] = useState("");
-    const [direccion, setDireccion] = useState("");
-    const [fromDate, setFromDate] = useState(dayjs().subtract(1, 'month').format('DD/MM/YYYY'));
-    const [toDate, setToDate] = useState(dayjs().format('DD/MM/YYYY'));
-    const [tipoDocumento, setTipoDocumento] = useState("");
-    const [menus, setMenus] = useState([]);
-    const [excelDataFee, setExcelDataFee] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [statusNombre, setStatusNombre] = useState("");
-    const [statusCode, setStatusCode] = useState("T");
-    const navigate = useNavigate();
-    const { enqueueSnackbar } = useSnackbar();
-    const classes = useStyles();
+const theme = createTheme();
 
-    const [selectedRow, setSelectedRow] = useState(0);
-    const [openModal, setOpenModal] = useState(false);
-    const [currentPedido, setCurrentPedido] = useState("");
-    const [currentOrden, setCurrentOrden] = useState("");
-    const [currentTipoPedido, setCurrentTipoPedido] = useState("");
-    const [currentTipoOrden, setCurrentTipoOrden] = useState("");
-    const [currentIdentificacion, setCurrentIdentificacion] = useState("");
-    const [currentCliente, setCurrentCliente] = useState("");
-    const [currentBodega, setCurrentBodega] = useState("");
-    const [currentDireccion, setCurrentDireccion] = useState("");
-    const [currentFecha, setCurrentFecha] = useState("");
-    const [currentCodBodega, setCurrentCodBodega] = useState("");
-    const [currentCodBodegaDesp, setCurrentCodBodegaDesp] = useState("");
-    const [currentCodDireccion, setCurrentCodDireccion] = useState("");
+export default function DispatchMobile() {
+  const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
 
-    const [motos, setMotos] = useState([]);
+  // data
+  const [menus, setMenus] = useState([]);
+  const [dispatchs, setDispatchs] = useState([]);
 
-    const getDispatchs = async () => {
-        try {
-            const res = await fetch(`${API}/log/pedidos`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + jwt
-                },
-                body: JSON.stringify({
-                    pn_empresa: enterpriseShineray,
-                    pn_cod_agencia: branchShineray,
-                    pv_cod_tipo_pedido: "PC", //"PC"
-                    pv_estado: statusCode,
-                    pd_fecha_inicial: fromDate,
-                    pd_fecha_final: toDate,
-                    pv_cod_persona_cli: identificacion,
-                    pedido: pedido,
-                    orden: orden,
-                    cliente: cliente,
-                    direccion: direccion,
-                    bodega_consignacion: bodega
+  // loaders
+  const [loading, setLoading] = useState(false);          // fetch dispatchs
+  const [loadingMenus, setLoadingMenus] = useState(false); // fetch menus
 
-                })
-            });
+  // ui
+  const [activeTab, setActiveTab] = useState("BOD");
+  const [bodega, setBodega] = useState("ALL"); // NUEVO: estado del selector Bodega
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+  const debounceRef = useRef(null);
 
-            if (!res.ok) {
-                if (res.status === 401) {
-                    toast.error('Sesión caducada.');
-                }
-            } else {
-                const data = await res.json();
-                setDispatchs(data);
-                console.log(data)
-            }
-        } catch (error) {
-            toast.error(error.message);
-        }
-    };
+  // filtros (solo fechas disparan fetch)
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [fromDate, setFromDate] = useState(dayjs().subtract(1, "month"));
+  const [toDate, setToDate] = useState(dayjs());
 
-    const getMenus = async () => {
-        try {
-            const res = await fetch(`${API}/menus/${userShineray}/${enterpriseShineray}/${systemShineray}`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + jwt
-                }
-            });
+  // detalle
+  const [open, setOpen] = useState(false);
+  const [current, setCurrent] = useState(null);
+  const [motos, setMotos] = useState([]);
+  const [loadingDetalle, setLoadingDetalle] = useState(false);
 
-            if (!res.ok) {
-                if (res.status === 401) {
-                    toast.error('Sesión caducada.');
-                }
-            } else {
-                const data = await res.json();
-                setMenus(data);
-            }
-        } catch (error) {
-            toast.error(error.message);
-        }
-    };
+  // === ESCANEO POR LÍNEA (Zebra keyboard wedge, SIN Enter) ===
+  const [scanOpenById, setScanOpenById] = useState({}); // visibilidad del input por ítem
+  const [scanValueById, setScanValueById] = useState({}); // buffer visible del input
+  const [scannedCodesById, setScannedCodesById] = useState({}); // historial de lecturas
+  const scanRefs = useRef({}); // refs a inputs (autofocus)
+  const scanTimersRef = useRef({}); // timers para detectar fin de lectura
 
-    const status = [
-        { name: "T", label: "TODOS" },
-        { name: "BOD", label: "EN BODEGA" },
-        { name: "DEP", label: "DESPACHO PARCIAL" },
-        { name: "DES", label: "DESPACHADOS" },
-        { name: "CAD", label: "CADUCADOS" },
-        { name: "A", label: "ANULADOS" }]
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMsg, setSnackbarMsg] = useState("");
 
-    useEffect(() => {
-        document.title = 'Despachos Motos';
-        getDispatchs();
-        getMenus();
-        getStatusList();
-    }, []);
+  const lastFetchKey = useRef("");
+  const [isPending, startTransition] = useTransition();
 
-    useEffect(() => {
-        getDispatchs();
-    }, [fromDate, toDate, pedido, orden, identificacion, cliente, bodega, statusCode, direccion]);
+  // ===== Helpers de fecha =====
+  const sanitizeDate = useCallback((d) => (dayjs.isDayjs(d) && d.isValid() ? d : dayjs()), []);
+  const clampedRange = useMemo(() => {
+    let from = sanitizeDate(fromDate).startOf("day");
+    let to = sanitizeDate(toDate).endOf("day");
+    if (to.isBefore(from)) to = from.endOf("day");
+    return { from, to };
+  }, [fromDate, toDate, sanitizeDate]);
 
-    const handleDateChange = (newValue) => {
-        const formattedDate = dayjs(newValue).format('DD/MM/YYYY');
-        setFromDate(formattedDate);
-    };
+  const fromISO = useMemo(() => clampedRange.from.format("YYYY-MM-DD"), [clampedRange]);
+  const toISO = useMemo(() => clampedRange.to.format("YYYY-MM-DD"), [clampedRange]);
 
-    const handleDateChange2 = (newValue) => {
-        const formattedDate = dayjs(newValue).format('DD/MM/YYYY');
-        setToDate(formattedDate);
-    };
+  // setear token global
+  useEffect(() => { setAuthToken(jwt); }, [jwt]);
 
-    const handleStatusChange = (event, value) => {
-        if (value) {
-            const statusSeleccionado = status.find((stat) => stat.label === value);
-            console.log(statusSeleccionado)
-            if (statusSeleccionado) {
-                setStatusCode(statusSeleccionado.name);
-                setStatusNombre(statusSeleccionado.label)
-            }
-        } else {
-            setStatusCode('');
-            setStatusNombre('')
-        }
-    };
-
-
-    const getStatusList = async () => {
-        const res = await fetch(`${API}/estados_param?empresa=${enterpriseShineray}&cod_modelo=FIN`, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + jwt
-            }
+  // MENÚS (con loader)
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoadingMenus(true);
+        document.title = "Despachos Motos";
+        const data = await apiGetMenus({
+          user: userShineray,
+          enterprise: enterpriseShineray,
+          system: systemShineray,
         });
-        const data = await res.json();
-        setStatusList(data.map((item) => ({
-            nombre: item.nombre,
-            cod: item.cod_item,
-        })));
-    };
+        setMenus(Array.isArray(data) ? data : []);
+      } catch (e) {
+        console.error(e.message);
+        setMenus([]);
+      } finally {
+        setLoadingMenus(false);
+      }
+    })();
+  }, [userShineray, enterpriseShineray, systemShineray]);
 
-    const sendMotoInfo = async (value, rowData) => {
-        const row = motos.filter(item => item.COD_PRODUCTO === rowData[1])[0];
-        console.log(row)
-        try {
-            const res = await fetch(`http://172.17.23.2:5000/log/info_moto`, {     //await fetch(`${API}/log/info_moto`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + jwt
-                },
-                body: JSON.stringify({
-                    cod_comprobante: row.COD_COMPROBANTE,
-                    tipo_comprobante: row.TIPO_COMPROBANTE,
-                    cod_producto: row.COD_PRODUCTO,
-                    empresa: enterpriseShineray,
-                    cod_bodega: branchShineray,
-                    current_identification: currentIdentificacion,
-                    cod_motor: 'XY169FMM2TA021714'
+  // === Helper numérico robusto ===
+  const toNum = (v) => {
+    if (v == null) return 0;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  };
 
-                })
-            });
+  // Preprocesa registros (incluye flag _BOD_MATCH, _BODEGA y fecha formateada)
+  const preprocessDispatchs = useCallback((arr) => {
+    return (Array.isArray(arr) ? arr : []).map(d => {
+      const fmt = d.FECHA_PEDIDO
+        ? (dayjs(d.FECHA_PEDIDO, "DD/MM/YYYY").isValid()
+          ? dayjs(d.FECHA_PEDIDO, "DD/MM/YYYY").format("DD/MM/YYYY")
+          : String(d.FECHA_PEDIDO))
+        : "";
 
-            if (!res.ok) {
-                if (res.status === 401) {
-                    toast.error('Sesión caducada.');
-                }
-            } else {
-                const data = await res.json();
-                setDispatchs(data);
-                console.log(data)
-            }
-        } catch (error) {
-            toast.error(error.message);
+      const s_des = toNum(d.CANTIDAD_DESPACHADA);
+      const s_pen = toNum(d.CANTIDAD_PENDIENTE);
+      const s_sol = toNum(d.CANTIDAD_SOLICITADA);
+      const s_anu = toNum(d.CANTIDAD_ANULADA);
+
+      const _BOD_MATCH = (s_des === 0) && (s_pen === s_sol) && (s_anu < s_sol);
+      const _PARCIAL_DISPATCH = (s_pen != 0) && (s_des < s_sol) && (s_pen != s_sol);
+      const _DISPATCH_COMPLETE= (s_pen == 0) && (s_des == s_sol);
+
+      const cod = String(d.COD_PEDIDO || "");
+      const _BODEGA = cod.startsWith("A3") ? "RET" : cod.startsWith("N2") ? "MAY" : "OTR";
+
+      const searchIdx = [
+        d.NOMBRE_PERSONA_CLI,
+        d.COD_PEDIDO
+      ]
+        .filter(Boolean)
+        .map(x => String(x).toLowerCase())
+        .join(" | ");
+
+      return {
+        ...d,
+        _FECHA_PEDIDO_FMT: fmt,
+        _SEARCH: searchIdx,
+        _BOD_MATCH,
+        _BODEGA, // NUEVO
+        _PARCIAL_DISPATCH,
+        _DISPATCH_COMPLETE
+      };
+    });
+  }, []);
+
+  // LISTADO DE PEDIDOS (con loader)
+  const fetchDispatchs = useCallback(async () => {
+    const key = `${fromISO}|${toISO}|${enterpriseShineray}`;
+    if (lastFetchKey.current === key) return;
+
+    setLoading(true);
+    try {
+      const data = await apiGetDispatchs({
+        fromDateISO: fromISO,
+        toDateISO: toISO,
+        enterprise: enterpriseShineray,
+      });
+      setDispatchs(preprocessDispatchs(data));
+      lastFetchKey.current = key;
+    } catch (e) {
+      console.error(e.message);
+      setDispatchs([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [fromISO, toISO, enterpriseShineray, preprocessDispatchs]);
+
+  useEffect(() => { fetchDispatchs(); }, [fetchDispatchs]);
+
+  // DETALLE (loader local del modal)
+  const openDetalle = useCallback(async (row) => {
+    setCurrent(row);
+    setOpen(true);
+    setMotos([]);
+    setLoadingDetalle(true);
+
+    // reset de escaneo al abrir un pedido nuevo
+    setScanOpenById({});
+    setScanValueById({});
+    setScannedCodesById({});
+    scanRefs.current = {};
+    scanTimersRef.current = {};
+
+    try {
+      const payload = {
+        pn_empresa: enterpriseShineray,
+        pv_cod_tipo_pedido: row.COD_TIPO_PEDIDO,
+        pedido: row.COD_PEDIDO,
+        pn_cod_agencia: row.COD_BODEGA_DESPACHA,
+        bodega_consignacion: row.COD_BODEGA_ENVIA,
+        cod_direccion: row.COD_DIRECCION,
+        p_tipo_orden: row.COD_TIPO_ORDEN,
+        orden: row.COD_ORDEN,
+      };
+      const data = await apiGetDetallePedido(payload);
+      setMotos(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.error(e.message);
+      setMotos([]);
+    } finally {
+      setLoadingDetalle(false);
+    }
+  }, [enterpriseShineray]);
+
+  // Búsqueda debounce
+  const onSearchChange = useCallback((e) => {
+    const v = e.target.value;
+    setSearchInput(v);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSearch(v.toLowerCase().trim());
+    }, 160);
+  }, []);
+
+  // ► Filtrado client-side: Estado + Bodega + búsqueda
+  const listFiltered = useMemo(() => {
+    let base = dispatchs;
+
+    // Estado
+    if (activeTab === "BOD") {
+      base = base.filter(d => d._BOD_MATCH === true);
+    }
+
+    if  (activeTab === "DEP") {
+      base = base.filter(d => d._PARCIAL_DISPATCH === true);
+    }
+
+    if (activeTab === "DES") {
+      base = base.filter(d => d._DISPATCH_COMPLETE === true);
+    }
+
+    // Bodega (prefijo de COD_PEDIDO)
+    if (bodega !== "ALL") {
+      base = base.filter(d => d._BODEGA === bodega);
+    }
+
+    // Búsqueda texto
+    if (search) {
+      base = base.filter(d => d._SEARCH.includes(search));
+    }
+
+    return base;
+  }, [dispatchs, activeTab, bodega, search]);
+
+  // Handlers
+  const onOpenFilters = useCallback(() => setFiltersOpen(true), []);
+  const onCloseFilters = useCallback(() => setFiltersOpen(false), []);
+  const onApplyFilters = useCallback(() => { setFiltersOpen(false); fetchDispatchs(); }, [fetchDispatchs]);
+  const onStatusChange = useCallback((e) => {
+    const v = e.target.value;
+    startTransition(() => setActiveTab(v)); // isPending activará el loader global
+  }, [startTransition]);
+
+  const onBodegaChange = useCallback((e) => {
+    const v = e.target.value;
+    startTransition(() => setBodega(v));
+  }, [startTransition]);
+
+  // === Escaneo sin Enter ===
+  const toggleScanFor = useCallback((itemId) => {
+    setScanOpenById((prev) => {
+      const next = { ...prev, [itemId]: !prev[itemId] };
+      setTimeout(() => {
+        if (next[itemId]) {
+          scanRefs.current[itemId]?.focus();
         }
-    };
+      }, 0);
+      return next;
+    });
+  }, []);
 
+  const commitScan = useCallback((itemId) => {
+    const code = (scanValueById[itemId] || "").trim();
+    if (!code) return;
+    setScannedCodesById((prev) => ({
+      ...prev,
+      [itemId]: [...(prev[itemId] || []), { code, ts: Date.now() }],
+    }));
+    setSnackbarMsg(`Código capturado: ${code}`);
+    setSnackbarOpen(true);
+    // limpiar input
+    setScanValueById((prev) => ({ ...prev, [itemId]: "" }));
+  }, [scanValueById]);
 
+  const handleScanChange = useCallback((itemId) => (e) => {
+    const val = e.target.value ?? "";
+    setScanValueById((prev) => ({ ...prev, [itemId]: val }));
+    if (scanTimersRef.current[itemId]) clearTimeout(scanTimersRef.current[itemId]);
+    // fin de lectura si no hay nuevas teclas en 120ms
+    scanTimersRef.current[itemId] = setTimeout(() => {
+      commitScan(itemId);
+    }, 120);
+  }, [commitScan]);
 
+  // Loader global visible si hay cualquier operación en curso
+  const busy = loading || loadingMenus || isPending;
 
-    const CustomToolbarSelect = ({ selectedRows }) => {
-        return (
-            <>
-                <Tooltip title="B1">
-                    <Box sx={{ ml: 2 }}>
-                        <IconButton onClick={handleOpenModal}>
-                            <TwoWheelerIcon />
-                        </IconButton>
-                    </Box>
-                </Tooltip>
-            </>
-        );
-    };
+  // Skeleton list (mejora percepción de carga)
+  const SkeletonList = ({ items = 6 }) => (
+    <Stack spacing={1.5}>
+      {Array.from({ length: items }).map((_, i) => (
+        <Card key={i} variant="outlined" sx={{ borderRadius: 3, p: 2 }}>
+          <Skeleton variant="text" width="40%" height={28} />
+          <Skeleton variant="text" width="60%" />
+          <Skeleton variant="text" width="50%" />
+          <Skeleton variant="rectangular" height={18} sx={{ mt: 1, borderRadius: 1 }} />
+        </Card>
+      ))}
+    </Stack>
+  );
 
+  return (
+    <ThemeProvider theme={theme}>
+      <Box sx={{ pb: 8 }}>
+        <Navbar0 menus={menus} />
 
-    const handleRowSelection = (currentRowsSelected, allRowsSelected) => {
-        if (allRowsSelected.length > 0) {
-            setSelectedRow(allRowsSelected[0].dataIndex);
-        } else {
-            setSelectedRow(null);
-        }
-    };
+        {/* Header */}
+        <AppBar position="static" color="transparent" elevation={0} sx={{ mt: 16 }}>
+          <Toolbar sx={{ px: 2, gap: 1, flexWrap: "nowrap" }}>
+            {/* Selector ESTADO */}
+            <FormControl
+              size="small"
+              fullWidth
+              sx={{
+                flex: "1 0 0",   // crecer/encoger equitativo
+                minWidth: 0,     // permite encojer en pantallas muy estrechas
+                bgcolor: "background.paper",
+                borderRadius: 1,
+              }}
+              disabled={busy}
+            >
+              <InputLabel id="estado-label">Estado</InputLabel>
+              <Select
+                labelId="estado-label"
+                id="estado-select"
+                label="Estado"
+                value={activeTab}
+                onChange={onStatusChange}
+              >
+                {STATUS_OPTIONS.map(opt => (
+                  <MenuItem key={opt.code} value={opt.code}>{opt.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-    const handleOpenModal = async () => {
-        if (selectedRow !== null) {
-            console.log(dispatchs[selectedRow])
-            setOpenModal(true);
-            setCurrentPedido(dispatchs[selectedRow].COD_PEDIDO)
-            setCurrentOrden(dispatchs[selectedRow].COD_ORDEN)
-            setCurrentFecha(dispatchs[selectedRow].FECHA_PEDIDO)
-            setCurrentIdentificacion(dispatchs[selectedRow].COD_PERSONA_CLI)
-            setCurrentCliente(dispatchs[selectedRow].NOMBRE_PERSONA_CLI)
-            setCurrentBodega(dispatchs[selectedRow].BODEGA_ENVIA)
-            setCurrentDireccion(dispatchs[selectedRow].DIRECCION)
-            setCurrentTipoOrden(dispatchs[selectedRow].COD_TIPO_ORDEN)
-            setCurrentTipoPedido(dispatchs[selectedRow].COD_TIPO_PEDIDO)
-            setCurrentCodDireccion(dispatchs[selectedRow].COD_DIRECCION)
-            setCurrentCodBodega(dispatchs[selectedRow].COD_BODEGA_ENVIA)
-            setCurrentCodBodegaDesp(dispatchs[selectedRow].COD_BODEGA_DESPACHA)
-            try {
-                const res = await fetch(`${API}/log/listado_pedido`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + jwt
-                    },
-                    body: JSON.stringify({
-                        pn_empresa: enterpriseShineray,
-                        pv_cod_tipo_pedido: dispatchs[selectedRow].COD_TIPO_PEDIDO,
-                        pedido: dispatchs[selectedRow].COD_PEDIDO,
-                        pn_cod_agencia: dispatchs[selectedRow].COD_BODEGA_DESPACHA,
-                        bodega_consignacion: dispatchs[selectedRow].COD_BODEGA_ENVIA,
-                        cod_direccion: dispatchs[selectedRow].COD_DIRECCION,
-                        p_tipo_orden: dispatchs[selectedRow].COD_TIPO_ORDEN,
-                        orden: dispatchs[selectedRow].COD_ORDEN
-                    })
-                });
+            {/* Selector BODEGA */}
+            <FormControl
+              size="small"
+              fullWidth
+              sx={{
+                flex: "1 0 0",
+                minWidth: 0,
+                bgcolor: "background.paper",
+                borderRadius: 1,
+              }}
+              disabled={busy}
+            >
+              <InputLabel id="bodega-label">Bodega</InputLabel>
+              <Select
+                labelId="bodega-label"
+                id="bodega-select"
+                label="Bodega"
+                value={bodega}
+                onChange={onBodegaChange}
+              >
+                {BODEGA_OPTIONS.map(opt => (
+                  <MenuItem key={opt.code} value={opt.code}>{opt.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Toolbar>
+        </AppBar>
 
-                if (!res.ok) {
-                    if (res.status === 401) {
-                        toast.error('Sesión caducada.');
-                    }
-                } else {
-                    const data = await res.json();
-                    setMotos(data);
-                    console.log(data)
-                }
-            } catch (error) {
-                toast.error(error.message);
-            }
+        {/* Fila Buscador + botón filtros (fechas) */}
+        <Box
+          sx={{
+            p: 2,
+            display: "flex",
+            gap: 1,
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          <TextField
+            fullWidth
+            placeholder="Buscar pedido, orden, cliente, cédula, dirección…"
+            value={searchInput}
+            onChange={onSearchChange}
+            disabled={busy}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ flex: "1 1 260px" }}
+          />
 
-        } else {
-            alert("Seleccione una fila");
-        }
+          <IconButton
+            aria-label="abrir filtros"
+            onClick={onOpenFilters}
+            sx={{ bgcolor: "action.hover", borderRadius: 2 }}
+            disabled={busy}
+          >
+            <FilterListIcon />
+          </IconButton>
+        </Box>
 
-    };
+        {/* Lista */}
+        <Box sx={{ px: 2, pb: 6 }}>
+          {busy ? (
+            <SkeletonList items={6} />
+          ) : listFiltered.length === 0 ? (
+            <Typography variant="body2">No hay resultados</Typography>
+          ) : (
+            <Stack spacing={1.5}>
+              {listFiltered.map((row) => (
+                <Card key={`${row.COD_PEDIDO}-${row.COD_ORDEN}`} variant="outlined" sx={{ borderRadius: 3 }}>
+                  <CardActionArea onClick={() => openDetalle(row)} disabled={busy}>
+                    <CardContent sx={{ py: 1.5 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 800 }}>
+                        {`PEDIDO  ${row.COD_PEDIDO}`}
+                      </Typography>
+                      <Typography variant="body2" sx={{ opacity: 0.8 }}>{row.NOMBRE_PERSONA_CLI}</Typography>
+                      <Typography variant="body2" sx={{ opacity: 0.8 }}>{row.DIRECCION}</Typography>
 
-    const handleCloseModal = () => {
-        setOpenModal(false);
-        setMotos([]);
-    };
+                      <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
+                        <Chip size="small" label={`Orden ${row.COD_ORDEN}`} />
+                        <Typography variant="caption">{row._FECHA_PEDIDO_FMT}</Typography>
+                        <Box sx={{ flexGrow: 1 }} />
+                        <Typography variant="caption">
+                          Pend: {row.CANTIDAD_PENDIENTE} · Desp: {row.CANTIDAD_DESPACHADA}
+                        </Typography>
+                      </Stack>
+                    </CardContent>
+                  </CardActionArea>
+                </Card>
+              ))}
+            </Stack>
+          )}
+        </Box>
 
+        {/* Modal detalle (loader local) */}
+        <Modal open={open} onClose={() => setOpen(false)} keepMounted>
+          <Box sx={{
+            position: "fixed",
+            left: 0, right: 0, bottom: 0,
+            maxHeight: "85vh",
+            bgcolor: "background.paper",
+            borderTopLeftRadius: 16, borderTopRightRadius: 16,
+            boxShadow: 24, p: 2, overflow: "auto",
+          }}
+          >
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+              <Typography variant="h6">Detalles del Despacho</Typography>
+              <IconButton onClick={() => setOpen(false)}><CloseIcon /></IconButton>
+            </Stack>
 
-    const columnsMotos = [
-        {
-            name: "COD_SECUENCIA_MOV", label: "Sec", options: {
-                customBodyRender: Functions.IntRender
-            },
-        },
-        { name: "COD_PRODUCTO", label: "Cod Producto" },
-        { name: "NOMBRE", label: "Nombre" },
-        {
-            name: "CANTIDAD_PEDIDA", label: "Cant Pedida", options: {
-                customBodyRender: Functions.IntRender
-            },
-        },
-        {
-            name: "CANTIDAD_TRANS", label: "Cant Guia", options: {
-                customBodyRender: Functions.IntRender
-            },
-        },
-        {
-            name: "scan",
-            label: "Escanear",
-            options: {
-                customBodyRender: (value, tableMeta) => {
-                    return (
-                    <div style={{ textAlign: "center" }}>
-                        <IconButton onClick={() => sendMotoInfo(value, tableMeta.rowData)} color="primary" >
-                            <QrCodeScannerIcon />
-                        </IconButton>
-                    </div>
-                    )
-                },
-            },
-        },
-    ];
+            {current && (
+              <>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  Pedido {current.COD_PEDIDO} — Orden {current.COD_ORDEN}
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                  {current.NOMBRE_PERSONA_CLI} · {current.COD_PERSONA_CLI}
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                  {current.DIRECCION}
+                </Typography>
+                <Typography variant="caption">
+                  {current.BODEGA_ENVIA} · {current._FECHA_PEDIDO_FMT}
+                </Typography>
 
-    const optionsMotos = {
-        responsive: 'standard',
-        selectableRows: 'single',
-        textLabels: {
-            body: {
-                noMatch: "Lo siento, no se encontraron registros",
-                toolTip: "Ordenar",
-                columnHeaderTooltip: column => `Ordenar por ${column.label}`
-            },
-            pagination: {
-                next: "Siguiente",
-                previous: "Anterior",
-                rowsPerPage: "Filas por página:",
-                displayRows: "de"
-            },
-            toolbar: {
-                search: "Buscar",
-                downloadCsv: "Descargar CSV",
-                print: "Imprimir",
-                viewColumns: "Ver columnas",
-                filterTable: "Filtrar tabla"
-            },
-            filter: {
-                all: "Todos",
-                title: "FILTROS",
-                reset: "REINICIAR"
-            },
-            viewColumns: {
-                title: "Mostrar columnas",
-                titleAria: "Mostrar/Ocultar columnas de tabla"
-            },
-            selectedRows: {
-                text: "fila(s) seleccionada(s)",
-                delete: "Borrar",
-                deleteAria: "Borrar fila seleccionada"
-            }
-        }
-    };
+                <Divider sx={{ my: 1.5 }} />
 
-    const options = {
-        responsive: 'standard',
-        onRowSelectionChange: handleRowSelection,
-        selectableRows: 'single',
-        customToolbarSelect: (selectedRows) => (
-            <CustomToolbarSelect selectedRows={selectedRows} />
-        ),
-        textLabels: {
-            body: {
-                noMatch: "Lo siento, no se encontraron registros",
-                toolTip: "Ordenar",
-                columnHeaderTooltip: column => `Ordenar por ${column.label}`
-            },
-            pagination: {
-                next: "Siguiente",
-                previous: "Anterior",
-                rowsPerPage: "Filas por página:",
-                displayRows: "de"
-            },
-            toolbar: {
-                search: "Buscar",
-                downloadCsv: "Descargar CSV",
-                print: "Imprimir",
-                viewColumns: "Ver columnas",
-                filterTable: "Filtrar tabla"
-            },
-            filter: {
-                all: "Todos",
-                title: "FILTROS",
-                reset: "REINICIAR"
-            },
-            viewColumns: {
-                title: "Mostrar columnas",
-                titleAria: "Mostrar/Ocultar columnas de tabla"
-            },
-            selectedRows: {
-                text: "fila(s) seleccionada(s)",
-                delete: "Borrar",
-                deleteAria: "Borrar fila seleccionada"
-            }
-        }
-    };
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>Ítems del pedido</Typography>
 
-    const columns = [
-        { name: "COD_PEDIDO", label: "Pedido" },
-        { name: "COD_ORDEN", label: "Orden" },
-        { name: "FECHA_PEDIDO", label: "Fecha" },
-        { name: "COD_PERSONA_CLI", label: "Identificación" },
-        { name: "NOMBRE_PERSONA_CLI", label: "Cliente" },
-        { name: "BODEGA_ENVIA", label: "Bodega Consignación" },
-        { name: "DIRECCION", label: "Dirección Recepción" },
-        {
-            name: "CANTIDAD_SOLICITADA", label: "Solicitado", options: {
-                customBodyRender: Functions.IntRender
-            },
-        },
-        {
-            name: "CANTIDAD_DESPACHADA", label: "Despachado", options: {
-                customBodyRender: Functions.IntRender
-            },
-        },
-        {
-            name: "CANTIDAD_ANULADA", label: "Anulado", options: {
-                customBodyRender: Functions.IntRender
-            },
-        },
-        {
-            name: "CANTIDAD_CERRADA", label: "Cerrado", options: {
-                customBodyRender: Functions.IntRender
-            },
-        },
-        {
-            name: "CANTIDAD_PENDIENTE", label: "Pendiente", options: {
-                customBodyRender: Functions.IntRender
-            },
-        },
-        {
-            name: "COD_BODEGA_DESPACHA", label: "Código Bodega Despacha", options: {
-                display: false,
-            },
-        },
-        {
-            name: "COD_BODEGA_ENVIA", label: "Código Bodega Envía", options: {
-                display: false,
-            },
-        },
-        {
-            name: "COD_DIRECCION", label: "Código Dirección", options: {
-                display: false,
-            },
-        },
-        {
-            name: "COD_TIPO_ORDEN", label: "Código Tipo Orden", options: {
-                display: false,
-            },
-        },
-        {
-            name: "COD_TIPO_PEDIDO", label: "Código Tipo Pedido", options: {
-                display: false,
-            },
-        },
-        {
-            name: "COMPROBANTE_MANUAL", label: "Comprobante Manual", options: {
-                display: false,
-            },
-        },
-        { name: "ESTADO_ANTERIOR", label: "Estado Anterior" },
-        {
-            name: "NOMBRE_AGENCIA", label: "Nombre Agencia", options: {
-                display: false,
-            },
-        },
-        {
-            name: "NOMBRE_PERSONA_VEN", label: "Nombre Persona Vendedor", options: {
-                display: false,
-            },
-        },
-        {
-            name: "VALOR", label: "Valor", options: {
-                display: false,
-            },
-        },
-    ];
+                {loadingDetalle ? (
+                  <Stack spacing={1}>
+                    <Skeleton variant="rectangular" height={56} sx={{ borderRadius: 2 }} />
+                    <Skeleton variant="rectangular" height={56} sx={{ borderRadius: 2 }} />
+                    <Skeleton variant="rectangular" height={56} sx={{ borderRadius: 2 }} />
+                  </Stack>
+                ) : (
+                  <Stack spacing={1}>
+                    {motos.map((it) => {
+                      const itemId = it.COD_SECUENCIA_MOV ?? `${it.COD_PRODUCTO}-${it.SECUENCIA ?? ""}`;
+                      const openInput = !!scanOpenById[itemId];
+                      const scansCount = (scannedCodesById[itemId] || []).length;
+                      const lastCode = scansCount ? scannedCodesById[itemId][scansCount - 1].code : null;
 
+                      return (
+                        <Box key={itemId} sx={{ border: "1px solid #eee", p: 1.25, borderRadius: 2 }}
+                          onClick={() => toggleScanFor(itemId)}
+                        >
+                          <Stack direction="row" alignItems="center" spacing={1}>
+                            <Box sx={{ flexGrow: 1 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                {it.COD_PRODUCTO} — {it.NOMBRE}
+                              </Typography>
+                              <Typography variant="caption">
+                                Pedida: {it.CANTIDAD_PEDIDA} · En guía: {it.CANTIDAD_TRANS}
+                              </Typography>
+                            </Box>
 
-    const getMuiTheme = () =>
-        createTheme({
-            components: {
-                MuiTableCell: {
-                    styleOverrides: {
-                        root: {
-                            paddingLeft: '3px', // Relleno a la izquierda
-                            paddingRight: '3px',
-                            paddingTop: '0px', // Ajusta el valor en el encabezado si es necesario
-                            paddingBottom: '0px',
-                            backgroundColor: '#00000',
-                            whiteSpace: 'nowrap',
-                            flex: 1,
-                            borderBottom: '1px solid #ddd',
-                            borderRight: '1px solid #ddd',
-                            fontSize: '12px'
-                        },
-                        head: {
-                            backgroundColor: 'firebrick', // Color de fondo para las celdas de encabezado
-                            color: '#ffffff', // Color de texto para las celdas de encabezado
-                            fontWeight: 'bold', // Añadimos negrita para resaltar el encabezado
-                            paddingLeft: '0px',
-                            paddingRight: '0px',
-                            fontSize: '10px'
-                        },
-                    }
-                },
-                MuiTable: {
-                    styleOverrides: {
-                        root: {
-                            borderCollapse: 'collapse', // Fusionamos los bordes de las celdas
-                        },
-                    },
-                },
-                MuiTableHead: {
-                    styleOverrides: {
-                        root: {
-                            borderBottom: '5px solid #ddd', // Línea inferior más gruesa para el encabezado
-                        },
-                    },
-                },
-                MuiToolbar: {
-                    styleOverrides: {
-                        regular: {
-                            minHeight: '10px',
-                        }
-                    }
-                }
-            }
-        });
+                            <Tooltip title={openInput ? "Ocultar escáner" : "Escanear código"}>
+                              <IconButton size="small">
+                                <Badge badgeContent={scansCount} color="primary">
+                                  <QrCodeScannerIcon fontSize="small" />
+                                </Badge>
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
 
-    return (
-        <>{loading ? (<LoadingCircle />) : (
-            <SnackbarProvider>
-                <div style={{ marginTop: '150px', top: 0, left: 0, width: "100%", zIndex: 1000 }}>
-                    <Navbar0 menus={menus} />
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'right',
-                            '& > *': {
-                                m: 1,
-                            },
-                        }}
-                    >
-                        <ButtonGroup variant="text" aria-label="text button group" >
-                            <Button onClick={() => { navigate('/dashboard') }}>Módulos</Button>
-                        </ButtonGroup>
-                    </Box>
-                    <div className={classes.datePickersContainer} style={{ marginBottom: '15px' }}>
-                        <div>
-                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                <DemoContainer components={['DatePicker', 'DatePicker']}>
-                                    <DatePicker
-                                        label="Fecha Inicial"
-                                        value={dayjs(fromDate, 'DD/MM/YYYY')}
-                                        onChange={handleDateChange}
-                                        format={'DD/MM/YYYY'}
-                                    />
-                                </DemoContainer>
-                            </LocalizationProvider>
-                        </div>
-                        <div>
-                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                <DemoContainer components={['DatePicker', 'DatePicker']}>
-                                    <DatePicker
-                                        label="Fecha Final"
-                                        value={dayjs(toDate, 'DD/MM/YYYY')}
-                                        onChange={handleDateChange2}
-                                        format={'DD/MM/YYYY'}
-                                    />
-                                </DemoContainer>
-                            </LocalizationProvider>
-                        </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginTop: '15px' }}>
-                        <Grid container spacing={2} justify="center">
-                            <Grid item xs={12} md={3}>
-                                <TextField
-                                    fullWidth
-                                    id="cod-comprobante"
-                                    label="Código Pedido"
-                                    type="text"
-                                    onChange={e => setPedido(e.target.value)}
-                                    value={pedido}
-                                />
-                                <TextField
-                                    fullWidth
-                                    id="orden-disp"
-                                    label="Orden Despacho"
-                                    type="text"
-                                    onChange={e => setOrden(e.target.value)}
-                                    value={orden}
-                                />
-                            </Grid>
-                            <Grid item xs={12} md={3}>
-                                <TextField
-                                    fullWidth
-                                    id="id-cli"
-                                    label="Identificacion"
-                                    type="text"
-                                    onChange={e => setIdentificacion(e.target.value)}
-                                    value={identificacion}
-                                />
-                                <TextField
-                                    fullWidth
-                                    id="id-cliente"
-                                    label="Cliente"
-                                    type="text"
-                                    onChange={e => setCliente(e.target.value)}
-                                    value={cliente}
-                                />
-                            </Grid>
-                            <Grid item xs={12} md={3}>
-                                <TextField
-                                    fullWidth
-                                    id="bod-consi"
-                                    label="Bodega Consignacion"
-                                    type="text"
-                                    onChange={e => setBodega(e.target.value)}
-                                    value={bodega}
-                                />
-                                <TextField
-                                    fullWidth
-                                    id="dir-recep"
-                                    label="Direccion Recepcion"
-                                    type="text"
-                                    onChange={e => setDireccion(e.target.value)}
-                                    value={direccion}
-                                />
-                            </Grid>
-                            <Grid item xs={12} md={3}>
-                                <Autocomplete
-                                    id="status"
-                                    fullWidth
-                                    options={status.map((producto) => producto.label)}
-                                    value={statusNombre}
-                                    onChange={handleStatusChange}
-                                    renderInput={(params) => (
-                                        <TextField
-                                            {...params}
-                                            label="Estado"
-                                            type="text"
-                                            InputProps={{
-                                                ...params.InputProps,
-                                            }}
-                                        />
-                                    )}
-                                />
-                            </Grid>
-                        </Grid>
-                    </div>
-                    <ThemeProvider theme={getMuiTheme()}>
-                        <MUIDataTable
-                            title={"Despachos Motos"}
-                            data={dispatchs}
-                            columns={columns}
-                            options={options}
-                        />
-                    </ThemeProvider>
-                    <Modal
-                        open={openModal}
-                        onClose={handleCloseModal}
-                        aria-labelledby="simple-modal-title"
-                        aria-describedby="simple-modal-description"
-                    >
-                        <Box sx={{ p: 8, backgroundColor: 'white', margin: 'auto', width: '90%', marginTop: '50px' }}>
-                            <h2 id="simple-modal-title">Detalles del Despacho</h2>
-                            <Grid container spacing={2} justify="center">
-                                <Grid item xs={12} md={3}>
-                                    <TextField
-                                        disabled
-                                        fullWidth
-                                        id="cod-comprobante"
-                                        label="Código Pedido"
-                                        type="text"
-                                        value={currentPedido}
-                                    />
-                                    <TextField
-                                        disabled
-                                        fullWidth
-                                        id="orden-disp"
-                                        label="Orden Despacho"
-                                        type="text"
-                                        value={currentOrden}
-                                    />
-                                </Grid>
-                                <Grid item xs={12} md={3}>
-                                    <TextField
-                                        disabled
-                                        fullWidth
-                                        id="id-cli"
-                                        label="Identificacion"
-                                        type="text"
-                                        value={currentIdentificacion}
-                                    />
-                                    <TextField
-                                        disabled
-                                        fullWidth
-                                        id="id-cliente"
-                                        label="Cliente"
-                                        type="text"
-                                        value={currentCliente}
-                                    />
-                                </Grid>
-                                <Grid item xs={12} md={3}>
-                                    <TextField
-                                        disabled
-                                        fullWidth
-                                        id="bod-consi"
-                                        label="Bodega Consignacion"
-                                        type="text"
-                                        value={currentBodega}
-                                    />
-                                    <TextField
-                                        disabled
-                                        fullWidth
-                                        id="dir-recep"
-                                        label="Direccion Recepcion"
-                                        type="text"
-                                        value={currentDireccion}
-                                    />
-                                </Grid>
-                                <Grid item xs={12} md={3}>
-                                    <TextField
-                                        disabled
-                                        fullWidth
-                                        id="date"
-                                        label="Fecha Pedido"
-                                        type="text"
-                                        value={currentFecha}
-                                    />
-                                </Grid>
-                            </Grid>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginTop: '15px' }}>
-                                <ThemeProvider theme={getMuiTheme()}>
-                                    <MUIDataTable
-                                        title={"Detalle Pedido"}
-                                        data={motos}
-                                        columns={columnsMotos}
-                                        options={optionsMotos}
-                                    />
-                                </ThemeProvider>
-                            </div>
-                            <IconButton onClick={handleCloseModal}>Cerrar</IconButton>
+                          {openInput && (
+                            <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mt: 1 }}>
+                              <TextField
+                                size="small"
+                                fullWidth
+                                label="Escanee (se detecta automáticamente)"
+                                value={scanValueById[itemId] || ""}
+                                inputRef={(el) => { scanRefs.current[itemId] = el; }}
+                                onChange={handleScanChange(itemId)}
+                                autoComplete="off"
+                                autoCapitalize="off"
+                                autoCorrect="off"
+                                spellCheck={false}
+                                InputProps={{
+                                  endAdornment: (
+                                    <InputAdornment position="end">
+                                      {lastCode ? (
+                                        <Tooltip title={`Último: ${lastCode}`}>
+                                          <DoneIcon fontSize="small" />
+                                        </Tooltip>
+                                      ) : null}
+                                    </InputAdornment>
+                                  )
+                                }}
+                              />
+                              <Button
+                                variant="outlined"
+                                startIcon={<ClearIcon />}
+                                onClick={(e) => { e.stopPropagation(); setScannedCodesById((prev) => ({ ...prev, [itemId]: [] })); }}
+                              >
+                                Limpiar
+                              </Button>
+                            </Stack>
+                          )}
                         </Box>
-                    </Modal>
+                      );
+                    })}
+                    {motos.length === 0 && (
+                      <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                        Sin líneas para mostrar.
+                      </Typography>
+                    )}
+                  </Stack>
+                )}
+              </>
+            )}
+          </Box>
+        </Modal>
 
-                </div>
-            </SnackbarProvider>
-        )}
-        </>
-    )
+        {/* Drawer de filtros (fechas) */}
+        <Drawer anchor="right" open={filtersOpen} onClose={onCloseFilters}>
+          <Box sx={{ width: 300, p: 2 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>Filtros</Typography>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <Stack spacing={2}>
+                <DatePicker
+                  label="Fecha inicial"
+                  value={fromDate}
+                  onChange={(v) => v && setFromDate(v)}
+                  format="DD/MM/YYYY"
+                  maxDate={toDate}
+                  disableFuture
+                />
+                <DatePicker
+                  label="Fecha final"
+                  value={toDate}
+                  onChange={(v) => v && setToDate(v)}
+                  format="DD/MM/YYYY"
+                  minDate={fromDate}
+                  disableFuture
+                />
+              </Stack>
+            </LocalizationProvider>
+            <Stack direction="row" spacing={1} sx={{ mt: 3, justifyContent: "flex-end" }}>
+              <Button onClick={onCloseFilters}>Cerrar</Button>
+              <Button variant="contained" onClick={onApplyFilters}>
+                Aplicar
+              </Button>
+            </Stack>
+          </Box>
+        </Drawer>
+
+        {/* LOADER GLOBAL */}
+        <Backdrop open={busy} sx={{ color: "#fff", zIndex: (t) => t.zIndex.drawer + 1 }}>
+          <CircularProgress color="inherit" />
+        </Backdrop>
+
+        {/* Snackbar de demo de captura */}
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={2400}
+          onClose={() => setSnackbarOpen(false)}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        >
+          <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: "100%" }}>
+            {snackbarMsg}
+          </Alert>
+        </Snackbar>
+      </Box>
+    </ThemeProvider>
+  );
 }
 
-export default function IntegrationNotistack() {
-    return (
-        <SnackbarProvider maxSnack={3}>
-            <Dispatch />
-        </SnackbarProvider>
-    );
-}
+
