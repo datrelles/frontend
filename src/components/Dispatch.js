@@ -88,7 +88,7 @@ function Dispatch() {
                 body: JSON.stringify({
                     pn_empresa: enterpriseShineray,
                     pn_cod_agencia: branchShineray,
-                    pv_cod_tipo_pedido: "PC",
+                    pv_cod_tipo_pedido: "PC", //"PC"
                     pv_estado: statusCode,
                     pd_fecha_inicial: fromDate,
                     pd_fecha_final: toDate,
