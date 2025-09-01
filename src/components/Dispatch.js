@@ -29,6 +29,7 @@ import {
   getMenus as apiGetMenus,
   getDispatchs as apiGetDispatchs,
   getDetallePedido as apiGetDetallePedido,
+  sendCode as apiSendCode
 } from "../services/dispatchApi";
 
 // --- Toastify (NUEVO) ---
@@ -220,6 +221,7 @@ export default function DispatchMobile() {
   // DETALLE (loader local del modal)
   const openDetalle = useCallback(async (row) => {
     setCurrent(row);
+    console.log(current)
     setOpen(true);
     setMotos([]);
     setLoadingDetalle(true);
@@ -244,6 +246,7 @@ export default function DispatchMobile() {
       };
       const data = await apiGetDetallePedido(payload);
       setMotos(Array.isArray(data) ? data : []);
+      console.log(data)
     } catch (e) {
       console.error(e);
 
@@ -325,7 +328,7 @@ export default function DispatchMobile() {
     });
   }, []);
 
-  const commitScan = useCallback((itemId) => {
+  const commitScan =  useCallback( async (itemId, cod_comprobante, tipo_comprobante, cod_producto) => {
     const code = (scanValueById[itemId] || "").trim();
     if (!code) return;
     setScannedCodesById((prev) => ({
@@ -333,18 +336,38 @@ export default function DispatchMobile() {
       [itemId]: [...(prev[itemId] || []), { code, ts: Date.now() }],
     }));
     setSnackbarMsg(`Código capturado: ${code}`);
+    console.log(code)
+    try {
+      const payload = {
+        empresa: enterpriseShineray,
+        cod_comprobante,
+        tipo_comprobante,
+        cod_producto,
+        cod_bodega: current.COD_BODEGA_DESPACHA,
+        current_identification: current.COD_PERSONA_CLI,
+        cod_motor: code
+      };
+      const data = await apiSendCode(payload);
+      setMotos(Array.isArray(data) ? data : []);
+      console.log(data)
+    } catch (e) {
+      console.error(e.message);
+      setMotos([]);
+    } finally {
+      setLoadingDetalle(false);
+    }
     setSnackbarOpen(true);
     // limpiar input
     setScanValueById((prev) => ({ ...prev, [itemId]: "" }));
   }, [scanValueById]);
 
-  const handleScanChange = useCallback((itemId) => (e) => {
+  const handleScanChange = useCallback((itemId, cod_comprobante, tipo_comprobante, cod_producto) => (e) => {
     const val = e.target.value ?? "";
     setScanValueById((prev) => ({ ...prev, [itemId]: val }));
     if (scanTimersRef.current[itemId]) clearTimeout(scanTimersRef.current[itemId]);
     // fin de lectura si no hay nuevas teclas en 120ms
     scanTimersRef.current[itemId] = setTimeout(() => {
-      commitScan(itemId);
+      commitScan(itemId, cod_comprobante, tipo_comprobante, cod_producto);
     }, 120);
   }, [commitScan]);
 
@@ -516,7 +539,7 @@ export default function DispatchMobile() {
             {current && (
               <>
                 <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                  Pedido {current.COD_PEDIDO} — Orden {current.COD_ORDEN}
+                  Pedido {current.COD_PEDIDO} — Orden {current.COD_ORDEN} 
                 </Typography>
                 <Typography variant="body2" sx={{ opacity: 0.8 }}>
                   {current.NOMBRE_PERSONA_CLI} · {current.COD_PERSONA_CLI}
@@ -527,6 +550,7 @@ export default function DispatchMobile() {
                 <Typography variant="caption">
                   {current.BODEGA_ENVIA} · {current._FECHA_PEDIDO_FMT}
                 </Typography>
+                
 
                 <Divider sx={{ my: 1.5 }} />
 
@@ -545,6 +569,11 @@ export default function DispatchMobile() {
                       const openInput = !!scanOpenById[itemId];
                       const scansCount = (scannedCodesById[itemId] || []).length;
                       const lastCode = scansCount ? scannedCodesById[itemId][scansCount - 1].code : null;
+                      const cod_comprobante = it.COD_COMPROBANTE
+                      const tipo_comprobante = it.TIPO_COMPROBANTE
+                      const cod_producto = it.COD_PRODUCTO
+                      
+                      
 
                       return (
                         <Box key={itemId} sx={{ border: "1px solid #eee", p: 1.25, borderRadius: 2 }}
@@ -577,7 +606,7 @@ export default function DispatchMobile() {
                                 label="Escanee (se detecta automáticamente)"
                                 value={scanValueById[itemId] || ""}
                                 inputRef={(el) => { scanRefs.current[itemId] = el; }}
-                                onChange={handleScanChange(itemId)}
+                                onChange={handleScanChange(itemId, cod_comprobante, tipo_comprobante, cod_producto)}
                                 autoComplete="off"
                                 autoCapitalize="off"
                                 autoCorrect="off"

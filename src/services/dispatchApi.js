@@ -68,3 +68,10 @@ export const getDetallePedido = async (payload) => {
   return data;
 };
 
+export const sendCode = async (payload) => {
+  // payload debe contener:
+  // { pn_empresa, pv_cod_tipo_pedido, pedido, pn_cod_agencia,}
+  const { data } = await api.post("/log/info_moto", payload);
+  return data;
+};
+
