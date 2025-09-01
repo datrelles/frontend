@@ -31,6 +31,10 @@ import {
   getDetallePedido as apiGetDetallePedido,
 } from "../services/dispatchApi";
 
+// --- Toastify (NUEVO) ---
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 const STATUS_OPTIONS = [
   { code: "BOD", label: "EN BODEGA" },
   { code: "DEP", label: "PARCIAL" },
@@ -106,6 +110,18 @@ export default function DispatchMobile() {
   // setear token global
   useEffect(() => { setAuthToken(jwt); }, [jwt]);
 
+  // --- Helper Toastify (NUEVO) ---
+  const showError = useCallback((err, ctx = "") => {
+    const msg = err?.message || String(err) || "Error inesperado";
+    toast.error(`${ctx ? ctx + ": " : ""}${msg}`, {
+      position: "top-right",
+      autoClose: 4000,
+      theme: "colored",
+      closeOnClick: true,
+      pauseOnHover: true,
+    });
+  }, []);
+
   // MENÚS (con loader)
   useEffect(() => {
     (async () => {
@@ -119,13 +135,14 @@ export default function DispatchMobile() {
         });
         setMenus(Array.isArray(data) ? data : []);
       } catch (e) {
-        console.error(e.message);
+        console.error(e);
         setMenus([]);
+        showError(e, "Cargando menús");
       } finally {
         setLoadingMenus(false);
       }
     })();
-  }, [userShineray, enterpriseShineray, systemShineray]);
+  }, [userShineray, enterpriseShineray, systemShineray, showError]);
 
   // === Helper numérico robusto ===
   const toNum = (v) => {
@@ -149,8 +166,8 @@ export default function DispatchMobile() {
       const s_anu = toNum(d.CANTIDAD_ANULADA);
 
       const _BOD_MATCH = (s_des === 0) && (s_pen === s_sol) && (s_anu < s_sol);
-      const _PARCIAL_DISPATCH = (s_pen != 0) && (s_des < s_sol) && (s_pen != s_sol);
-      const _DISPATCH_COMPLETE= (s_pen == 0) && (s_des == s_sol);
+      const _PARCIAL_DISPATCH = (s_pen !== 0) && (s_des < s_sol) && (s_pen !== s_sol);
+      const _DISPATCH_COMPLETE = (s_pen === 0) && (s_des === s_sol);
 
       const cod = String(d.COD_PEDIDO || "");
       const _BODEGA = cod.startsWith("A3") ? "RET" : cod.startsWith("N2") ? "MAY" : "OTR";
@@ -190,12 +207,13 @@ export default function DispatchMobile() {
       setDispatchs(preprocessDispatchs(data));
       lastFetchKey.current = key;
     } catch (e) {
-      console.error(e.message);
+      console.error(e);
       setDispatchs([]);
+      showError(e, "Cargando pedidos");
     } finally {
       setLoading(false);
     }
-  }, [fromISO, toISO, enterpriseShineray, preprocessDispatchs]);
+  }, [fromISO, toISO, enterpriseShineray, preprocessDispatchs, showError]);
 
   useEffect(() => { fetchDispatchs(); }, [fetchDispatchs]);
 
@@ -227,12 +245,18 @@ export default function DispatchMobile() {
       const data = await apiGetDetallePedido(payload);
       setMotos(Array.isArray(data) ? data : []);
     } catch (e) {
-      console.error(e.message);
+      console.error(e);
+
+      const serverData = e.response?.data;
+      const serverMsg = serverData?.error || serverData?.mensaje;
+      console.log("Payload del backend:", serverData);
+
       setMotos([]);
+      showError(serverMsg || e.message, "Cargando detalle");
     } finally {
       setLoadingDetalle(false);
     }
-  }, [enterpriseShineray]);
+  }, [enterpriseShineray, showError]);
 
   // Búsqueda debounce
   const onSearchChange = useCallback((e) => {
@@ -253,7 +277,7 @@ export default function DispatchMobile() {
       base = base.filter(d => d._BOD_MATCH === true);
     }
 
-    if  (activeTab === "DEP") {
+    if (activeTab === "DEP") {
       base = base.filter(d => d._PARCIAL_DISPATCH === true);
     }
 
@@ -643,6 +667,9 @@ export default function DispatchMobile() {
             {snackbarMsg}
           </Alert>
         </Snackbar>
+
+        {/* Contenedor Toastify (NUEVO) */}
+        <ToastContainer />
       </Box>
     </ThemeProvider>
   );

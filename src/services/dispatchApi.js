@@ -19,10 +19,9 @@ api.interceptors.response.use(
   (resp) => resp,
   (err) => {
     const status = err.response?.status;
-    const data = err.response?.data;
-
+    const data = err.response.data;
     let msg =
-      data?.error?.errorMessage ||
+      data?.error ||
       data?.mensaje ||
       err.message ||
       "Error de red";
@@ -30,6 +29,7 @@ api.interceptors.response.use(
     if (status === 401) {
       msg = "Sesión caducada. Por favor, inicia sesión nuevamente.";
     }
+    console.log(data.error);
 
     return Promise.reject(new Error(msg));
   }
@@ -68,9 +68,3 @@ export const getDetallePedido = async (payload) => {
   return data;
 };
 
-export default {
-  setAuthToken,
-  getMenus,
-  getDispatchs,
-  getDetallePedido,
-};
