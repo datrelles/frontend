@@ -1,20 +1,17 @@
-// *********************************** creación de formulario promotoría visita tienda modelos **
+
+
 import React, {useEffect, useMemo, useState} from 'react';
 import {
     TextField, Button, Grid, Typography,
-    Select, MenuItem, Box, Snackbar,
-    Alert, IconButton, Tooltip, InputLabel,
-    FormControl, Autocomplete
+    Select,  Box, Snackbar,
+    Alert, IconButton, InputLabel,
+    FormControl, Autocomplete, TableContainer, Table, TableHead, TableRow, TableCell, TableBody
 } from '@mui/material';
 import {useAuthContext} from "../../context/authContext";
 import {SnackbarProvider} from "notistack";
 import API from "../../services/modulo_formularios";
-import {useNavigate} from "react-router-dom";
 import {toast} from "react-toastify";
-import Navbar0 from "../Navbar0";
-import ButtonGroup from "@mui/material/ButtonGroup";
 import LoadingCircle from "../contabilidad/loader";
-import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from "@material-ui/icons/Add";
 import {LocalizationProvider} from '@mui/x-date-pickers/LocalizationProvider';
 import {AdapterDayjs} from '@mui/x-date-pickers/AdapterDayjs';
@@ -22,10 +19,11 @@ import {DatePicker} from '@mui/x-date-pickers/DatePicker';
 import SearchIcon from "@material-ui/icons/Search";
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import {getMuiTheme, getTableOptions} from "../marketing/muiTableConfig";
-import MUIDataTable from "mui-datatables";
-import {ThemeProvider} from "@mui/material/styles";
 import Paper from "@mui/material/Paper";
+import DeleteIcon from '@mui/icons-material/Delete';
+import CollapsibleTable from "./CollapsibleTable";
+import IngresoModelosTabs from "./IngresoModelosTabs";
+import TablaResumenMarcas from "./TablaResumenMarcas";
 
 const FrmPromotoria= () => {
     const {jwt, userShineray, enterpriseShineray, systemShineray} = useAuthContext();
@@ -34,7 +32,6 @@ const FrmPromotoria= () => {
         [jwt, userShineray, enterpriseShineray, systemShineray]
     );
 
-    const navigate = useNavigate();
     const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
     const [fromDate, setFromDate] = useState(null);
@@ -44,11 +41,13 @@ const FrmPromotoria= () => {
     const [indexEditar, setIndexEditar] = useState(null);
     const [mostrarTabla, setMostrarTabla] = useState(false);
     const [promotores, setPromotores] = useState([]);
-    const [tipoActivaciones, setTipoActivaciones] = useState([]);
-    const [proveedores, setProveedores] = useState([]);
+    const [marcas, setMarcas] = useState([]);
+    const [modelos, setModelos] = useState([]);
+    const [catsegmentos, setCatSegmentos] = useState([]);
     const [clientesRaw, setClientesRaw] = useState([]);
     const [direcciones, setDirecciones] = useState([]);
     const [loadingDirs, setLoadingDirs] = useState(false);
+    const [alerta, setAlerta] = useState({open: false, msg: '', severity: 'info'});
 
     const [promotorActual, setPromotorActual] = useState(null);
     const [cargandoPromotor, setCargandoPromotor] = useState(true);
@@ -60,56 +59,58 @@ const FrmPromotoria= () => {
 
     const [loadingTabla, setLoadingTabla] = useState(false);
 
-    const cargarActivacionesIniciales = async (codPromotor) => {
+    const [modelosPorSegmento, setModelosPorSegmento] = useState([]);
+    const [cantidades, setCantidades] = useState({});
+
+    const [mostrarResumen, setMostrarResumen] = useState(false);
+    const [guardadoPromotoria, setGuardadoPromotoria] = useState(false);
+
+    const cargarVisitaPromotoriaIniciales = async (codPromotor) => {
         try {
             setLoadingTabla(true);
-            const resp = await APIService.getActivaciones(enterpriseShineray, codPromotor);
+
+            const params = {
+                cod_promotor: codPromotor
+            };
+            const resp = await APIService.getPromotoria(enterpriseShineray, params);
             const data = Array.isArray(resp) ? resp : (resp?.data ?? []);
-            const tiposDict = mapTipoById(tipoActivaciones);
-            const rows = data.map(it => obtenerActivacion(it, tiposDict));
-            setActivaciones(rows);
+            const rows = data.map(it => obtenerPromotoria(it));
+            setFormularios(rows);
             setMostrarTabla(true);
         } catch (e) {
-            const msg = e?.response?.data?.mensaje || e?.message || 'No se pudieron cargar las activaciones iniciales...';
+            const msg = e?.response?.data?.mensaje || e?.message || 'No se pudieron cargar las activaciones iniciales.';
             setAlerta({ open: true, msg, severity: 'error' });
         } finally {
             setLoadingTabla(false);
         }
     };
 
-    const setField = (key, value) => setForm(prev => ({...prev, [key]: value}));
 
-    const renderById = (getLabel) => (props, option) => (
-        <li {...props} key={`${option.id}`}>{getLabel(option)}</li>
-    );
 
     const [form, setForm] = useState({
         fecha: todayISO(),
-        horaInicio: '',
-        horaFinal: '',
         promotorId: '',
         distribuidorId: '',
-        horas: '',
-        canal: '',
         codTienda: '',
         codProveedor: '',
         cod_promotor: '',
         cod_cliente: '',
         cod_proveedor: '',
         distribuidor: '',
-        animadoraNombre: '',
         tiendaNombre: '',
         tienda: '',
-        motos: 0,
-        tipoActivacion: '',
         promotor: '',
-        animadora: '',
         ToDate: '',
-        FromDate: ''
+        FromDate: '',
+        responsable: '',
+        telefono1: '',
+        correo_electronico: '',
+        prom_venta_tienda: '',
+        resumenMarcas: {}
     });
 
-    const [activaciones, setActivaciones] = useState([]);
-    const [alerta, setAlerta] = useState({open: false, msg: '', severity: 'info'});
+    const [formularios, setFormularios] = useState([]);
+
 
     const getMenus = async () => {
         try {
@@ -128,7 +129,7 @@ const FrmPromotoria= () => {
 
                 setForm(prev => ({ ...prev, promotor: codPromotor }));
                 await fetchClientesPromotor(codPromotor);
-                await cargarActivacionesIniciales(codPromotor);
+                await cargarVisitaPromotoriaIniciales(codPromotor);
             } catch (e) {
                 console.error(e);
                 toast.error(e.message || 'No se pudo obtener el promotor del usuario');
@@ -138,11 +139,14 @@ const FrmPromotoria= () => {
         })();
     }, []);
 
+
+
     useEffect(() => {
         getMenus();
         fetchPromotores();
-        fetchTipoActivaciones();
-        fetchProveedores();
+        fetchMarcas();
+        fetchModeloComercial();
+        fetchSegmentos();
     }, [])
 
     useEffect(() => {
@@ -154,115 +158,93 @@ const FrmPromotoria= () => {
     }, [form.promotor, form.distribuidorId]);
 
 
+
     const handleChange = (campo) => (event) => {
         const value = event.target.value.toUpperCase();
         setForm({...form, [campo]: value});
     };
 
-    function buildActivacionPayload(form, empresa) {
+    function buildPromotoriaPayload(form, empresa, cantidades) {
         const safeInt = (v) =>
             v === '' || v === null || v === undefined || Number.isNaN(Number(v))
                 ? null
                 : parseInt(String(v), 10);
 
-        const proveedorSel = Array.isArray(proveedores)
-            ? proveedores.find(p => String(p.id) === String(form.codProveedor))
-            : null;
+        // modelos_segmento (IngresoModelosTabs)
+        const modelos_segmento = Object.values(cantidades.modelos || {}).map(m => ({
+            cod_segmento: safeInt(m.cod_segmento),
+            cod_linea: safeInt(m.cod_linea),
+            cod_modelo_comercial: safeInt(m.cod_modelo_comercial),
+            cod_marca: safeInt(m.cod_marca),
+            cantidad: safeInt(m.cantidad) || 0,
+        }));
 
-        const animadora = String(form.animadoraNombre || proveedorSel?.nombre || '')
-            .trim();
+        // marcas_segmento (TablaResumenMarcas)
+        const marcas_segmento = Object.values(cantidades.marcas || {}).map(m => ({
+            cod_marca: safeInt(m.cod_marca),
+            cantidad: safeInt(m.cantidad) || 0,
+        }));
 
         return {
-            empresa:        safeInt(empresa),
-            cod_promotor:   String(form.promotor ?? '').trim(),
-            cod_cliente:    String(form.distribuidorId ?? '').trim(),
-            cod_tienda:     safeInt(form.codTienda),
-            cod_proveedor:  (form.codProveedor ?? '') ? String(form.codProveedor).trim() : null,
-            cod_modelo_act: 'ACT',
-            cod_item_act:   String(form.tipoActivacion ?? '').trim(),
-            animadora,
-            hora_inicio:    String(form.horaInicio ?? '').trim(),
-            hora_fin:       String(form.horaFinal ?? '').trim(),
-            fecha_act:      String(form.fecha ?? '').trim(),
-            num_exhi_motos: safeInt(form.motos),
+            empresa: safeInt(empresa),
+            cod_promotor: String(form.promotor ?? '').trim(),
+            cod_cliente: String(form.distribuidorId ?? '').trim(),
+            cod_tienda: safeInt(form.codTienda),
+            cod_proveedor: form.codProveedor ? String(form.codProveedor).trim() : null,
+            fecha_act: String(form.fecha || dayjs().format('YYYY-MM-DD')).trim(),
+            modelos_segmento,
+            marcas_segmento,
         };
     }
 
-    const handleSubmit = async () => {
 
-        const required = [
-            'fecha', 'horaInicio', 'horaFinal',
-            'promotor', 'distribuidorId', 'codTienda',
-            'tipoActivacion', 'motos', 'codProveedor'
-        ];
+
+    const handleSubmit = async () => {
+        const required = ['promotor', 'distribuidorId', 'codTienda'];
         const missing = required.filter(f => !form[f] && form[f] !== 0);
         if (missing.length) {
             setAlerta({ open: true, msg: 'Por favor completa todos los campos obligatorios.', severity: 'warning' });
             return;
         }
 
-        const tiendaSel = (direcciones || []).find(d => String(d.id) === String(form.codTienda)) || null;
-        const nombreActual    = (tiendaSel?.nombre || '').trim().toUpperCase();
-        const nombreIngresado = (form.tiendaNombre || '').trim();
-        const faltaNombre     = !nombreActual || nombreActual === 'SIN NOMBRE';
-
-        const payload = buildActivacionPayload(form, enterpriseShineray);
-
-        payload.fecha_act = String(form.fecha || dayjs().format('YYYY-MM-DD')).trim();
+        const payload = buildPromotoriaPayload(form, enterpriseShineray, cantidades);
 
         try {
-            if (faltaNombre && nombreIngresado && tiendaSel) {
-                const putBody = {
-                    ciudad: (tiendaSel?.ciudad || '').toString().trim(),
-                    es_activo: 1,
-                    direccion: tiendaSel?.direccion || '',
-                    direccion_larga: tiendaSel?.direccion_larga || '',
-                    cod_zona_ciudad: tiendaSel?.cod_zona_ciudad || '',
-                    nombre: nombreIngresado.toUpperCase(),
-                };
-
-                await APIService.putDireccionGuia(
-                    enterpriseShineray,
-                    String(form.distribuidorId),
-                    Number(form.codTienda),
-                    putBody
-                );
-            }
             if (modoEdicion) {
-                await APIService.updateActivaciones(form.cod_activacion, payload);
+                await APIService.updatePromotoria(form.cod_promotoria, payload);
             } else {
-                await APIService.postActivaciones(enterpriseShineray, payload);
+                await APIService.postPromotoria(enterpriseShineray, payload);
             }
 
-            const fIni = fromDate ? dayjs(fromDate).format('YYYY-MM-DD') : null;
-            const fFin = toDate   ? dayjs(toDate).format('YYYY-MM-DD')   : null;
             const params = {};
-            if (fIni && fFin) { params.fecha_inicio = fIni; params.fecha_fin = fFin; }
-            if (buscarDistribuidorId) { params.cod_cliente = String(buscarDistribuidorId); }
+            if (fromDate && toDate) {
+                params.fecha_inicio = dayjs(fromDate).format('YYYY-MM-DD');
+                params.fecha_fin = dayjs(toDate).format('YYYY-MM-DD');
+            }
+            if (buscarDistribuidorId) {
+                params.cod_cliente = String(buscarDistribuidorId);
+            }
 
-            const resp = await APIService.getActivacionesPromotor(enterpriseShineray, form.promotor, params);
+            const resp = await APIService.getPromotoria(enterpriseShineray, params);
             const data = Array.isArray(resp) ? resp : (resp?.data ?? []);
-            const tiposDict = mapTipoById(tipoActivaciones);
-            const rows = data.map(it => obtenerActivacion(it, tiposDict));
-            setActivaciones(rows);
+            setFormularios(data);
 
+            setGuardadoPromotoria(true);
             setAlerta({
                 open: true,
-                msg: modoEdicion ? 'Activación actualizada con éxito.' : 'Activación guardada con éxito.',
+                msg: modoEdicion ? 'Formulario actualizado con éxito.' : 'Formulario guardado con éxito.',
                 severity: 'success'
             });
             limpiarFormulario();
             setMostrarFormulario(false);
             setMostrarTabla(true);
-            setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 50);
 
         } catch (error) {
-            console.error('Error al guardar/actualizar activación:', error);
-            const msg = error?.response?.data?.mensaje || error?.message || (modoEdicion ? 'Error al actualizar.' : 'Error al guardar.');
+            console.error('Error al guardar/actualizar formulario:', error);
+            const msg = error?.response?.data?.mensaje || error?.message || 'Error al guardar.';
             setAlerta({ open: true, msg, severity: 'error' });
         }
     };
-
 
     const limpiarFormulario = () => {
         setForm(prev => ({
@@ -270,22 +252,23 @@ const FrmPromotoria= () => {
             fecha: todayISO(),
             ToDate: '',
             FromDate: '',
-            horaInicio: '',
-            horaFinal: '',
-            horas: '',
-            canal: '',
             ciudad: '',
             distribuidor: '',
             tienda: '',
             motos: '',
-            tipoActivacion: '',
-            animadora: '',
             distribuidorId: '',
             codTienda: '',
             tiendaNombre: '',
-            codProveedor: '',
-            animadoraNombre: '',
-
+            jefeTienda: '',
+            correoTienda: '',
+            telefonoTienda: '',
+            total_vendedores: '',
+            totalModelosPiso: '',
+            totalShineray: '',
+            segmento: '',
+            marca: '',
+            modelo: '',
+            cantidadModelos: '',
         }));
         setModoEdicion(false);
         setIndexEditar(null);
@@ -317,19 +300,25 @@ const FrmPromotoria= () => {
         }
 
         try {
-            const params = { fecha_inicio: fIni, fecha_fin: fFin, cod_cliente: codCliente };
-            const resp = await APIService.getActivacionesPromotor(enterpriseShineray, form.promotor, params);
+            const params = {
+                fecha_inicio: fIni,
+                fecha_fin: fFin,
+                cod_cliente: codCliente,
+                cod_promotor: userShineray?.cod_promotor   // 🔥 aquí va
+            };
+
+            const resp = await APIService.getPromotoria(enterpriseShineray, params);
+
             const data = Array.isArray(resp) ? resp : (resp?.data ?? []);
-            const tiposDict = mapTipoById(tipoActivaciones);
-            const rows = data.map(it => obtenerActivacion(it, tiposDict));
+            const rows = data.map(it => obtenerPromotoria(it));
 
             if (rows.length === 0) {
-                setActivaciones([]);
+                setFormularios([]);
                 setMostrarTabla(true);
                 setAlerta({ open: true, msg: 'No se encontraron registros con esos filtros.', severity: 'warning' });
                 return;
             }
-            setActivaciones(rows);
+            setFormularios(rows);
             setMostrarTabla(true);
             setAlerta({ open: true, msg: 'Datos cargados correctamente.', severity: 'success' });
         } catch (error) {
@@ -337,93 +326,85 @@ const FrmPromotoria= () => {
             const msg = error?.response?.data?.mensaje || error?.message || 'Error al cargar activaciones.';
             setAlerta({ open: true, msg, severity: 'error' });
         }
+
+    };
+
+
+    const fetchMarcas = async () => {
+        try {
+
+            const response = await APIService.getMarcas();
+            const formattedMarcas = response.map((p) => ({
+                id: p.codigo_marca,
+                nombre_marca: `${p.nombre_marca}`,
+            }));
+            setMarcas(formattedMarcas);
+
+        } catch (error) {
+            console.error("Error al obtener promotores:", error);
+            toast.error(error.message || "No se pudo cargar promotores");
+        }
+    };
+
+    const fetchSegmentos = async () => {
+        try {
+
+            const response = await APIService.getCatalogoSegmentos();
+            const formattedCatSegmentos = response.map((p) => ({
+                nombre_segmento: `${p.nombre_segmento}`,
+            }));
+            setCatSegmentos(formattedCatSegmentos);
+
+        } catch (error) {
+            console.error("Error al obtener segmentos:", error);
+            toast.error(error.message || "No se pudo cargar segmentos");
+        }
     };
 
 
     useEffect(() => {
-        if (form.horaInicio && form.horaFinal) {
-            const inicio = dayjs(`2023-01-01T${form.horaInicio}`);
-            const fin = dayjs(`2023-01-01T${form.horaFinal}`);
-            const diferencia = fin.diff(inicio, 'minute');
-            const horas = Math.floor(diferencia / 60);
-            const minutos = diferencia % 60;
-            setForm((prev) => ({
-                ...prev,
-                horas: `${horas}:${minutos.toString().padStart(2, '0')}`
+        const fetchModeloSegmentos = async () => {
+            try {
+                const response = await APIService.getModeloSegmentos();
+
+                const agrupados = response.reduce((acc, modelo) => {
+                    const segmento = modelo.nombre_segmento;
+                    if (!acc[segmento]) {
+                        acc[segmento] = {
+                            nombre_segmento: segmento,
+                            modelos: [],
+                        };
+                    }
+                    acc[segmento].modelos.push(modelo);
+                    return acc;
+                }, {});
+
+                setModelosPorSegmento(Object.values(agrupados));
+            } catch (error) {
+                toast.error(error.message || "No se pudo cargar modelos por segmentos");
+            }
+        };
+
+        fetchModeloSegmentos();
+    }, []);
+
+    const fetchModeloComercial = async () => {
+        try {
+
+            const response = await APIService.getModeloSegmentos();
+            const formattedModelos = response.map((p) => ({
+                id: p.codigo_segmento,
+                codigo_modelo_comercial: p.codigo_modelo_comercial,
+                nombre_modelo: `${p.nombre_modelo}`,
             }));
+            setModelos(formattedModelos);
+
+        } catch (error) {
+            console.error("Error al obtener modelos comerciales:", error);
+            toast.error(error.message || "No se pudo cargar modelos comerciales");
         }
-    }, [form.horaInicio, form.horaFinal]);
+    };
 
-    const columns = [
-        { name: "cod_activacion", label: "CÓDIGO" },
-        { name: "tipoActivacion", label: "PROMOTOR" },
-        { name: "promotor", label: "TIENDA" },
-        { name: "distribuidor", label: "DISTRIBUIDOR" },
-        { name: "canal", label: "CIUDAD" },
-        { name: "ciudad", label: "JEFE TIENDA" },
-        { name: "tienda", label: "CORREO TIENDA" },
-        { name: "fecha", label: "TLF. JEFE TIENDA" },
-        { name: "horaInicio", label: "PROMEDIO VENTA" },
-        { name: "horaFinal", label: "# VENDEDORES" },
-        { name: "horas", label: "T. MOTOS PISO" },
-        { name: "motos", label: "# MOTOS SHINERAY" },
-        { name: "animadora", label: "MODELO" },
-        {
-            name: "acciones",
-            label: "ACCIONES",
-            options: {
-                customBodyRenderLite: (dataIndex) => {
-                    const row = activaciones[dataIndex];
-                    return (
-                        <Tooltip title="Editar">
-                            <IconButton
-                                color="primary"
-                                onClick={() => {
-                                    setForm(prev => ({
-                                        ...prev,
-                                        cod_activacion: row.cod_activacion,
-                                        promotor: row.cod_promotor || prev.promotor,
-                                        distribuidorId: row.cod_cliente || '',
-                                        distribuidorNombre: row.distribuidor || '',
-                                        ciudad: row.ciudad || '',
-                                        codTienda: row.cod_tienda || '',
-                                        tienda: row.tienda || '',
-                                        tiendaNombre: '',
-                                        tipoActivacion: row.cod_item_act || '',
-                                        codProveedor: row.cod_proveedor || '',
-                                        animadoraNombre: row.animadora || '',
-                                        fecha: row.fechaISO || prev.fecha,
-                                        horaInicio: row.horaInicio || '',
-                                        horaFinal: row.horaFinal || '',
-                                        horas: row.horas || '',
-                                        motos: row.motos ?? '',
-                                        canal: row.canal || '',
-                                    }));
-                                    fetchDirecciones(
-                                        (row.cod_promotor || form.promotor),
-                                        row.cod_cliente
-                                    );
-                                    setMostrarFormulario(true);
-                                    setModoEdicion(true);
-                                    setIndexEditar(dataIndex);
-                                }}
-                            >
-                                <EditIcon />
-                            </IconButton>
-                        </Tooltip>
-                    );
-                },
-            },
-        },
-    ];
-
-    const camposPlantillaModelo = [
-        "cod_promotoria", "fecha",
-        "horaInicio", "horaFinal",
-        "horas", "canal", "ciudad", "distribuidor", "tienda",
-        "motos", "tipoActivacion", "promotor", "animadora",
-    ];
-    const tableOptions = getTableOptions(activaciones, camposPlantillaModelo, "Actualizar_activaciones.xlsx");
 
     const fetchPromotores = async () => {
         try {
@@ -436,51 +417,6 @@ const FrmPromotoria= () => {
         } catch (error) {
             console.error("Error al obtener promotores:", error);
             toast.error(error.message || "No se pudo cargar promotores");
-        }
-    };
-
-    const fetchTipoActivaciones = async () => {
-        try {
-            const raw = await APIService.getTipoActivaciones(enterpriseShineray);
-            const list =
-                Array.isArray(raw) ? raw :
-                    Array.isArray(raw?.data) ? raw.data :
-                        Array.isArray(raw?.payload) ? raw.payload :
-                            Array.isArray(raw?.result) ? raw.result :
-                                [];
-
-            const formatted = list.map(p => ({
-                id: p.cod_item,
-                cod_item: p.cod_item,
-                cod_modelo: p.cod_modelo,
-                nombre: p.nombre,
-            }));
-            setTipoActivaciones(formatted);
-        } catch (error) {
-            const msg = error?.response?.data?.mensaje || error?.message || 'No se pudo cargar tipos de activaciones';
-            toast.error(msg);
-        }
-    };
-
-    const fetchProveedores = async () => {
-        try {
-            const raw = await APIService.getProveedores(enterpriseShineray);
-            const list =
-                Array.isArray(raw) ? raw :
-                    Array.isArray(raw?.data) ? raw.data :
-                        Array.isArray(raw?.payload) ? raw.payload :
-                            Array.isArray(raw?.result) ? raw.result :
-                                [];
-
-            const formatted = list.map(p => ({
-                id: p.cod_proveedor,
-                nombre: p.nombre,
-            }));
-
-            setProveedores(formatted);
-        } catch (error) {
-            const msg = error?.response?.data?.mensaje || error?.message || 'No se pudo cargar los proveedores';
-            toast.error(msg);
         }
     };
 
@@ -523,7 +459,7 @@ const FrmPromotoria= () => {
             const list = Array.isArray(raw) ? raw : (raw?.data ?? []);
             const formatted = list.map(d => {
                 const ciudad = String(d.ciudad ?? '').toUpperCase().trim();
-                const nombreRaw = String(d.nombre ?? '').trim();
+                const nombreRaw = d?.bodega?.nombre?.trim() || String(d.nombre ?? '').trim();
                 const display = (nombreRaw || 'SIN NOMBRE').toUpperCase();
                 return {
                     id: String(d.cod_direccion),
@@ -565,68 +501,52 @@ const FrmPromotoria= () => {
             }));
     }, [direcciones, form.ciudad]);
 
-    const mapTipoById = (listaTipos = []) =>
-        Object.fromEntries(listaTipos.map(t => [t.id, t.nombre]));
 
-    const minutosAHoras = (min = 0) => {
-        const m = Number(min || 0);
-        const h = Math.floor(m / 60);
-        const mm = `${m % 60}`.padStart(2, '0');
-        return `${h}:${mm}`;
-    };
-
-    const normStr = (s) =>
-        String(s ?? "")
-            .replace(/\t/g, "")
-            .replace(/\s+/g, " ")
-            .trim();
-
-    const normNombreTienda = (s) => normStr(s);
-
-    const getNombreTienda = (tienda, bodega) => {
-
-        const t = normNombreTienda(tienda?.nombre);
-        const b = normNombreTienda(bodega?.nombre);
-
-        return t || b || "SIN NOMBRE";
-    };
-
-    const canalFromTipo = (t) =>
-        (String(t || '').trim().toUpperCase() === 'MY' ? 'MAYOREO' : 'RETAIL');
-
-    const getCanal = (it) =>
-        canalFromTipo(
-            it?.cliente_hor?.cod_tipo_clienteh ?? it?.cliente?.cod_tipo_clienteh
-        );
 
     dayjs.extend(utc);
-    const obtenerActivacion = (item, tiposDict) => {
-        const fUTC = item.fecha_act ? dayjs.utc(item.fecha_act) : null;
+
+    const obtenerPromotoria = (item) => {
+        const safe = (val) => {
+            if (val == null) return '';
+            if (typeof val === 'object') {
+                return val.nombre || val.label || val.ciudad || JSON.stringify(val);
+            }
+            return String(val).trim();
+        };
 
         return {
-            cod_activacion: item.cod_activacion,
-            tipoActivacion: tiposDict[item?.cod_item_act] || item?.cod_item_act || '',
+            cod_form: safe(item.cod_form),
+
             promotor: [item?.promotor?.nombres, item?.promotor?.apellido_paterno, item?.promotor?.apellido_materno]
                 .filter(Boolean).join(' ').trim(),
-            distribuidor: [item?.cliente?.nombre, item?.cliente?.apellido1].filter(Boolean).join(' ').trim(),
-            canal: getCanal(item),
-            ciudad: item?.tienda?.ciudad || '',
-            tienda: getNombreTienda(item?.tienda, item?.bodega),
-            fecha:   fUTC ? fUTC.format('DD/MM/YYYY') : '',
-            fechaISO: fUTC ? fUTC.format('YYYY-MM-DD') : '',
-            horaInicio: item.hora_inicio || '',
-            horaFinal:  item.hora_fin || '',
-            horas: item.total_minutos != null ? minutosAHoras(item.total_minutos) : '',
-            motos: Number(item?.num_exhi_motos ?? 0),
-            animadora: item?.animadora || (item?.proveedor?.nombre || '').trim(),
-            cod_cliente: String(item.cod_cliente ?? '').trim(),
-            cod_tienda:  String(item.cod_tienda ?? '').trim(),
-            cod_proveedor: item.cod_proveedor ? String(item.cod_proveedor).trim() : '',
-            cod_item_act: String(item.cod_item_act ?? '').trim(),
-            cod_modelo_act: String(item.cod_modelo_act ?? 'ACT').trim(),
-            cod_promotor: String(item.cod_promotor ?? '').trim(),
+
+            // Distribuidor
+            distribuidor: safe(item?.cliente?.nombre),
+
+            // Ciudad
+            ciudad: safe(item?.bodega?.ciudad || item?.tienda?.ciudad),
+
+            // Datos de tienda (desde bodega)
+            tienda: safe(item?.bodega?.nombre),
+            jefeTienda: safe(item?.bodega?.responsable),
+            correoTienda: safe(item?.bodega?.correo_electronico),
+            telefonoTienda: safe(item?.bodega?.telefono),
+
+            // Otros valores
+            promedioVenta: safe(item?.bodega?.prom_venta_tienda),
+            numVendedores: safe(item?.total_vendedores),
+            totalMotosPiso: safe(item?.total_mot_piso),
+            motosShineray: safe(item?.total_mot_shineray),
+
+            // Relacionales
+            modelos_segmento: item.modelos_segmento || [],
+            marcas_segmento: item.marcas_segmento || [],
         };
     };
+
+
+
+
 
     const clientes = React.useMemo(() => {
         const arr = (clientesRaw ?? []).map(c => ({
@@ -647,18 +567,6 @@ const FrmPromotoria= () => {
         return clientes.find(c => c.id === id) ?? null;
     }, [clientes, buscarDistribuidorId]);
 
-    React.useEffect(() => {
-        if (selectedDistribuidorForm) {
-            setForm(prev => ({
-                ...prev,
-                canal: canalFromTipo(selectedDistribuidorForm.tipo),
-                distribuidorNombre: selectedDistribuidorForm.nombre ?? '',
-            }));
-        } else {
-            setForm(prev => ({ ...prev, canal: '' }));
-        }
-    }, [selectedDistribuidorForm]);
-
     const tiendaSel = useMemo(() => {
         const id = String(form.codTienda ?? '');
         const d = direcciones.find(x => String(x.id) === id) || null;
@@ -672,21 +580,11 @@ const FrmPromotoria= () => {
         };
     }, [direcciones, form.codTienda]);
 
-    const faltaNombreTienda = useMemo(() => {
-        const n = (tiendaSel?.nombre || '').trim().toUpperCase();
-        return !n || n === 'SIN NOMBRE';
-    }, [tiendaSel]);
+    console.log("form", form);
 
     return (
         <>{loading ? (<LoadingCircle/>) : (
-            <div style={{marginTop: '150px', width: "100%"}}>
-                <Navbar0 menus={menus}/>
-                <Box>
-                    <ButtonGroup variant="text">
-                        <Button onClick={() => navigate('/dashboard')}>Módulos</Button>
-                        <Button onClick={() => navigate(-1)}>Catálogos</Button>
-                    </ButtonGroup>
-                </Box>
+            <div style={{marginTop: '10px', width: "100%"}}>
                 <Box sx={{mt: 1, mb: 2}}>
                     <Grid container spacing={2} alignItems="center">
                         <Grid item xs={12} sm={6} md={2}>
@@ -775,7 +673,7 @@ const FrmPromotoria= () => {
                     </Grid>
                 </Box>
                 <Box sx={{width: '100%', display: 'flex', justifyContent: 'center'}}>
-                    <Box sx={{width: '100%', maxWidth: 1900}}>
+                    <Box sx={{width: '100%', maxWidth: 2050}}>
                         {mostrarFormulario && (
                             <>
                                 <Typography
@@ -788,25 +686,14 @@ const FrmPromotoria= () => {
                                 </Typography>
                                 <Paper elevation={1} sx={{p: 2, mt: 3}}>
                                     <Grid container columnSpacing={2} rowSpacing={2}>
-                                        <Grid item xs={12} md={2}>
-                                            <Autocomplete
-                                                options={tipoActivaciones ?? []}
-                                                getOptionLabel={(o) => (o?.nombre ? o.nombre.toUpperCase() : '')}
-                                                value={tipoActivaciones.find(act => act.id === form.tipoActivacion) || null}
-                                                onChange={(_, v) => handleChange('tipoActivacion')({target: {value: v ? v.id : ''}})}
-                                                isOptionEqualToValue={(a, b) => a.id === (b?.id ?? b)}
-                                                renderInput={(params) => <TextField {...params} label="Tipo Activación"/>}
-                                                fullWidth
-                                                clearOnEscape
-                                                disablePortal
-                                            />
-                                        </Grid>
                                         <Grid item xs={12} md={4}>
                                             <TextField
                                                 label="Promotor"
                                                 value={
                                                     promotorActual
-                                                        ? `${promotorActual.nombres ?? ''} ${promotorActual.apellido_paterno ?? ''} ${promotorActual.apellido_materno ?? ''}`.replace(/\s+/g,' ').trim()
+                                                        ? `${promotorActual.nombres ?? ''} 
+                                                        ${promotorActual.apellido_paterno ?? ''} 
+                                                        ${promotorActual.apellido_materno ?? ''}`.replace(/\s+/g,' ').trim()
                                                         : ''
                                                 }
                                                 fullWidth
@@ -839,23 +726,6 @@ const FrmPromotoria= () => {
                                             />
                                         </Grid>
                                         <Grid item xs={12} md={2}>
-                                            <FormControl fullWidth>
-                                                <InputLabel id="canal-label">Canal</InputLabel>
-                                                <Select
-                                                    labelId="canal-label"
-                                                    label="Canal"
-                                                    value={form.canal || ''}
-                                                    onChange={() => {
-                                                    }}
-                                                    variant="outlined"
-                                                    disabled
-                                                >
-                                                    <MenuItem value="RETAIL">RETAIL</MenuItem>
-                                                    <MenuItem value="MAYOREO">MAYOREO</MenuItem>
-                                                </Select>
-                                            </FormControl>
-                                        </Grid>
-                                        <Grid item xs={12} md={2}>
                                             <Autocomplete
                                                 options={ciudades}
                                                 getOptionLabel={(o) => o?.label ?? ''}
@@ -874,159 +744,201 @@ const FrmPromotoria= () => {
                                                 disabled={!form.promotor || !form.distribuidorId}
                                             />
                                         </Grid>
-                                        <Grid item xs={12} md={4}>
+                                        <Grid item xs={12} md={2}>
                                             <Autocomplete
                                                 options={tiendasPorCiudad}
                                                 getOptionLabel={(o) => o?.label ?? ''}
                                                 value={tiendaSel}
-                                                onChange={(_, v) => {
+                                                onChange={async (_, v) => {
                                                     if (v && typeof v === 'object') {
                                                         setForm(prev => ({
                                                             ...prev,
                                                             codTienda: v.id,
                                                             tienda: v.label,
                                                         }));
+                                                        try {
+                                                            const clienteId = form.distribuidorId;
+                                                            const data = await APIService.getTiendas(
+                                                                enterpriseShineray,
+                                                                clienteId,
+                                                                v.id
+                                                            );
+                                                            console.log("Respuesta getTiendas:", data);
+
+                                                            if (data) {
+                                                                setForm(prev => ({
+                                                                    ...prev,
+                                                                    responsable: data.nom_jefe_tienda || '',
+                                                                    telefono1: data.cel_jefe_tienda || '',
+                                                                    correo_electronico: data.correo_tienda || '',
+                                                                    prom_venta_tienda: data.prom_venta_tienda || ''
+                                                                }));
+
+
+                                                            }
+                                                        } catch (error) {
+                                                            console.error("Error cargando info tienda:", error);
+                                                            toast.error("No se pudo cargar info de la tienda");
+                                                        }
                                                     } else {
-                                                        setForm(prev => ({ ...prev, codTienda: '', tienda: ''  }));
+                                                        setForm(prev => ({
+                                                            ...prev,
+                                                            codTienda: '',
+                                                            tienda: '',
+                                                            responsable: '',
+                                                            telefono1: '',
+                                                            correo_electronico: '',
+                                                            prom_venta_tienda: ''
+                                                        }));
                                                     }
                                                 }}
-                                                isOptionEqualToValue={(a,b) => `${a.id}` === `${b?.id ?? b}`}
-                                                renderInput={(p) => <TextField {...p} label="Tienda" />}
-                                            />
-                                        </Grid>
-                                        {form.codTienda && (faltaNombreTienda || (form.tiendaNombre || '').trim()) && (
-                                            <Grid item xs={12} md={4}>
-                                                <TextField
-                                                    label="Nombre de Tienda (faltante)"
-                                                    value={form.tiendaNombre || ''}
-                                                    onChange={(e) =>
-                                                        setForm(prev => ({ ...prev, tiendaNombre: (e.target.value || '').toUpperCase() }))
-                                                    }
-                                                    fullWidth
-                                                />
-                                            </Grid>
-                                        )}
-                                        <Grid item xs={12} md={2}>
-                                            <TextField
-                                                label="Fecha"
-                                                type="date"
-                                                value={form.fecha || todayISO()}
-                                                InputLabelProps={{ shrink: true }}
-                                                inputProps={{
-                                                    min: form.fecha || todayISO(),
-                                                    max: form.fecha || todayISO(),
-                                                    readOnly: true
-                                                }}
-                                                disabled
-                                                fullWidth
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} md={2}>
-                                            <TextField
-                                                label="Hora Inicio"
-                                                type="time"
-                                                value={form.horaInicio || ''}
-                                                onChange={handleChange('horaInicio')}
-                                                fullWidth
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} md={2}>
-                                            <TextField
-                                                label="Hora Final"
-                                                type="time"
-                                                value={form.horaFinal || ''}
-                                                onChange={handleChange('horaFinal')}
-                                                fullWidth
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} md={2}>
-                                            <TextField
-                                                label="Total horas"
-                                                value={form.horas || ''}
-                                                InputProps={{readOnly: true}}
-                                                fullWidth
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} md={2}>
-                                            <TextField
-                                                label="# Motos Exhibición"
-                                                type="number"
-                                                value={form.motos ?? ''}
-                                                onChange={handleChange('motos')}
-                                                fullWidth
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} md={4}>
-                                            <Autocomplete
-                                                options={proveedores ?? []}
-                                                getOptionLabel={(o) => (o?.nombre ? o.nombre.toUpperCase() : '')}
-                                                renderOption={renderById(o => o?.nombre ?? '')}
-                                                value={proveedores.find(p => `${p.id}` === `${form.codProveedor}`) || null}
-                                                onChange={(_, v) =>
-                                                    setForm(prev => ({
-                                                        ...prev,
-                                                        codProveedor: v ? v.id : '',
-                                                    }))
-                                                }
+
                                                 isOptionEqualToValue={(a, b) => `${a.id}` === `${b?.id ?? b}`}
-                                                renderInput={(params) => <TextField {...params} label="Agencia"/>}
-                                                fullWidth
-                                                clearOnEscape
-                                                disablePortal
+                                                renderInput={(params) => <TextField {...params} label="Tienda" />}
                                             />
                                         </Grid>
                                         <Grid item xs={12} md={4}>
                                             <TextField
-                                                label="Nombre Animadora"
-                                                value={form.animadoraNombre || ''}
-                                                onChange={(e) => setField('animadoraNombre', e.target.value.toUpperCase())}
+                                                label="Jefe Tienda"
+                                                value={form.responsable || ''}
+                                                fullWidth
+                                                InputProps={{ readOnly: true }}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} md={4}>
+                                            <TextField
+                                                label="Correo"
+                                                value={form.correo_electronico || ''}
+                                                fullWidth
+                                                InputProps={{ readOnly: true }}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} md={2}>
+                                            <TextField
+                                                label="Teléfono"
+                                                value={form.telefono1 || ''}
+                                                fullWidth
+                                                InputProps={{ readOnly: true }}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} md={2}>
+                                            <TextField
+                                                label="Promedio Venta"
+                                                value={form.prom_venta_tienda || ''}
+                                                fullWidth
+                                                InputProps={{ readOnly: true }}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} md={1}>
+                                            <TextField
+                                                label="# Vendedores"
+                                                type="number"
+                                                value={form.total_vendedores ?? ''}
+                                                onChange={handleChange('total_vendedores')}
                                                 fullWidth
                                             />
                                         </Grid>
+                                        <Grid item xs={12} md={1}>
+                                            <TextField
+                                                label="# Total motos en piso"
+                                                type="number"
+                                                value={form.total_mot_piso ?? ''}
+                                                onChange={handleChange('total_mot_piso')}
+                                                fullWidth
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} md={1}>
+                                            <TextField
+                                                label="# Motos Shineray"
+                                                type="number"
+                                                value={form.total_mot_shineray ?? ''}
+                                                onChange={handleChange('total_mot_shineray')}
+                                                fullWidth
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} md={6}>
+                                            <IngresoModelosTabs
+                                                modelosPorSegmento={modelosPorSegmento}
+                                                cantidades={cantidades}
+                                                setCantidades={setCantidades}
+                                            />
+                                        </Grid>
+
                                         <Grid item xs={12}>
                                             <Box sx={{display: 'flex', justifyContent: 'center', gap: 2}}>
-                                                <Button
-                                                    variant="contained"
-                                                    sx={{
-                                                        backgroundColor: 'firebrick',
-                                                        '&:hover': {backgroundColor: 'darkred'}
-                                                    }}
-                                                    onClick={handleSubmit}
-                                                >
-                                                    {modoEdicion ? 'Actualizar Activación' : 'Guardar'}
-                                                </Button>
-                                                <Button
-                                                    variant="outlined"
-                                                    onClick={() => {
-                                                        limpiarFormulario();
-                                                        setMostrarFormulario(false);
-                                                        setModoEdicion(false);
-                                                    }}
-                                                >
-                                                    Cancelar
-                                                </Button>
+
+                                                <Grid item xs={12}>
+                                                    <Box sx={{display: 'flex', justifyContent: 'center', gap: 2}}>
+                                                        <Button
+                                                            variant="contained"
+                                                            sx={{ backgroundColor: 'firebrick', '&:hover': { backgroundColor: 'darkred' } }}
+                                                            onClick={handleSubmit}
+                                                        >
+                                                            {modoEdicion ? 'Actualizar promotoría' : 'Guardar'}
+                                                        </Button>
+
+                                                        <Button
+                                                            variant="outlined"
+                                                            onClick={() => {
+                                                                limpiarFormulario();
+                                                                setMostrarFormulario(false);
+                                                                setModoEdicion(false);
+                                                            }}
+                                                        >
+                                                            Cancelar
+                                                        </Button>
+
+                                                        <Button
+                                                            variant="contained"
+                                                            sx={{ backgroundColor: 'green', '&:hover': { backgroundColor: 'darkgreen' } }}
+                                                            onClick={() => {
+                                                                limpiarFormulario();
+                                                                setMostrarFormulario(false);
+                                                                setMostrarResumen(true);
+                                                            }}
+                                                        >
+                                                            Siguiente
+                                                        </Button>
+                                                    </Box>
+                                                </Grid>
+
                                             </Box>
                                         </Grid>
                                     </Grid>
                                 </Paper>
                             </>
                         )}
-                        {mostrarTabla && (
-                            <Box sx={{mt: 5, width: '100%', px: 2}}>
-                                <ThemeProvider theme={getMuiTheme()}>
-                                    <Box sx={{width: '100%', '& .MuiPaper-root': {width: '100%'}}}>
-                                        <MUIDataTable
-                                            title="REGISTROS VISITA TIENDA PROMOTORÍA"
-                                            data={activaciones}
-                                            columns={columns}
-                                            options={{
-                                                ...tableOptions,
-                                                responsive: 'standard',
-                                            }}
-                                        />
-                                    </Box>
-                                </ThemeProvider>
+                        {guardadoPromotoria && (
+                            <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+                                <Button
+                                    variant="contained"
+                                    sx={{ backgroundColor: 'green', '&:hover': { backgroundColor: 'darkgreen' } }}
+                                    onClick={() => {
+                                        limpiarFormulario();
+                                        setMostrarFormulario(false);
+                                        setMostrarTabla(false);
+                                        setMostrarResumen(true);
+                                        setGuardadoPromotoria(false);
+                                    }}
+                                >
+                                    Siguiente
+                                </Button>
                             </Box>
+                        )}
+
+                        {mostrarTabla && (
+                            <Box sx={{ mt: 5, width: "100%", px: 2 }}>
+                                <CollapsibleTable cabeceras={formularios}  />
+
+                            </Box>
+                        )}
+                        {mostrarResumen && (
+                            <TablaResumenMarcas
+                                modelosPorSegmento={modelosPorSegmento}
+                                cantidades={cantidades}
+                                form={form}
+                                setForm={setForm}
+                            />
                         )}
                     </Box>
                     <Snackbar open={alerta.open} autoHideDuration={3000}
