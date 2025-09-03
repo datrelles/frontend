@@ -27,6 +27,7 @@ import MUIDataTable from "mui-datatables";
 import {ThemeProvider} from "@mui/material/styles";
 import Paper from "@mui/material/Paper";
 import {DesktopTimePicker} from '@mui/x-date-pickers/DesktopTimePicker';
+import { Chip } from "@mui/material";
 
 
 const FrmActivaciones = () => {
@@ -57,8 +58,6 @@ const FrmActivaciones = () => {
 
     const [buscarDistribuidorId, setBuscarDistribuidorId] = useState('');
     const [buscarDistribuidorNombre, setBuscarDistribuidorNombre] = useState('');
-
-
     const [loadingTabla, setLoadingTabla] = useState(false);
 
     const cargarActivacionesIniciales = async (codPromotor) => {
@@ -106,7 +105,9 @@ const FrmActivaciones = () => {
         tipoActivacion: '',
         promotor: '',
         ToDate: '',
-        FromDate: ''
+        FromDate: '',
+        estado: 0,
+        observacion: ''
     });
 
     const [activaciones, setActivaciones] = useState([]);
@@ -178,6 +179,10 @@ const FrmActivaciones = () => {
             hora_fin: String(form.horaFinal ?? '').trim(),
             fecha_act: String(form.fecha ?? '').trim(),
             num_exhi_motos: safeInt(form.motos),
+            ...(modoEdicion
+                    ? { estado: { estado: form.estado, observacion: form.observacion || "SN" } }
+                    : {}
+            )
         };
     }
 
@@ -206,10 +211,8 @@ const FrmActivaciones = () => {
 
         try {
             if (modoEdicion) {
-                console.log("🔎 Payload update:", payload);
                 await APIService.updateActivaciones(form.cod_activacion, payload);
             } else {
-                console.log("🔎 Payload insert:", payload);
                 await APIService.postActivaciones(enterpriseShineray, payload);
             }
 
@@ -233,7 +236,6 @@ const FrmActivaciones = () => {
             setAlerta({open: true, msg, severity: 'error'});
         }
     };
-
 
     const limpiarFormulario = () => {
         setForm(prev => ({
@@ -356,6 +358,13 @@ const FrmActivaciones = () => {
         { name: "horas", label: "HORAS" },
         { name: "motos", label: "# MOTOS EXHIBICIÓN" },
         { name: "proveedor", label: "PROVEEDOR" },
+        {
+            name: "estado",
+            label: "ESTADO",
+            options: {
+                customBodyRender: (value) => getEstadoChip(value),
+            },
+        },
         {
             name: "acciones",
             label: "ACCIONES",
@@ -574,6 +583,16 @@ const FrmActivaciones = () => {
         );
 
     dayjs.extend(utc);
+    const mapEstado = (estado) => {
+        switch (Number(estado)) {
+            case 0: return "Pendiente";
+            case 1: return "Pre-aprobada";
+            case 2: return "Aprobada";
+            case 3: return "Rechazada";
+            default: return "Desconocido";
+        }
+    };
+
     const obtenerActivacion = (item, tiposDict) => {
         const fUTC = item.fecha_act ? dayjs.utc(item.fecha_act) : null;
 
@@ -599,9 +618,26 @@ const FrmActivaciones = () => {
             cod_item_act: String(item.cod_item_act ?? '').trim(),
             cod_modelo_act: String(item.cod_modelo_act ?? 'ACT').trim(),
             cod_promotor: String(item.cod_promotor ?? '').trim(),
+            estado: mapEstado(item.estado),
+            cod_estado: Number(item.estado),
         };
     };
 
+
+    const getEstadoChip = (estado) => {
+        switch (estado) {
+            case "Pendiente":
+                return <Chip label="Pendiente" color="warning" variant="outlined" />;
+            case "Pre-aprobada":
+                return <Chip label="Pre-aprobada" color="info" variant="outlined" />;
+            case "Aprobada":
+                return <Chip label="Aprobada" color="success" variant="outlined" />;
+            case "Rechazada":
+                return <Chip label="Rechazada" color="error" variant="outlined" />;
+            default:
+                return <Chip label={estado} variant="outlined" />;
+        }
+    };
     const clientes = React.useMemo(() => {
         const arr = (clientesRaw ?? []).map(c => ({
             id: String(c?.cod_cliente ?? ''),
@@ -632,9 +668,6 @@ const FrmActivaciones = () => {
             setForm(prev => ({...prev, canal: ''}));
         }
     }, [selectedDistribuidorForm]);
-
-
-
 
 
     return (
@@ -862,15 +895,15 @@ const FrmActivaciones = () => {
                                                             color="error"
                                                             onClick={async () => {
                                                                 try {
-                                                                    await APIService.postNotificarTiendaSinNombre({
-                                                                        cod_tienda: form.codTienda,
-                                                                        cod_cliente: form.distribuidorId,
-                                                                        ciudad: form.ciudad,
-                                                                        distribuidor: form.distribuidorNombre,
-                                                                        promotor: promotorActual?.nombres || form.promotor,
-                                                                    });
+                                                                    const resp = await APIService.postNotificarTiendaSinNombre(
+                                                                        enterpriseShineray,
+                                                                        form.distribuidorId,
+                                                                        form.codTienda
+                                                                    );
+                                                                    console.log("Respuesta backend:", resp);
                                                                     toast.success("Notificación enviada correctamente");
                                                                 } catch (e) {
+                                                                    console.error("Error al notificar:", e?.response || e);
                                                                     toast.error(e?.response?.data?.mensaje || "Error al enviar notificación");
                                                                 }
                                                             }}
@@ -964,6 +997,34 @@ const FrmActivaciones = () => {
                                                 disablePortal
                                             />
                                         </Grid>
+                                        {modoEdicion && (
+                                            <>
+                                                <Grid item xs={12} md={2}>
+                                                    <FormControl fullWidth variant="outlined" size="medium">
+                                                        <InputLabel id="estado-label">Estado Solicitud</InputLabel>
+                                                        <Select
+                                                            labelId="estado-label"
+                                                            value={form.estado}
+                                                            onChange={(e) => setForm({ ...form, estado: e.target.value })}
+                                                            variant="outlined"
+                                                            label="Estado Solicitud">
+                                                            <MenuItem value={0}>Pendiente</MenuItem>
+                                                            <MenuItem value={1}>Pre-aprobada</MenuItem>
+                                                            <MenuItem value={2}>Aprobada</MenuItem>
+                                                            <MenuItem value={3}>Rechazada</MenuItem>
+                                                        </Select>
+                                                    </FormControl>
+                                                </Grid>
+                                                <Grid item xs={12} md={2}>
+                                                    <TextField
+                                                        label="Observación (opcional)"
+                                                        value={form.observacion || ''}
+                                                        onChange={(e) => setForm({ ...form, observacion: e.target.value })}
+                                                        fullWidth
+                                                    />
+                                                </Grid>
+                                            </>
+                                        )}
                                         <Grid item xs={12}>
                                             <Box sx={{display: 'flex', justifyContent: 'center', gap: 2}}>
                                                 <Button
@@ -988,6 +1049,7 @@ const FrmActivaciones = () => {
                                                 </Button>
                                             </Box>
                                         </Grid>
+
                                     </Grid>
                                 </Paper>
                             </>
