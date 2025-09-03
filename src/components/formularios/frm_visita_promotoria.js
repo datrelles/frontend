@@ -11,6 +11,7 @@ import {EncuestaExhibicion, EncuestaInteraccion} from "./frm_encuesta_vp";
 import Navbar0 from "../Navbar0";
 import LoadingCircle from "../contabilidad/loader";
 import {useAuthContext} from "../../context/authContext";
+import FrmActivaciones from "../formularios/frm_activaciones";
 import FrmPromotoria from "../formularios/frm_promotoria";
 import {Grid} from "@material-ui/core";
 
@@ -38,7 +39,13 @@ const VisitaPromotoria = () => {
     const navigate = useNavigate();
     const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
-    const [form, setForm] = useState({});
+    const [form, setForm] = useState({
+        promotor: "",
+        distribuidorId: "",
+        codTienda: "",
+        resumenMarcas: {},
+    });
+
     const [guardando, setGuardando] = useState(false);
     const [guardada, setGuardada] = useState(false);
     const [mostrarSegundo, setMostrarSegundo] = useState(false);
@@ -48,14 +55,12 @@ const VisitaPromotoria = () => {
     const [promotorActual, setPromotorActual] = useState(null);
     const [cargandoPromotor, setCargandoPromotor] = useState(true);
     const [canalRaw, setCanalRaw] = useState("");
-    const [esRetailUI, setEsRetailUI] = useState(false);
-    const [esRetailBackend, setEsRetailBackend] = useState(false);
     const [usuarioOracle, setUsuarioOracle] = useState("");
     const [cargandoCanal, setCargandoCanal] = useState(true);
 
     useEffect(() => {
         window.__api = APIService;
-        console.debug("[CMP] window.__api listo (no imprime credenciales)");
+        //console.debug("[CMP] window.__api listo (no imprime credenciales)");
     }, [APIService]);
 
     const getMenus = async () => {
@@ -84,36 +89,121 @@ const VisitaPromotoria = () => {
         const faltan = [];
         const errores = [];
 
+        // Limpieza y orden
         if (!num(f.limp_orden)) faltan.push('limp_orden');
+
         if (bool01(f.pop_actual) == null) faltan.push('pop_actual');
+        if (up(f.pop_actual) === 'NO') {
+            if (!f.pop_material_desactualizado || f.pop_material_desactualizado.length === 0) {
+                faltan.push('pop_material_desactualizado');
+            }
+            if (f.pop_material_desactualizado?.includes("Otros") && !clean(f.otros_pop_material)) {
+                faltan.push('otros_pop_material');
+            }
+        }
+
+        // POP suficiencia %
         const ps = num(f.pop_sufic);
-        if (!(typeof ps === 'number' && ps >= 0 && ps <= 100)) errores.push('pop_sufic(0..100)');
+        if (!(typeof ps === 'number' && ps >= 0 && ps <= 100) && up(f.pop_sufic) !== 'N/A') {
+            errores.push('pop_sufic(0..100 o N/A)');
+        }
+
+        // Precio visible
+        if (bool01(f.prec_vis_corr) == null && up(f.prec_vis_corr) !== "N/A") {
+            faltan.push("prec_vis_corr");
+        }
+        // Motos con desperfectos
         if (bool01(f.motos_desper) == null) faltan.push('motos_desper');
+        if (up(f.motos_desper) === 'SI') {
+            if (!f.motos_desper || f.motos_desper.length === 0) {
+                faltan.push('motos_danos');
+            }
+            if (f.motos_desper?.includes("Otros") && !clean(f.motos_desper)) {
+                faltan.push('motos_danos_otros');
+            }
+        }
+        // Motos con componentes faltantes
+        if (bool01(f.motos_falt) == null) faltan.push('motos_falt');
+        if (f.motos_falt?.includes("Otros") && !clean(f.motos_falt)) {
+            faltan.push('motos_falt');
+        }
+
+        // Estado batería
+        if (bool01(f.motos_bat) == null) {
+            faltan.push('motos_bat');
+        }
+        if (up(f.motos_bat) === 'SI' && !clean(f.estado_bateria)) {
+            faltan.push('estado_bateria');
+        }
+
+        // Publicidad
         if (bool01(f.estado_publi) == null && up(f.estado_publi) !== "N/A") {
             faltan.push('estado_publi');
         }
-        if (!num(f.conoc_portaf)) faltan.push('conoc_portaf');
-        if (!num(f.conoc_prod)) faltan.push('conoc_prod');
-        if (!num(f.conoc_garan)) faltan.push('conoc_garan');
-        if (!num(f.conoc_shibot)) faltan.push('conoc_shibot');
-        if (!num(f.ubi_talleres)) faltan.push('ubi_talleres');
-
-        if (up(f.pop_actual) === 'NO' && !clean(f.pop_actual_obs)) faltan.push('pop_actual_obs');
-        if (up(f.motos_desper) === 'SI' && !clean(f.motos_desper_obs)) faltan.push('motos_desper_obs');
-
-        if (up(f.estado_publi) === 'NO' && !clean(f.estado_publi_obs)) {
-            faltan.push('estado_publi_obs');
-        }
-
-        if (up(f.estado_publi) === 'N/A' && clean(f.estado_publi_obs)) {
-            errores.push('estado_publi_obs (no debe existir cuando es N/A)');
-        }
-        if (esRetailUI) {
-            const v4 = Number(f.prec_vis_corr);
-            if (!( (v4 >= 1 && v4 <= 5) || up(f.prec_vis_corr) === "N/A")) {
-                faltan.push('prec_vis_corr');
+        if (up(f.estado_publi) === 'NO') {
+            if (!f.estado_publi_problemas || f.estado_publi_problemas.length === 0) {
+                faltan.push('estado_publi_problemas');
+            }
+            if (f.estado_publi_problemas?.includes("Otros") && !clean(f.estado_publi_otros)) {
+                faltan.push('estado_publi_otros');
             }
         }
+
+
+        // Material POP desactualizado → Otros
+        if (f.pop_material_desactualizado?.includes("Otros") && !clean(f.otros_pop_material)) {
+            faltan.push('otros_pop_material');
+        }
+
+        // Conocimientos
+        if (!num(f.conoc_portaf) && up(f.conoc_portaf) !== 'N/A') faltan.push('conoc_portaf');
+        if (!num(f.conoc_prod) && up(f.conoc_prod) !== 'N/A') faltan.push('conoc_prod');
+        if (!num(f.conoc_garan) && up(f.conoc_garan) !== 'N/A') faltan.push('conoc_garan');
+        if (!num(f.conoc_shibot) && up(f.conoc_shibot) !== 'N/A') faltan.push('conoc_shibot');
+        // Ubicación de talleres (RadioSiNo)
+        if (bool01(f.ubi_talleres) == null) {
+            faltan.push('ubi_talleres');
+        }
+
+        if (up(f.existe_promo) === 'N/A') {
+        } else if (![ "SI", "NO" ].includes(up(f.existe_promo))) {
+            faltan.push("existe_promo");
+        }
+
+        if (up(f.existe_promo) === "SI" && !["SI", "NO"].includes(up(f.conoc_promo))) {
+            faltan.push("conoc_promo");
+        }
+
+        // Normalizar incentivos
+        const incentivosVen = Array.isArray(f.incentivos_ven)
+            ? f.incentivos_ven
+            : (f.incentivos_ven ? [f.incentivos_ven] : []);
+        const incentivosJef = Array.isArray(f.incentivos_jef)
+            ? f.incentivos_jef
+            : (f.incentivos_jef ? [f.incentivos_jef] : []);
+
+        // Incentivos vendedores
+        if (Number(f.confor_compe_v) >= 3) {
+            if (!incentivosVen || incentivosVen.length === 0) faltan.push('incentivos_ven');
+            if (incentivosVen.includes("BONO EN EFECTIVO") && !num(f.bono_efectivo_valor)) {
+                faltan.push('bono_efectivo_valor');
+            }
+            if (incentivosVen.includes("OTROS") && !clean(f.incentivos_ven_otros)) {
+                faltan.push('incentivos_ven_otros');
+            }
+        }
+
+        // Incentivos jefes
+        if (Number(f.confor_compe_j) >= 3) {
+            if (!incentivosJef || incentivosJef.length === 0) faltan.push('incentivos_jef');
+            if (incentivosJef.includes("BONO EN EFECTIVO") && !num(f.bono_efectivo_valor_jefe)) {
+                faltan.push('bono_efectivo_valor_jefe');
+            }
+            if (incentivosJef.includes("OTROS") && !clean(f.incentivos_jefe_otros)) {
+                faltan.push('incentivos_jefe_otros');
+            }
+        }
+
         return { completa: faltan.length === 0 && errores.length === 0, faltan, errores };
     };
 
@@ -123,7 +213,8 @@ const VisitaPromotoria = () => {
         return {completa: reg.ok && enc.completa, faltan: [...reg.faltan, ...enc.faltan], errores: enc.errores};
     };
 
-    const todoCompleto = validarTodo(form).completa;
+    const todoCompleto = React.useMemo(() => validarTodo(form).completa, [form]);
+
 
     const sanitizeBusinessRules = (e) => {
         const out = { ...e };
@@ -133,44 +224,164 @@ const VisitaPromotoria = () => {
         if (up(out.estado_publi) === "SI") {
             out.estado_publi_obs = null;
         }
-        if (out.confor_compe == null) {
-            out.confor_compe_obs = null;
+        if (out.confor_compe_j == null) {
+            out.confor_compe_obs_jef = null;
+        }
+        if (up(out.existe_promo) === "N/A") {
+            out.existe_promo = null;
         }
         return out;
     };
 
-    const buildPayloadEncuesta = (f, {empresa}) => {
+    const buildPayloadEncuesta = (f, { empresa }) => {
         const mapped = {
             cod_promotor: clean(f.promotor),
             cod_cliente: clean(f.distribuidorId),
             cod_tienda: num(f.codTienda),
             limp_orden: num(f.limp_orden),
+
+            // campos simples
             pop_actual: bool01(f.pop_actual),
-            pop_actual_obs: clean(f.pop_actual_obs),
             pop_sufic: num(f.pop_sufic),
-            ...(f.prec_vis_corr !== undefined && f.prec_vis_corr !== null && String(f.prec_vis_corr).trim() !== ""
-                ? {prec_vis_corr: Number(f.prec_vis_corr)}
-                : {}),
             motos_desper: bool01(f.motos_desper),
-            motos_desper_obs: clean(f.motos_desper_obs),
+            motos_falt: f.motos_falt == null ? null : bool01(f.motos_falt),
+            motos_bat: f.motos_bat == null ? null : bool01(f.motos_bat),
             estado_publi: bool01(f.estado_publi),
-            estado_publi_obs: clean(f.estado_publi_obs),
             conoc_portaf: num(f.conoc_portaf),
             conoc_prod: num(f.conoc_prod),
             conoc_garan: num(f.conoc_garan),
-            conoc_promo: f.conoc_promo == null ? null : bool01(f.conoc_promo),
-            confor_shine: f.confor_shine == null ? null : num(f.confor_shine),
-            confor_compe: f.confor_compe == null ? null : num(f.confor_compe),
-            confor_compe_obs: clean(f.confor_compe_obs),
             conoc_shibot: num(f.conoc_shibot),
-            ubi_talleres: num(f.ubi_talleres),
+            ubi_talleres: f.ubi_talleres == null ? null : bool01(f.ubi_talleres),
+
+            // conformidad
+            confor_shine_v: num(f.confor_shine_v),
+            confor_shine_j: num(f.confor_shine_j),
+            confor_compe_v: num(f.confor_compe_v),
+            confor_compe_j: num(f.confor_compe_j),
+
+            prec_vis_corr: f.prec_vis_corr == null ? null : bool01(f.prec_vis_corr),
+
+            existe_promo:
+                up(f.existe_promo) === "NA"
+                    ? null
+                    : f.existe_promo
+                        ? bool01(f.existe_promo)
+                        : null,
+
+            conoc_promo:
+                up(f.existe_promo) === "SI"
+                    ? (f.conoc_promo ? bool01(f.conoc_promo) : null)
+                    : null,
         };
 
+        // Contenedor de preguntas múltiples
+        const opcion_multiple = [];
+
+        // POP desactualizado (cod_pregunta = 2)
+        if (Array.isArray(f.pop_material_desactualizado)) {
+            f.pop_material_desactualizado.forEach((v) => {
+                const item = { cod_pregunta: 2, opcion: v.codigo };
+
+                if (v.texto === "OTROS" && f.otros_pop_material) {
+                    item.texto = f.otros_pop_material;
+                }
+
+                opcion_multiple.push(item);
+            });
+        }
+
+        // Motos daños (cod_pregunta = 5)
+        if (Array.isArray(f.motos_desper_opciones)) {
+            f.motos_desper_opciones.forEach((v) =>
+                opcion_multiple.push({ cod_pregunta: 5, opcion: v.codigo })
+            );
+            if (f.motos_danos_otros) {
+                opcion_multiple.push({
+                    cod_pregunta: 5,
+                    opcion: f.motos_danos_otros,
+                });
+            }
+        }
+
+        // Motos faltantes (cod_pregunta = 6)
+        if (Array.isArray(f.motos_falt_opciones)) {
+            f.motos_falt_opciones.forEach((v) =>
+                opcion_multiple.push({ cod_pregunta: 6, opcion: v.codigo })
+            );
+            if (f.motos_componentes_otros) {
+                opcion_multiple.push({
+                    cod_pregunta: 6,
+                    opcion: f.motos_componentes_otros,
+                });
+            }
+        }
+        // Estado batería (cod_pregunta = 7)
+        if (f.motos_bat === "SI" && f.estado_bateria) {
+            opcion_multiple.push({ cod_pregunta: 7, opcion: f.estado_bateria.codigo });
+        }
+
+        // Publicidad problemas (cod_pregunta = 8)
+        if (Array.isArray(f.estado_publi_problemas)) {
+            f.estado_publi_problemas.forEach((v) => {
+                if (v.texto === "OTROS" && f.estado_publi_otros) {
+                    opcion_multiple.push({
+                        cod_pregunta: 8,
+                        opcion: v.codigo,
+                        texto: f.estado_publi_otros,
+                    });
+                } else {
+                    opcion_multiple.push({
+                        cod_pregunta: 8,
+                        opcion: v.codigo,
+                    });
+                }
+            });
+        }
+
+        // Incentivos vendedores (cod_pregunta = 11)
+        if (Array.isArray(f.incentivos_ven)) {
+            f.incentivos_ven.forEach((v) => {
+                const item = { cod_pregunta: 11, opcion: v.codigo };
+
+                if (v.texto === "BONO EN EFECTIVO" && f.bono_efectivo_valor) {
+                    item.numero = Number(f.bono_efectivo_valor);
+                }
+
+                if (v.texto === "OTROS" && f.incentivos_ven_otros) {
+                    item.texto = f.incentivos_ven_otros;
+                }
+
+                opcion_multiple.push(item);
+            });
+        }
+        // Incentivos jefes (cod_pregunta = 12)
+        if (Array.isArray(f.incentivos_jef)) {
+            f.incentivos_jef.forEach((v) => {
+                const item = { cod_pregunta: 12, opcion: v.codigo };
+
+                if (v.texto === "BONO EN EFECTIVO" && f.bono_efectivo_valor_jefe) {
+                    item.numero = Number(f.bono_efectivo_valor_jefe);
+                }
+                if (v.texto === "OTROS" && f.incentivos_jefe_otros) {
+                    item.texto = f.incentivos_jefe_otros;
+                }
+                opcion_multiple.push(item);
+            });
+        }
+
+        // Normalización final
         const enc = sanitizeBusinessRules(mapped);
         const cleaned = Object.fromEntries(
-            Object.entries(enc).filter(([_, v]) => v !== undefined && v !== null && !(typeof v === 'string' && v.trim() === ''))
+            Object.entries(enc).filter(
+                ([k, v]) =>
+                    v !== undefined &&
+                    !(typeof v === "string" && v.trim() === "") &&
+
+                    !(v === null && k !== "existe_promo")
+            )
         );
-        return {empresa: Number(empresa), ...cleaned};
+
+        return { empresa: Number(empresa), ...cleaned, opcion_multiple };
     };
 
     const handleGuardar = async () => {
@@ -201,24 +412,32 @@ const VisitaPromotoria = () => {
             ? valueOrEvent.target.value
             : valueOrEvent;
         setForm((prev) => {
-            const next = {...prev, [field]: value};
-            if (field === 'estado_publi') {
-                if (up(value) !== 'SI') {
-                    next.estado_publi_obs = '';
-                }
+            const next = { ...prev, [field]: value };
+
+            if (field === 'estado_publi' && (up(value) === 'SI' || up(value) === 'N/A')) {
+                next.estado_publi_obs = '';
             }
-            if (field === 'motos_desper') {
-                if (up(value) !== 'NO') {
-                    next.motos_desper_obs = '';
-                }
+
+            if (field === 'motos_desper' && up(value) === 'NO') {
+                next.motos_desper_obs = '';
             }
-            if (field === 'pop_actual') {
-                if (up(value) !== 'NO') {
-                    next.pop_actual_obs = '';
-                }
+
+            if (field === 'pop_actual' && (up(value) === 'SI' || up(value) === 'N/A')) {
+                next.pop_actual_obs = '';
             }
-            if (field === 'confor_compe' && (value === 'N/A' || value == null)) {
-                next.confor_compe_obs = '';
+
+            if (field === "existe_promo") {
+                if (up(value) === "SI") {
+                    next.existe_promo = "SI";
+                } else if (up(value) === "NO") {
+                    next.existe_promo = "NO";
+                    next.conoc_promo = "";
+                } else if (up(value) === "N/A") {
+                    next.existe_promo = "N/A";
+                    next.conoc_promo = "";
+                } else {
+                    next.existe_promo = "";
+                }
             }
             return next;
         });
@@ -260,19 +479,6 @@ const VisitaPromotoria = () => {
         fetchClientesPromotorAC(form.promotor);
     }, [form.promotor]);
 
-    const tiendaSel = useMemo(() => {
-        const id = String(form.codTienda ?? '');
-        const d = direcciones.find(x => String(x.id) === id) || null;
-        if (!d) return null;
-
-        const nombreRaw = String(d.nombre ?? '').trim();
-        return {
-            id: String(d.id),
-            label: (nombreRaw || 'SIN NOMBRE').toUpperCase(),
-            nombre: nombreRaw,
-        };
-    }, [direcciones, form.codTienda]);
-
     const clientes = React.useMemo(() => {
         const arr = (clientesRaw ?? []).map(c => ({
             id: String(c?.cod_cliente ?? ''),
@@ -311,7 +517,7 @@ const VisitaPromotoria = () => {
             const list = Array.isArray(raw) ? raw : (raw?.data ?? []);
             const formatted = list.map(d => {
                 const ciudad = String(d.ciudad ?? '').toUpperCase().trim();
-                const nombreRaw = String(d.nombre ?? '').trim();
+                const nombreRaw = d?.bodega?.nombre?.trim() || String(d.nombre ?? '').trim();
                 const display = (nombreRaw || 'SIN NOMBRE').toUpperCase();
                 return {
                     id: String(d.cod_direccion),
@@ -324,7 +530,7 @@ const VisitaPromotoria = () => {
             });
             setDirecciones(formatted);
         } catch (e) {
-            toast.error(e?.message || 'No se pudieron cargar las TIENDAS');
+            toast.error(e?.message || 'No se pudieron cargar las tiendas');
             setDirecciones([]);
         } finally {
             setLoadingDirs(false);
@@ -395,42 +601,15 @@ const VisitaPromotoria = () => {
         setUsuarioOracle(uo);
     }, [userShineray]);
 
-    const isRetailRole = (canal) => {
-        const x = (canal ?? "").toUpperCase().trim();
-        return x === "PROM_RET" || x === "PRON_RET" || x === "RETAIL" || x.endsWith("_RET") || x.includes("RETAIL");
+
+
+    const handleFormChange = (campo) => (event) => {
+        const value = event.target.value;
+        setForm((prev) => ({
+            ...prev,
+            [campo]: value,
+        }));
     };
-
-    useEffect(() => {
-        let cancel = false;
-        (async () => {
-            try {
-                if (!usuarioOracle) {
-                    setEsRetailUI(false);
-                    setEsRetailBackend(false);
-                    return;
-                }
-                setCargandoCanal(true);
-                const r = await APIService.getCanalPromotor(usuarioOracle);
-                const canal = String(r?.data?.canal ?? r?.canal ?? "").toUpperCase().trim();
-                if (cancel) return;
-                setCanalRaw(canal);
-
-                const esRet = isRetailRole(canal);
-                setEsRetailUI(esRet);
-                setEsRetailBackend(esRet);
-            } catch {
-                if (!cancel) {
-                    setEsRetailUI(false);
-                    setEsRetailBackend(false);
-                }
-            } finally {
-                if (!cancel) setCargandoCanal(false);
-            }
-        })();
-        return () => {
-            cancel = true;
-        };
-    }, [APIService, usuarioOracle]);
 
     return (
         <>{loading ? (<LoadingCircle/>) : (
@@ -503,8 +682,7 @@ const VisitaPromotoria = () => {
                                             <Autocomplete
                                                 options={tiendasPorCiudad}
                                                 getOptionLabel={(o) => o?.label ?? ''}
-                                                value={tiendaSel}
-                                                size="small"
+                                                value={tiendasPorCiudad.find(t => t.id === (form.codTienda || '').toUpperCase()) || null}
                                                 onChange={(_, v) => {
                                                     if (v && typeof v === 'object') {
                                                         setForm(prev => ({
@@ -517,21 +695,25 @@ const VisitaPromotoria = () => {
                                                     }
                                                 }}
                                                 isOptionEqualToValue={(a, b) => `${a.id}` === `${b?.id ?? b}`}
-                                                renderInput={(p) => <TextField {...p} label="Tienda"/>}
-                                                disabled={!form.promotor || !form.distribuidorId}
+                                                renderInput={(params) => <TextField {...params} label="Tienda" />}
+                                                fullWidth
                                             />
                                         </Grid>
                                     </Grid>
                                     <EncuestaExhibicion
                                         form={form}
+                                        setForm={setForm}
                                         handleChange={handleChange}
-                                        esRetail={esRetailUI}
-                                        disabled={guardada}
+                                        esRetail={true}
+                                        disabled={false}
+                                        APIService={APIService}
                                     />
                                     <EncuestaInteraccion
                                         form={form}
-                                        handleChange={handleChange}
+                                        setForm={setForm}
+                                        handleChange={handleFormChange}
                                         disabled={guardada}
+                                        APIService={APIService}
                                     />
                                 </Box>
                             </fieldset>
@@ -539,7 +721,7 @@ const VisitaPromotoria = () => {
                                 <Button
                                     variant="contained"
                                     onClick={handleGuardar}
-                                    disabled={!todoCompleto || guardando || guardada}
+                                   disabled={!todoCompleto || guardando || guardada}
                                     sx={{
                                         textTransform: 'none',
                                         fontWeight: 500,
@@ -552,7 +734,7 @@ const VisitaPromotoria = () => {
                                 <Button
                                     variant="outlined"
                                     onClick={() => setMostrarSegundo(true)}
-                                    // disabled={!guardada}
+                                    disabled={!guardada}
                                 >
                                     Siguiente
                                 </Button>
