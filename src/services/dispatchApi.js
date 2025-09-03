@@ -14,22 +14,22 @@ export const setAuthToken = (jwt) => {
   else delete api.defaults.headers.common.Authorization;
 };
 
-// Interceptor de respuesta: errores uniformes
+// Interceptor de respuesta: errores uniformes y robusto
 api.interceptors.response.use(
   (resp) => resp,
   (err) => {
     const status = err.response?.status;
-    const data = err.response.data;
+    const data = err.response?.data;
+
     let msg =
       data?.error ||
       data?.mensaje ||
-      err.message ||
+      err?.message ||
       "Error de red";
 
     if (status === 401) {
       msg = "Sesión caducada. Por favor, inicia sesión nuevamente.";
     }
-    console.log(data.error);
 
     return Promise.reject(new Error(msg));
   }
@@ -68,10 +68,33 @@ export const getDetallePedido = async (payload) => {
   return data;
 };
 
+//  CAPTURA DE CÓDIGO (motor/serie): SOLO AQUÍ
 export const sendCode = async (payload) => {
   // payload debe contener:
-  // { pn_empresa, pv_cod_tipo_pedido, pedido, pn_cod_agencia,}
+  // { empresa, cod_comprobante, tipo_comprobante, cod_producto,
+  //   cod_bodega, current_identification, cod_motor }
   const { data } = await api.post("/log/info_moto", payload);
   return data;
 };
 
+// SERIES ASIGNADAS
+export const getSeriesAsignadas = async ({ cod_comprobante, cod_tipo_comprobante, empresa, cod_producto }) => {
+  const { data } = await api.get("/log/transferencias", {
+    params: {
+      cod_comprobante,
+      cod_tipo_comprobante,
+      empresa,
+      cod_producto, // opcional
+    },
+  });
+  return data;
+};
+
+// ELIMINAR / REVERTIR TRANSFERENCIA (POST)
+export const revertirSerieAsignada = async (payload) => {
+  // payload debe contener:
+  // empresa, cod_comprobante, tipo_comprobante, cod_producto,
+  // numero_serie, numero_agencia, empresa_g, cod_estado_producto
+  const { data } = await api.post("/log/info_moto_des", payload);
+  return data;
+};
