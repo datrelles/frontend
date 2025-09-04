@@ -126,11 +126,12 @@ export default class API {
         return await axios.put(`${this.#URL}/activaciones/${cod_activacion}`, data, this.#headers);
     })
 
-    getActivaciones = this.#errorHandler(async (empresa,cod_promotor) => {
-        return axios.get(`${this.#URL}/empresas/${empresa}/promotores/${cod_promotor}/activaciones`,
-            this.#headers
+    getActivaciones = this.#errorHandler(async (empresa, params = {}) => {
+        return await axios.get(
+            `${this.#URL}/empresas/${empresa}/activaciones`,
+            {params, ...this.#headers}
         );
-    })
+    });
 
     putDireccionGuia = this.#errorHandler(async (empresa, cod_cliente, cod_direccion, data) => {
         return await axios.put(
@@ -140,17 +141,96 @@ export default class API {
         );
     });
 
-
     getActivacionesPromotor = this.#errorHandler(async (empresa, cod_promotor, params = {}) => {
         return await axios.get(
-            `${this.#URL}/empresas/${empresa}/promotores/${cod_promotor}/activaciones`,
-            { params, ...this.#headers }
+            `${this.#URL}/empresas/${empresa}/activaciones`,
+            {params, ...this.#headers}
         );
     });
-
 
 
     //----------------------------------------- SERVICIOS PARA FORMULARIO DE ENCUESTA ----------------------------------
     //------------------------------------------------------------------------------------------------------------------
 
+    guardarEncuesta = this.#errorHandler(async (empresa, data) => {
+        return await axios.post(`${this.#URL}/empresas/${empresa}/encuestas`, data, this.#headers);
+    })
+
+    getCanalPromotor = this.#errorHandler(async (usuarioOracle) => {
+        return axios.get(`${this.#URL}/canal-promotor/${usuarioOracle}`,
+            this.#headers
+        );
+    })
+
+    getMarcas = this.#errorHandler(async () => {
+        return axios.get(`${this.#URL}/marcas`,
+            this.#headers
+        );
+    })
+
+    getModeloSegmentos = this.#errorHandler(async () => {
+        return axios.get(`${this.#URL}/segmentos`,
+            this.#headers
+        );
+    })
+
+    getCatalogoSegmentos = this.#errorHandler(async () => {
+        return axios.get(`${this.#URL}/catalogo-segmentos`,
+            this.#headers
+        );
+    })
+
+    getTiendas = this.#errorHandler(async (empresa, cod_cliente, cod_tienda) => {
+        return await axios.get(
+            `${this.#URL}/empresas/${empresa}/clientes/${cod_cliente}/tiendas/${cod_tienda}`,
+            this.#headers
+        );
+    });
+
+    postPromotoria = this.#errorHandler(async (empresa, data) => {
+        return await axios.post(`${this.#URL}/empresas/${empresa}/formularios-promotoria`, data, this.#headers);
+    })
+
+    getPromotoria = this.#errorHandler(async (empresa, params = {}) => {
+        return await axios.get(
+            `${this.#URL}/empresas/${empresa}/formularios-promotoria`,
+            {
+                ...this.#headers,
+                params
+            }
+        );
+    });
+
+
+    postNotificarTiendaSinNombre = this.#errorHandler(
+        async (empresa, codCliente, codTienda) => {
+            return await axios.post(
+                `${this.#URL}/empresas/${empresa}/clientes/${codCliente}/tiendas/${codTienda}/notificaciones`,
+                {},
+                this.#headers
+            );
+        }
+    );
+
+
+    getOpcionesPregunta = this.#errorHandler(async (cod_pregunta) => {
+        return await axios.get(
+            `${this.#URL}/preguntas/${cod_pregunta}/opciones`,
+            this.#headers
+        );
+    });
+
+
+    updatePromotoria = this.#errorHandler(async (cod_promotoria, data) => {
+        return await axios.put(`${this.#URL}/promotoria/${cod_promotoria}`, data, this.#headers);
+    })
+
+
+    // ------------------------- MODULO ADMINISTRACIION (MOSTRAR TODAS LAS ENCUESTAS POR PROMOTOR)
+
+    getEncuestas = this.#errorHandler(async (empresa) => {
+        return axios.get(`${this.#URL}/empresas/${empresa}/encuestas`,
+            this.#headers
+        );
+    })
 }

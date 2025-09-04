@@ -406,7 +406,7 @@ function CatSegmento() {
 
     const camposPlantillaModelo = [
         "codigo_segmento", "nombre_linea",
-        "nombre_segmento", "nombre_modelo",
+        "nombre_segmento", "nombre_modelo","anio_modelo",
         "estado_segmento","descripcion_segmento"
     ];
     const tableOptions = getTableOptions(cabeceras, camposPlantillaModelo, "Actualizar_segmento.xlsx");

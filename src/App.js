@@ -131,6 +131,7 @@ import SellOut from "./components/formulas/sell-out";
 import Pedidos from "./components/mayoreo/pedidos";
 ///////////////////////////////////////////////////
 import FrmActivaciones from "./components/formularios/frm_activaciones";
+import FrmPromotoria from "./components/formularios/frm_visita_promotoria";
 
 ///SellManagerB2B
 const API = process.env.REACT_APP_API;
@@ -1198,6 +1199,7 @@ function App() {
               <Route exact path="/nuevo_bench" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatClCanalModelo/></Protected>}/>
               <Route exact path="/compatibilidad_repuesto" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><RepCompatible/></Protected>}/>
               <Route exact path="/frm_activaciones" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><FrmActivaciones/></Protected>}/>
+              <Route exact path="/frm_visPromotoria" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><FrmPromotoria/></Protected>}/>
               <Route
                 exact
                 path="/sell-out"
