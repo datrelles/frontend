@@ -7,13 +7,13 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import API from "../../services/modulo_formularios";
 import { useAuthContext } from "../../context/authContext";
 
-export default function TablaResumenMarcas({ cantidades, form, setForm }) {
+export function TablaResumenMarcas({cantidades, form, setForm}) {
     const [todasMarcas, setTodasMarcas] = useState([]);
     const [otrasMarcas, setOtrasMarcas] = useState([]);
     const [mostrarSelector, setMostrarSelector] = useState(false);
     const [marcaNueva, setMarcaNueva] = useState(null);
 
-    const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
+    const {jwt, userShineray, enterpriseShineray, systemShineray} = useAuthContext();
     const APIService = useMemo(
         () => new API(jwt, userShineray, enterpriseShineray, systemShineray),
         [jwt, userShineray, enterpriseShineray, systemShineray]
@@ -55,8 +55,6 @@ export default function TablaResumenMarcas({ cantidades, form, setForm }) {
         cargarSegmentos();
     }, [APIService]);
 
-
-    // Agrupar cantidades por marca y segmento (clave = nombre_segmento)
     const totalesPorMarcaSegmento = useMemo(() => {
         const result = {};
         Object.values(cantidades.modelos || {}).forEach(m => {
@@ -84,7 +82,7 @@ export default function TablaResumenMarcas({ cantidades, form, setForm }) {
 
     return (
         <>
-            <Typography variant="h6" sx={{ mb: 2 }}>
+            <Typography variant="h6" sx={{mb: 2}}>
                 Totales por Segmento y Marca
             </Typography>
             <Table size="small">
@@ -93,23 +91,30 @@ export default function TablaResumenMarcas({ cantidades, form, setForm }) {
                         <TableCell rowSpan={2}><b>CATEGORÍAS</b></TableCell>
                         <TableCell rowSpan={2}><b>TOTAL_SEG</b></TableCell>
                         <TableCell colSpan={3} align="center"
-                                   sx={{ backgroundColor: "firebrick !important", color: "#ffffff !important" }}>
+                                   sx={{backgroundColor: "firebrick !important", color: "#ffffff !important"}}>
                             MASSLINE
                         </TableCell>
                         <TableCell
                             colSpan={otrasMarcas.length + 1}
                             align="center"
-                            sx={{ backgroundColor: "lightblue", fontWeight: "bold" }}
+                            sx={{backgroundColor: "lightblue", fontWeight: "bold"}}
                         >
                             OTRAS MARCAS
                         </TableCell>
                     </TableRow>
                     <TableRow>
-                        <TableCell sx={{ backgroundColor: "firebrick !important", color: "#ffffff !important" }}>SHINERAY</TableCell>
-                        <TableCell sx={{ backgroundColor: "firebrick !important", color: "#ffffff !important" }}>SHM</TableCell>
-                        <TableCell sx={{ backgroundColor: "firebrick !important", color: "#ffffff !important" }}>BULTACO</TableCell>
+                        <TableCell sx={{
+                            backgroundColor: "firebrick !important",
+                            color: "#ffffff !important"
+                        }}>SHINERAY</TableCell>
+                        <TableCell
+                            sx={{backgroundColor: "firebrick !important", color: "#ffffff !important"}}>SHM</TableCell>
+                        <TableCell sx={{
+                            backgroundColor: "firebrick !important",
+                            color: "#ffffff !important"
+                        }}>BULTACO</TableCell>
                         {otrasMarcas.map(m => (
-                            <TableCell key={m} sx={{ backgroundColor: "lightblue", fontWeight: "bold" }}>
+                            <TableCell key={m} sx={{backgroundColor: "lightblue", fontWeight: "bold"}}>
                                 {m}
                                 <IconButton
                                     size="small"
@@ -121,11 +126,11 @@ export default function TablaResumenMarcas({ cantidades, form, setForm }) {
                                         }));
                                     }}
                                 >
-                                    <DeleteIcon fontSize="small" />
+                                    <DeleteIcon fontSize="small"/>
                                 </IconButton>
                             </TableCell>
                         ))}
-                        <TableCell sx={{ backgroundColor: "lightblue" }}>
+                        <TableCell sx={{backgroundColor: "lightblue"}}>
                             {mostrarSelector ? (
                                 <Autocomplete
                                     options={todasMarcas}
@@ -137,9 +142,10 @@ export default function TablaResumenMarcas({ cantidades, form, setForm }) {
                                         setMarcaNueva(null);
                                         setMostrarSelector(false);
                                     }}
-                                    renderInput={(params) => <TextField {...params} label="Seleccionar marca" size="small" />}
+                                    renderInput={(params) => <TextField {...params} label="Seleccionar marca"
+                                                                        size="small"/>}
                                     value={marcaNueva}
-                                    sx={{ width: 160 }}
+                                    sx={{width: 160}}
                                 />
                             ) : (
                                 <Button size="small" onClick={() => setMostrarSelector(true)}>➕ Añadir</Button>
@@ -151,12 +157,12 @@ export default function TablaResumenMarcas({ cantidades, form, setForm }) {
                     {segmentos.map(seg => {
                         const segKey = (seg.nombre_segmento || "").toUpperCase().trim();
                         const shinerayTotal = totalesPorMarcaSegmento[segKey]?.["3"] || 0;
-                        const shmTotal      = totalesPorMarcaSegmento[segKey]?.["18"] || 0;
-                        const bultacoTotal  = totalesPorMarcaSegmento[segKey]?.["22"] || 0;
+                        const shmTotal = totalesPorMarcaSegmento[segKey]?.["18"] || 0;
+                        const bultacoTotal = totalesPorMarcaSegmento[segKey]?.["22"] || 0;
 
                         const otrosTotales = (form.marcas_segmento || []).filter(
                             m => (m.nombre_segmento || "").toUpperCase().trim() === segKey &&
-                                !["3","18","22"].includes(String(m.cod_marca))
+                                !["3", "18", "22"].includes(String(m.cod_marca))
                         );
 
                         const totalFila = shinerayTotal + shmTotal + bultacoTotal +
@@ -170,56 +176,57 @@ export default function TablaResumenMarcas({ cantidades, form, setForm }) {
                                 <TableCell>{shmTotal}</TableCell>
                                 <TableCell>{bultacoTotal}</TableCell>
 
-                                {otrasMarcas.map(nombreMarca => (
-                                    <TableCell key={nombreMarca}>
-                                        <TextField
-                                            type="number"
-                                            value={
-                                                (form.marcas_segmento || []).find(
-                                                    o => o.nombre_marca === nombreMarca &&
-                                                        (o.nombre_segmento || "").toUpperCase().trim() === segKey
-                                                )?.cantidad || ""
-                                            }
-                                            onChange={(e) => {
-                                                const value = parseInt(e.target.value, 10) || 0;
-                                                const marcaObj = todasMarcas.find(
-                                                    x => x.nombre_marca.toUpperCase() === nombreMarca.toUpperCase()
-                                                );
-                                                const cod_marca = marcaObj ? String(marcaObj.codigo_marca) : null;
+                                {otrasMarcas.map(nombreMarca => {
+                                    const marcaObj = todasMarcas.find(
+                                        x => x.nombre_marca.toUpperCase() === nombreMarca.toUpperCase()
+                                    );
+                                    const cod_marca = marcaObj ? String(marcaObj.codigo_marca) : null;
 
-                                                setForm(prev => {
-                                                    const filtrados = (prev.marcas_segmento || []).filter(
-                                                        m => !(
-                                                            String(m.cod_marca) === cod_marca &&
-                                                            (m.nombre_segmento || "").toUpperCase().trim() === segKey
-                                                        )
-                                                    );
-                                                    return {
-                                                        ...prev,
-                                                        marcas_segmento: [
-                                                            ...filtrados,
-                                                            {
-                                                                cod_marca,
-                                                                nombre_marca: nombreMarca,
-                                                                cod_segmento: segKey,
-                                                                nombre_segmento: seg.nombre_segmento,
-                                                                cantidad: value
-                                                            }
-                                                        ]
-                                                    };
-                                                });
-                                            }}
-                                            size="small"
-                                            sx={{ width: 80 }}
-                                        />
-                                    </TableCell>
-                                ))}
+                                    return (
+                                        <TableCell key={nombreMarca}>
+                                            <TextField
+                                                type="number"
+                                                value={
+                                                    (form.marcas_segmento || []).find(
+                                                        o => String(o.cod_marca) === String(cod_marca) &&
+                                                            o.nombre_segmento === seg.nombre_segmento
+                                                    )?.cantidad || ""
+                                                }
+                                                onChange={(e) => {
+                                                    const value = parseInt(e.target.value, 10) || 0;
+
+                                                    setForm(prev => {
+                                                        const filtrados = (prev.marcas_segmento || []).filter(
+                                                            m => !(
+                                                                String(m.cod_marca) === cod_marca &&
+                                                                m.nombre_segmento === seg.nombre_segmento
+                                                            )
+                                                        );
+                                                        return {
+                                                            ...prev,
+                                                            marcas_segmento: [
+                                                                ...filtrados,
+                                                                {
+                                                                    cod_marca,
+                                                                    nombre_segmento: seg.nombre_segmento,
+                                                                    cantidad: value
+                                                                }
+                                                            ]
+                                                        };
+                                                    });
+                                                }}
+                                                size="small"
+                                                sx={{ width: 80 }}
+                                            />
+                                        </TableCell>
+                                    );
+                                })}
                             </TableRow>
                         );
                     })}
                     <TableRow>
                         <TableCell><b>TOTAL_MARCA</b></TableCell>
-                        <TableCell />
+                        <TableCell/>
                         <TableCell><b>{totalPorMarca("3")}</b></TableCell>
                         <TableCell><b>{totalPorMarca("18")}</b></TableCell>
                         <TableCell><b>{totalPorMarca("22")}</b></TableCell>
@@ -230,7 +237,7 @@ export default function TablaResumenMarcas({ cantidades, form, setForm }) {
                                 <TableCell key={m}><b>{totalPorMarca(cod_marca)}</b></TableCell>
                             );
                         })}
-                        <TableCell />
+                        <TableCell/>
                     </TableRow>
                 </TableBody>
             </Table>

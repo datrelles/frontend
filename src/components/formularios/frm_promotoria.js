@@ -23,7 +23,7 @@ import Paper from "@mui/material/Paper";
 import DeleteIcon from '@mui/icons-material/Delete';
 import CollapsibleTable from "./CollapsibleTable";
 import IngresoModelosTabs from "./IngresoModelosTabs";
-import TablaResumenMarcas from "./TablaResumenMarcas";
+import {TablaResumenMarcas} from "./TablaResumenMarcas";
 
 const FrmPromotoria= () => {
     const {jwt, userShineray, enterpriseShineray, systemShineray} = useAuthContext();
@@ -105,8 +105,14 @@ const FrmPromotoria= () => {
         telefono1: '',
         correo_electronico: '',
         prom_venta_tienda: '',
-        resumenMarcas: {}
+        total_mot_shineray: '',
+        total_mot_piso: '',
+
+        modelos_segmento: [],
+        marcas_segmento: [],
     });
+
+
 
     const [formularios, setFormularios] = useState([]);
 
@@ -295,6 +301,8 @@ const FrmPromotoria= () => {
             marca: '',
             modelo: '',
             cantidadModelos: '',
+            modelos_segmento: [],
+            marcas_segmento: [],
         }));
         setModoEdicion(false);
         setIndexEditar(null);
@@ -560,8 +568,8 @@ const FrmPromotoria= () => {
             telefonoTienda: safe(item.bodega?.telefono1),
             promedioVenta: safe(item.bodega?.prom_venta_tienda),
             total_vendedores: safe(item.total_vendedores),
-            totalMotosPiso: safe(item.total_mot_piso),
-            motosShineray: safe(item.total_mot_shineray),
+            total_motos_piso: safe(item.total_motos_piso),
+            total_motos_shi: safe(item.total_motos_shi),
             modelos_segmento: item.modelos_segmento || [],
             marcas_segmento: item.marcas_segmento || [],
         };
@@ -600,7 +608,33 @@ const FrmPromotoria= () => {
         };
     }, [direcciones, form.codTienda]);
 
-    console.log("form", form);
+    useEffect(() => {
+        // Total de todas las motos piso
+        const totalPiso =
+            Object.values(cantidades.modelos || {}).reduce((acc, m) => acc + (Number(m.cantidad) || 0), 0) +
+            (form.marcas_segmento || []).reduce((acc, m) => acc + (Number(m.cantidad) || 0), 0);
+
+        // Total Massline (Shineray=3, SHM=18, Bultaco=22)
+        const totalMassline =
+            Object.values(cantidades.modelos || {}).reduce((acc, m) => {
+                return ["3", "18", "22"].includes(String(m.cod_marca))
+                    ? acc + (Number(m.cantidad) || 0)
+                    : acc;
+            }, 0) +
+            (form.marcas_segmento || []).reduce((acc, m) => {
+                return ["3", "18", "22"].includes(String(m.cod_marca))
+                    ? acc + (Number(m.cantidad) || 0)
+                    : acc;
+            }, 0);
+
+        setForm(prev => ({
+            ...prev,
+            total_motos_piso: totalPiso,
+            total_motos_shi: totalMassline,
+        }));
+    }, [cantidades, form.marcas_segmento, setForm]);
+
+
 
     return (
         <>{loading ? (<LoadingCircle/>) : (
@@ -856,6 +890,25 @@ const FrmPromotoria= () => {
                                                 fullWidth
                                             />
                                         </Grid>
+                                        <Grid item xs={12} md={1}>
+                                            <TextField
+                                                label="T. MOTOS PISO"
+                                                type="number"
+                                                value={form.total_motos_piso ?? ''}
+                                                onChange={handleChange('total_motos_piso')}
+                                                fullWidth
+                                                InputProps={{ readOnly: true }}
+                                            />
+                                        </Grid><Grid item xs={12} md={1}>
+                                            <TextField
+                                                label="T. MOTOS SHINERAY"
+                                                type="number"
+                                                value={form.total_motos_shi ?? ''}
+                                                onChange={handleChange('total_motos_shi')}
+                                                fullWidth
+                                                InputProps={{ readOnly: true }}
+                                            />
+                                        </Grid>
                                         <Grid item xs={12} md={6}>
                                             <IngresoModelosTabs
                                                 modelosPorSegmento={modelosPorSegmento}
@@ -914,23 +967,23 @@ const FrmPromotoria= () => {
                                 </Paper>
                             </>
                         )}
-                        {guardadoPromotoria && (
-                            <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-                                <Button
-                                    variant="contained"
-                                    sx={{ backgroundColor: 'green', '&:hover': { backgroundColor: 'darkgreen' } }}
-                                    onClick={() => {
-                                        limpiarFormulario();
-                                        setMostrarFormulario(false);
-                                        setMostrarTabla(false);
-                                        setMostrarResumen(true);
-                                        setGuardadoPromotoria(false);
-                                    }}
-                                >
-                                    Siguiente
-                                </Button>
-                            </Box>
-                        )}
+                        {/*{guardadoPromotoria && (*/}
+                        {/*    <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>*/}
+                        {/*        <Button*/}
+                        {/*            variant="contained"*/}
+                        {/*            sx={{ backgroundColor: 'green', '&:hover': { backgroundColor: 'darkgreen' } }}*/}
+                        {/*            onClick={() => {*/}
+                        {/*                limpiarFormulario();*/}
+                        {/*                setMostrarFormulario(false);*/}
+                        {/*                setMostrarTabla(false);*/}
+                        {/*                setMostrarResumen(true);*/}
+                        {/*                setGuardadoPromotoria(false);*/}
+                        {/*            }}*/}
+                        {/*        >*/}
+                        {/*            Siguiente*/}
+                        {/*        </Button>*/}
+                        {/*    </Box>*/}
+                        {/*)}*/}
 
                         {mostrarTabla && (
                             <Box sx={{ mt: 5, width: "100%", px: 2 }}>
