@@ -20,6 +20,7 @@ const IngresoModelosTabs = ({ modelosPorSegmento, cantidades, setCantidades }) =
                     nombre_segmento: segmento.nombre_segmento,
                     cantidad: valor
                 }
+
             };
 
             // Agrupar por marca + segmento

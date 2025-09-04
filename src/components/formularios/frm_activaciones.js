@@ -417,7 +417,7 @@ const FrmActivaciones = () => {
         "cod_activacion", "fecha",
         "horaInicio", "horaFinal",
         "horas", "canal", "ciudad", "distribuidor", "tienda",
-        "motos", "tipoActivacion", "promotor",
+        "motos", "tipoActivacion", "promotor","estado"
     ];
     const tableOptions = getTableOptions(activaciones, camposPlantillaModelo, "Actualizar_activaciones_shineray_bultaco.xlsx");
 

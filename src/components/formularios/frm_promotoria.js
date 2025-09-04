@@ -216,7 +216,8 @@ const FrmPromotoria= () => {
             cod_tienda: safeInt(form.codTienda),
             total_vendedores: safeInt(form.total_vendedores) || 0,
             modelos_segmento,
-            marcas_segmento,
+
+            marcas_segmento: form.marcas_segmento || [],
         };
     }
 
@@ -554,7 +555,7 @@ const FrmPromotoria= () => {
             distribuidor: safe(item.cliente),
             ciudad: safe(item.bodega?.ciudad || item.tienda?.ciudad),
             tienda: safe(item.bodega?.nombre || item.tienda?.nombre),
-            jefeTienda: safe(item.bodega?.responsable),
+            responsable: safe(item.bodega?.responsable),
             correoTienda: safe(item.bodega?.correo_electronico),
             telefonoTienda: safe(item.bodega?.telefono1),
             promedioVenta: safe(item.bodega?.prom_venta_tienda),
