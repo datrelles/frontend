@@ -40,9 +40,6 @@ import "react-toastify/dist/ReactToastify.css";
 const STATUS_OPTIONS = [
   { code: "BOD", label: "EN BODEGA" },
   { code: "DEP", label: "PARCIAL" },
-  { code: "DES", label: "DESPACHADOS" },
-  { code: "CAD", label: "CADUCADOS" },
-  { code: "A", label: "ANULADOS" },
   { code: "T", label: "TODOS" },
 ];
 
