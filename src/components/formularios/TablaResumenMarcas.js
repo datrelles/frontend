@@ -158,17 +158,19 @@ export default function TablaResumenMarcas({ modelosPorSegmento, cantidades, for
                                             type="number"
                                             value={otrosTotales[marca] || ""}
                                             onChange={(e) => {
-                                                const value = e.target.value;
-                                                setForm(prev => ({
-                                                    ...prev,
-                                                    resumenMarcas: {
-                                                        ...prev.resumenMarcas,
-                                                        [segKey]: {
-                                                            ...(prev.resumenMarcas?.[segKey] || {}),
-                                                            [marca]: value
-                                                        }
-                                                    }
-                                                }));
+                                                const value = parseInt(e.target.value, 10) || 0;
+                                                setForm(prev => {
+                                                    const nuevo = {
+                                                        ...prev,
+                                                        marcas_segmento: [
+                                                            ...(prev.marcas_segmento || []).filter(m =>
+                                                                !(m.cod_marca === marca && m.nombre_segmento === segKey)
+                                                            ),
+                                                            { cod_marca: marca, nombre_segmento: segKey, cantidad: value }
+                                                        ]
+                                                    };
+                                                    return nuevo;
+                                                });
                                             }}
                                             size="small"
                                             sx={{ width: 80 }}

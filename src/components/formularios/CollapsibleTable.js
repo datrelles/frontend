@@ -104,8 +104,8 @@ export default function CollapsibleTable({ cabeceras, modeloComercial }) {
     const camposPlantilla = [
         'codigo_promotoria','promotor','distribuidor',
         'ciudad','tienda','jefeTienda','correoTienda',
-        'telefonoTienda','promedioVenta', 'numVendedores',
-        'totalMotosPiso','totalMotosShineray','modelo_1'
+        'telefonoTienda','promedioVenta', 'total_vendedores',
+        'totol_motos_piso','total_motos_shineray','modelo_1'
     ];
 
     const exportarCamposPlantilla = (datosOriginales) => {
@@ -130,13 +130,13 @@ export default function CollapsibleTable({ cabeceras, modeloComercial }) {
         { name: "distribuidor", label: "DISTRIBUIDOR" },
         { name: "ciudad", label: "CIUDAD" },
         { name: "tienda", label: "TIENDA" },
-        { name: "jefeTienda", label: "JEFE TIENDA" },
+        { name: "responsable", label: "JEFE TIENDA" },
         { name: "correoTienda", label: "CORREO TIENDA" },
         { name: "telefonoTienda", label: "TELÉFONO JEFE TIENDA" },
         { name: "promedioVenta", label: "PROMEDIO VENTA" },
-        { name: "numVendedores", label: "# VENDEDORES" },
-        { name: "totalMotosPiso", label: "T. MOTOS PISO" },
-        { name: "motosShineray", label: "# MOTOS SHINERAY" },
+        { name: "total_vendedores", label: "# VENDEDORES" },
+        { name: "total_motos_piso", label: "T. MOTOS PISO" },
+        { name: "total_motos_shineray", label: "# MOTOS SHINERAY" },
         {
             name: "acciones",
             label: "ACCIONES",

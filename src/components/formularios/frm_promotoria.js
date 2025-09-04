@@ -78,7 +78,7 @@ const FrmPromotoria= () => {
             setFormularios(rows);
             setMostrarTabla(true);
         } catch (e) {
-            const msg = e?.response?.data?.mensaje || e?.message || 'No se pudieron cargar las activaciones iniciales.';
+            const msg = e?.response?.data?.mensaje || e?.message || 'No se pudieron cargar los registros iniciales.';
             setAlerta({ open: true, msg, severity: 'error' });
         } finally {
             setLoadingTabla(false);
@@ -95,7 +95,6 @@ const FrmPromotoria= () => {
         codProveedor: '',
         cod_promotor: '',
         cod_cliente: '',
-        cod_proveedor: '',
         distribuidor: '',
         tiendaNombre: '',
         tienda: '',
@@ -170,7 +169,6 @@ const FrmPromotoria= () => {
                 ? null
                 : parseInt(String(v), 10);
 
-        // modelos_segmento (IngresoModelosTabs)
         const modelos_segmento = Object.values(cantidades.modelos || {}).map(m => ({
             cod_segmento: safeInt(m.cod_segmento),
             cod_linea: safeInt(m.cod_linea),
@@ -179,19 +177,44 @@ const FrmPromotoria= () => {
             cantidad: safeInt(m.cantidad) || 0,
         }));
 
-        // marcas_segmento (TablaResumenMarcas)
-        const marcas_segmento = Object.values(cantidades.marcas || {}).map(m => ({
-            cod_marca: safeInt(m.cod_marca),
-            cantidad: safeInt(m.cantidad) || 0,
-        }));
+        // const marcas_segmento = Object.values(cantidades.marcas || {}).map(m => ({
+        //     cod_marca: safeInt(m.cod_marca),
+        //     cantidad: safeInt(m.cantidad) || 0,
+        //     nombre_segmento: m.nombre_segmento,
+        // }));
+
+        const marcas_segmento = [];
+
+        if (cantidades.modelos) {
+            const agrupado = {};
+
+            Object.values(cantidades.modelos).forEach(m => {
+                const cod_marca = safeInt(m.cod_marca);
+                const nombre_segmento = m.nombre_segmento || '';
+                const key = `${cod_marca}-${nombre_segmento}`;
+
+                if (!agrupado[key]) {
+                    agrupado[key] = {
+                        cod_marca,
+                        nombre_segmento,
+                        cantidad: 0,
+                    };
+                }
+                agrupado[key].cantidad += safeInt(m.cantidad) || 0;
+            });
+
+            for (const k in agrupado) {
+                marcas_segmento.push(agrupado[k]);
+            }
+        }
+
 
         return {
             empresa: safeInt(empresa),
             cod_promotor: String(form.promotor ?? '').trim(),
             cod_cliente: String(form.distribuidorId ?? '').trim(),
             cod_tienda: safeInt(form.codTienda),
-            cod_proveedor: form.codProveedor ? String(form.codProveedor).trim() : null,
-            fecha_act: String(form.fecha || dayjs().format('YYYY-MM-DD')).trim(),
+            total_vendedores: safeInt(form.total_vendedores) || 0,
             modelos_segmento,
             marcas_segmento,
         };
@@ -227,7 +250,9 @@ const FrmPromotoria= () => {
 
             const resp = await APIService.getPromotoria(enterpriseShineray, params);
             const data = Array.isArray(resp) ? resp : (resp?.data ?? []);
-            setFormularios(data);
+            const rows = data.map(it => obtenerPromotoria(it));
+            setFormularios(rows);
+
 
             setGuardadoPromotoria(true);
             setAlerta({
@@ -304,7 +329,7 @@ const FrmPromotoria= () => {
                 fecha_inicio: fIni,
                 fecha_fin: fFin,
                 cod_cliente: codCliente,
-                cod_promotor: userShineray?.cod_promotor   // 🔥 aquí va
+                cod_promotor: userShineray?.cod_promotor
             };
 
             const resp = await APIService.getPromotoria(enterpriseShineray, params);
@@ -323,7 +348,7 @@ const FrmPromotoria= () => {
             setAlerta({ open: true, msg: 'Datos cargados correctamente.', severity: 'success' });
         } catch (error) {
             console.error(error);
-            const msg = error?.response?.data?.mensaje || error?.message || 'Error al cargar activaciones.';
+            const msg = error?.response?.data?.mensaje || error?.message || 'Error al cargar registros.';
             setAlerta({ open: true, msg, severity: 'error' });
         }
 
@@ -509,43 +534,37 @@ const FrmPromotoria= () => {
         const safe = (val) => {
             if (val == null) return '';
             if (typeof val === 'object') {
-                return val.nombre || val.label || val.ciudad || JSON.stringify(val);
+                if (val.nombres || val.apellido_paterno || val.apellido_materno) {
+                    return [val.nombres, val.apellido_paterno, val.apellido_materno]
+                        .filter(Boolean)
+                        .join(' ')
+                        .trim();
+                }
+                if (val.nombre) return String(val.nombre).trim();
+                if (val.label) return String(val.label).trim();
+                if (val.ciudad) return String(val.ciudad).trim();
+                return JSON.stringify(val); // fallback (no recomendable en producción)
             }
             return String(val).trim();
         };
 
         return {
             cod_form: safe(item.cod_form),
-
-            promotor: [item?.promotor?.nombres, item?.promotor?.apellido_paterno, item?.promotor?.apellido_materno]
-                .filter(Boolean).join(' ').trim(),
-
-            // Distribuidor
-            distribuidor: safe(item?.cliente?.nombre),
-
-            // Ciudad
-            ciudad: safe(item?.bodega?.ciudad || item?.tienda?.ciudad),
-
-            // Datos de tienda (desde bodega)
-            tienda: safe(item?.bodega?.nombre),
-            jefeTienda: safe(item?.bodega?.responsable),
-            correoTienda: safe(item?.bodega?.correo_electronico),
-            telefonoTienda: safe(item?.bodega?.telefono),
-
-            // Otros valores
-            promedioVenta: safe(item?.bodega?.prom_venta_tienda),
-            numVendedores: safe(item?.total_vendedores),
-            totalMotosPiso: safe(item?.total_mot_piso),
-            motosShineray: safe(item?.total_mot_shineray),
-
-            // Relacionales
+            promotor: safe(item.promotor),
+            distribuidor: safe(item.cliente),
+            ciudad: safe(item.bodega?.ciudad || item.tienda?.ciudad),
+            tienda: safe(item.bodega?.nombre || item.tienda?.nombre),
+            jefeTienda: safe(item.bodega?.responsable),
+            correoTienda: safe(item.bodega?.correo_electronico),
+            telefonoTienda: safe(item.bodega?.telefono1),
+            promedioVenta: safe(item.bodega?.prom_venta_tienda),
+            total_vendedores: safe(item.total_vendedores),
+            totalMotosPiso: safe(item.total_mot_piso),
+            motosShineray: safe(item.total_mot_shineray),
             modelos_segmento: item.modelos_segmento || [],
             marcas_segmento: item.marcas_segmento || [],
         };
     };
-
-
-
 
 
     const clientes = React.useMemo(() => {
@@ -691,9 +710,7 @@ const FrmPromotoria= () => {
                                                 label="Promotor"
                                                 value={
                                                     promotorActual
-                                                        ? `${promotorActual.nombres ?? ''} 
-                                                        ${promotorActual.apellido_paterno ?? ''} 
-                                                        ${promotorActual.apellido_materno ?? ''}`.replace(/\s+/g,' ').trim()
+                                                        ? `${promotorActual.nombres ?? ''} ${promotorActual.apellido_paterno ?? ''} ${promotorActual.apellido_materno ?? ''}`.replace(/\s+/g, ' ').trim()
                                                         : ''
                                                 }
                                                 fullWidth
@@ -838,24 +855,6 @@ const FrmPromotoria= () => {
                                                 fullWidth
                                             />
                                         </Grid>
-                                        <Grid item xs={12} md={1}>
-                                            <TextField
-                                                label="# Total motos en piso"
-                                                type="number"
-                                                value={form.total_mot_piso ?? ''}
-                                                onChange={handleChange('total_mot_piso')}
-                                                fullWidth
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} md={1}>
-                                            <TextField
-                                                label="# Motos Shineray"
-                                                type="number"
-                                                value={form.total_mot_shineray ?? ''}
-                                                onChange={handleChange('total_mot_shineray')}
-                                                fullWidth
-                                            />
-                                        </Grid>
                                         <Grid item xs={12} md={6}>
                                             <IngresoModelosTabs
                                                 modelosPorSegmento={modelosPorSegmento}
@@ -863,7 +862,14 @@ const FrmPromotoria= () => {
                                                 setCantidades={setCantidades}
                                             />
                                         </Grid>
-
+                                        <Grid item xs={12}>
+                                            <TablaResumenMarcas
+                                                modelosPorSegmento={modelosPorSegmento}
+                                                cantidades={cantidades}
+                                                form={form}
+                                                setForm={setForm}
+                                            />
+                                        </Grid>
                                         <Grid item xs={12}>
                                             <Box sx={{display: 'flex', justifyContent: 'center', gap: 2}}>
 
@@ -888,17 +894,17 @@ const FrmPromotoria= () => {
                                                             Cancelar
                                                         </Button>
 
-                                                        <Button
-                                                            variant="contained"
-                                                            sx={{ backgroundColor: 'green', '&:hover': { backgroundColor: 'darkgreen' } }}
-                                                            onClick={() => {
-                                                                limpiarFormulario();
-                                                                setMostrarFormulario(false);
-                                                                setMostrarResumen(true);
-                                                            }}
-                                                        >
-                                                            Siguiente
-                                                        </Button>
+                                                        {/*<Button*/}
+                                                        {/*    variant="contained"*/}
+                                                        {/*    sx={{ backgroundColor: 'green', '&:hover': { backgroundColor: 'darkgreen' } }}*/}
+                                                        {/*    onClick={() => {*/}
+                                                        {/*        limpiarFormulario();*/}
+                                                        {/*        setMostrarFormulario(false);*/}
+                                                        {/*        setMostrarResumen(true);*/}
+                                                        {/*    }}*/}
+                                                        {/*>*/}
+                                                        {/*    Siguiente*/}
+                                                        {/*</Button>*/}
                                                     </Box>
                                                 </Grid>
 
@@ -932,14 +938,14 @@ const FrmPromotoria= () => {
 
                             </Box>
                         )}
-                        {mostrarResumen && (
-                            <TablaResumenMarcas
-                                modelosPorSegmento={modelosPorSegmento}
-                                cantidades={cantidades}
-                                form={form}
-                                setForm={setForm}
-                            />
-                        )}
+                        {/*{mostrarResumen && (*/}
+                        {/*    <TablaResumenMarcas*/}
+                        {/*        modelosPorSegmento={modelosPorSegmento}*/}
+                        {/*        cantidades={cantidades}*/}
+                        {/*        form={form}*/}
+                        {/*        setForm={setForm}*/}
+                        {/*    />*/}
+                        {/*)}*/}
                     </Box>
                     <Snackbar open={alerta.open} autoHideDuration={3000}
                               onClose={() => setAlerta({...alerta, open: false})}>
