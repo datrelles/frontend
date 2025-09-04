@@ -785,9 +785,9 @@ const FrmPromotoria= () => {
                                                             if (data) {
                                                                 setForm(prev => ({
                                                                     ...prev,
-                                                                    responsable: data.nom_jefe_tienda || '',
-                                                                    telefono1: data.cel_jefe_tienda || '',
-                                                                    correo_electronico: data.correo_tienda || '',
+                                                                        responsable: data.bodega?.responsable || '',
+                                                                    telefono1: data.bodega?.telefono1 || '',
+                                                                    correoTienda: data.bodega?.correo_electronico || '',
                                                                     prom_venta_tienda: data.prom_venta_tienda || ''
                                                                 }));
 
@@ -804,7 +804,7 @@ const FrmPromotoria= () => {
                                                             tienda: '',
                                                             responsable: '',
                                                             telefono1: '',
-                                                            correo_electronico: '',
+                                                            correoTienda: '',
                                                             prom_venta_tienda: ''
                                                         }));
                                                     }
@@ -825,7 +825,7 @@ const FrmPromotoria= () => {
                                         <Grid item xs={12} md={4}>
                                             <TextField
                                                 label="Correo"
-                                                value={form.correo_electronico || ''}
+                                                value={form.correoTienda || ''}
                                                 fullWidth
                                                 InputProps={{ readOnly: true }}
                                             />
@@ -882,7 +882,6 @@ const FrmPromotoria= () => {
                                                         >
                                                             {modoEdicion ? 'Actualizar promotoría' : 'Guardar'}
                                                         </Button>
-
                                                         <Button
                                                             variant="outlined"
                                                             onClick={() => {
