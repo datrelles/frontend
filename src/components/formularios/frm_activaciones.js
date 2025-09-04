@@ -15,6 +15,7 @@ import ButtonGroup from "@mui/material/ButtonGroup";
 import LoadingCircle from "../contabilidad/loader";
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from "@material-ui/icons/Add";
+import NotificationsIcon from "@material-ui/icons/Notifications";
 import {LocalizationProvider} from '@mui/x-date-pickers/LocalizationProvider';
 import {AdapterDayjs} from '@mui/x-date-pickers/AdapterDayjs';
 import {DatePicker} from '@mui/x-date-pickers/DatePicker';
@@ -25,6 +26,9 @@ import {getMuiTheme, getTableOptions} from "../marketing/muiTableConfig";
 import MUIDataTable from "mui-datatables";
 import {ThemeProvider} from "@mui/material/styles";
 import Paper from "@mui/material/Paper";
+import {DesktopTimePicker} from '@mui/x-date-pickers/DesktopTimePicker';
+import { Chip } from "@mui/material";
+
 
 const FrmActivaciones = () => {
     const {jwt, userShineray, enterpriseShineray, systemShineray} = useAuthContext();
@@ -54,15 +58,16 @@ const FrmActivaciones = () => {
 
     const [buscarDistribuidorId, setBuscarDistribuidorId] = useState('');
     const [buscarDistribuidorNombre, setBuscarDistribuidorNombre] = useState('');
-
-    const todayISO = () => dayjs().format('YYYY-MM-DD');
-
     const [loadingTabla, setLoadingTabla] = useState(false);
 
     const cargarActivacionesIniciales = async (codPromotor) => {
         try {
             setLoadingTabla(true);
-            const resp = await APIService.getActivaciones(enterpriseShineray, codPromotor); // ← SIN filtros
+
+            const params = {
+                cod_promotor: codPromotor
+            };
+            const resp = await APIService.getActivaciones(enterpriseShineray, params);
             const data = Array.isArray(resp) ? resp : (resp?.data ?? []);
             const tiposDict = mapTipoById(tipoActivaciones);
             const rows = data.map(it => obtenerActivacion(it, tiposDict));
@@ -70,20 +75,18 @@ const FrmActivaciones = () => {
             setMostrarTabla(true);
         } catch (e) {
             const msg = e?.response?.data?.mensaje || e?.message || 'No se pudieron cargar las activaciones iniciales.';
-            setAlerta({ open: true, msg, severity: 'error' });
+            setAlerta({open: true, msg, severity: 'error'});
         } finally {
             setLoadingTabla(false);
         }
     };
-
-    const setField = (key, value) => setForm(prev => ({...prev, [key]: value}));
 
     const renderById = (getLabel) => (props, option) => (
         <li {...props} key={`${option.id}`}>{getLabel(option)}</li>
     );
 
     const [form, setForm] = useState({
-        fecha: todayISO(),
+        fecha: '',
         horaInicio: '',
         horaFinal: '',
         promotorId: '',
@@ -96,15 +99,15 @@ const FrmActivaciones = () => {
         cod_cliente: '',
         cod_proveedor: '',
         distribuidor: '',
-        animadoraNombre: '',
         tiendaNombre: '',
         tienda: '',
         motos: 0,
         tipoActivacion: '',
         promotor: '',
-        animadora: '',
         ToDate: '',
-        FromDate: ''
+        FromDate: '',
+        estado: 0,
+        observacion: ''
     });
 
     const [activaciones, setActivaciones] = useState([]);
@@ -125,7 +128,7 @@ const FrmActivaciones = () => {
                 setPromotorActual(p);
                 const codPromotor = String(p.identificacion || '').trim();
 
-                setForm(prev => ({ ...prev, promotor: codPromotor }));
+                setForm(prev => ({...prev, promotor: codPromotor}));
                 await fetchClientesPromotor(codPromotor);
                 await cargarActivacionesIniciales(codPromotor);
             } catch (e) {
@@ -164,31 +167,26 @@ const FrmActivaciones = () => {
                 ? null
                 : parseInt(String(v), 10);
 
-        const proveedorSel = Array.isArray(proveedores)
-            ? proveedores.find(p => String(p.id) === String(form.codProveedor))
-            : null;
-
-        const animadora = String(form.animadoraNombre || proveedorSel?.nombre || '')
-            .trim();
-
         return {
-            empresa:        safeInt(empresa),
-            cod_promotor:   String(form.promotor ?? '').trim(),
-            cod_cliente:    String(form.distribuidorId ?? '').trim(),
-            cod_tienda:     safeInt(form.codTienda),
-            cod_proveedor:  (form.codProveedor ?? '') ? String(form.codProveedor).trim() : null,
+            empresa: safeInt(empresa),
+            cod_promotor: String(form.promotor ?? '').trim(),
+            cod_cliente: String(form.distribuidorId ?? '').trim(),
+            cod_tienda: safeInt(form.codTienda),
+            cod_proveedor: (form.codProveedor ?? '') ? String(form.codProveedor).trim() : null,
             cod_modelo_act: 'ACT',
-            cod_item_act:   String(form.tipoActivacion ?? '').trim(),
-            animadora,
-            hora_inicio:    String(form.horaInicio ?? '').trim(),
-            hora_fin:       String(form.horaFinal ?? '').trim(),
-            fecha_act:      String(form.fecha ?? '').trim(),
+            cod_item_act: String(form.tipoActivacion ?? '').trim(),
+            hora_inicio: String(form.horaInicio ?? '').trim(),
+            hora_fin: String(form.horaFinal ?? '').trim(),
+            fecha_act: String(form.fecha ?? '').trim(),
             num_exhi_motos: safeInt(form.motos),
+            ...(modoEdicion
+                    ? { estado: { estado: form.estado, observacion: form.observacion || "SN" } }
+                    : {}
+            )
         };
     }
 
     const handleSubmit = async () => {
-
         const required = [
             'fecha', 'horaInicio', 'horaFinal',
             'promotor', 'distribuidorId', 'codTienda',
@@ -196,77 +194,53 @@ const FrmActivaciones = () => {
         ];
         const missing = required.filter(f => !form[f] && form[f] !== 0);
         if (missing.length) {
-            setAlerta({ open: true, msg: 'Por favor completa todos los campos obligatorios.', severity: 'warning' });
+            setAlerta({open: true, msg: 'Por favor completa todos los campos obligatorios.', severity: 'warning'});
+            return;
+        }
+        if (form.tienda?.toUpperCase() === "SIN NOMBRE") {
+            setAlerta({
+                open: true,
+                msg: "No se puede guardar la activación porque la tienda no tiene nombre. Por favor notifícalo.",
+                severity: "error"
+            });
             return;
         }
 
-        const tiendaSel = (direcciones || []).find(d => String(d.id) === String(form.codTienda)) || null;
-        const nombreActual    = (tiendaSel?.nombre || '').trim().toUpperCase();
-        const nombreIngresado = (form.tiendaNombre || '').trim();
-        const faltaNombre     = !nombreActual || nombreActual === 'SIN NOMBRE';
-
         const payload = buildActivacionPayload(form, enterpriseShineray);
-
         payload.fecha_act = String(form.fecha || dayjs().format('YYYY-MM-DD')).trim();
 
         try {
-            if (faltaNombre && nombreIngresado && tiendaSel) {
-                const putBody = {
-                    ciudad: (tiendaSel?.ciudad || '').toString().trim(),
-                    es_activo: 1,
-                    direccion: tiendaSel?.direccion || '',
-                    direccion_larga: tiendaSel?.direccion_larga || '',
-                    cod_zona_ciudad: tiendaSel?.cod_zona_ciudad || '',
-                    nombre: nombreIngresado.toUpperCase(),
-                };
-
-                await APIService.putDireccionGuia(
-                    enterpriseShineray,
-                    String(form.distribuidorId),
-                    Number(form.codTienda),
-                    putBody
-                );
-            }
             if (modoEdicion) {
                 await APIService.updateActivaciones(form.cod_activacion, payload);
             } else {
                 await APIService.postActivaciones(enterpriseShineray, payload);
             }
 
-            const fIni = fromDate ? dayjs(fromDate).format('YYYY-MM-DD') : null;
-            const fFin = toDate   ? dayjs(toDate).format('YYYY-MM-DD')   : null;
-            const params = {};
-            if (fIni && fFin) { params.fecha_inicio = fIni; params.fecha_fin = fFin; }
-            if (buscarDistribuidorId) { params.cod_cliente = String(buscarDistribuidorId); }
-
-            const resp = await APIService.getActivacionesPromotor(enterpriseShineray, form.promotor, params);
-            const data = Array.isArray(resp) ? resp : (resp?.data ?? []);
-            const tiposDict = mapTipoById(tipoActivaciones);
-            const rows = data.map(it => obtenerActivacion(it, tiposDict));
-            setActivaciones(rows);
+            await cargarActivacionesIniciales(form.promotor || promotorActual?.identificacion);
 
             setAlerta({
                 open: true,
                 msg: modoEdicion ? 'Activación actualizada con éxito.' : 'Activación guardada con éxito.',
                 severity: 'success'
             });
+
             limpiarFormulario();
             setMostrarFormulario(false);
             setMostrarTabla(true);
-            setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 50);
+
+            setTimeout(() => window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'}), 50);
 
         } catch (error) {
             console.error('Error al guardar/actualizar activación:', error);
             const msg = error?.response?.data?.mensaje || error?.message || (modoEdicion ? 'Error al actualizar.' : 'Error al guardar.');
-            setAlerta({ open: true, msg, severity: 'error' });
+            setAlerta({open: true, msg, severity: 'error'});
         }
     };
-
 
     const limpiarFormulario = () => {
         setForm(prev => ({
             ...prev,
-            fecha: todayISO(),
+            fecha: '',
             ToDate: '',
             FromDate: '',
             horaInicio: '',
@@ -278,13 +252,10 @@ const FrmActivaciones = () => {
             tienda: '',
             motos: '',
             tipoActivacion: '',
-            animadora: '',
             distribuidorId: '',
             codTienda: '',
             tiendaNombre: '',
             codProveedor: '',
-            animadoraNombre: '',
-
         }));
         setModoEdicion(false);
         setIndexEditar(null);
@@ -292,10 +263,10 @@ const FrmActivaciones = () => {
 
     const handleChangeDateCli = async () => {
         const fIni = fromDate ? dayjs(fromDate).format('YYYY-MM-DD') : null;
-        const fFin = toDate   ? dayjs(toDate).format('YYYY-MM-DD')   : null;
+        const fFin = toDate ? dayjs(toDate).format('YYYY-MM-DD') : null;
 
         if (!fIni || !fFin) {
-            setAlerta({ open: true, msg: 'Ingresa el rango de fechas (desde y hasta).', severity: 'warning' });
+            setAlerta({open: true, msg: 'Ingresa el rango de fechas (desde y hasta).', severity: 'warning'});
             return;
         }
         let codCliente = null;
@@ -306,18 +277,39 @@ const FrmActivaciones = () => {
             const matchExact = (clientes ?? []).find(c => (c.nombre || '').toUpperCase() === nombre);
             const match = matchExact || (clientes ?? []).find(c => (c.nombre || '').toUpperCase().includes(nombre));
             if (!match) {
-                setAlerta({ open: true, msg: 'Distribuidor no encontrado. Selecciónalo de la lista.', severity: 'warning' });
+                setAlerta({
+                    open: true,
+                    msg: 'Distribuidor no encontrado. Selecciónalo de la lista.',
+                    severity: 'warning'
+                });
                 return;
             }
             codCliente = String(match.id);
         } else {
-            setAlerta({ open: true, msg: 'Selecciona un distribuidor.', severity: 'warning' });
+            setAlerta({open: true, msg: 'Selecciona un distribuidor.', severity: 'warning'});
             return;
         }
 
         try {
-            const params = { fecha_inicio: fIni, fecha_fin: fFin, cod_cliente: codCliente };
-            const resp = await APIService.getActivacionesPromotor(enterpriseShineray, form.promotor, params);
+
+            const p = await APIService.getPromotorActual();
+            setPromotorActual(p);
+            const codPromotor = String(p.identificacion || '').trim();
+
+            setForm(prev => ({...prev, promotor: codPromotor}));
+            const params = {
+                cod_promotor: codPromotor,
+                fecha_inicio: fIni,
+                fecha_fin: fFin,
+                cod_cliente: codCliente
+            };
+
+            const resp = await APIService.getActivacionesPromotor(
+                enterpriseShineray,
+                codPromotor,
+                params
+            );
+
             const data = Array.isArray(resp) ? resp : (resp?.data ?? []);
             const tiposDict = mapTipoById(tipoActivaciones);
             const rows = data.map(it => obtenerActivacion(it, tiposDict));
@@ -325,21 +317,18 @@ const FrmActivaciones = () => {
             if (rows.length === 0) {
                 setActivaciones([]);
                 setMostrarTabla(true);
-                setAlerta({ open: true, msg: 'No se encontraron registros con esos filtros.', severity: 'warning' });
+                setAlerta({open: true, msg: 'No se encontraron registros con esos filtros.', severity: 'warning'});
                 return;
             }
             setActivaciones(rows);
             setMostrarTabla(true);
-            setAlerta({ open: true, msg: 'Datos cargados correctamente.', severity: 'success' });
+            setAlerta({open: true, msg: 'Datos cargados correctamente.', severity: 'success'});
         } catch (error) {
             console.error(error);
             const msg = error?.response?.data?.mensaje || error?.message || 'Error al cargar activaciones.';
-            setAlerta({ open: true, msg, severity: 'error' });
+            setAlerta({open: true, msg, severity: 'error'});
         }
     };
-
-
-
 
     useEffect(() => {
         if (form.horaInicio && form.horaFinal) {
@@ -358,7 +347,7 @@ const FrmActivaciones = () => {
     const columns = [
         { name: "cod_activacion", label: "CÓDIGO" },
         { name: "tipoActivacion", label: "TIPO ACTIVACIÓN" },
-        { name: "promotor", label: "AGENCIA" },
+        { name: "promotor", label: "PROMOTOR" },
         { name: "distribuidor", label: "DISTRIBUIDOR" },
         { name: "canal", label: "CANAL" },
         { name: "ciudad", label: "CIUDAD" },
@@ -368,7 +357,14 @@ const FrmActivaciones = () => {
         { name: "horaFinal", label: "HORA FINAL" },
         { name: "horas", label: "HORAS" },
         { name: "motos", label: "# MOTOS EXHIBICIÓN" },
-        { name: "animadora", label: "ANIMADORA" },
+        { name: "proveedor", label: "PROVEEDOR" },
+        {
+            name: "estado",
+            label: "ESTADO",
+            options: {
+                customBodyRender: (value) => getEstadoChip(value),
+            },
+        },
         {
             name: "acciones",
             label: "ACCIONES",
@@ -392,7 +388,6 @@ const FrmActivaciones = () => {
                                         tiendaNombre: '',
                                         tipoActivacion: row.cod_item_act || '',
                                         codProveedor: row.cod_proveedor || '',
-                                        animadoraNombre: row.animadora || '',
                                         fecha: row.fechaISO || prev.fecha,
                                         horaInicio: row.horaInicio || '',
                                         horaFinal: row.horaFinal || '',
@@ -409,7 +404,7 @@ const FrmActivaciones = () => {
                                     setIndexEditar(dataIndex);
                                 }}
                             >
-                                <EditIcon />
+                                <EditIcon/>
                             </IconButton>
                         </Tooltip>
                     );
@@ -422,9 +417,9 @@ const FrmActivaciones = () => {
         "cod_activacion", "fecha",
         "horaInicio", "horaFinal",
         "horas", "canal", "ciudad", "distribuidor", "tienda",
-        "motos", "tipoActivacion", "promotor", "animadora",
+        "motos", "tipoActivacion", "promotor",
     ];
-    const tableOptions = getTableOptions(activaciones, camposPlantillaModelo, "Actualizar_activaciones.xlsx");
+    const tableOptions = getTableOptions(activaciones, camposPlantillaModelo, "Actualizar_activaciones_shineray_bultaco.xlsx");
 
     const fetchPromotores = async () => {
         try {
@@ -517,14 +512,17 @@ const FrmActivaciones = () => {
     };
 
     const fetchDirecciones = async (cod_promotor, cod_cliente) => {
-        if (!cod_promotor || !cod_cliente) { setDirecciones([]); return; }
+        if (!cod_promotor || !cod_cliente) {
+            setDirecciones([]);
+            return;
+        }
         try {
             setLoadingDirs(true);
             const raw = await APIService.getCuidades(cod_promotor, cod_cliente);
             const list = Array.isArray(raw) ? raw : (raw?.data ?? []);
             const formatted = list.map(d => {
                 const ciudad = String(d.ciudad ?? '').toUpperCase().trim();
-                const nombreRaw = String(d.nombre ?? '').trim();
+                const nombreRaw = d?.bodega?.nombre?.trim() || String(d.nombre ?? '').trim();
                 const display = (nombreRaw || 'SIN NOMBRE').toUpperCase();
                 return {
                     id: String(d.cod_direccion),
@@ -548,7 +546,7 @@ const FrmActivaciones = () => {
         const map = new Map();
         for (const d of direcciones) {
             const key = (d.ciudad || '').toUpperCase().trim();
-            if (key && !map.has(key)) map.set(key, { id: key, label: key, ciudad: d.ciudad });
+            if (key && !map.has(key)) map.set(key, {id: key, label: key, ciudad: d.ciudad});
         }
         return Array.from(map.values());
     }, [direcciones]);
@@ -576,22 +574,6 @@ const FrmActivaciones = () => {
         return `${h}:${mm}`;
     };
 
-    const normStr = (s) =>
-        String(s ?? "")
-            .replace(/\t/g, "")
-            .replace(/\s+/g, " ")
-            .trim();
-
-    const normNombreTienda = (s) => normStr(s);
-
-    const getNombreTienda = (tienda, bodega) => {
-
-        const t = normNombreTienda(tienda?.nombre);
-        const b = normNombreTienda(bodega?.nombre);
-
-        return t || b || "SIN NOMBRE";
-    };
-
     const canalFromTipo = (t) =>
         (String(t || '').trim().toUpperCase() === 'MY' ? 'MAYOREO' : 'RETAIL');
 
@@ -601,6 +583,16 @@ const FrmActivaciones = () => {
         );
 
     dayjs.extend(utc);
+    const mapEstado = (estado) => {
+        switch (Number(estado)) {
+            case 0: return "Pendiente";
+            case 1: return "Pre-aprobada";
+            case 2: return "Aprobada";
+            case 3: return "Rechazada";
+            default: return "Desconocido";
+        }
+    };
+
     const obtenerActivacion = (item, tiposDict) => {
         const fUTC = item.fecha_act ? dayjs.utc(item.fecha_act) : null;
 
@@ -611,24 +603,41 @@ const FrmActivaciones = () => {
                 .filter(Boolean).join(' ').trim(),
             distribuidor: [item?.cliente?.nombre, item?.cliente?.apellido1].filter(Boolean).join(' ').trim(),
             canal: getCanal(item),
-            ciudad: item?.tienda?.ciudad || '',
-            tienda: getNombreTienda(item?.tienda, item?.bodega),
-            fecha:   fUTC ? fUTC.format('DD/MM/YYYY') : '',
+            ciudad: item?.tienda?.ciudad || item?.ciudad || '',
+            tienda: item?.bodega?.nombre?.trim() || "SIN NOMBRE",
+            fecha: fUTC ? fUTC.format('DD/MM/YYYY') : '',
             fechaISO: fUTC ? fUTC.format('YYYY-MM-DD') : '',
             horaInicio: item.hora_inicio || '',
-            horaFinal:  item.hora_fin || '',
+            horaFinal: item.hora_fin || '',
             horas: item.total_minutos != null ? minutosAHoras(item.total_minutos) : '',
             motos: Number(item?.num_exhi_motos ?? 0),
-            animadora: item?.animadora || (item?.proveedor?.nombre || '').trim(),
+            proveedor: item?.proveedor?.nombre?.trim() || 'N/A',
             cod_cliente: String(item.cod_cliente ?? '').trim(),
-            cod_tienda:  String(item.cod_tienda ?? '').trim(),
+            cod_tienda: String(item.cod_tienda ?? '').trim(),
             cod_proveedor: item.cod_proveedor ? String(item.cod_proveedor).trim() : '',
             cod_item_act: String(item.cod_item_act ?? '').trim(),
             cod_modelo_act: String(item.cod_modelo_act ?? 'ACT').trim(),
             cod_promotor: String(item.cod_promotor ?? '').trim(),
+            estado: mapEstado(item.estado),
+            cod_estado: Number(item.estado),
         };
     };
 
+
+    const getEstadoChip = (estado) => {
+        switch (estado) {
+            case "Pendiente":
+                return <Chip label="Pendiente" color="warning" variant="outlined" />;
+            case "Pre-aprobada":
+                return <Chip label="Pre-aprobada" color="info" variant="outlined" />;
+            case "Aprobada":
+                return <Chip label="Aprobada" color="success" variant="outlined" />;
+            case "Rechazada":
+                return <Chip label="Rechazada" color="error" variant="outlined" />;
+            default:
+                return <Chip label={estado} variant="outlined" />;
+        }
+    };
     const clientes = React.useMemo(() => {
         const arr = (clientesRaw ?? []).map(c => ({
             id: String(c?.cod_cliente ?? ''),
@@ -656,27 +665,10 @@ const FrmActivaciones = () => {
                 distribuidorNombre: selectedDistribuidorForm.nombre ?? '',
             }));
         } else {
-            setForm(prev => ({ ...prev, canal: '' }));
+            setForm(prev => ({...prev, canal: ''}));
         }
     }, [selectedDistribuidorForm]);
 
-    const tiendaSel = useMemo(() => {
-        const id = String(form.codTienda ?? '');
-        const d = direcciones.find(x => String(x.id) === id) || null;
-        if (!d) return null;
-
-        const nombreRaw = String(d.nombre ?? '').trim();
-        return {
-            id: String(d.id),
-            label: (nombreRaw || 'SIN NOMBRE').toUpperCase(),
-            nombre: nombreRaw,
-        };
-    }, [direcciones, form.codTienda]);
-
-    const faltaNombreTienda = useMemo(() => {
-        const n = (tiendaSel?.nombre || '').trim().toUpperCase();
-        return !n || n === 'SIN NOMBRE';
-    }, [tiendaSel]);
 
     return (
         <>{loading ? (<LoadingCircle/>) : (
@@ -722,7 +714,7 @@ const FrmActivaciones = () => {
                                     setBuscarDistribuidorId(v ? v.id : '');
                                     setBuscarDistribuidorNombre(v?.nombre ?? '');
                                 }}
-                                renderInput={(params) => <TextField {...params} label="Distribuidor" />}
+                                renderInput={(params) => <TextField {...params} label="Distribuidor"/>}
                                 fullWidth
                                 clearOnEscape
                                 disablePortal
@@ -767,7 +759,7 @@ const FrmActivaciones = () => {
                                     textTransform: 'none',
                                     fontWeight: 500,
                                     backgroundColor: 'firebrick',
-                                    '&:hover': { backgroundColor: 'firebrick' },
+                                    '&:hover': {backgroundColor: 'firebrick'},
                                 }}
                             >
                                 Nuevo
@@ -785,7 +777,7 @@ const FrmActivaciones = () => {
                                     gutterBottom
                                     sx={{textAlign: 'center', mt: 2}}
                                 >
-                                    ACTIVACIONES SHINERAY-BULTACO
+                                    SOLICITUD DE ACTIVACIÓN
                                 </Typography>
                                 <Paper elevation={1} sx={{p: 2, mt: 3}}>
                                     <Grid container columnSpacing={2} rowSpacing={2}>
@@ -796,7 +788,8 @@ const FrmActivaciones = () => {
                                                 value={tipoActivaciones.find(act => act.id === form.tipoActivacion) || null}
                                                 onChange={(_, v) => handleChange('tipoActivacion')({target: {value: v ? v.id : ''}})}
                                                 isOptionEqualToValue={(a, b) => a.id === (b?.id ?? b)}
-                                                renderInput={(params) => <TextField {...params} label="Tipo Activación"/>}
+                                                renderInput={(params) => <TextField {...params}
+                                                                                    label="Tipo Activación"/>}
                                                 fullWidth
                                                 clearOnEscape
                                                 disablePortal
@@ -807,12 +800,12 @@ const FrmActivaciones = () => {
                                                 label="Promotor"
                                                 value={
                                                     promotorActual
-                                                        ? `${promotorActual.nombres ?? ''} ${promotorActual.apellido_paterno ?? ''} ${promotorActual.apellido_materno ?? ''}`.replace(/\s+/g,' ').trim()
+                                                        ? `${promotorActual.nombres ?? ''} ${promotorActual.apellido_paterno ?? ''} ${promotorActual.apellido_materno ?? ''}`.replace(/\s+/g, ' ').trim()
                                                         : ''
                                                 }
                                                 fullWidth
                                                 size="medium"
-                                                InputProps={{ readOnly: true }}
+                                                InputProps={{readOnly: true}}
                                             />
                                         </Grid>
                                         <Grid item xs={12} md={4}>
@@ -832,7 +825,7 @@ const FrmActivaciones = () => {
                                                         tiendaNombre: '',
                                                     }));
                                                 }}
-                                                renderInput={(params) => <TextField {...params} label="Distribuidor" />}
+                                                renderInput={(params) => <TextField {...params} label="Distribuidor"/>}
                                                 fullWidth
                                                 clearOnEscape
                                                 disablePortal
@@ -876,69 +869,97 @@ const FrmActivaciones = () => {
                                             />
                                         </Grid>
                                         <Grid item xs={12} md={4}>
-                                            <Autocomplete
-                                                options={tiendasPorCiudad}
-                                                getOptionLabel={(o) => o?.label ?? ''}
-                                                value={tiendaSel}
-                                                onChange={(_, v) => {
-                                                    if (v && typeof v === 'object') {
-                                                        setForm(prev => ({
-                                                            ...prev,
-                                                            codTienda: v.id,
-                                                            tienda: v.label,
-                                                        }));
-                                                    } else {
-                                                        setForm(prev => ({ ...prev, codTienda: '', tienda: ''  }));
-                                                    }
-                                                }}
-                                                isOptionEqualToValue={(a,b) => `${a.id}` === `${b?.id ?? b}`}
-                                                renderInput={(p) => <TextField {...p} label="Tienda" />}
-                                            />
-                                        </Grid>
-                                        {form.codTienda && (faltaNombreTienda || (form.tiendaNombre || '').trim()) && (
-                                            <Grid item xs={12} md={4}>
-                                                <TextField
-                                                    label="Nombre de Tienda (faltante)"
-                                                    value={form.tiendaNombre || ''}
-                                                    onChange={(e) =>
-                                                        setForm(prev => ({ ...prev, tiendaNombre: (e.target.value || '').toUpperCase() }))
-                                                    }
+                                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                <Autocomplete
+                                                    options={tiendasPorCiudad}
+                                                    getOptionLabel={(o) => o?.label ?? ''}
+                                                    value={tiendasPorCiudad.find(t => t.id === (form.codTienda || '').toUpperCase()) || null}
+                                                    onChange={(_, v) => {
+                                                        if (v && typeof v === 'object') {
+                                                            setForm(prev => ({
+                                                                ...prev,
+                                                                codTienda: v.id,
+                                                                tienda: v.label,
+                                                            }));
+                                                        } else {
+                                                            setForm(prev => ({...prev, codTienda: '', tienda: ''}));
+                                                        }
+                                                    }}
+                                                    isOptionEqualToValue={(a, b) => `${a.id}` === `${b?.id ?? b}`}
+                                                    renderInput={(params) => <TextField {...params} label="Tienda" />}
                                                     fullWidth
                                                 />
-                                            </Grid>
-                                        )}
-                                        <Grid item xs={12} md={2}>
-                                            <TextField
-                                                label="Fecha"
-                                                type="date"
-                                                value={form.fecha || todayISO()}
-                                                InputLabelProps={{ shrink: true }}
-                                                inputProps={{
-                                                    min: form.fecha || todayISO(),
-                                                    max: form.fecha || todayISO(),
-                                                    readOnly: true
-                                                }}
-                                                disabled
-                                                fullWidth
-                                            />
+                                                {form.tienda?.toUpperCase() === "SIN NOMBRE" && (
+                                                    <Tooltip title="Notificar tienda sin nombre">
+                                                        <IconButton
+                                                            color="error"
+                                                            onClick={async () => {
+                                                                try {
+                                                                    const resp = await APIService.postNotificarTiendaSinNombre(
+                                                                        enterpriseShineray,
+                                                                        form.distribuidorId,
+                                                                        form.codTienda
+                                                                    );
+                                                                    console.log("Respuesta backend:", resp);
+                                                                    toast.success("Notificación enviada correctamente");
+                                                                } catch (e) {
+                                                                    console.error("Error al notificar:", e?.response || e);
+                                                                    toast.error(e?.response?.data?.mensaje || "Error al enviar notificación");
+                                                                }
+                                                            }}
+                                                        >
+                                                            <NotificationsIcon />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                )}
+                                            </Box>
                                         </Grid>
                                         <Grid item xs={12} md={2}>
-                                            <TextField
-                                                label="Hora Inicio"
-                                                type="time"
-                                                value={form.horaInicio || ''}
-                                                onChange={handleChange('horaInicio')}
-                                                fullWidth
-                                            />
+                                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                                <DatePicker
+                                                    label="Fecha"
+                                                    value={form.fecha ? dayjs(form.fecha, 'YYYY-MM-DD') : null}
+                                                    onChange={(newValue) => {
+                                                        if (newValue) {
+                                                            setForm((prev) => ({
+                                                                ...prev,
+                                                                fecha: newValue.format('YYYY-MM-DD'),
+                                                            }));
+                                                        }
+                                                    }}
+                                                    format="DD/MM/YYYY"
+                                                    slotProps={{
+                                                        textField: {
+                                                            fullWidth: true,
+                                                            InputLabelProps: {shrink: true},
+                                                        },
+                                                    }}
+                                                />
+                                            </LocalizationProvider>
                                         </Grid>
                                         <Grid item xs={12} md={2}>
-                                            <TextField
-                                                label="Hora Final"
-                                                type="time"
-                                                value={form.horaFinal || ''}
-                                                onChange={handleChange('horaFinal')}
-                                                fullWidth
-                                            />
+                                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                                <DesktopTimePicker
+                                                    label="Hora Inicio"
+                                                    value={form.horaInicio ? dayjs(form.horaInicio, 'HH:mm') : null}
+                                                    onChange={(newValue) => {
+                                                        setForm({...form, horaInicio: newValue?.format('HH:mm')});
+                                                    }}
+                                                    slotProps={{textField: {fullWidth: true}}}
+                                                />
+                                            </LocalizationProvider>
+                                        </Grid>
+                                        <Grid item xs={12} md={2}>
+                                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                                <DesktopTimePicker
+                                                    label="Hora Final"
+                                                    value={form.horaFinal ? dayjs(form.horaFinal, 'HH:mm') : null}
+                                                    onChange={(newValue) => {
+                                                        setForm({...form, horaFinal: newValue?.format('HH:mm')});
+                                                    }}
+                                                    slotProps={{textField: {fullWidth: true}}}
+                                                />
+                                            </LocalizationProvider>
                                         </Grid>
                                         <Grid item xs={12} md={2}>
                                             <TextField
@@ -976,14 +997,34 @@ const FrmActivaciones = () => {
                                                 disablePortal
                                             />
                                         </Grid>
-                                        <Grid item xs={12} md={4}>
-                                            <TextField
-                                                label="Nombre Animadora"
-                                                value={form.animadoraNombre || ''}
-                                                onChange={(e) => setField('animadoraNombre', e.target.value.toUpperCase())}
-                                                fullWidth
-                                            />
-                                        </Grid>
+                                        {modoEdicion && (
+                                            <>
+                                                <Grid item xs={12} md={2}>
+                                                    <FormControl fullWidth variant="outlined" size="medium">
+                                                        <InputLabel id="estado-label">Estado Solicitud</InputLabel>
+                                                        <Select
+                                                            labelId="estado-label"
+                                                            value={form.estado}
+                                                            onChange={(e) => setForm({ ...form, estado: e.target.value })}
+                                                            variant="outlined"
+                                                            label="Estado Solicitud">
+                                                            <MenuItem value={0}>Pendiente</MenuItem>
+                                                            <MenuItem value={1}>Pre-aprobada</MenuItem>
+                                                            <MenuItem value={2}>Aprobada</MenuItem>
+                                                            <MenuItem value={3}>Rechazada</MenuItem>
+                                                        </Select>
+                                                    </FormControl>
+                                                </Grid>
+                                                <Grid item xs={12} md={2}>
+                                                    <TextField
+                                                        label="Observación (opcional)"
+                                                        value={form.observacion || ''}
+                                                        onChange={(e) => setForm({ ...form, observacion: e.target.value })}
+                                                        fullWidth
+                                                    />
+                                                </Grid>
+                                            </>
+                                        )}
                                         <Grid item xs={12}>
                                             <Box sx={{display: 'flex', justifyContent: 'center', gap: 2}}>
                                                 <Button
@@ -1008,6 +1049,7 @@ const FrmActivaciones = () => {
                                                 </Button>
                                             </Box>
                                         </Grid>
+
                                     </Grid>
                                 </Paper>
                             </>
