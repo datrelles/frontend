@@ -95,7 +95,7 @@ const FrmPromotoria= () => {
         telefono1: '',
         correo_electronico: '',
         prom_venta_tienda: '',
-        total_mot_shineray: '',
+        total_motos_shi: '',
         cod_promotoria: '',
         total_mot_piso: '',
         modelos_segmento: [],
@@ -519,7 +519,7 @@ const FrmPromotoria= () => {
                 if (val.nombre) return String(val.nombre).trim();
                 if (val.label) return String(val.label).trim();
                 if (val.ciudad) return String(val.ciudad).trim();
-                return JSON.stringify(val); // fallback (no recomendable en producción)
+                return JSON.stringify(val);
             }
             return String(val).trim();
         };
@@ -917,7 +917,11 @@ const FrmPromotoria= () => {
                         )}
                         {mostrarTabla && (
                             <Box sx={{ mt: 5, width: "100%", px: 2 }}>
-                                <CollapsibleTable cabeceras={formularios}  />
+                                <CollapsibleTable
+                                    cabeceras={formularios}
+                                    modeloSegmentos={modelos}
+                                    APIService={APIService}
+                                />
                             </Box>
                         )}
                     </Box>
