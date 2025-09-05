@@ -12,7 +12,7 @@ export function TablaResumenMarcas({cantidades, form, setForm}) {
     const [otrasMarcas, setOtrasMarcas] = useState([]);
     const [mostrarSelector, setMostrarSelector] = useState(false);
     const [marcaNueva, setMarcaNueva] = useState(null);
-
+    const [segmentos, setSegmentos] = useState([]);
     const {jwt, userShineray, enterpriseShineray, systemShineray} = useAuthContext();
     const APIService = useMemo(
         () => new API(jwt, userShineray, enterpriseShineray, systemShineray),
@@ -31,8 +31,6 @@ export function TablaResumenMarcas({cantidades, form, setForm}) {
         cargarMarcas();
     }, [APIService]);
 
-    // Construir lista única de segmentos agrupados por nombre
-    const [segmentos, setSegmentos] = useState([]);
 
     useEffect(() => {
         const cargarSegmentos = async () => {
@@ -43,7 +41,6 @@ export function TablaResumenMarcas({cantidades, form, setForm}) {
                     codigo_segmento: String(s.codigo_segmento),
                     nombre_segmento: (s.nombre_segmento || "").toUpperCase().trim()
                 }));
-                // Eliminamos duplicados por nombre
                 const unicos = Array.from(
                     new Map(lista.map(s => [s.nombre_segmento, s])).values()
                 );
@@ -68,7 +65,6 @@ export function TablaResumenMarcas({cantidades, form, setForm}) {
         return result;
     }, [cantidades.modelos]);
 
-    // Total por marca global
     const totalPorMarca = (codMarca) => {
         return Object.values(cantidades.modelos || {}).reduce((acc, m) => {
             if (String(m.cod_marca) === String(codMarca)) {

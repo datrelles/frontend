@@ -1,11 +1,7 @@
-
-
 import React, {useEffect, useMemo, useState} from 'react';
 import {
     TextField, Button, Grid, Typography,
-    Select,  Box, Snackbar,
-    Alert, IconButton, InputLabel,
-    FormControl, Autocomplete, TableContainer, Table, TableHead, TableRow, TableCell, TableBody
+    Box, Snackbar,  Alert, Autocomplete
 } from '@mui/material';
 import {useAuthContext} from "../../context/authContext";
 import {SnackbarProvider} from "notistack";
@@ -20,7 +16,6 @@ import SearchIcon from "@material-ui/icons/Search";
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import Paper from "@mui/material/Paper";
-import DeleteIcon from '@mui/icons-material/Delete';
 import CollapsibleTable from "./CollapsibleTable";
 import IngresoModelosTabs from "./IngresoModelosTabs";
 import {TablaResumenMarcas} from "./TablaResumenMarcas";
@@ -32,11 +27,10 @@ const FrmPromotoria= () => {
         [jwt, userShineray, enterpriseShineray, systemShineray]
     );
 
-    const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
+    const [menus, setMenus] = useState([]);
     const [fromDate, setFromDate] = useState(null);
     const [toDate, setToDate] = useState(null);
-    const [mostrarFormulario, setMostrarFormulario] = useState(false);
     const [modoEdicion, setModoEdicion] = useState(false);
     const [indexEditar, setIndexEditar] = useState(null);
     const [mostrarTabla, setMostrarTabla] = useState(false);
@@ -48,22 +42,20 @@ const FrmPromotoria= () => {
     const [direcciones, setDirecciones] = useState([]);
     const [loadingDirs, setLoadingDirs] = useState(false);
     const [alerta, setAlerta] = useState({open: false, msg: '', severity: 'info'});
+    const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
     const [promotorActual, setPromotorActual] = useState(null);
     const [cargandoPromotor, setCargandoPromotor] = useState(true);
 
     const [buscarDistribuidorId, setBuscarDistribuidorId] = useState('');
     const [buscarDistribuidorNombre, setBuscarDistribuidorNombre] = useState('');
-
     const todayISO = () => dayjs().format('YYYY-MM-DD');
 
     const [loadingTabla, setLoadingTabla] = useState(false);
-
     const [modelosPorSegmento, setModelosPorSegmento] = useState([]);
     const [cantidades, setCantidades] = useState({});
-
-    const [mostrarResumen, setMostrarResumen] = useState(false);
     const [guardadoPromotoria, setGuardadoPromotoria] = useState(false);
+    const [formularios, setFormularios] = useState([]);
 
     const cargarVisitaPromotoriaIniciales = async (codPromotor) => {
         try {
@@ -85,8 +77,6 @@ const FrmPromotoria= () => {
         }
     };
 
-
-
     const [form, setForm] = useState({
         fecha: todayISO(),
         promotorId: '',
@@ -106,16 +96,11 @@ const FrmPromotoria= () => {
         correo_electronico: '',
         prom_venta_tienda: '',
         total_mot_shineray: '',
+        cod_promotoria: '',
         total_mot_piso: '',
-
         modelos_segmento: [],
         marcas_segmento: [],
     });
-
-
-
-    const [formularios, setFormularios] = useState([]);
-
 
     const getMenus = async () => {
         try {
@@ -144,8 +129,6 @@ const FrmPromotoria= () => {
         })();
     }, []);
 
-
-
     useEffect(() => {
         getMenus();
         fetchPromotores();
@@ -161,7 +144,6 @@ const FrmPromotoria= () => {
     useEffect(() => {
         fetchDirecciones(form.promotor, form.distribuidorId);
     }, [form.promotor, form.distribuidorId]);
-
 
 
     const handleChange = (campo) => (event) => {
@@ -182,12 +164,6 @@ const FrmPromotoria= () => {
             cod_marca: safeInt(m.cod_marca),
             cantidad: safeInt(m.cantidad) || 0,
         }));
-
-        // const marcas_segmento = Object.values(cantidades.marcas || {}).map(m => ({
-        //     cod_marca: safeInt(m.cod_marca),
-        //     cantidad: safeInt(m.cantidad) || 0,
-        //     nombre_segmento: m.nombre_segmento,
-        // }));
 
         const marcas_segmento = [];
 
@@ -213,8 +189,6 @@ const FrmPromotoria= () => {
                 marcas_segmento.push(agrupado[k]);
             }
         }
-
-
         return {
             empresa: safeInt(empresa),
             cod_promotor: String(form.promotor ?? '').trim(),
@@ -226,8 +200,6 @@ const FrmPromotoria= () => {
             marcas_segmento: form.marcas_segmento || [],
         };
     }
-
-
 
     const handleSubmit = async () => {
         const required = ['promotor', 'distribuidorId', 'codTienda'];
@@ -259,7 +231,6 @@ const FrmPromotoria= () => {
             const data = Array.isArray(resp) ? resp : (resp?.data ?? []);
             const rows = data.map(it => obtenerPromotoria(it));
             setFormularios(rows);
-
 
             setGuardadoPromotoria(true);
             setAlerta({
@@ -363,7 +334,6 @@ const FrmPromotoria= () => {
 
     };
 
-
     const fetchMarcas = async () => {
         try {
 
@@ -394,7 +364,6 @@ const FrmPromotoria= () => {
             toast.error(error.message || "No se pudo cargar segmentos");
         }
     };
-
 
     useEffect(() => {
         const fetchModeloSegmentos = async () => {
@@ -535,8 +504,6 @@ const FrmPromotoria= () => {
             }));
     }, [direcciones, form.ciudad]);
 
-
-
     dayjs.extend(utc);
 
     const obtenerPromotoria = (item) => {
@@ -614,7 +581,6 @@ const FrmPromotoria= () => {
             Object.values(cantidades.modelos || {}).reduce((acc, m) => acc + (Number(m.cantidad) || 0), 0) +
             (form.marcas_segmento || []).reduce((acc, m) => acc + (Number(m.cantidad) || 0), 0);
 
-        // Total Massline (Shineray=3, SHM=18, Bultaco=22)
         const totalMassline =
             Object.values(cantidades.modelos || {}).reduce((acc, m) => {
                 return ["3", "18", "22"].includes(String(m.cod_marca))
@@ -633,7 +599,6 @@ const FrmPromotoria= () => {
             total_motos_shi: totalMassline,
         }));
     }, [cantidades, form.marcas_segmento, setForm]);
-
 
 
     return (
@@ -815,8 +780,6 @@ const FrmPromotoria= () => {
                                                                 clienteId,
                                                                 v.id
                                                             );
-                                                            console.log("Respuesta getTiendas:", data);
-
                                                             if (data) {
                                                                 setForm(prev => ({
                                                                     ...prev,
@@ -825,8 +788,6 @@ const FrmPromotoria= () => {
                                                                     correoTienda: data.bodega?.correo_electronico || '',
                                                                     prom_venta_tienda: data.prom_venta_tienda || ''
                                                                 }));
-
-
                                                             }
                                                         } catch (error) {
                                                             console.error("Error cargando info tienda:", error);
@@ -844,7 +805,6 @@ const FrmPromotoria= () => {
                                                         }));
                                                     }
                                                 }}
-
                                                 isOptionEqualToValue={(a, b) => `${a.id}` === `${b?.id ?? b}`}
                                                 renderInput={(params) => <TextField {...params} label="Tienda" />}
                                             />
@@ -946,18 +906,6 @@ const FrmPromotoria= () => {
                                                         >
                                                             Cancelar
                                                         </Button>
-
-                                                        {/*<Button*/}
-                                                        {/*    variant="contained"*/}
-                                                        {/*    sx={{ backgroundColor: 'green', '&:hover': { backgroundColor: 'darkgreen' } }}*/}
-                                                        {/*    onClick={() => {*/}
-                                                        {/*        limpiarFormulario();*/}
-                                                        {/*        setMostrarFormulario(false);*/}
-                                                        {/*        setMostrarResumen(true);*/}
-                                                        {/*    }}*/}
-                                                        {/*>*/}
-                                                        {/*    Siguiente*/}
-                                                        {/*</Button>*/}
                                                     </Box>
                                                 </Grid>
 
@@ -967,38 +915,11 @@ const FrmPromotoria= () => {
                                 </Paper>
                             </>
                         )}
-                        {/*{guardadoPromotoria && (*/}
-                        {/*    <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>*/}
-                        {/*        <Button*/}
-                        {/*            variant="contained"*/}
-                        {/*            sx={{ backgroundColor: 'green', '&:hover': { backgroundColor: 'darkgreen' } }}*/}
-                        {/*            onClick={() => {*/}
-                        {/*                limpiarFormulario();*/}
-                        {/*                setMostrarFormulario(false);*/}
-                        {/*                setMostrarTabla(false);*/}
-                        {/*                setMostrarResumen(true);*/}
-                        {/*                setGuardadoPromotoria(false);*/}
-                        {/*            }}*/}
-                        {/*        >*/}
-                        {/*            Siguiente*/}
-                        {/*        </Button>*/}
-                        {/*    </Box>*/}
-                        {/*)}*/}
-
                         {mostrarTabla && (
                             <Box sx={{ mt: 5, width: "100%", px: 2 }}>
                                 <CollapsibleTable cabeceras={formularios}  />
-
                             </Box>
                         )}
-                        {/*{mostrarResumen && (*/}
-                        {/*    <TablaResumenMarcas*/}
-                        {/*        modelosPorSegmento={modelosPorSegmento}*/}
-                        {/*        cantidades={cantidades}*/}
-                        {/*        form={form}*/}
-                        {/*        setForm={setForm}*/}
-                        {/*    />*/}
-                        {/*)}*/}
                     </Box>
                     <Snackbar open={alerta.open} autoHideDuration={3000}
                               onClose={() => setAlerta({...alerta, open: false})}>

@@ -51,7 +51,6 @@ export default function CollapsibleTable({ cabeceras, modeloComercial }) {
                 <Typography variant="h6" sx={{ textAlign: "center", fontWeight: "bold" }}>
                     Detalle Modelos
                 </Typography>
-
                 <Table size="small" sx={{ margin: 2 }}>
                     <TableBody>
                         {modelos.length === 0 ? (
@@ -76,11 +75,9 @@ export default function CollapsibleTable({ cabeceras, modeloComercial }) {
                         )}
                     </TableBody>
                 </Table>
-
                 <Typography variant="h6" sx={{ textAlign: "center", fontWeight: "bold" }}>
                     Detalle Marcas
                 </Typography>
-
                 <Table size="small" sx={{ margin: 2 }}>
                     <TableBody>
                         {marcas.length === 0 ? (
@@ -99,7 +96,6 @@ export default function CollapsibleTable({ cabeceras, modeloComercial }) {
             </Box>
         );
     };
-
 
     const camposPlantilla = [
         'codigo_promotoria','promotor','distribuidor',
