@@ -902,6 +902,7 @@ const FrmPromotoria= () => {
                                                                 limpiarFormulario();
                                                                 setMostrarFormulario(false);
                                                                 setModoEdicion(false);
+                                                                setMostrarTabla(true);
                                                             }}
                                                         >
                                                             Cancelar
