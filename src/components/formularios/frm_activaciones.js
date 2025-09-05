@@ -414,8 +414,7 @@ const FrmActivaciones = () => {
     ];
 
     const camposPlantillaModelo = [
-        "cod_activacion", "fecha",
-        "horaInicio", "horaFinal",
+        "cod_activacion", "fecha", "horaInicio", "horaFinal",
         "horas", "canal", "ciudad", "distribuidor", "tienda",
         "motos", "tipoActivacion", "promotor","estado"
     ];
@@ -1043,6 +1042,7 @@ const FrmActivaciones = () => {
                                                         limpiarFormulario();
                                                         setMostrarFormulario(false);
                                                         setModoEdicion(false);
+                                                        setMostrarTabla(true);
                                                     }}
                                                 >
                                                     Cancelar
