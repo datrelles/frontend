@@ -169,7 +169,7 @@ export default function CollapsibleTable({ cabeceras, modeloSegmentos, APIServic
         'codigo_promotoria', 'promotor', 'distribuidor',
         'ciudad', 'tienda', 'jefeTienda', 'correoTienda',
         'telefonoTienda', 'promedioVenta', 'total_vendedores',
-        'totol_motos_piso', 'total_motos_shineray', 'modelo_1'
+        'total_motos_piso', 'total_motos_shi', 'modelos_segmento', "marcas_segmento",
     ];
 
     const exportarCamposPlantilla = (datosOriginales) => {
@@ -200,25 +200,25 @@ export default function CollapsibleTable({ cabeceras, modeloSegmentos, APIServic
         { name: "total_vendedores", label: "# VENDEDORES" },
         { name: "total_motos_piso", label: "T. MOTOS PISO" },
         { name: "total_motos_shi", label: "# MOTOS SHINERAY" },
-        {
-            name: "acciones",
-            label: "ACCIONES",
-            options: {
-                customBodyRenderLite: (dataIndex) => {
-                    const row = cabeceras[dataIndex];
-                    return (
-                        <Tooltip title="Editar">
-                            <IconButton
-                                color="primary"
-                                onClick={() => console.log("Editar fila:", row)}
-                            >
-                                <EditIcon />
-                            </IconButton>
-                        </Tooltip>
-                    );
-                },
-            },
-        },
+        // {
+        //     name: "acciones",
+        //     label: "ACCIONES",
+        //     options: {
+        //         customBodyRenderLite: (dataIndex) => {
+        //             const row = cabeceras[dataIndex];
+        //             return (
+        //                 <Tooltip title="Editar">
+        //                     <IconButton
+        //                         color="primary"
+        //                         onClick={() => console.log("Editar fila:", row)}
+        //                     >
+        //                         <EditIcon />
+        //                     </IconButton>
+        //                 </Tooltip>
+        //             );
+        //         },
+        //     },
+        // },
     ];
 
     const options = {
