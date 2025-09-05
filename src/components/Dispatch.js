@@ -40,9 +40,6 @@ import "react-toastify/dist/ReactToastify.css";
 const STATUS_OPTIONS = [
   { code: "BOD", label: "EN BODEGA" },
   { code: "DEP", label: "PARCIAL" },
-  { code: "DES", label: "DESPACHADOS" },
-  { code: "CAD", label: "CADUCADOS" },
-  { code: "A", label: "ANULADOS" },
   { code: "T", label: "TODOS" },
 ];
 
@@ -64,6 +61,7 @@ export default function DispatchMobile() {
   // loaders
   const [loading, setLoading] = useState(false);
   const [loadingMenus, setLoadingMenus] = useState(false);
+  const [changeSearch, setChangeSearch] = useState(false);
 
   // ui
   const [activeTab, setActiveTab] = useState("BOD");
@@ -114,6 +112,15 @@ export default function DispatchMobile() {
   const [sending, setSending] = useState(false);
 
   // ===== Helpers =====
+
+  // Normaliza: minúsculas, sin acentos, espacios colapsados
+  const norm = (s) =>
+    String(s ?? "")
+      .toLowerCase()
+      .normalize("NFD").replace(/\p{Diacritic}/gu, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
   const sanitizeDate = useCallback((d) => (dayjs.isDayjs(d) && d.isValid() ? d : dayjs()), []);
   const clampedRange = useMemo(() => {
     let from = sanitizeDate(fromDate).startOf("day");
@@ -188,22 +195,19 @@ export default function DispatchMobile() {
       const cod = String(d.COD_PEDIDO || "");
       const _BODEGA = cod.startsWith("A3") ? "RET" : cod.startsWith("N2") ? "MAY" : "OTR";
 
-      const searchIdx = [
-        d.NOMBRE_PERSONA_CLI,
-        d.COD_PEDIDO
-      ]
-        .filter(Boolean)
-        .map(x => String(x).toLowerCase())
-        .join(" | ");
+      // >>> SOLO estos dos campos para búsqueda
+      const _SEARCH_PED = norm(d.COD_PEDIDO);
+      const _SEARCH_CLI = norm(d.NOMBRE_PERSONA_CLI);
 
       return {
         ...d,
         _FECHA_PEDIDO_FMT: fmt,
-        _SEARCH: searchIdx,
         _BOD_MATCH,
         _BODEGA,
         _PARCIAL_DISPATCH,
-        _DISPATCH_COMPLETE
+        _DISPATCH_COMPLETE,
+        _SEARCH_PED,
+        _SEARCH_CLI
       };
     });
   }, []);
@@ -302,20 +306,68 @@ export default function DispatchMobile() {
     setSearchInput(v);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      setSearch(v.toLowerCase().trim());
-    }, 160);
+      setSearch(v); // no bajes aquí a lower; norm() ya lo hace en el filtro
+    }, 180);
+    
+    setChangeSearch(prev => !prev);
   }, []);
+
 
   // Filtrado client-side
   const listFiltered = useMemo(() => {
+    // 1) filtros de estado/bodega base
     let base = dispatchs;
     if (activeTab === "BOD") base = base.filter(d => d._BOD_MATCH === true);
     if (activeTab === "DEP") base = base.filter(d => d._PARCIAL_DISPATCH === true);
     if (activeTab === "DES") base = base.filter(d => d._DISPATCH_COMPLETE === true);
     if (bodega !== "ALL") base = base.filter(d => d._BODEGA === bodega);
-    if (search) base = base.filter(d => d._SEARCH.includes(search));
-    return base;
-  }, [dispatchs, activeTab, bodega, search]);
+
+    // 2) sin texto = sin filtro por búsqueda
+    //if (!search) return base;
+
+    // 3) tokeniza y exige AND (todas las palabras deben aparecer)
+    const q = norm(search);
+    const tokens = q.split(" ").filter(Boolean);
+    const hasAll = (str) => tokens.every(t => str.includes(t));
+
+    // 4) construye dos listas: primero pedido, luego cliente
+    const matchesPed = [];
+    const matchesCli = [];
+
+    for (const d of base) {
+      const inPed = hasAll(d._SEARCH_PED);
+      const inCli = hasAll(d._SEARCH_CLI);
+      if (inPed) matchesPed.push(d);
+      else if (inCli) matchesCli.push(d); // si ya está en pedido, no lo repitas
+    }
+
+    // 5) opcional: ordena dentro de cada grupo (mejor “startsWith” primero)
+    const scorePed = (d) => {
+      const s = d._SEARCH_PED;
+      // bonus si el primer token hace prefijo en COD_PEDIDO
+      const pref = tokens.some(t => s.startsWith(t)) ? 1 : 0;
+      return pref;
+    };
+    const scoreCli = (d) => {
+      const s = d._SEARCH_CLI;
+      const pref = tokens.some(t => s.startsWith(t)) ? 1 : 0;
+      return pref;
+    };
+
+    matchesPed.sort((a, b) => scorePed(b) - scorePed(a));
+    matchesCli.sort((a, b) => scoreCli(b) - scoreCli(a));
+
+    // 6) concatena: primero pedido, después cliente (sin duplicados)
+    // (ya garantizado arriba por el 'else if', pero lo dejamos claro)
+    const seen = new Set();
+    const out = [];
+    for (const d of [...matchesPed, ...matchesCli]) {
+      const key = `${d.COD_PEDIDO}-${d.COD_ORDEN}`;
+      if (!seen.has(key)) { seen.add(key); out.push(d); }
+    }
+    return out;
+  }, [dispatchs, activeTab, bodega, search, changeSearch]);
+
 
   // Handlers select
   const onOpenFilters = useCallback(() => setFiltersOpen(true), []);
@@ -498,10 +550,10 @@ export default function DispatchMobile() {
         <Box sx={{ p: 2, display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
           <TextField
             fullWidth
-            placeholder="Buscar pedido, orden, cliente, cédula, dirección…"
+            placeholder="Buscar por pedido o cliente…"
             value={searchInput}
             onChange={onSearchChange}
-            disabled={busy}
+            //disabled={busy}
             InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon /></InputAdornment>) }}
             sx={{ flex: "1 1 260px" }}
           />
@@ -788,7 +840,7 @@ export default function DispatchMobile() {
       <SeriesAsignadas
         open={seriesModal.open}
         onClose={() => setSeriesModal((prev) => ({ ...prev, open: false }))}
-        onAfterClose={refreshCurrentDetalle}   // 👈 refresca líneas (pedida / en guía) al cerrar
+        onAfterClose={refreshCurrentDetalle}   //  refresca líneas (pedida / en guía) al cerrar
         codComprobante={seriesModal.codComprobante}
         tipoComprobante={seriesModal.tipoComprobante}
         codProducto={seriesModal.codProducto}
