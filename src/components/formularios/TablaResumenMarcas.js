@@ -48,7 +48,6 @@ export function TablaResumenMarcas({cantidades, form, setForm}) {
         const cargarSegmentos = async () => {
             try {
                 const segs = await APIService.getCatalogoSegmentos();
-                // Normalizamos para evitar duplicados por mayúsculas/minúsculas
                 const lista = (segs ?? []).map(s => ({
                     codigo_segmento: String(s.codigo_segmento),
                     nombre_segmento: (s.nombre_segmento || "").toUpperCase().trim()
@@ -71,7 +70,6 @@ export function TablaResumenMarcas({cantidades, form, setForm}) {
             if (!cantidad) return;
             const segKey = (m.nombre_segmento || String(m.cod_segmento) || "").toUpperCase().trim();
 
-            //const segKey = (m.nombre_segmento || "").toUpperCase().trim();
             const marcaKey = String(m.cod_marca);
             if (!result[segKey]) result[segKey] = {};
             result[segKey][marcaKey] = (result[segKey][marcaKey] || 0) + cantidad;
@@ -218,7 +216,7 @@ export function TablaResumenMarcas({cantidades, form, setForm}) {
                                                                 ...filtrados,
                                                                 {
                                                                     cod_marca,
-                                                                    nombre_marca: nombreMarca,
+                                                                    //nombre_marca: nombreMarca,
                                                                     nombre_segmento: seg.nombre_segmento,
                                                                     cantidad: value
                                                                 }

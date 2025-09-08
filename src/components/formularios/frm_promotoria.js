@@ -79,6 +79,7 @@ const FrmPromotoria= () => {
 
     const [form, setForm] = useState({
         fecha: todayISO(),
+        cod_form: '',
         promotorId: '',
         distribuidorId: '',
         codTienda: '',
@@ -151,93 +152,100 @@ const FrmPromotoria= () => {
         setForm({...form, [campo]: value});
     };
 
-    function buildPromotoriaPayload(form, empresa, cantidades) {
+    function buildPromotoriaPayload(form, empresa, cantidades, isUpdate = false) {
         const safeInt = (v) =>
             v === '' || v === null || v === undefined || Number.isNaN(Number(v))
                 ? null
                 : parseInt(String(v), 10);
 
-        const modelos_segmento = Object.values(cantidades.modelos || {}).map(m => ({
-            cod_segmento: safeInt(m.cod_segmento),
-            cod_linea: safeInt(m.cod_linea),
-            cod_modelo_comercial: safeInt(m.cod_modelo_comercial),
+        const modelos_segmento = Object.values(cantidades.modelos || {}).map(m => {
+            const match = segmentosCatalogo.find(
+                (s) =>
+                    Number(s.codigo_segmento) === Number(m.cod_segmento) &&
+                    Number(s.codigo_modelo_comercial) === Number(m.cod_modelo_comercial) &&
+                    Number(s.codigo_marca) === Number(m.cod_marca)
+            );
+
+            return {
+                cod_segmento: safeInt(match?.codigo_segmento || m.cod_segmento),
+                cod_linea: safeInt(match?.codigo_linea || m.cod_linea),
+                cod_modelo_comercial: safeInt(match?.codigo_modelo_comercial || m.cod_modelo_comercial),
+                cod_marca: safeInt(match?.codigo_marca || m.cod_marca),
+                cantidad: safeInt(m.cantidad) || 0,
+            };
+        });
+
+        const marcas_segmento = (form.marcas_segmento || []).map(m => ({
             cod_marca: safeInt(m.cod_marca),
+            nombre_segmento: (m.nombre_segmento || "").toUpperCase().trim(),
             cantidad: safeInt(m.cantidad) || 0,
         }));
 
-        const marcas_segmento = [];
-
-        if (cantidades.modelos) {
-            const agrupado = {};
-
-            Object.values(cantidades.modelos).forEach(m => {
-                const cod_marca = safeInt(m.cod_marca);
-                const nombre_segmento = m.nombre_segmento || '';
-                const key = `${cod_marca}-${nombre_segmento}`;
-
-                if (!agrupado[key]) {
-                    agrupado[key] = {
-                        cod_marca,
-                        nombre_segmento,
-                        cantidad: 0,
-                    };
-                }
-                agrupado[key].cantidad += safeInt(m.cantidad) || 0;
-            });
-
-            for (const k in agrupado) {
-                marcas_segmento.push(agrupado[k]);
-            }
-        }
-        return {
-            empresa: safeInt(empresa),
-            cod_promotor: String(form.promotor ?? '').trim(),
+        let payload = {
             cod_cliente: String(form.distribuidorId ?? '').trim(),
             cod_tienda: safeInt(form.codTienda),
             total_vendedores: safeInt(form.total_vendedores) || 0,
             modelos_segmento,
-
-            marcas_segmento: form.marcas_segmento || [],
+            marcas_segmento,
         };
+
+        if (!isUpdate) {
+            // Solo en insert
+            payload = {
+                ...payload,
+                empresa: safeInt(empresa),
+                cod_promotor: String(form.promotor ?? '').trim(),
+            };
+        }
+
+        return payload;
     }
+
 
     const handleSubmit = async () => {
         const required = ['promotor', 'distribuidorId', 'codTienda'];
         const missing = required.filter(f => !form[f] && form[f] !== 0);
         if (missing.length) {
-            setAlerta({ open: true, msg: 'Por favor completa todos los campos obligatorios.', severity: 'warning' });
+            setAlerta({
+                open: true,
+                msg: 'Por favor completa todos los campos obligatorios.',
+                severity: 'warning'
+            });
             return;
         }
 
-        const payload = buildPromotoriaPayload(form, enterpriseShineray, cantidades);
+        const payload = buildPromotoriaPayload(
+            form,
+            enterpriseShineray,
+            cantidades,
+            modoEdicion
+        );
 
         try {
             if (modoEdicion) {
-                await APIService.updatePromotoria(form.cod_promotoria, payload);
+                await APIService.updatePromotoria(form.cod_form, payload);
             } else {
                 await APIService.postPromotoria(enterpriseShineray, payload);
             }
 
-            const params = {};
-            if (fromDate && toDate) {
-                params.fecha_inicio = dayjs(fromDate).format('YYYY-MM-DD');
-                params.fecha_fin = dayjs(toDate).format('YYYY-MM-DD');
-            }
-            if (buscarDistribuidorId) {
-                params.cod_cliente = String(buscarDistribuidorId);
-            }
 
-            const resp = await APIService.getPromotoria(enterpriseShineray, params);
-            const data = Array.isArray(resp) ? resp : (resp?.data ?? []);
-            const rows = data.map(it => obtenerPromotoria(it));
+            const promotorId = form.cod_promotor || form.promotor;
+            const registros = await APIService.getPromotoria(enterpriseShineray, {
+                cod_promotor: String(promotorId),
+            });
+            const rows = (Array.isArray(registros) ? registros : (registros?.data ?? []))
+                .map(it => obtenerPromotoria(it));
             setFormularios(rows);
 
             setGuardadoPromotoria(true);
             setAlerta({
                 open: true,
-                msg: modoEdicion ? 'Formulario actualizado con éxito.' : 'Formulario guardado con éxito.',
-                severity: 'success'
+                msg: modoEdicion
+                    ? 'Formulario actualizado con éxito.'
+                    : 'Formulario guardado con éxito.',
+                severity: 'success',
             });
+
             limpiarFormulario();
             setMostrarFormulario(false);
             setMostrarTabla(true);
@@ -277,6 +285,7 @@ const FrmPromotoria= () => {
             marcas_segmento: [],
             telefono1: '',
         }));
+        setCantidades({ modelos: {}, marcas: {} });
         setModoEdicion(false);
         setIndexEditar(null);
     };
@@ -566,7 +575,6 @@ const FrmPromotoria= () => {
             total_motos_piso: safe(item.total_motos_piso),
             total_motos_shi: safe(item.total_motos_shi),
 
-            // 🔹 Marcas segmento enriquecidas
             marcas_segmento: (item.marcas_segmento || []).map((m) => ({
                 ...m,
                 cantidad: Number(m.cantidad) || 0,

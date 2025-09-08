@@ -221,8 +221,8 @@ export default class API {
     });
 
 
-    updatePromotoria = this.#errorHandler(async (cod_promotoria, data) => {
-        return await axios.put(`${this.#URL}/promotoria/${cod_promotoria}`, data, this.#headers);
+    updatePromotoria = this.#errorHandler(async (cod_form, data) => {
+        return await axios.put(`${this.#URL}/formularios-promotoria/${cod_form}`, data, this.#headers);
     })
 
 
