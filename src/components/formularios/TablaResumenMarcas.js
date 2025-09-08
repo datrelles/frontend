@@ -31,6 +31,18 @@ export function TablaResumenMarcas({cantidades, form, setForm}) {
         cargarMarcas();
     }, [APIService]);
 
+    useEffect(() => {
+        const adicionales = (form.marcas_segmento || [])
+            .filter(m => !["3","18","22"].includes(String(m.cod_marca)))
+            .map(m => m.nombre_marca)
+            .filter(Boolean);
+
+        setOtrasMarcas(prev => {
+            const unicos = Array.from(new Set([...prev, ...adicionales]));
+            return unicos;
+        });
+    }, [form.marcas_segmento]);
+
 
     useEffect(() => {
         const cargarSegmentos = async () => {
@@ -57,7 +69,9 @@ export function TablaResumenMarcas({cantidades, form, setForm}) {
         Object.values(cantidades.modelos || {}).forEach(m => {
             const cantidad = Number(m.cantidad) || 0;
             if (!cantidad) return;
-            const segKey = (m.nombre_segmento || "").toUpperCase().trim();
+            const segKey = (m.nombre_segmento || String(m.cod_segmento) || "").toUpperCase().trim();
+
+            //const segKey = (m.nombre_segmento || "").toUpperCase().trim();
             const marcaKey = String(m.cod_marca);
             if (!result[segKey]) result[segKey] = {};
             result[segKey][marcaKey] = (result[segKey][marcaKey] || 0) + cantidad;
@@ -185,7 +199,7 @@ export function TablaResumenMarcas({cantidades, form, setForm}) {
                                                 value={
                                                     (form.marcas_segmento || []).find(
                                                         o => String(o.cod_marca) === String(cod_marca) &&
-                                                            o.nombre_segmento === seg.nombre_segmento
+                                                            (o.nombre_segmento || '').toUpperCase().trim() === (seg.nombre_segmento || '').toUpperCase().trim()
                                                     )?.cantidad || ""
                                                 }
                                                 onChange={(e) => {
@@ -204,6 +218,7 @@ export function TablaResumenMarcas({cantidades, form, setForm}) {
                                                                 ...filtrados,
                                                                 {
                                                                     cod_marca,
+                                                                    nombre_marca: nombreMarca,
                                                                     nombre_segmento: seg.nombre_segmento,
                                                                     cantidad: value
                                                                 }

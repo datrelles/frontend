@@ -10,7 +10,7 @@ import * as XLSX from "xlsx";
 import EditIcon from '@mui/icons-material/Edit';
 import MUIDataTable from "mui-datatables";
 
-export default function CollapsibleTable({ cabeceras, modeloSegmentos, APIService }) {
+export default function CollapsibleTable({ cabeceras, setCantidades, APIService,setForm,setMostrarTabla,setMostrarFormulario,setModoEdicion, getNombreMarca }) {
 
     const renderDetailTable = (section, headers, values) => (
         <>
@@ -200,25 +200,80 @@ export default function CollapsibleTable({ cabeceras, modeloSegmentos, APIServic
         { name: "total_vendedores", label: "# VENDEDORES" },
         { name: "total_motos_piso", label: "T. MOTOS PISO" },
         { name: "total_motos_shi", label: "# MOTOS SHINERAY" },
-        // {
-        //     name: "acciones",
-        //     label: "ACCIONES",
-        //     options: {
-        //         customBodyRenderLite: (dataIndex) => {
-        //             const row = cabeceras[dataIndex];
-        //             return (
-        //                 <Tooltip title="Editar">
-        //                     <IconButton
-        //                         color="primary"
-        //                         onClick={() => console.log("Editar fila:", row)}
-        //                     >
-        //                         <EditIcon />
-        //                     </IconButton>
-        //                 </Tooltip>
-        //             );
-        //         },
-        //     },
-        // },
+        {
+            name: "acciones",
+            label: "ACCIONES",
+            options: {
+                customBodyRenderLite: (dataIndex) => {
+                    const row = cabeceras[dataIndex];
+                    return (
+                        <Tooltip title="Editar">
+                            <IconButton
+                                color="primary"
+                                // onClick={() => console.log("Editar fila:", row)}
+                                onClick={() => {
+                                    setForm(prev => ({
+                                        ...prev,
+                                        cod_form: row.cod_form,
+                                        cod_promotor: row.cod_promotor || prev.cod_promotor,
+                                        promotor: prev.promotor,
+                                        // Distribuidor
+                                        distribuidor: row.distribuidor || '',
+                                        distribuidorId: row.cod_cliente || '',
+                                        // Ciudad y Tienda
+                                        ciudad: row.ciudad || '',
+                                        codTienda: row.cod_tienda || '',
+                                        tienda: row.tienda || '',
+                                        // Otros campos
+                                        responsable: row.responsable || '',
+                                        correoTienda: row.correoTienda || '',
+                                        telefono1: row.telefonoTienda || '',
+                                        prom_venta_tienda: row.promedioVenta || '',
+                                        total_vendedores: row.total_vendedores || '',
+                                        total_motos_piso: row.total_motos_piso || '',
+                                        total_motos_shi: row.total_motos_shi || '',
+                                        modelos_segmento: row.modelos_segmento || [],
+                                        marcas_segmento: row.marcas_segmento || [],
+                                    }));
+                                    setModoEdicion(true);
+                                    setMostrarFormulario(true);
+                                    setMostrarTabla(false);
+
+                                    setCantidades({
+                                        modelos: (row.modelos_segmento || []).reduce((acc, m) => {
+                                            acc[m.cod_modelo_comercial] = {
+                                                cod_modelo_comercial: m.cod_modelo_comercial,
+                                                cod_segmento: m.cod_segmento,
+                                                nombre_segmento: m.nombre_segmento || '',
+                                                cod_marca: m.cod_marca,
+                                                cantidad: Number(m.cantidad) || 0
+                                            };
+                                            return acc;
+                                        }, {}),
+                                        marcas: (row.marcas_segmento || []).reduce((acc, m) => {
+                                            const key = `${m.cod_segmento}_${m.cod_marca}`;
+                                            acc[key] = {
+                                                cod_segmento: m.cod_segmento,
+                                                nombre_segmento: m.nombre_segmento || '',
+                                                cod_marca: m.cod_marca,
+                                                nombre_marca: m.nombre_marca || getNombreMarca(m.cod_marca),
+                                                cantidad: Number(m.cantidad) || 0
+                                            };
+                                            return acc;
+                                        }, {})
+
+                                    });
+
+                                    console.log("Editar fila:", row);
+                                }}
+                            >
+                                <EditIcon />
+                            </IconButton>
+                        </Tooltip>
+                    );
+                },
+            },
+        },
     ];
 
     const options = {

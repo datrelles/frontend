@@ -262,18 +262,20 @@ const FrmPromotoria= () => {
             distribuidorId: '',
             codTienda: '',
             tiendaNombre: '',
-            jefeTienda: '',
+            responsable: '',
             correoTienda: '',
             telefonoTienda: '',
             total_vendedores: '',
-            totalModelosPiso: '',
-            totalShineray: '',
+            total_motos_piso: '',
+            total_motos_shi: '',
+            total_por_marca: '',
             segmento: '',
             marca: '',
             modelo: '',
             cantidadModelos: '',
             modelos_segmento: [],
             marcas_segmento: [],
+            telefono1: '',
         }));
         setModoEdicion(false);
         setIndexEditar(null);
@@ -336,19 +338,23 @@ const FrmPromotoria= () => {
 
     const fetchMarcas = async () => {
         try {
-
             const response = await APIService.getMarcas();
             const formattedMarcas = response.map((p) => ({
                 id: p.codigo_marca,
                 nombre_marca: `${p.nombre_marca}`,
             }));
             setMarcas(formattedMarcas);
-
         } catch (error) {
-            console.error("Error al obtener promotores:", error);
-            toast.error(error.message || "No se pudo cargar promotores");
+            console.error("Error al obtener marcas:", error);
+            toast.error(error.message || "No se pudo cargar marcas");
         }
     };
+
+    const getNombreMarca = (cod_marca) => {
+        const marca = marcas.find((m) => String(m.id) === String(cod_marca));
+        return marca ? marca.nombre_marca : "";
+    };
+
 
     const fetchSegmentos = async () => {
         try {
@@ -506,28 +512,50 @@ const FrmPromotoria= () => {
 
     dayjs.extend(utc);
 
-    const obtenerPromotoria = (item) => {
-        const safe = (val) => {
-            if (val == null) return '';
-            if (typeof val === 'object') {
-                if (val.nombres || val.apellido_paterno || val.apellido_materno) {
-                    return [val.nombres, val.apellido_paterno, val.apellido_materno]
-                        .filter(Boolean)
-                        .join(' ')
-                        .trim();
-                }
-                if (val.nombre) return String(val.nombre).trim();
-                if (val.label) return String(val.label).trim();
-                if (val.ciudad) return String(val.ciudad).trim();
-                return JSON.stringify(val);
+    const [segmentosCatalogo, setSegmentosCatalogo] = useState([]);
+
+    useEffect(() => {
+        const fetchSegmentos = async () => {
+            try {
+                const response = await APIService.getModeloSegmentos();
+                setSegmentosCatalogo(response || []);
+            } catch (error) {
+                console.error("Error al obtener catálogo de segmentos:", error);
+                toast.error(error.message || "No se pudo cargar catálogo de segmentos");
             }
-            return String(val).trim();
         };
 
+        fetchMarcas();
+        fetchSegmentos();
+    }, []);
+
+    const safe = (val) => {
+        if (val == null) return "";
+        if (typeof val === "object") {
+            if (val.nombres || val.apellido_paterno || val.apellido_materno) {
+                return [val.nombres, val.apellido_paterno, val.apellido_materno]
+                    .filter(Boolean)
+                    .join(" ")
+                    .trim();
+            }
+            if (val.nombre) return String(val.nombre).trim();
+            if (val.label) return String(val.label).trim();
+            if (val.ciudad) return String(val.ciudad).trim();
+            return JSON.stringify(val);
+        }
+        return String(val).trim();
+    };
+
+
+
+    const obtenerPromotoria = (item) => {
         return {
             cod_form: safe(item.cod_form),
             promotor: safe(item.promotor),
             distribuidor: safe(item.cliente),
+            cod_promotor: safe(item.cod_promotor),
+            cod_cliente: safe(item.cod_cliente),
+            cod_tienda: safe(item.cod_tienda),
             ciudad: safe(item.bodega?.ciudad || item.tienda?.ciudad),
             tienda: safe(item.bodega?.nombre || item.tienda?.nombre),
             responsable: safe(item.bodega?.responsable),
@@ -537,8 +565,32 @@ const FrmPromotoria= () => {
             total_vendedores: safe(item.total_vendedores),
             total_motos_piso: safe(item.total_motos_piso),
             total_motos_shi: safe(item.total_motos_shi),
-            modelos_segmento: item.modelos_segmento || [],
-            marcas_segmento: item.marcas_segmento || [],
+
+            // 🔹 Marcas segmento enriquecidas
+            marcas_segmento: (item.marcas_segmento || []).map((m) => ({
+                ...m,
+                cantidad: Number(m.cantidad) || 0,
+                nombre_segmento: (m.nombre_segmento || "").toUpperCase().trim(),
+                nombre_marca: getNombreMarca(m.cod_marca) || "",
+            })),
+
+            // 🔹 Modelos segmento enriquecidos con catálogo
+            modelos_segmento: (item.modelos_segmento || []).map((m) => {
+                const modeloRelacionado = segmentosCatalogo.find(
+                    (s) =>
+                        Number(s.codigo_segmento) === Number(m.cod_segmento) &&
+                        Number(s.codigo_modelo_comercial) === Number(m.cod_modelo_comercial)
+                );
+
+                return {
+                    ...m,
+                    cantidad: Number(m.cantidad) || 0,
+                    nombre_segmento: (modeloRelacionado?.nombre_segmento || "")
+                        .toUpperCase()
+                        .trim(),
+                    nombre_modelo: modeloRelacionado?.nombre_modelo || "",
+                };
+            }),
         };
     };
 
@@ -922,6 +974,12 @@ const FrmPromotoria= () => {
                                     cabeceras={formularios}
                                     modeloSegmentos={modelos}
                                     APIService={APIService}
+                                    setForm={setForm}
+                                    setModoEdicion={setModoEdicion}
+                                    setMostrarFormulario={setMostrarFormulario}
+                                    setMostrarTabla={setMostrarTabla}
+                                    setCantidades={setCantidades}
+                                    getNombreMarca={getNombreMarca}
                                 />
                             </Box>
                         )}
