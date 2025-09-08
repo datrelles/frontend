@@ -68,7 +68,7 @@ export const getDetallePedido = async (payload) => {
   return data;
 };
 
-//  CAPTURA DE CÓDIGO (motor/serie): SOLO AQUÍ
+//  CAPTURA DE CÓDIGO (motor/serie)
 export const sendCode = async (payload) => {
   // payload debe contener:
   // { empresa, cod_comprobante, tipo_comprobante, cod_producto,
@@ -98,3 +98,20 @@ export const revertirSerieAsignada = async (payload) => {
   const { data } = await api.post("/log/info_moto_des", payload);
   return data;
 };
+
+// SERIES MÁS ANTIGUAS (comparativa por serie)
+export const getSeriesAntiguasPorSerie = async ({ numero_serie, empresa }) => {
+  if (!numero_serie || !String(numero_serie).trim()) {
+    throw new Error("El parámetro 'numero_serie' es requerido.");
+  }
+
+  const { data } = await api.get("/log/series_antiguas_por_serie", {
+    params: {
+      numero_serie: String(numero_serie).trim(),
+      empresa: Number(empresa),
+    },
+  });
+
+  return data;
+};
+

@@ -33,6 +33,7 @@ import {
 } from "../services/dispatchApi";
 
 import SeriesAsignadas from "./logistica/seriesAsignadas";
+import SeriesAgeGate from "./logistica/seriesAgeGate";
 // --- Toastify ---
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -53,6 +54,12 @@ const theme = createTheme();
 
 export default function DispatchMobile() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
+
+  // gate series antiguas
+  const [gateOpen, setGateOpen] = useState(false);
+  const [serieEscaneada, setSerieEscaneada] = useState("");
+  // contexto pendiente para ejecutar commit tras pasar el gate
+  const pendingScanRef = useRef(null);
 
   // data
   const [menus, setMenus] = useState([]);
@@ -107,12 +114,10 @@ export default function DispatchMobile() {
     codProducto: ""
   });
 
-
-  //loader durante send_code
+  // loader durante send_code
   const [sending, setSending] = useState(false);
 
-  // ===== Helpers =====
-
+  // ---- Helpers ----
   // Normaliza: minúsculas, sin acentos, espacios colapsados
   const norm = (s) =>
     String(s ?? "")
@@ -308,29 +313,22 @@ export default function DispatchMobile() {
     debounceRef.current = setTimeout(() => {
       setSearch(v); // no bajes aquí a lower; norm() ya lo hace en el filtro
     }, 180);
-    
+
     setChangeSearch(prev => !prev);
   }, []);
 
-
   // Filtrado client-side
   const listFiltered = useMemo(() => {
-    // 1) filtros de estado/bodega base
     let base = dispatchs;
     if (activeTab === "BOD") base = base.filter(d => d._BOD_MATCH === true);
     if (activeTab === "DEP") base = base.filter(d => d._PARCIAL_DISPATCH === true);
     if (activeTab === "DES") base = base.filter(d => d._DISPATCH_COMPLETE === true);
     if (bodega !== "ALL") base = base.filter(d => d._BODEGA === bodega);
 
-    // 2) sin texto = sin filtro por búsqueda
-    //if (!search) return base;
-
-    // 3) tokeniza y exige AND (todas las palabras deben aparecer)
     const q = norm(search);
     const tokens = q.split(" ").filter(Boolean);
     const hasAll = (str) => tokens.every(t => str.includes(t));
 
-    // 4) construye dos listas: primero pedido, luego cliente
     const matchesPed = [];
     const matchesCli = [];
 
@@ -338,13 +336,11 @@ export default function DispatchMobile() {
       const inPed = hasAll(d._SEARCH_PED);
       const inCli = hasAll(d._SEARCH_CLI);
       if (inPed) matchesPed.push(d);
-      else if (inCli) matchesCli.push(d); // si ya está en pedido, no lo repitas
+      else if (inCli) matchesCli.push(d);
     }
 
-    // 5) opcional: ordena dentro de cada grupo (mejor “startsWith” primero)
     const scorePed = (d) => {
       const s = d._SEARCH_PED;
-      // bonus si el primer token hace prefijo en COD_PEDIDO
       const pref = tokens.some(t => s.startsWith(t)) ? 1 : 0;
       return pref;
     };
@@ -357,8 +353,6 @@ export default function DispatchMobile() {
     matchesPed.sort((a, b) => scorePed(b) - scorePed(a));
     matchesCli.sort((a, b) => scoreCli(b) - scoreCli(a));
 
-    // 6) concatena: primero pedido, después cliente (sin duplicados)
-    // (ya garantizado arriba por el 'else if', pero lo dejamos claro)
     const seen = new Set();
     const out = [];
     for (const d of [...matchesPed, ...matchesCli]) {
@@ -367,7 +361,6 @@ export default function DispatchMobile() {
     }
     return out;
   }, [dispatchs, activeTab, bodega, search, changeSearch]);
-
 
   // Handlers select
   const onOpenFilters = useCallback(() => setFiltersOpen(true), []);
@@ -389,14 +382,14 @@ export default function DispatchMobile() {
     return pedida > 0 && pedida === enGuia;
   };
 
-  // === Escaneo sin Enter ===
+  // === Escaneo por ítem (sin Enter) ===
+
   // Solo un input activo a la vez (y blur de los demás)
   const toggleScanFor = useCallback((itemId, disabled) => {
     if (disabled) return;
     setScanOpenById((prev) => {
       const currentlyOpen = !!prev[itemId];
       const next = currentlyOpen ? {} : { [itemId]: true };
-      // blur a todos los otros inputs
       Object.entries(scanRefs.current).forEach(([id, el]) => {
         if (id !== String(itemId)) el?.blur?.();
       });
@@ -421,7 +414,7 @@ export default function DispatchMobile() {
     return resp.error || resp.mensaje || (typeof resp.ok === "string" ? resp.ok : null) || "Proceso fallido";
   };
 
-  // commit del escaneo (usa el buffer pasado por debounce)
+  // commit real al backend
   const commitScan = useCallback(async (itemId, code, cod_comprobante, tipo_comprobante, cod_producto) => {
     code = (code || "").trim();
     if (!code) return;
@@ -445,7 +438,7 @@ export default function DispatchMobile() {
     setSnackbarOpen(true);
 
     try {
-      setSending(true); // <<< activar loader global durante send_code
+      setSending(true);
 
       const payload = {
         empresa: enterpriseShineray,
@@ -486,24 +479,50 @@ export default function DispatchMobile() {
       setTimeout(() => setCaptureOverlay({ open: false, ok: false, message: "" }), 1600);
       showError(clean, "Proceso");
     } finally {
-      setSending(false); // <<< desactivar loader global
+      setSending(false);
       inFlightRef.current[itemId] = false;
       setScanValueById((prev) => ({ ...prev, [itemId]: "" }));
     }
   }, [enterpriseShineray, showError, refreshCurrentDetalle]);
 
-  // debounce + primera captura confiable
+  // PRE-FLIGHT: dispara el gate; si pasa, hace commitScan
+  const preflightScan = useCallback((itemId, code, cod_comprobante, tipo_comprobante, cod_producto) => {
+    const trimmed = (code || "").trim();
+    if (!trimmed) return;
+
+    // guarda el contexto para ejecutarlo tras el gate
+    pendingScanRef.current = { itemId, code: trimmed, cod_comprobante, tipo_comprobante, cod_producto };
+    setSerieEscaneada(trimmed);
+    setGateOpen(true);
+  }, []);
+
+  // debounce: ahora llama al preflight (gate) en lugar de commit directo
   const handleScanChange = useCallback((itemId, cod_comprobante, tipo_comprobante, cod_producto) => (e) => {
     const val = e.target.value ?? "";
-
-    let nextVal = val;
     setScanValueById((prev) => ({ ...prev, [itemId]: val }));
 
     if (scanTimersRef.current[itemId]) clearTimeout(scanTimersRef.current[itemId]);
     scanTimersRef.current[itemId] = setTimeout(() => {
-      commitScan(itemId, nextVal, cod_comprobante, tipo_comprobante, cod_producto);
+      preflightScan(itemId, val, cod_comprobante, tipo_comprobante, cod_producto);
     }, 120);
+  }, [preflightScan]);
+
+  // callbacks del gate
+  const handleGateProceed = useCallback((numeroSerie) => {
+    setGateOpen(false);
+    const ctx = pendingScanRef.current;
+    // coherencia: si el gate nos devuelve, usamos el contexto guardado
+    if (ctx && ctx.code) {
+      commitScan(ctx.itemId, ctx.code, ctx.cod_comprobante, ctx.tipo_comprobante, ctx.cod_producto);
+    }
+    pendingScanRef.current = null;
   }, [commitScan]);
+
+  const handleGateCancel = useCallback(() => {
+    setGateOpen(false);
+    // limpia el contexto pendiente
+    pendingScanRef.current = null;
+  }, []);
 
   // Loader global (incluye envío)
   const busy = loading || loadingMenus || isPending || sending;
@@ -553,7 +572,6 @@ export default function DispatchMobile() {
             placeholder="Buscar por pedido o cliente…"
             value={searchInput}
             onChange={onSearchChange}
-            //disabled={busy}
             InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon /></InputAdornment>) }}
             sx={{ flex: "1 1 260px" }}
           />
@@ -737,11 +755,34 @@ export default function DispatchMobile() {
                                 startIcon={<ClearIcon />}
                                 onClick={(e) => {
                                   e.stopPropagation();
+
+                                  // 1) Limpia historial visual de escaneos del ítem
                                   setScannedCodesById((prev) => ({ ...prev, [itemId]: [] }));
+
+                                  // 2) Limpia el valor del input controlado
+                                  setScanValueById((prev) => ({ ...prev, [itemId]: "" }));
+
+                                  // 3) Cancela cualquier debounce pendiente para este ítem
+                                  if (scanTimersRef.current[itemId]) {
+                                    clearTimeout(scanTimersRef.current[itemId]);
+                                    scanTimersRef.current[itemId] = null;
+                                  }
+
+                                  // 4) Si justo había un preflight guardado para este ítem, lo anulamos
+                                  if (pendingScanRef.current?.itemId === itemId) {
+                                    pendingScanRef.current = null;
+                                    setGateOpen(false); // por si estaba abierto
+                                  }
+
+                                  // 5) Opcional: re-enfocar el input para seguir leyendo el escáner
+                                  requestAnimationFrame(() => {
+                                    scanRefs.current[itemId]?.focus?.();
+                                  });
                                 }}
                               >
                                 Limpiar
                               </Button>
+
                             </Stack>
                           )}
                         </Box>
@@ -805,7 +846,6 @@ export default function DispatchMobile() {
         >
           {captureOverlay.ok ? (
             <>
-              {/* Verde más vivo */}
               <DoneIcon sx={{ fontSize: 96, color: "#00E676" }} />
               <Typography variant="h5" sx={{ mt: 1, color: "#00E676" }}>
                 Proceso exitoso
@@ -813,7 +853,6 @@ export default function DispatchMobile() {
             </>
           ) : (
             <>
-              {/* Rojo más vivo */}
               <CloseIcon sx={{ fontSize: 96, color: "#FF1744" }} />
               <Typography variant="h6" sx={{ mt: 1 }}>
                 {captureOverlay.message || "Proceso fallido"}
@@ -837,10 +876,12 @@ export default function DispatchMobile() {
         {/* Toasts */}
         <ToastContainer />
       </Box>
+
+      {/* Series ya asignadas */}
       <SeriesAsignadas
         open={seriesModal.open}
         onClose={() => setSeriesModal((prev) => ({ ...prev, open: false }))}
-        onAfterClose={refreshCurrentDetalle}   //  refresca líneas (pedida / en guía) al cerrar
+        onAfterClose={refreshCurrentDetalle}
         codComprobante={seriesModal.codComprobante}
         tipoComprobante={seriesModal.tipoComprobante}
         codProducto={seriesModal.codProducto}
@@ -848,8 +889,14 @@ export default function DispatchMobile() {
         currentDetalle={current}
       />
 
-
-
+      {/* Gate de series antiguas: consulta con empresa={enterpriseShineray} y numero_serie={serieEscaneada} */}
+      <SeriesAgeGate
+        open={gateOpen}
+        numeroSerie={serieEscaneada}
+        enterpriseShineray={enterpriseShineray}
+        onProceed={handleGateProceed}
+        onCancel={handleGateCancel}
+      />
     </ThemeProvider>
   );
 }
