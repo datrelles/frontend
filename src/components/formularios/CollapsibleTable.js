@@ -196,8 +196,6 @@ export default function CollapsibleTable({ cabeceras, setCantidades, APIService,
         { name: "responsable", label: "JEFE TIENDA" },
         { name: "correoTienda", label: "CORREO TIENDA" },
         { name: "telefonoTienda", label: "TELÉFONO JEFE TIENDA" },
-        { name: "promedioVenta", label: "PROMEDIO VENTA" },
-        { name: "total_vendedores", label: "# VENDEDORES" },
         { name: "total_motos_piso", label: "T. MOTOS PISO" },
         { name: "total_motos_shi", label: "# MOTOS SHINERAY" },
         {

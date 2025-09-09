@@ -184,7 +184,7 @@ const FrmPromotoria= () => {
         let payload = {
             cod_cliente: String(form.distribuidorId ?? '').trim(),
             cod_tienda: safeInt(form.codTienda),
-            total_vendedores: safeInt(form.total_vendedores) || 0,
+            //total_vendedores: safeInt(form.total_vendedores) || 0,
             modelos_segmento,
             marcas_segmento,
         };
@@ -273,7 +273,7 @@ const FrmPromotoria= () => {
             responsable: '',
             correoTienda: '',
             telefonoTienda: '',
-            total_vendedores: '',
+            //total_vendedores: '',
             total_motos_piso: '',
             total_motos_shi: '',
             total_por_marca: '',
@@ -570,8 +570,7 @@ const FrmPromotoria= () => {
             responsable: safe(item.bodega?.responsable),
             correoTienda: safe(item.bodega?.correo_electronico),
             telefonoTienda: safe(item.bodega?.telefono1),
-            promedioVenta: safe(item.bodega?.prom_venta_tienda),
-            total_vendedores: safe(item.total_vendedores),
+            //total_vendedores: safe(item.total_vendedores),
             total_motos_piso: safe(item.total_motos_piso),
             total_motos_shi: safe(item.total_motos_shi),
 
@@ -891,23 +890,6 @@ const FrmPromotoria= () => {
                                                 value={form.telefono1 || ''}
                                                 fullWidth
                                                 InputProps={{ readOnly: true }}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} md={2}>
-                                            <TextField
-                                                label="Promedio Venta"
-                                                value={form.prom_venta_tienda || ''}
-                                                fullWidth
-                                                InputProps={{ readOnly: true }}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} md={1}>
-                                            <TextField
-                                                label="# Vendedores"
-                                                type="number"
-                                                value={form.total_vendedores ?? ''}
-                                                onChange={handleChange('total_vendedores')}
-                                                fullWidth
                                             />
                                         </Grid>
                                         <Grid item xs={12} md={1}>
