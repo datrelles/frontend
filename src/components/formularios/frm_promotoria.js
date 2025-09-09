@@ -561,6 +561,7 @@ const FrmPromotoria= () => {
         return {
             cod_form: safe(item.cod_form),
             promotor: safe(item.promotor),
+            audit_fecha_ing: item.audit_fecha_ing ? dayjs(item.audit_fecha_ing).format('DD/MM/YYYY') : '',
             distribuidor: safe(item.cliente),
             cod_promotor: safe(item.cod_promotor),
             cod_cliente: safe(item.cod_cliente),
@@ -570,7 +571,7 @@ const FrmPromotoria= () => {
             responsable: safe(item.bodega?.responsable),
             correoTienda: safe(item.bodega?.correo_electronico),
             telefonoTienda: safe(item.bodega?.telefono1),
-            //total_vendedores: safe(item.total_vendedores),
+            participacion: safe(item.participacion),
             total_motos_piso: safe(item.total_motos_piso),
             total_motos_shi: safe(item.total_motos_shi),
 
@@ -658,6 +659,20 @@ const FrmPromotoria= () => {
             total_motos_shi: totalMassline,
         }));
     }, [cantidades, form.marcas_segmento, setForm]);
+
+
+    // Calcular % participación dinámicamente
+    useEffect(() => {
+        setForm((prev) => {
+            const piso = Number(prev.total_motos_piso) || 0;
+            const shi = Number(prev.total_motos_shi) || 0;
+
+            return {
+                ...prev,
+                participacion: piso > 0 ? (shi / piso) * 100 : 0,
+            };
+        });
+    }, [form.total_motos_piso, form.total_motos_shi]);
 
 
     return (
@@ -901,12 +916,22 @@ const FrmPromotoria= () => {
                                                 fullWidth
                                                 InputProps={{ readOnly: true }}
                                             />
-                                        </Grid><Grid item xs={12} md={1}>
+                                        </Grid>
+                                        <Grid item xs={12} md={1}>
                                             <TextField
                                                 label="T. MOTOS SHINERAY"
                                                 type="number"
                                                 value={form.total_motos_shi ?? ''}
                                                 onChange={handleChange('total_motos_shi')}
+                                                fullWidth
+                                                InputProps={{ readOnly: true }}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} md={1}>
+                                            <TextField
+                                                label="% PARTICIPACIÓN SHINERAY"
+                                                type="number"
+                                                value={form.participacion ? form.participacion.toFixed(2) : ''}
                                                 fullWidth
                                                 InputProps={{ readOnly: true }}
                                             />
