@@ -732,7 +732,7 @@ const VisitaPromotoria = () => {
                                 <Button
                                     variant="outlined"
                                     onClick={() => setMostrarSegundo(true)}
-                                    disabled={!guardada}
+                                    //disabled={!guardada}
                                 >
                                     Siguiente
                                 </Button>

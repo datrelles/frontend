@@ -197,16 +197,30 @@ const FrmActivaciones = () => {
             setAlerta({open: true, msg: 'Por favor completa todos los campos obligatorios.', severity: 'warning'});
             return;
         }
-        if (form.tienda?.toUpperCase() === "SIN NOMBRE") {
-            setAlerta({
-                open: true,
-                msg: "No se puede guardar la activación porque la tienda no tiene nombre. Por favor notifícalo.",
-                severity: "error"
-            });
-            return;
+        // if (form.tienda?.toUpperCase() === "SIN NOMBRE") {
+        //     setAlerta({
+        //         open: true,
+        //         msg: "No se puede guardar la activación porque la tienda no tiene nombre. Por favor notifícalo.",
+        //         severity: "error"
+        //     });
+        //     return;
+        // }
+
+        // Eliminar el bloqueo actual
+        // if (form.tienda?.toUpperCase() === "SIN NOMBRE") { ... return; }
+
+        // Antes de construir payload:
+        let tiendaFinal = form.tienda;
+        if (!tiendaFinal || tiendaFinal.toUpperCase() === "SIN NOMBRE") {
+            const t = direcciones.find(d => d.id === form.codTienda);
+            tiendaFinal = t?.direccion || "SIN NOMBRE"; // fallback
         }
 
-        const payload = buildActivacionPayload(form, enterpriseShineray);
+        // Usar tiendaFinal
+        const payload = buildActivacionPayload({...form, tienda: tiendaFinal}, enterpriseShineray);
+
+
+        //const payload = buildActivacionPayload(form, enterpriseShineray);
         payload.fecha_act = String(form.fecha || dayjs().format('YYYY-MM-DD')).trim();
 
         try {
@@ -519,19 +533,58 @@ const FrmActivaciones = () => {
             setLoadingDirs(true);
             const raw = await APIService.getCuidades(cod_promotor, cod_cliente);
             const list = Array.isArray(raw) ? raw : (raw?.data ?? []);
+
             const formatted = list.map(d => {
-                const ciudad = String(d.ciudad ?? '').toUpperCase().trim();
                 const nombreRaw = d?.bodega?.nombre?.trim() || String(d.nombre ?? '').trim();
-                const display = (nombreRaw || 'SIN NOMBRE').toUpperCase();
+                let display = '';
+                let sinNombreReal = false;
+
+                if (nombreRaw) {
+                    display = nombreRaw.toUpperCase();
+                } else if (d.direccion) {
+                    display = d.direccion.toUpperCase();
+                    sinNombreReal = true;
+                } else {
+                    display = 'SIN NOMBRE';
+                    sinNombreReal = true;
+                }
+
                 return {
                     id: String(d.cod_direccion),
                     cod_direccion: String(d.cod_direccion),
-                    ciudad,
-                    nombre: nombreRaw,
+                    ciudad: d.ciudad,
+                    nombre: nombreRaw || d.direccion || 'SIN NOMBRE',
                     direccion: d.direccion ?? '',
                     label: display,
+                    sinNombreReal,
                 };
             });
+
+            // const formatted = list.map(d => {
+            //     const ciudad = String(d.ciudad ?? '').toUpperCase().trim();
+            //     // const nombreRaw = d?.bodega?.nombre?.trim() || String(d.nombre ?? '').trim();
+            //     // const display = (nombreRaw || 'SIN NOMBRE').toUpperCase();
+            //     // return {
+            //     //     id: String(d.cod_direccion),
+            //     //     cod_direccion: String(d.cod_direccion),
+            //     //     ciudad,
+            //     //     nombre: nombreRaw,
+            //     //     direccion: d.direccion ?? '',
+            //     //     label: display,
+            //     // };
+            //     const nombreRaw = d?.bodega?.nombre?.trim() || String(d.nombre ?? '').trim();
+            //     const direccionRaw = d?.direccion?.trim() || '';
+            //     const display = nombreRaw ? nombreRaw.toUpperCase() : direccionRaw.toUpperCase() || 'SIN NOMBRE';
+            //
+            //     return {
+            //         id: String(d.cod_direccion),
+            //         cod_direccion: String(d.cod_direccion),
+            //         ciudad,
+            //         nombre: nombreRaw || direccionRaw,
+            //         direccion: direccionRaw,
+            //         label: display,
+            //     };
+            // });
             setDirecciones(formatted);
         } catch (e) {
             toast.error(e?.message || 'No se pudieron cargar las direcciones');
@@ -550,6 +603,19 @@ const FrmActivaciones = () => {
         return Array.from(map.values());
     }, [direcciones]);
 
+    // const tiendasPorCiudad = useMemo(() => {
+    //     if (!form.ciudad) return [];
+    //     const target = (form.ciudad || '').toUpperCase().trim();
+    //     return direcciones
+    //         .filter(d => (d.ciudad || '').toUpperCase().trim() === target)
+    //         .map(d => ({
+    //             id: String(d.id),
+    //             label: d.label,
+    //             nombre: d.nombre,
+    //             ciudad: d.ciudad,
+    //         }));
+    // }, [direcciones, form.ciudad]);
+
     const tiendasPorCiudad = useMemo(() => {
         if (!form.ciudad) return [];
         const target = (form.ciudad || '').toUpperCase().trim();
@@ -560,6 +626,7 @@ const FrmActivaciones = () => {
                 label: d.label,
                 nombre: d.nombre,
                 ciudad: d.ciudad,
+                sinNombreReal: d.sinNombreReal,
             }));
     }, [direcciones, form.ciudad]);
 
@@ -603,7 +670,8 @@ const FrmActivaciones = () => {
             distribuidor: [item?.cliente?.nombre, item?.cliente?.apellido1].filter(Boolean).join(' ').trim(),
             canal: getCanal(item),
             ciudad: item?.tienda?.ciudad || item?.ciudad || '',
-            tienda: item?.bodega?.nombre?.trim() || "SIN NOMBRE",
+            tienda: item?.bodega?.nombre?.trim() || item?.tienda?.nombre?.trim() || item?.tienda?.direccion?.trim() || "SIN NOMBRE",
+            // tienda: item?.bodega?.nombre?.trim() || "SIN NOMBRE",
             fecha: fUTC ? fUTC.format('DD/MM/YYYY') : '',
             fechaISO: fUTC ? fUTC.format('YYYY-MM-DD') : '',
             horaInicio: item.hora_inicio || '',
@@ -873,22 +941,58 @@ const FrmActivaciones = () => {
                                                     options={tiendasPorCiudad}
                                                     getOptionLabel={(o) => o?.label ?? ''}
                                                     value={tiendasPorCiudad.find(t => t.id === (form.codTienda || '').toUpperCase()) || null}
+                                                    // onChange={(_, v) => {
+                                                    //     if (v && typeof v === 'object') {
+                                                    //         setForm(prev => ({
+                                                    //             ...prev,
+                                                    //             codTienda: v.id,
+                                                    //             tienda: v.label,
+                                                    //             sinNombreReal: v.sinNombreReal,
+                                                    //         }));
+                                                    //     } else {
+                                                    //         setForm(prev => ({ ...prev, codTienda: '', tienda: '', sinNombreReal: false }));
+                                                    //     }
+                                                    // }}
                                                     onChange={(_, v) => {
                                                         if (v && typeof v === 'object') {
                                                             setForm(prev => ({
                                                                 ...prev,
                                                                 codTienda: v.id,
                                                                 tienda: v.label,
+                                                                sinNombreReal: v.sinNombreReal,
+                                                                notificado: false, //
                                                             }));
                                                         } else {
-                                                            setForm(prev => ({...prev, codTienda: '', tienda: ''}));
+                                                            setForm(prev => ({ ...prev, codTienda: '', tienda: '', sinNombreReal: false, notificado: false }));
                                                         }
                                                     }}
+
                                                     isOptionEqualToValue={(a, b) => `${a.id}` === `${b?.id ?? b}`}
                                                     renderInput={(params) => <TextField {...params} label="Tienda" />}
                                                     fullWidth
                                                 />
-                                                {form.tienda?.toUpperCase() === "SIN NOMBRE" && (
+                                                {/*{form.sinNombreReal && (*/}
+                                                {/*    <Tooltip title="Notificar tienda sin nombre">*/}
+                                                {/*        <IconButton*/}
+                                                {/*            color="error"*/}
+                                                {/*            onClick={async () => {*/}
+                                                {/*                try {*/}
+                                                {/*                    const resp = await APIService.postNotificarTiendaSinNombre(*/}
+                                                {/*                        enterpriseShineray,*/}
+                                                {/*                        form.distribuidorId,*/}
+                                                {/*                        form.codTienda*/}
+                                                {/*                    );*/}
+                                                {/*                    toast.success("Notificación enviada correctamente");*/}
+                                                {/*                } catch (e) {*/}
+                                                {/*                    toast.error(e?.response?.data?.mensaje || "Error al enviar notificación");*/}
+                                                {/*                }*/}
+                                                {/*            }}*/}
+                                                {/*        >*/}
+                                                {/*            <NotificationsIcon />*/}
+                                                {/*        </IconButton>*/}
+                                                {/*    </Tooltip>*/}
+                                                {/*)}*/}
+                                                {form.sinNombreReal && (
                                                     <Tooltip title="Notificar tienda sin nombre">
                                                         <IconButton
                                                             color="error"
@@ -901,6 +1005,7 @@ const FrmActivaciones = () => {
                                                                     );
                                                                     console.log("Respuesta backend:", resp);
                                                                     toast.success("Notificación enviada correctamente");
+                                                                    setForm(prev => ({ ...prev, notificado: true }));
                                                                 } catch (e) {
                                                                     console.error("Error al notificar:", e?.response || e);
                                                                     toast.error(e?.response?.data?.mensaje || "Error al enviar notificación");
@@ -911,6 +1016,8 @@ const FrmActivaciones = () => {
                                                         </IconButton>
                                                     </Tooltip>
                                                 )}
+
+
                                             </Box>
                                         </Grid>
                                         <Grid item xs={12} md={2}>
@@ -1026,13 +1133,24 @@ const FrmActivaciones = () => {
                                         )}
                                         <Grid item xs={12}>
                                             <Box sx={{display: 'flex', justifyContent: 'center', gap: 2}}>
+                                                {/*<Button*/}
+                                                {/*    variant="contained"*/}
+                                                {/*    sx={{*/}
+                                                {/*        backgroundColor: 'firebrick',*/}
+                                                {/*        '&:hover': {backgroundColor: 'darkred'}*/}
+                                                {/*    }}*/}
+                                                {/*    onClick={handleSubmit}*/}
+                                                {/*>*/}
+                                                {/*    {modoEdicion ? 'Actualizar Activación' : 'Guardar'}*/}
+                                                {/*</Button>*/}
                                                 <Button
                                                     variant="contained"
                                                     sx={{
                                                         backgroundColor: 'firebrick',
-                                                        '&:hover': {backgroundColor: 'darkred'}
+                                                        '&:hover': { backgroundColor: 'darkred' }
                                                     }}
                                                     onClick={handleSubmit}
+                                                    disabled={form.sinNombreReal && !form.notificado}
                                                 >
                                                     {modoEdicion ? 'Actualizar Activación' : 'Guardar'}
                                                 </Button>
