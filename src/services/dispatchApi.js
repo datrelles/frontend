@@ -115,3 +115,84 @@ export const getSeriesAntiguasPorSerie = async ({ numero_serie, empresa }) => {
   return data;
 };
 
+
+
+// COMENTARIOS DE TRANSFERENCIA - CONSULTA POR RANGO
+export const getComentariosTransferenciaPorRango = async ({
+  empresa,
+  desde,
+  hasta,
+  cod_comprobante,
+  cod_tipo_comprobante,
+  secuencia,
+  cod_producto,
+  numero_serie,
+  usuario_creacion,
+  origen,
+  tipo_comentario,
+  es_activo,
+  buscar,
+}) => {
+  const { data } = await api.get("/log/transferencias/comentarios/rango", {
+    params: {
+      empresa,
+      desde,
+      hasta,
+      cod_comprobante,
+      cod_tipo_comprobante,
+      secuencia,
+      cod_producto,
+      numero_serie,
+      usuario_creacion,
+      origen,
+      tipo_comentario,
+      es_activo,
+      buscar,
+    },
+  });
+  return data;
+};
+
+
+// COMENTARIOS DE TRANSFERENCIA - CREAR COMENTARIO
+export const crearComentarioTransferencia = async (payload) => {
+  /**
+   * payload debe incluir al menos:
+   * - cod_comprobante
+   * - cod_tipo_comprobante
+   * - empresa
+   * - secuencia
+   * - cod_producto
+   * - comentario
+   * 
+   * Opcionales:
+   * - secuencia_comentario
+   * - numero_serie
+   * - usuario_creacion
+   * - origen
+   * - tipo_comentario
+   * - es_activo
+   */
+  const { data } = await api.post("/log/transferencias/comentarios", payload);
+  return data;
+};
+
+// COMENTARIOS DE TRANSFERENCIA - ELIMINAR POR PK
+export const eliminarComentarioTransferencia = async ({
+  cod_comprobante,
+  cod_tipo_comprobante,
+  empresa,
+  secuencia,
+  secuencia_comentario,
+}) => {
+  const { data } = await api.delete("/log/transferencias/comentarios", {
+    params: {
+      cod_comprobante,
+      cod_tipo_comprobante,
+      empresa,
+      secuencia,
+      secuencia_comentario,
+    },
+  });
+  return data;
+};

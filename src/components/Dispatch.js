@@ -1,10 +1,11 @@
+// src/components/DispatchMobile.js
 import React, { useEffect, useMemo, useRef, useState, useCallback, useTransition } from "react";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import {
   AppBar, Box, Card, CardActionArea, CardContent, Divider, IconButton,
   InputAdornment, Modal, TextField, Toolbar, Typography, Stack, Chip,
   Drawer, Button, Backdrop, CircularProgress, Skeleton, Tooltip, Badge,
-  Alert, Snackbar
+  Alert, Snackbar, LinearProgress     // <-- NEW: LinearProgress
 } from "@mui/material";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
@@ -29,7 +30,8 @@ import {
   getMenus as apiGetMenus,
   getDispatchs as apiGetDispatchs,
   getDetallePedido as apiGetDetallePedido,
-  sendCode as apiSendCode
+  sendCode as apiSendCode,
+  crearComentarioTransferencia, // <-- nuevo: crear comentario solo si sendCode fue OK
 } from "../services/dispatchApi";
 
 import SeriesAsignadas from "./logistica/seriesAsignadas";
@@ -50,7 +52,22 @@ const BODEGA_OPTIONS = [
   { code: "MAY", label: "N2 - MAYOREO" },
 ];
 
-const theme = createTheme();
+// 🔴 Firebrick theme
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: "#B22222",      // firebrick
+      dark: "#7f1515",
+      light: "#cd5c5c",
+      contrastText: "#ffffff",
+    },
+  },
+  components: {
+    MuiCircularProgress: { defaultProps: { color: "primary" } },
+    MuiLinearProgress:   { defaultProps: { color: "primary" } },
+    MuiButton:           { defaultProps: { color: "primary" } },
+  },
+});
 
 export default function DispatchMobile() {
   const { jwt, userShineray, enterpriseShineray, systemShineray } = useAuthContext();
@@ -58,8 +75,8 @@ export default function DispatchMobile() {
   // gate series antiguas
   const [gateOpen, setGateOpen] = useState(false);
   const [serieEscaneada, setSerieEscaneada] = useState("");
-  // contexto pendiente para ejecutar commit tras pasar el gate
   const pendingScanRef = useRef(null);
+  const [gateCtx, setGateCtx] = useState(null);
 
   // data
   const [menus, setMenus] = useState([]);
@@ -118,7 +135,6 @@ export default function DispatchMobile() {
   const [sending, setSending] = useState(false);
 
   // ---- Helpers ----
-  // Normaliza: minúsculas, sin acentos, espacios colapsados
   const norm = (s) =>
     String(s ?? "")
       .toLowerCase()
@@ -200,7 +216,6 @@ export default function DispatchMobile() {
       const cod = String(d.COD_PEDIDO || "");
       const _BODEGA = cod.startsWith("A3") ? "RET" : cod.startsWith("N2") ? "MAY" : "OTR";
 
-      // >>> SOLO estos dos campos para búsqueda
       const _SEARCH_PED = norm(d.COD_PEDIDO);
       const _SEARCH_CLI = norm(d.NOMBRE_PERSONA_CLI);
 
@@ -311,9 +326,8 @@ export default function DispatchMobile() {
     setSearchInput(v);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      setSearch(v); // no bajes aquí a lower; norm() ya lo hace en el filtro
+      setSearch(v);
     }, 180);
-
     setChangeSearch(prev => !prev);
   }, []);
 
@@ -383,8 +397,6 @@ export default function DispatchMobile() {
   };
 
   // === Escaneo por ítem (sin Enter) ===
-
-  // Solo un input activo a la vez (y blur de los demás)
   const toggleScanFor = useCallback((itemId, disabled) => {
     if (disabled) return;
     setScanOpenById((prev) => {
@@ -400,7 +412,6 @@ export default function DispatchMobile() {
     });
   }, []);
 
-  // Éxito real del proceso backend
   const isProcessOK = (resp) => {
     if (Array.isArray(resp)) return true;
     if (resp && (resp.ok === true || resp.success === true)) return true;
@@ -415,112 +426,149 @@ export default function DispatchMobile() {
   };
 
   // commit real al backend
-  const commitScan = useCallback(async (itemId, code, cod_comprobante, tipo_comprobante, cod_producto) => {
-    code = (code || "").trim();
-    if (!code) return;
+  const commitScan = useCallback(
+    async (itemId, code, cod_comprobante, tipo_comprobante, cod_producto, opts = {}) => {
+      const { comment } = opts || {};
+      code = (code || "").trim();
+      if (!code) return;
 
-    if (inFlightRef.current[itemId]) return;
-    inFlightRef.current[itemId] = true;
+      if (inFlightRef.current[itemId]) return;
+      inFlightRef.current[itemId] = true;
 
-    if (scanTimersRef.current[itemId]) {
-      clearTimeout(scanTimersRef.current[itemId]);
-      scanTimersRef.current[itemId] = null;
-    }
+      if (scanTimersRef.current[itemId]) {
+        clearTimeout(scanTimersRef.current[itemId]);
+        scanTimersRef.current[itemId] = null;
+      }
 
-    const cur = currentRef.current || {};
+      const cur = currentRef.current || {};
 
-    // historial visual
-    setScannedCodesById((prev) => ({
-      ...prev,
-      [itemId]: [...(prev[itemId] || []), { code, ts: Date.now() }],
-    }));
-    setSnackbarMsg(`Código capturado: ${code}`);
-    setSnackbarOpen(true);
+      // historial visual
+      setScannedCodesById((prev) => ({
+        ...prev,
+        [itemId]: [...(prev[itemId] || []), { code, ts: Date.now() }],
+      }));
+      setSnackbarMsg(`Código capturado: ${code}`);
+      setSnackbarOpen(true);
 
-    try {
-      setSending(true);
+      try {
+        setSending(true);
 
-      const payload = {
-        empresa: enterpriseShineray,
-        cod_comprobante,
-        tipo_comprobante,
-        cod_producto,
-        cod_bodega: cur.COD_BODEGA_DESPACHA,
-        current_identification: cur.COD_PERSONA_CLI,
-        cod_motor: code
-      };
+        // 1) Ejecutar sendCode
+        const payload = {
+          empresa: enterpriseShineray,
+          cod_comprobante,
+          tipo_comprobante,
+          cod_producto,
+          cod_bodega: cur.COD_BODEGA_DESPACHA,
+          current_identification: cur.COD_PERSONA_CLI,
+          cod_motor: code
+        };
 
-      const data = await apiSendCode(payload);
+        const data = await apiSendCode(payload);
 
-      if (isProcessOK(data)) {
-        const updated = await refreshCurrentDetalle();
-        if (updated) {
-          const updatedItem = updated.find(u =>
-            (u.COD_SECUENCIA_MOV ?? `${u.COD_PRODUCTO}-${u.SECUENCIA ?? ""}`) === itemId
-          );
-          if (updatedItem && isQtyComplete(updatedItem)) {
-            setScanOpenById(prev => ({ ...prev, [itemId]: false }));
+        // 2) Si sendCode fue OK y hay comentario -> crear comentario
+        if (isProcessOK(data) && comment && gateCtx) {
+          try {
+            await crearComentarioTransferencia({
+              cod_comprobante: String(gateCtx.cod_comprobante || cod_comprobante || ""),
+              cod_tipo_comprobante: String(gateCtx.cod_tipo_comprobante || tipo_comprobante || ""),
+              empresa: Number(enterpriseShineray),
+              secuencia: Number(gateCtx.secuencia), // <- COD_SECUENCIA_MOV
+              cod_producto: String(gateCtx.cod_producto || cod_producto || ""),
+              comentario: String(comment).trim(),
+              numero_serie: String(code),
+              usuario_creacion: String(userShineray || ""),
+              origen: "DISPATCH_MOBILE",
+              tipo_comentario: "SERIE_ANTIGUA",
+              es_activo: 1,
+            });
+          } catch (ce) {
+            showError(ce, "Guardando comentario");
           }
         }
-        setCaptureOverlay({ open: true, ok: true, message: "" });
-        setTimeout(() => setCaptureOverlay({ open: false, ok: true, message: "" }), 1200);
-      } else {
-        throw new Error(getProcessError(data));
+
+        // 3) Refrescar detalle, cerrar input si completó
+        if (isProcessOK(data)) {
+          const updated = await refreshCurrentDetalle();
+          if (updated) {
+            const updatedItem = updated.find(u =>
+              (u.COD_SECUENCIA_MOV ?? `${u.COD_PRODUCTO}-${u.SECUENCIA ?? ""}`) === itemId
+            );
+            if (updatedItem && isQtyComplete(updatedItem)) {
+              setScanOpenById(prev => ({ ...prev, [itemId]: false }));
+            }
+          }
+          setCaptureOverlay({ open: true, ok: true, message: "" });
+          setTimeout(() => setCaptureOverlay({ open: false, ok: true, message: "" }), 1200);
+        } else {
+          throw new Error(getProcessError(data));
+        }
+      } catch (e) {
+        const raw = e?.message || String(e) || "Error inesperado";
+        const matches = [...raw.matchAll(/ORA-20000:\s*([^\n\r]+)/g)];
+        const clean = matches.length ? matches[matches.length - 1][1].trim() : raw;
+
+        await refreshCurrentDetalle();
+
+        setCaptureOverlay({ open: true, ok: false, message: clean });
+        setTimeout(() => setCaptureOverlay({ open: false, ok: false, message: "" }), 1600);
+        showError(clean, "Proceso");
+      } finally {
+        setSending(false);
+        inFlightRef.current[itemId] = false;
+        setScanValueById((prev) => ({ ...prev, [itemId]: "" }));
       }
-    } catch (e) {
-      const raw = e?.message || String(e) || "Error inesperado";
-      const matches = [...raw.matchAll(/ORA-20000:\s*([^\n\r]+)/g)];
-      const clean = matches.length ? matches[matches.length - 1][1].trim() : raw;
+    },
+    [enterpriseShineray, showError, refreshCurrentDetalle, gateCtx, userShineray]
+  );
 
-      // **AUN EN FALLO**: refrescar el detalle para mantener la orden al día
-      await refreshCurrentDetalle();
-
-      setCaptureOverlay({ open: true, ok: false, message: clean });
-      setTimeout(() => setCaptureOverlay({ open: false, ok: false, message: "" }), 1600);
-      showError(clean, "Proceso");
-    } finally {
-      setSending(false);
-      inFlightRef.current[itemId] = false;
-      setScanValueById((prev) => ({ ...prev, [itemId]: "" }));
-    }
-  }, [enterpriseShineray, showError, refreshCurrentDetalle]);
-
-  // PRE-FLIGHT: dispara el gate; si pasa, hace commitScan
-  const preflightScan = useCallback((itemId, code, cod_comprobante, tipo_comprobante, cod_producto) => {
+  // PRE-FLIGHT: dispara el gate; si pasa, luego commitScan
+  const preflightScan = useCallback((itemId, code, cod_comprobante, tipo_comprobante, cod_producto, secuencia) => {
     const trimmed = (code || "").trim();
     if (!trimmed) return;
 
-    // guarda el contexto para ejecutarlo tras el gate
-    pendingScanRef.current = { itemId, code: trimmed, cod_comprobante, tipo_comprobante, cod_producto };
+    pendingScanRef.current = { itemId, code: trimmed, cod_comprobante, tipo_comprobante, cod_producto, secuencia };
+    setGateCtx({
+      cod_comprobante,
+      cod_tipo_comprobante: tipo_comprobante,
+      cod_producto,
+      secuencia, // OJO: es COD_SECUENCIA_MOV
+    });
+
     setSerieEscaneada(trimmed);
     setGateOpen(true);
   }, []);
 
-  // debounce: ahora llama al preflight (gate) en lugar de commit directo
-  const handleScanChange = useCallback((itemId, cod_comprobante, tipo_comprobante, cod_producto) => (e) => {
+  // debounce: ahora llama al preflight (gate)
+  const handleScanChange = useCallback((itemId, cod_comprobante, tipo_comprobante, cod_producto, secuencia) => (e) => {
     const val = e.target.value ?? "";
     setScanValueById((prev) => ({ ...prev, [itemId]: val }));
 
     if (scanTimersRef.current[itemId]) clearTimeout(scanTimersRef.current[itemId]);
     scanTimersRef.current[itemId] = setTimeout(() => {
-      preflightScan(itemId, val, cod_comprobante, tipo_comprobante, cod_producto);
+      preflightScan(itemId, val, cod_comprobante, tipo_comprobante, cod_producto, secuencia);
     }, 120);
   }, [preflightScan]);
 
   // callbacks del gate
-  const handleGateProceed = useCallback((numeroSerie) => {
+  const handleGateProceed = useCallback((numeroSerie, comment) => {
     setGateOpen(false);
     const ctx = pendingScanRef.current;
-    // coherencia: si el gate nos devuelve, usamos el contexto guardado
     if (ctx && ctx.code) {
-      commitScan(ctx.itemId, ctx.code, ctx.cod_comprobante, ctx.tipo_comprobante, ctx.cod_producto);
+      commitScan(
+        ctx.itemId,
+        ctx.code,
+        ctx.cod_comprobante,
+        ctx.tipo_comprobante,
+        ctx.cod_producto,
+        { comment }
+      );
     }
     pendingScanRef.current = null;
   }, [commitScan]);
 
   const handleGateCancel = useCallback(() => {
     setGateOpen(false);
-    // limpia el contexto pendiente
     pendingScanRef.current = null;
   }, []);
 
@@ -563,6 +611,9 @@ export default function DispatchMobile() {
               </Select>
             </FormControl>
           </Toolbar>
+
+          {/* NEW: loader fino para carga de menús */}
+          {loadingMenus && <LinearProgress />}
         </AppBar>
 
         {/* Búsqueda + filtros */}
@@ -580,6 +631,13 @@ export default function DispatchMobile() {
             <FilterListIcon />
           </IconButton>
         </Box>
+
+        {/* NEW: loader fino para carga del listado */}
+        {loading && (
+          <Box sx={{ px: 2, mb: 1 }}>
+            <LinearProgress />
+          </Box>
+        )}
 
         {/* Lista */}
         <Box sx={{ px: 2, pb: 6 }}>
@@ -627,6 +685,9 @@ export default function DispatchMobile() {
               <IconButton onClick={() => setOpen(false)}><CloseIcon /></IconButton>
             </Stack>
 
+            {/* NEW: loader fino dentro del modal mientras trae líneas */}
+            {loadingDetalle && <LinearProgress sx={{ mb: 1 }} />}
+
             {current && (
               <>
                 <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
@@ -665,6 +726,8 @@ export default function DispatchMobile() {
                       const disabledScan = isQtyComplete(it);
                       const openInput = !!scanOpenById[itemId];
 
+                      const itemIsSending = !!inFlightRef.current[itemId]; // <-- NEW: loader por ítem
+
                       return (
                         <Box
                           key={itemId}
@@ -702,12 +765,12 @@ export default function DispatchMobile() {
                                   size="small"
                                   disabled={disabledScan}
                                   onClick={(e) => {
-                                    e.stopPropagation(); // evitar que abra modal de series
+                                    e.stopPropagation();
                                     toggleScanFor(itemId, disabledScan);
                                   }}
                                 >
                                   <Badge badgeContent={scansCount} color="primary">
-                                    <QrCodeScannerIcon fontSize="small" />
+                                    <QrCodeScannerIcon fontSize="medium" />
                                   </Badge>
                                 </IconButton>
                               </span>
@@ -728,7 +791,13 @@ export default function DispatchMobile() {
                                 label="Escanee (se detecta automáticamente)"
                                 value={scanValueById[itemId] || ""}
                                 inputRef={(el) => { scanRefs.current[itemId] = el; }}
-                                onChange={handleScanChange(itemId, cod_comprobante, tipo_comprobante, cod_producto)}
+                                onChange={handleScanChange(
+                                  itemId,
+                                  cod_comprobante,
+                                  tipo_comprobante,
+                                  cod_producto,
+                                  it.COD_SECUENCIA_MOV
+                                )}
                                 autoComplete="off"
                                 autoCapitalize="off"
                                 autoCorrect="off"
@@ -740,7 +809,11 @@ export default function DispatchMobile() {
                                 }}
                                 InputProps={{
                                   endAdornment: (
-                                    <InputAdornment position="end">
+                                    <InputAdornment position="end" sx={{ gap: 1 }}>
+                                      {/* NEW: spinner por ítem durante sendCode */}
+                                      {itemIsSending && (
+                                        <CircularProgress size={18} thickness={5} />
+                                      )}
                                       {lastCode ? (
                                         <Tooltip title={`Último: ${lastCode}`}>
                                           <DoneIcon fontSize="small" sx={{ color: "#00E676" }} />
@@ -756,25 +829,19 @@ export default function DispatchMobile() {
                                 onClick={(e) => {
                                   e.stopPropagation();
 
-                                  // 1) Limpia historial visual de escaneos del ítem
                                   setScannedCodesById((prev) => ({ ...prev, [itemId]: [] }));
-
-                                  // 2) Limpia el valor del input controlado
                                   setScanValueById((prev) => ({ ...prev, [itemId]: "" }));
 
-                                  // 3) Cancela cualquier debounce pendiente para este ítem
                                   if (scanTimersRef.current[itemId]) {
                                     clearTimeout(scanTimersRef.current[itemId]);
                                     scanTimersRef.current[itemId] = null;
                                   }
 
-                                  // 4) Si justo había un preflight guardado para este ítem, lo anulamos
                                   if (pendingScanRef.current?.itemId === itemId) {
                                     pendingScanRef.current = null;
-                                    setGateOpen(false); // por si estaba abierto
+                                    setGateOpen(false);
                                   }
 
-                                  // 5) Opcional: re-enfocar el input para seguir leyendo el escáner
                                   requestAnimationFrame(() => {
                                     scanRefs.current[itemId]?.focus?.();
                                   });
@@ -834,9 +901,9 @@ export default function DispatchMobile() {
           </Box>
         </Drawer>
 
-        {/* LOADER GLOBAL (ahora también durante send_code) */}
-        <Backdrop open={busy} sx={{ color: "#fff", zIndex: (t) => t.zIndex.drawer + 1 }}>
-          <CircularProgress color="inherit" />
+        {/* LOADER GLOBAL */}
+        <Backdrop open={busy} sx={{ zIndex: (t) => t.zIndex.drawer + 1 }}>
+          <CircularProgress color="primary" />
         </Backdrop>
 
         {/* Overlay proceso */}
@@ -889,11 +956,18 @@ export default function DispatchMobile() {
         currentDetalle={current}
       />
 
-      {/* Gate de series antiguas: consulta con empresa={enterpriseShineray} y numero_serie={serieEscaneada} */}
+      {/* Gate de series antiguas */}
       <SeriesAgeGate
         open={gateOpen}
         numeroSerie={serieEscaneada}
         enterpriseShineray={enterpriseShineray}
+        codComprobante={gateCtx?.cod_comprobante}
+        codTipoComprobante={gateCtx?.cod_tipo_comprobante}
+        secuencia={gateCtx?.secuencia}
+        codProducto={gateCtx?.cod_producto}
+        usuarioCreacion={userShineray}
+        origen="DISPATCH_MOBILE"
+        tipoComentario="SERIE_ANTIGUA"
         onProceed={handleGateProceed}
         onCancel={handleGateCancel}
       />
