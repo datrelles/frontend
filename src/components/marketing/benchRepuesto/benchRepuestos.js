@@ -14,13 +14,13 @@ import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Paper from "@mui/material/Paper";
 import {Card} from "@mui/material";
-import {CardContent} from "@material-ui/core";
+import {CardContent} from "@mui/material";
 import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-import {AddCircleOutline} from "@material-ui/icons";
+import {AddCircleOutline} from "@mui/icons-material";
 import { Snackbar, Alert} from '@mui/material';
 
 

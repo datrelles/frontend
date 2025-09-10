@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import EditIcon from '@mui/icons-material/Edit';
 import GlobalLoading from "../selectoresDialog/GlobalLoading";
 import Stack from "@mui/material/Stack";
-import AddIcon from "@material-ui/icons/Add";
+import AddIcon from "@mui/icons-material/Add";
 import {ThemeProvider} from "@mui/material/styles";
 import {getMuiTheme, getTableOptions} from "../muiTableConfig";
 import MUIDataTable from "mui-datatables";

@@ -226,7 +226,7 @@ export default class API {
     })
 
 
-    // ------------------------- MODULO ADMINISTRACIION (MOSTRAR TODAS LAS ENCUESTAS POR PROMOTOR)
+    // ------------------------- MODULO ADMINISTRACIÓN (MOSTRAR TODAS LAS ENCUESTAS POR PROMOTOR)
 
     getEncuestas = this.#errorHandler(async (empresa) => {
         return axios.get(`${this.#URL}/empresas/${empresa}/encuestas`,

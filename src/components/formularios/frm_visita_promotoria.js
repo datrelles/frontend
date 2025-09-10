@@ -13,7 +13,7 @@ import LoadingCircle from "../contabilidad/loader";
 import {useAuthContext} from "../../context/authContext";
 import FrmActivaciones from "../formularios/frm_activaciones";
 import FrmPromotoria from "../formularios/frm_promotoria";
-import {Grid} from "@material-ui/core";
+import {Grid} from "@mui/material";
 
 const up = (s) => (s ?? '').toString().toUpperCase();
 const clean = (s) => {

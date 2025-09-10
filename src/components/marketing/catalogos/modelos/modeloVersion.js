@@ -20,7 +20,7 @@ import SelectorMotor from "../../selectoresDialog/selectMotor";
 import SelectorElectronica from "../../selectoresDialog/selectElectronica";
 import * as XLSX from "xlsx";
 import RefreshIcon from '@mui/icons-material/Refresh';
-import AddIcon from "@material-ui/icons/Add";
+import AddIcon from "@mui/icons-material/Add";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Stack from "@mui/material/Stack";
 import EditIcon from '@mui/icons-material/Edit';

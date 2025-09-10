@@ -4,7 +4,7 @@ import {
     TableRow, IconButton, Collapse,
     Typography, Tooltip, Box, TableHead
 } from "@mui/material";
-import GetAppIcon from "@material-ui/icons/GetApp";
+import GetAppIcon from "@mui/icons-material/GetApp";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import * as XLSX from "xlsx";
 import EditIcon from '@mui/icons-material/Edit';

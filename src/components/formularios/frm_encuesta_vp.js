@@ -3,7 +3,7 @@ import { Box, Typography, TextField,
     FormControl, RadioGroup, Radio,
     FormControlLabel, Accordion, AccordionSummary, AccordionDetails,FormGroup, Checkbox } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {Grid} from "@material-ui/core";
+import {Grid} from "@mui/material";
 import useOpcionesPregunta from "../formularios/useOpcionesPregunta";
 
 function RadioEscala({ label, value, onChange, required = false, showNA = false, naLabel = "N/A", disabled = false }) {
