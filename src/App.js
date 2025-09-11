@@ -64,6 +64,8 @@ import Reports31 from "./components/Reports31";
 import Reports32 from "./components/Reports32";
 import Reports33 from "./components/Reports33";
 import Reports34 from "./components/Reports34";
+import Reports35 from "./components/Reports35";
+
 
 
 import Settings from "./components/Settings";
@@ -820,6 +822,15 @@ function App() {
                 element={
                   <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
                     <Reports34 />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/reports35"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
+                    <Reports35 />
                   </Protected>
                 }
               />
