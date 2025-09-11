@@ -70,6 +70,7 @@ import Settings from "./components/Settings";
 import Menus from "./components/Menus";
 import Details from "./components/Details";
 import Dispatch from "./components/Dispatch";
+import ReservasPedidosAdmin from "./components/logistica/reservation";
 import Asignacion from "./components/Asignacion";
 import Presupuesto from "./components/Presupuesto";
 import Formule from "./components/Formule";
@@ -117,7 +118,7 @@ import CatSegmento from "./components/marketing/catalogos/modelos/catSegmento";
 import ModeloVersion from "./components/marketing/catalogos/modelos/modeloVersion";
 import BenchModelos from "./components/marketing/benchModelo/benchModelos";
 import BenchRepuestos from "./components/marketing/benchRepuesto/benchRepuestos";
-import  RepCompatible from "./components/marketing/benchRepuesto/repCompatible";
+import RepCompatible from "./components/marketing/benchRepuesto/repCompatible";
 import Procesos from "./components/formulas/procesos";
 import Formulas from "./components/formulas/formulas";
 import Parametros from "./components/formulas/parametros";
@@ -449,6 +450,19 @@ function App() {
                   </Protected>
                 }
               />
+
+              <Route
+                exact
+                path="/reservations"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("LOG")}>
+                    <ReservasPedidosAdmin />
+                  </Protected>
+                }
+              />
+
+
+
               <Route
                 exact
                 path="/newNegociacion"
@@ -1196,10 +1210,10 @@ function App() {
                   </Protected>
                 }
               ></Route>
-              <Route exact path="/nuevo_bench" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatClCanalModelo/></Protected>}/>
-              <Route exact path="/compatibilidad_repuesto" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><RepCompatible/></Protected>}/>
-              <Route exact path="/frm_activaciones" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><FrmActivaciones/></Protected>}/>
-              <Route exact path="/frm_visPromotoria" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><FrmPromotoria/></Protected>}/>
+              <Route exact path="/nuevo_bench" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatClCanalModelo /></Protected>} />
+              <Route exact path="/compatibilidad_repuesto" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><RepCompatible /></Protected>} />
+              <Route exact path="/frm_activaciones" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><FrmActivaciones /></Protected>} />
+              <Route exact path="/frm_visPromotoria" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><FrmPromotoria /></Protected>} />
               <Route
                 exact
                 path="/sell-out"

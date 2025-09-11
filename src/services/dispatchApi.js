@@ -115,8 +115,6 @@ export const getSeriesAntiguasPorSerie = async ({ numero_serie, empresa }) => {
   return data;
 };
 
-
-
 // COMENTARIOS DE TRANSFERENCIA - CONSULTA POR RANGO
 export const getComentariosTransferenciaPorRango = async ({
   empresa,
@@ -194,5 +192,19 @@ export const eliminarComentarioTransferencia = async ({
       secuencia_comentario,
     },
   });
+  return data;
+};
+
+// STOCK DE PRODUCTOS (MOTOS)
+export const getStockProductosMotos1 = async () => {
+  const { data } = await api.get("/log/stock_productos_motos", {});
+  console.log(data);
+  return data;
+};
+
+export const getStockProductosMotos = async () => {
+  const { data } = await api.get("/log/stock_productos_motos", {
+  });
+  console.log(data);
   return data;
 };
