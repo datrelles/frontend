@@ -115,8 +115,6 @@ export const getSeriesAntiguasPorSerie = async ({ numero_serie, empresa }) => {
   return data;
 };
 
-
-
 // COMENTARIOS DE TRANSFERENCIA - CONSULTA POR RANGO
 export const getComentariosTransferenciaPorRango = async ({
   empresa,
@@ -196,3 +194,78 @@ export const eliminarComentarioTransferencia = async ({
   });
   return data;
 };
+
+// STOCK DE PRODUCTOS (MOTOS)
+export const getStockProductosMotos1 = async () => {
+  const { data } = await api.get("/log/stock_productos_motos", {});
+  console.log(data);
+  return data;
+};
+
+export const getStockProductosMotos = async () => {
+  const { data } = await api.get("/log/stock_productos_motos", {
+  });
+  console.log(data);
+  return data;
+};
+
+// ==========================
+// RESERVAS DE PRODUCTOS
+// ==========================
+
+// GET /reservas — listado paginado + filtros
+export const getReservas = async (params = {}) => {
+  /**
+   * Ejemplo de `params` posibles:
+   * {
+   *   page: 1,
+   *   page_size: 20,
+   *   ordering: "-fecha_ini",
+   *   empresa: 20,
+   *   cod_bodega: 1,
+   *   cod_producto: "MPA12345678",
+   *   fecha_ini__gte: "2025-09-01",
+   *   fecha_fin__lte: "2025-09-30",
+   *   es_inactivo: 0
+   * }
+   */
+  const { data } = await api.get("/log/reservas", { params });
+  return data;
+};
+
+// POST /reservas — crear nueva reserva
+export const createReserva = async (payload) => {
+  /**
+   * payload debe incluir:
+   * {
+   *   empresa: 20,
+   *   cod_producto: "MPA12345678",
+   *   cod_bodega: 1,
+   *   cod_cliente: "CLI001",
+   *   fecha_ini: "2025-09-11",
+   *   fecha_fin: "2025-10-11",
+   *   cantidad: 5,
+   *   cod_bodega_destino: 2,
+   *   observacion: "Reserva preventiva",
+   *   cantidad_utilizada: 0,
+   *   es_inactivo: 0
+   * }
+   */
+  const { data } = await api.post("/log/reservas", payload);
+  return data;
+};
+
+// PUT /reservas/:empresa/:cod_reserva — actualizar reserva existente
+export const updateReserva = async (empresa, cod_reserva, payload) => {
+  /**
+   * payload puede ser parcial (campos actualizables):
+   * {
+   *   fecha_fin: "2025-12-01",
+   *   cantidad: 10,
+   *   observacion: "Extensión por demanda"
+   * }
+   */
+  const { data } = await api.put(`/log/reservas/${empresa}/${cod_reserva}`, payload);
+  return data;
+};
+
