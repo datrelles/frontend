@@ -523,16 +523,17 @@ export default function DispatchMobile() {
   );
 
   // PRE-FLIGHT: dispara el gate; si pasa, luego commitScan
-  const preflightScan = useCallback((itemId, code, cod_comprobante, tipo_comprobante, cod_producto, secuencia) => {
+ const preflightScan = useCallback((itemId, code, cod_comprobante, tipo_comprobante, cod_producto, secuencia, bodega) => {
     const trimmed = (code || "").trim();
     if (!trimmed) return;
 
-    pendingScanRef.current = { itemId, code: trimmed, cod_comprobante, tipo_comprobante, cod_producto, secuencia };
+   pendingScanRef.current = { itemId, code: trimmed, cod_comprobante, tipo_comprobante, cod_producto, secuencia, bodega };
     setGateCtx({
       cod_comprobante,
       cod_tipo_comprobante: tipo_comprobante,
       cod_producto,
-      secuencia, // OJO: es COD_SECUENCIA_MOV
+      secuencia,
+      bodega,
     });
 
     setSerieEscaneada(trimmed);
@@ -540,13 +541,13 @@ export default function DispatchMobile() {
   }, []);
 
   // debounce: ahora llama al preflight (gate)
-  const handleScanChange = useCallback((itemId, cod_comprobante, tipo_comprobante, cod_producto, secuencia) => (e) => {
+  const handleScanChange = useCallback((itemId, cod_comprobante, tipo_comprobante, cod_producto, secuencia, bodega_ingreso) => (e) => {
     const val = e.target.value ?? "";
     setScanValueById((prev) => ({ ...prev, [itemId]: val }));
 
     if (scanTimersRef.current[itemId]) clearTimeout(scanTimersRef.current[itemId]);
     scanTimersRef.current[itemId] = setTimeout(() => {
-      preflightScan(itemId, val, cod_comprobante, tipo_comprobante, cod_producto, secuencia);
+       preflightScan(itemId, val, cod_comprobante, tipo_comprobante, cod_producto, secuencia, bodega_ingreso);
     }, 120);
   }, [preflightScan]);
 
@@ -725,6 +726,7 @@ export default function DispatchMobile() {
                       const cod_producto = it.COD_PRODUCTO;
                       const disabledScan = isQtyComplete(it);
                       const openInput = !!scanOpenById[itemId];
+                      const bodega_ingreso = Number(it.COD_BODEGA_INGRESO ?? current?.COD_BODEGA_DESPACHA ?? 0) || 0;
 
                       const itemIsSending = !!inFlightRef.current[itemId]; // <-- NEW: loader por ítem
 
@@ -796,7 +798,8 @@ export default function DispatchMobile() {
                                   cod_comprobante,
                                   tipo_comprobante,
                                   cod_producto,
-                                  it.COD_SECUENCIA_MOV
+                                  it.COD_SECUENCIA_MOV,
+                                  bodega_ingreso
                                 )}
                                 autoComplete="off"
                                 autoCapitalize="off"
@@ -966,6 +969,7 @@ export default function DispatchMobile() {
         secuencia={gateCtx?.secuencia}
         codProducto={gateCtx?.cod_producto}
         usuarioCreacion={userShineray}
+        bodega={gateCtx?.bodega ?? current?.COD_BODEGA_DESPACHA}
         origen="DISPATCH_MOBILE"
         tipoComentario="SERIE_ANTIGUA"
         onProceed={handleGateProceed}

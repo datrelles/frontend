@@ -100,15 +100,17 @@ export const revertirSerieAsignada = async (payload) => {
 };
 
 // SERIES MÁS ANTIGUAS (comparativa por serie)
-export const getSeriesAntiguasPorSerie = async ({ numero_serie, empresa }) => {
+export const getSeriesAntiguasPorSerie = async ({ numero_serie, empresa,bodega }) => {
   if (!numero_serie || !String(numero_serie).trim()) {
     throw new Error("El parámetro 'numero_serie' es requerido.");
   }
 
   const { data } = await api.get("/log/series_antiguas_por_serie", {
+  
     params: {
       numero_serie: String(numero_serie).trim(),
       empresa: Number(empresa),
+      bodega: Number(bodega),
     },
   });
 

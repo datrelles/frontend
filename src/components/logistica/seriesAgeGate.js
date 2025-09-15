@@ -17,15 +17,17 @@ import {
   Alert,
   Tooltip,
   TextField,
-  LinearProgress,     // <-- NEW
-  Backdrop            // <-- NEW
+  LinearProgress,
+  Backdrop,
 } from "@mui/material";
+import { toast } from "react-toastify";
 import { getSeriesAntiguasPorSerie } from "../../services/dispatchApi";
 
 export default function SeriesAgeGate({
   open,
   numeroSerie,
   enterpriseShineray,
+  bodega, // <-- importante para validar disponible/reserva en backend
   onProceed,
   onCancel,
 }) {
@@ -37,9 +39,15 @@ export default function SeriesAgeGate({
   const [comment, setComment] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Solo consultar si tenemos open, serie y bodega válida
   const canQuery = useMemo(() => {
-    return Boolean(open && numeroSerie && String(numeroSerie).trim());
-  }, [open, numeroSerie]);
+    return Boolean(
+      open &&
+        numeroSerie &&
+        String(numeroSerie).trim() &&
+        Number.isFinite(Number(bodega))
+    );
+  }, [open, numeroSerie, bodega]);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,12 +63,13 @@ export default function SeriesAgeGate({
         const data = await getSeriesAntiguasPorSerie({
           numero_serie: String(numeroSerie).trim(),
           empresa: Number(enterpriseShineray),
+          bodega: Number(bodega),
         });
 
         if (cancelled) return;
 
+        // Si no hay series antiguas, continuar sin abrir diálogo
         if (!Array.isArray(data) || data.length === 0) {
-          // Mismo comportamiento: si no hay series antiguas, continuar sin mostrar el diálogo
           onProceed?.(String(numeroSerie).trim(), undefined);
           return;
         }
@@ -73,21 +82,42 @@ export default function SeriesAgeGate({
 
         setRows(sorted);
       } catch (e) {
-        setError(e?.message || "No se pudo consultar las series antiguas.");
+        console.log(e)
+        const status = e.message;
+        const msg =e.message;
+
+        // Para 4xx (ej: 409 "No existe Disponibilida ni reserva"): toast y cerrar el gate
+        if (msg) {
+          toast.error(msg, {
+            position: "top-right",
+            autoClose: 4000,
+            theme: "colored",
+            closeOnClick: true,
+            pauseOnHover: true,
+          });
+          setRows([]);
+          setError("");
+          onCancel?.();
+          return;
+        }
+
+        // Otros errores (500/red) se muestran dentro del diálogo
+        setError(msg);
       } finally {
         if (!cancelled) setLoading(false);
       }
     };
 
     run();
-    return () => { cancelled = true; };
-  }, [canQuery, numeroSerie, enterpriseShineray, onProceed]);
+    return () => {
+      cancelled = true;
+    };
+  }, [canQuery, numeroSerie, bodega, enterpriseShineray, onProceed, onCancel]);
 
-  // Mantén el mismo criterio de apertura del diálogo principal (no alterar flujo):
-  // solo se muestra si hay filas (series antiguas). Si no hay, ya hicimos onProceed arriba.
+  // Mostrar diálogo solo si hay filas (series antiguas)
   const showDialog = open && rows.length > 0;
 
-  // Edad de la serie actual (se muestra una sola vez arriba)
+  // Edad de la serie actual (el backend la incluye en la 1ra fila)
   const currentSeriesDays =
     rows.length > 0 ? Number(rows[0]?.EDAD_SERIE_ACTUAL ?? 0) : null;
 
@@ -104,21 +134,26 @@ export default function SeriesAgeGate({
 
   return (
     <>
-      {/* NEW: Backdrop global durante consulta, incluso si el diálogo principal aún no aparece */}
+      {/* Backdrop global durante consulta, incluso si el diálogo aún no aparece */}
       <Backdrop
         open={!!open && loading}
-        sx={{ color: "#fff", zIndex: (t) => t.zIndex.modal + 1, flexDirection: "column" }}
+        sx={{
+          color: "#fff",
+          zIndex: (t) => t.zIndex.modal + 1,
+          flexDirection: "column",
+        }}
       >
         <CircularProgress color="inherit" />
         <Typography variant="body2" sx={{ mt: 1 }}>
-          Consultando series antiguas para: <b>{String(numeroSerie || "")}</b>
+          Consultando series antiguas para:{" "}
+          <b>{String(numeroSerie || "")}</b>
         </Typography>
       </Backdrop>
 
       <Dialog open={showDialog} fullWidth maxWidth="md" onClose={onCancel}>
         <DialogTitle>Antigüedad de series</DialogTitle>
 
-        {/* NEW: Barra de progreso superior mientras loading */}
+        {/* Barra de progreso superior mientras loading */}
         {loading && <LinearProgress />}
 
         <DialogContent dividers>
@@ -162,7 +197,9 @@ export default function SeriesAgeGate({
 
               <List dense disablePadding>
                 {rows.map((r, idx) => (
-                  <React.Fragment key={`${r.NUMERO_SERIE}-${r.COD_BODEGA}-${idx}`}>
+                  <React.Fragment
+                    key={`${r.NUMERO_SERIE}-${r.COD_BODEGA}-${idx}`}
+                  >
                     <ListItem alignItems="flex-start" disableGutters>
                       <ListItemText
                         primary={
@@ -172,7 +209,10 @@ export default function SeriesAgeGate({
                             alignItems="center"
                             flexWrap="wrap"
                           >
-                            <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                            <Typography
+                              variant="body1"
+                              sx={{ fontWeight: 600 }}
+                            >
                               {r.NUMERO_SERIE}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
@@ -241,14 +281,11 @@ export default function SeriesAgeGate({
         onClose={() => !saving && setCommentOpen(false)}
       >
         <DialogTitle>OBSERVACIÓN</DialogTitle>
-        {/* NEW: barra de progreso cuando saving */}
         {saving && <LinearProgress />}
 
         <DialogContent dividers>
           <Stack spacing={1}>
-            <Typography variant="body2">
-              Motivo de asignación de serie:
-            </Typography>
+            <Typography variant="body2">Motivo de asignación de serie:</Typography>
             <Typography variant="body2">
               <b>{String(numeroSerie || "")}</b>
             </Typography>
@@ -280,17 +317,13 @@ export default function SeriesAgeGate({
               try {
                 setSaving(true);
                 setCommentOpen(false);
-                onProceed?.(
-                  String(numeroSerie || "").trim(),
-                  String(comment).trim()
-                );
+                onProceed?.(String(numeroSerie || "").trim(), String(comment).trim());
               } catch (e) {
                 setError(e?.message || "No se pudo continuar.");
               } finally {
                 setSaving(false);
               }
             }}
-            // NEW: spinner inline en el botón
             startIcon={saving ? <CircularProgress size={18} thickness={5} /> : null}
           >
             {saving ? "ASIGNANDO…" : "ASIGNAR"}
