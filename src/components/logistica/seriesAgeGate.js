@@ -82,7 +82,6 @@ export default function SeriesAgeGate({
 
         setRows(sorted);
       } catch (e) {
-        console.log(e)
         const status = e.message;
         const msg =e.message;
 
