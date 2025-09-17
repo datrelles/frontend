@@ -5,7 +5,7 @@ import {
   AppBar, Box, Card, CardActionArea, CardContent, Divider, IconButton,
   InputAdornment, Modal, TextField, Toolbar, Typography, Stack, Chip,
   Drawer, Button, Backdrop, CircularProgress, Skeleton, Tooltip, Badge,
-  Alert, Snackbar, LinearProgress     // <-- NEW: LinearProgress
+  Alert, Snackbar, LinearProgress
 } from "@mui/material";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
@@ -17,6 +17,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import ClearIcon from "@mui/icons-material/Clear";
 import DoneIcon from "@mui/icons-material/Done";
+import KeyboardAltIcon from "@mui/icons-material/KeyboardAlt";       // NUEVO: icono teclado
+import KeyboardReturnIcon from "@mui/icons-material/KeyboardReturn"; // NUEVO: botón Enter
 import dayjs from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -113,6 +115,9 @@ export default function DispatchMobile() {
   const scanRefs = useRef({});
   const scanTimersRef = useRef({});
   const inFlightRef = useRef({}); // evita doble llamada por item
+
+  // NUEVO: modo teclado por ítem (solo si el usuario pulsa el icono teclado)
+  const [keyboardForcedById, setKeyboardForcedById] = useState({});
 
   // Overlay proceso
   const [captureOverlay, setCaptureOverlay] = useState({ open: false, ok: false, message: "" });
@@ -271,6 +276,7 @@ export default function DispatchMobile() {
     scanRefs.current = {};
     scanTimersRef.current = {};
     inFlightRef.current = {};
+    setKeyboardForcedById({}); // reset modo teclado
 
     try {
       const payload = {
@@ -370,7 +376,7 @@ export default function DispatchMobile() {
     const seen = new Set();
     const out = [];
     for (const d of [...matchesPed, ...matchesCli]) {
-      const key = `${d.COD_PEDIDO}-${d.COD_ORDEN}`;
+      const key = `${d.COD_PEDIDO}-${d.COD_ORDEN}-${d.COD_DIRECCION ?? ""}`; // AUMENTAR unicidad
       if (!seen.has(key)) { seen.add(key); out.push(d); }
     }
     return out;
@@ -396,7 +402,7 @@ export default function DispatchMobile() {
     return pedida > 0 && pedida === enGuia;
   };
 
-  // === Escaneo por ítem (sin Enter) ===
+  // === Escaneo por ítem (vista normal, sin teclado forzado) ===
   const toggleScanFor = useCallback((itemId, disabled) => {
     if (disabled) return;
     setScanOpenById((prev) => {
@@ -410,6 +416,20 @@ export default function DispatchMobile() {
       }, 0);
       return next;
     });
+    // Al usar QR NO activar modo teclado
+    setKeyboardForcedById((prev) => ({ ...prev, [itemId]: false }));
+  }, []);
+
+  // === Modo TECLADO: caso especial ===
+  const toggleKeyboardFor = useCallback((itemId, disabled) => {
+    if (disabled) return;
+    setScanOpenById((prev) => {
+      const openNow = !!prev[itemId];
+      const next = openNow ? prev : { [itemId]: true }; // asegurar que se vea el input
+      setTimeout(() => scanRefs.current[itemId]?.focus?.(), 0);
+      return next;
+    });
+    setKeyboardForcedById((prev) => ({ ...prev, [itemId]: !prev[itemId] }));
   }, []);
 
   const isProcessOK = (resp) => {
@@ -523,11 +543,11 @@ export default function DispatchMobile() {
   );
 
   // PRE-FLIGHT: dispara el gate; si pasa, luego commitScan
- const preflightScan = useCallback((itemId, code, cod_comprobante, tipo_comprobante, cod_producto, secuencia, bodega) => {
+  const preflightScan = useCallback((itemId, code, cod_comprobante, tipo_comprobante, cod_producto, secuencia, bodega) => {
     const trimmed = (code || "").trim();
     if (!trimmed) return;
 
-   pendingScanRef.current = { itemId, code: trimmed, cod_comprobante, tipo_comprobante, cod_producto, secuencia, bodega };
+    pendingScanRef.current = { itemId, code: trimmed, cod_comprobante, tipo_comprobante, cod_producto, secuencia, bodega };
     setGateCtx({
       cod_comprobante,
       cod_tipo_comprobante: tipo_comprobante,
@@ -540,16 +560,36 @@ export default function DispatchMobile() {
     setGateOpen(true);
   }, []);
 
-  // debounce: ahora llama al preflight (gate)
+  // Escáner auto (debounce) — SOLO cuando NO está modo teclado
   const handleScanChange = useCallback((itemId, cod_comprobante, tipo_comprobante, cod_producto, secuencia, bodega_ingreso) => (e) => {
     const val = e.target.value ?? "";
     setScanValueById((prev) => ({ ...prev, [itemId]: val }));
 
     if (scanTimersRef.current[itemId]) clearTimeout(scanTimersRef.current[itemId]);
     scanTimersRef.current[itemId] = setTimeout(() => {
-       preflightScan(itemId, val, cod_comprobante, tipo_comprobante, cod_producto, secuencia, bodega_ingreso);
+      preflightScan(itemId, val, cod_comprobante, tipo_comprobante, cod_producto, secuencia, bodega_ingreso);
     }, 120);
   }, [preflightScan]);
+
+  // Modo teclado: solo escribe, sin gate hasta pulsar Enter
+  const handleManualChange = useCallback((itemId) => (e) => {
+    const val = e.target.value ?? "";
+    setScanValueById((prev) => ({ ...prev, [itemId]: val }));
+  }, []);
+
+  // Botón Enter: dispara gate con el valor actual
+  const handleKeyboardEnter = useCallback((
+    itemId,
+    cod_comprobante,
+    tipo_comprobante,
+    cod_producto,
+    secuencia,
+    bodega_ingreso
+  ) => {
+    const val = (scanValueById[itemId] || "").trim();
+    if (!val) return;
+    preflightScan(itemId, val, cod_comprobante, tipo_comprobante, cod_producto, secuencia, bodega_ingreso);
+  }, [scanValueById, preflightScan]);
 
   // callbacks del gate
   const handleGateProceed = useCallback((numeroSerie, comment) => {
@@ -613,7 +653,7 @@ export default function DispatchMobile() {
             </FormControl>
           </Toolbar>
 
-          {/* NEW: loader fino para carga de menús */}
+          {/* Loader fino para carga de menús */}
           {loadingMenus && <LinearProgress />}
         </AppBar>
 
@@ -633,7 +673,7 @@ export default function DispatchMobile() {
           </IconButton>
         </Box>
 
-        {/* NEW: loader fino para carga del listado */}
+        {/* Loader listado */}
         {loading && (
           <Box sx={{ px: 2, mb: 1 }}>
             <LinearProgress />
@@ -649,7 +689,11 @@ export default function DispatchMobile() {
           ) : (
             <Stack spacing={1.5}>
               {listFiltered.map((row) => (
-                <Card key={`${row.COD_PEDIDO}-${row.COD_ORDEN}`} variant="outlined" sx={{ borderRadius: 3 }}>
+                <Card
+                  key={`${row.COD_PEDIDO}-${row.COD_ORDEN}-${row.COD_DIRECCION ?? ""}`}  // AUMENTAR unicidad
+                  variant="outlined"
+                  sx={{ borderRadius: 3 }}
+                >
                   <CardActionArea onClick={() => openDetalle(row)} disabled={busy}>
                     <CardContent sx={{ py: 1.5 }}>
                       <Typography variant="h6" sx={{ fontWeight: 800 }}>{`PEDIDO  ${row.COD_PEDIDO}`}</Typography>
@@ -686,7 +730,7 @@ export default function DispatchMobile() {
               <IconButton onClick={() => setOpen(false)}><CloseIcon /></IconButton>
             </Stack>
 
-            {/* NEW: loader fino dentro del modal mientras trae líneas */}
+            {/* Loader dentro del modal */}
             {loadingDetalle && <LinearProgress sx={{ mb: 1 }} />}
 
             {current && (
@@ -728,7 +772,8 @@ export default function DispatchMobile() {
                       const openInput = !!scanOpenById[itemId];
                       const bodega_ingreso = Number(it.COD_BODEGA_INGRESO ?? current?.COD_BODEGA_DESPACHA ?? 0) || 0;
 
-                      const itemIsSending = !!inFlightRef.current[itemId]; // <-- NEW: loader por ítem
+                      const itemIsSending = !!inFlightRef.current[itemId];
+                      const keyboardForced = !!keyboardForcedById[itemId];
 
                       return (
                         <Box
@@ -755,6 +800,7 @@ export default function DispatchMobile() {
                               </Typography>
                             </Box>
 
+                            {/* Botón QR (mantiene vista sin teclado) */}
                             <Tooltip
                               title={
                                 disabledScan
@@ -768,12 +814,38 @@ export default function DispatchMobile() {
                                   disabled={disabledScan}
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    toggleScanFor(itemId, disabledScan);
+                                    toggleScanFor(itemId, disabledScan); // NO activa teclado
                                   }}
                                 >
                                   <Badge badgeContent={scansCount} color="primary">
                                     <QrCodeScannerIcon fontSize="medium" />
                                   </Badge>
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+
+                            {/* Botón TECLADO (caso especial) */}
+                            <Tooltip
+                              title={
+                                disabledScan
+                                  ? "Cantidad completa: teclado no necesario"
+                                  : (keyboardForced ? "Desactivar teclado" : "Activar teclado")
+                              }
+                            >
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  disabled={disabledScan}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleKeyboardFor(itemId, disabledScan); // activa/desactiva modo teclado
+                                  }}
+                                  sx={{
+                                    bgcolor: keyboardForced ? "primary.light" : "transparent",
+                                    color: keyboardForced ? "#fff" : "inherit",
+                                  }}
+                                >
+                                  <KeyboardAltIcon fontSize="small" />
                                 </IconButton>
                               </span>
                             </Tooltip>
@@ -793,19 +865,23 @@ export default function DispatchMobile() {
                                 label="Escanee (se detecta automáticamente)"
                                 value={scanValueById[itemId] || ""}
                                 inputRef={(el) => { scanRefs.current[itemId] = el; }}
-                                onChange={handleScanChange(
-                                  itemId,
-                                  cod_comprobante,
-                                  tipo_comprobante,
-                                  cod_producto,
-                                  it.COD_SECUENCIA_MOV,
-                                  bodega_ingreso
-                                )}
+                                onChange={
+                                  keyboardForced
+                                    ? (e) => handleManualChange(itemId)(e) // sin gate
+                                    : handleScanChange(                   // con debounce + gate
+                                        itemId,
+                                        cod_comprobante,
+                                        tipo_comprobante,
+                                        cod_producto,
+                                        it.COD_SECUENCIA_MOV,
+                                        bodega_ingreso
+                                      )
+                                }
                                 autoComplete="off"
                                 autoCapitalize="off"
                                 autoCorrect="off"
                                 spellCheck={false}
-                                inputProps={{ inputMode: "none" }}
+                                inputProps={{ inputMode: keyboardForced ? "text" : "none" }} // teclado SOLO cuando se pulsa el icono teclado
                                 onFocus={(e) => {
                                   const val = e.target.value;
                                   e.target.setSelectionRange(val.length, val.length);
@@ -813,7 +889,30 @@ export default function DispatchMobile() {
                                 InputProps={{
                                   endAdornment: (
                                     <InputAdornment position="end" sx={{ gap: 1 }}>
-                                      {/* NEW: spinner por ítem durante sendCode */}
+                                      {/* Botón Enter SOLO en modo teclado (sin texto "Teclado") */}
+                                      {keyboardForced && (
+                                        <Button
+                                          size="small"
+                                          variant="contained"
+                                          startIcon={<KeyboardReturnIcon />}
+                                          disabled={itemIsSending || !(scanValueById[itemId] || "").trim()}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleKeyboardEnter(
+                                              itemId,
+                                              cod_comprobante,
+                                              tipo_comprobante,
+                                              cod_producto,
+                                              it.COD_SECUENCIA_MOV,
+                                              bodega_ingreso
+                                            );
+                                          }}
+                                          sx={{ minWidth: 0, px: 1.5 }}
+                                        >
+                                          Enter
+                                        </Button>
+                                      )}
+
                                       {itemIsSending && (
                                         <CircularProgress size={18} thickness={5} />
                                       )}
