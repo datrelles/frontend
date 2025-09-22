@@ -5,7 +5,7 @@ import axios from "axios";
 // =====================
 const api = axios.create({
   baseURL: process.env.REACT_APP_API,
-  timeout: 15000,
+  timeout: 150000,
 });
 
 // Setter del token
