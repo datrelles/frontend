@@ -5,7 +5,7 @@ import axios from "axios";
 // =====================
 const api = axios.create({
   baseURL: process.env.REACT_APP_API,
-  timeout: 15000,
+  timeout: 150000,
 });
 
 // Setter del token
@@ -49,7 +49,7 @@ export const getMenus = async ({ user, enterprise, system }) => {
 
 // LISTADO DE PEDIDOS
 export const getDispatchs = async ({ fromDateISO, toDateISO, enterprise }) => {
-  const { data } = await api.get("/log/pedidos_get", {
+  const { data } = await api.get("/logistica/pedidos_get", {
     params: {
       pd_fecha_inicial: fromDateISO, // YYYY-MM-DD
       pd_fecha_final: toDateISO,     // YYYY-MM-DD
@@ -64,7 +64,7 @@ export const getDetallePedido = async (payload) => {
   // payload debe contener:
   // { pn_empresa, pv_cod_tipo_pedido, pedido, pn_cod_agencia,
   //   bodega_consignacion, cod_direccion, p_tipo_orden, orden }
-  const { data } = await api.post("/log/listado_pedido", payload);
+  const { data } = await api.post("/logistica/listado_pedido", payload);
   return data;
 };
 
@@ -73,13 +73,13 @@ export const sendCode = async (payload) => {
   // payload debe contener:
   // { empresa, cod_comprobante, tipo_comprobante, cod_producto,
   //   cod_bodega, current_identification, cod_motor }
-  const { data } = await api.post("/log/info_moto", payload);
+  const { data } = await api.post("/logistica/info_moto", payload);
   return data;
 };
 
 // SERIES ASIGNADAS
 export const getSeriesAsignadas = async ({ cod_comprobante, cod_tipo_comprobante, empresa, cod_producto }) => {
-  const { data } = await api.get("/log/transferencias", {
+  const { data } = await api.get("/logistica/transferencias", {
     params: {
       cod_comprobante,
       cod_tipo_comprobante,
@@ -95,7 +95,7 @@ export const revertirSerieAsignada = async (payload) => {
   // payload debe contener:
   // empresa, cod_comprobante, tipo_comprobante, cod_producto,
   // numero_serie, numero_agencia, empresa_g, cod_estado_producto
-  const { data } = await api.post("/log/info_moto_des", payload);
+  const { data } = await api.post("/logistica/info_moto_des", payload);
   return data;
 };
 
@@ -105,7 +105,7 @@ export const getSeriesAntiguasPorSerie = async ({ numero_serie, empresa,bodega }
     throw new Error("El parámetro 'numero_serie' es requerido.");
   }
 
-  const { data } = await api.get("/log/series_antiguas_por_serie", {
+  const { data } = await api.get("/logistica/series_antiguas_por_serie", {
   
     params: {
       numero_serie: String(numero_serie).trim(),
@@ -133,7 +133,7 @@ export const getComentariosTransferenciaPorRango = async ({
   es_activo,
   buscar,
 }) => {
-  const { data } = await api.get("/log/transferencias/comentarios/rango", {
+  const { data } = await api.get("/logistica/transferencias/comentarios/rango", {
     params: {
       empresa,
       desde,
@@ -173,7 +173,7 @@ export const crearComentarioTransferencia = async (payload) => {
    * - tipo_comentario
    * - es_activo
    */
-  const { data } = await api.post("/log/transferencias/comentarios", payload);
+  const { data } = await api.post("/logistica/transferencias/comentarios", payload);
   return data;
 };
 
@@ -185,7 +185,7 @@ export const eliminarComentarioTransferencia = async ({
   secuencia,
   secuencia_comentario,
 }) => {
-  const { data } = await api.delete("/log/transferencias/comentarios", {
+  const { data } = await api.delete("/logistica/transferencias/comentarios", {
     params: {
       cod_comprobante,
       cod_tipo_comprobante,
@@ -199,13 +199,13 @@ export const eliminarComentarioTransferencia = async ({
 
 // STOCK DE PRODUCTOS (MOTOS)
 export const getStockProductosMotos1 = async () => {
-  const { data } = await api.get("/log/stock_productos_motos", {});
+  const { data } = await api.get("/logistica/stock_productos_motos", {});
   console.log(data);
   return data;
 };
 
 export const getStockProductosMotos = async () => {
-  const { data } = await api.get("/log/stock_productos_motos", {
+  const { data } = await api.get("/logistica/stock_productos_motos", {
   });
   console.log(data);
   return data;
@@ -231,7 +231,7 @@ export const getReservas = async (params = {}) => {
    *   es_inactivo: 0
    * }
    */
-  const { data } = await api.get("/log/reservas", { params });
+  const { data } = await api.get("/logistica/reservas", { params });
   return data;
 };
 
@@ -253,7 +253,7 @@ export const createReserva = async (payload) => {
    *   es_inactivo: 0
    * }
    */
-  const { data } = await api.post("/log/reservas", payload);
+  const { data } = await api.post("/logistica/reservas", payload);
   return data;
 };
 
@@ -267,7 +267,7 @@ export const updateReserva = async (empresa, cod_reserva, payload) => {
    *   observacion: "Extensión por demanda"
    * }
    */
-  const { data } = await api.put(`/log/reservas/${empresa}/${cod_reserva}`, payload);
+  const { data } = await api.put(`/logistica/reservas/${empresa}/${cod_reserva}`, payload);
   return data;
 };
 
