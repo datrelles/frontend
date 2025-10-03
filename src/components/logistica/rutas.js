@@ -295,11 +295,11 @@ export default function RutasAdmin() {
         cod_direccion: Number(selectedDireccionOpt.cod_direccion),
         cod_ruta: Number(selectedRuta.cod_ruta),
       });
-      toast.success("Vínculo Dirección–Ruta creado.");
+      toast.success("Dirección–Ruta creado.");
       setDlgCrearDir(false);
       await cargarDirRutas();
     } catch (e) {
-      toast.error(e?.message || "No se pudo crear el vínculo.");
+      toast.error(e?.message || "No se pudo crear la dirección–ruta.");
     } finally {
       setSavingDir(false);
     }
@@ -315,10 +315,10 @@ export default function RutasAdmin() {
         cod_direccion: Number(row.cod_direccion),
         cod_ruta: Number(row.cod_ruta),
       });
-      toast.success("Vínculo eliminado.");
+      toast.success("eliminado.");
       await cargarDirRutas();
     } catch (e) {
-      toast.error(e?.message || "No se pudo eliminar el vínculo.");
+      toast.error(e?.message || "No se pudo eliminar la dirección–ruta.");
     } finally {
       setDeletingDirKey(null);
     }
@@ -364,11 +364,11 @@ export default function RutasAdmin() {
         cod_direccion: Number(resultadoDir.cod_direccion),
         cod_ruta: Number(resultadoDir.cod_ruta),
       });
-      toast.success("Vínculo eliminado.");
+      toast.success("eliminado.");
       setResultadoDir(null);
       await cargarDirRutas();
     } catch (e) {
-      toast.error(e?.message || "No se pudo eliminar el vínculo.");
+      toast.error(e?.message || "No se pudo eliminar");
     }
   };
 
@@ -501,11 +501,11 @@ export default function RutasAdmin() {
         cod_transportista: String(selectedTransportistaOpt.cod_transportista),
         cod_ruta: Number(selectedRuta.cod_ruta)
       });
-      toast.success("Vínculo Transportista–Ruta creado.");
+      toast.success("Transportista–Ruta creado.");
       setDlgCrearTR(false);
       await cargarTRutas();
     } catch (e) {
-      toast.error(e?.message || "No se pudo crear el vínculo.");
+      toast.error(e?.message || "No se pudo crear.");
     } finally {
       setSavingTR(false);
     }
@@ -541,11 +541,11 @@ export default function RutasAdmin() {
         ...(tcode ? { cod_transportista: tcode } : {}),
         ...(newRutaStr ? { cod_ruta: Number(newRutaStr) } : {}),
       });
-      toast.success("Vínculo actualizado.");
+      toast.success("actualizado.");
       setDlgEditarTR(false);
       await cargarTRutas();
     } catch (e) {
-      toast.error(e?.message || "No se pudo actualizar el vínculo.");
+      toast.error(e?.message || "No se pudo actualizar.");
     } finally {
       setSavingTR(false);
     }
@@ -555,10 +555,10 @@ export default function RutasAdmin() {
     try {
       setDeletingTRCodigo(row.codigo);
       await deleteTRuta({ empresa: Number(enterpriseShineray), codigo: Number(row.codigo) });
-      toast.success("Vínculo eliminado.");
+      toast.success("eliminado.");
       await cargarTRutas();
     } catch (e) {
-      toast.error(e?.message || "No se pudo eliminar el vínculo.");
+      toast.error(e?.message || "No se pudo eliminar.");
     } finally {
       setDeletingTRCodigo(null);
     }
@@ -589,11 +589,11 @@ export default function RutasAdmin() {
     if (!resultadoTR) return;
     try {
       await deleteTRuta({ empresa: Number(enterpriseShineray), codigo: Number(resultadoTR.codigo) });
-      toast.success("Vínculo eliminado.");
+      toast.success("eliminado.");
       setResultadoTR(null);
       await cargarTRutas();
     } catch (e) {
-      toast.error(e?.message || "No se pudo eliminar el vínculo.");
+      toast.error(e?.message || "No se pudo eliminar.");
     }
   };
 
@@ -987,7 +987,7 @@ export default function RutasAdmin() {
             startIcon={savingDir ? <CircularProgress size={16} /> : null}
             sx={{ bgcolor: "firebrick", ":hover": { bgcolor: "#8f1a1a" } }}
           >
-            {savingDir ? "Guardando..." : "Guardar vínculo"}
+            {savingDir ? "Guardando..." : "Guardar"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1036,7 +1036,7 @@ export default function RutasAdmin() {
                 <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
                   <Button variant="outlined" color="error" onClick={doEliminarResultadoDir}
                     startIcon={<DeleteOutlineIcon />} sx={{ borderColor: "firebrick", color: "firebrick" }}>
-                    Eliminar vínculo
+                    Eliminar
                   </Button>
                 </Stack>
               </>
@@ -1139,7 +1139,7 @@ export default function RutasAdmin() {
             startIcon={savingTR ? <CircularProgress size={16} /> : null}
             sx={{ bgcolor: "firebrick", ":hover": { bgcolor: "#8f1a1a" } }}
           >
-            {savingTR ? "Guardando..." : "Guardar vínculo"}
+            {savingTR ? "Guardando..." : "Guardar"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1206,11 +1206,11 @@ export default function RutasAdmin() {
                 <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
                   <Button variant="outlined" onClick={doEditarResultadoTR}
                     startIcon={<EditIcon />} sx={{ borderColor: "firebrick", color: "firebrick" }}>
-                    Editar vínculo
+                    Editar 
                   </Button>
                   <Button variant="outlined" color="error" onClick={doEliminarResultadoTR}
                     startIcon={<DeleteOutlineIcon />} sx={{ borderColor: "firebrick", color: "firebrick" }}>
-                    Eliminar vínculo
+                    Eliminar 
                   </Button>
                 </Stack>
               </>
