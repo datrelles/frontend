@@ -40,9 +40,10 @@ api.interceptors.response.use(
 // =====================
 
 // MENÚS
-export const getMenus = async ({ user, enterprise, system }) => {
+export const getMenus = async (userShineray, enterpriseShineray, systemShineray) => {
+
   const { data } = await api.get(
-    `/menus/${encodeURIComponent(user)}/${encodeURIComponent(enterprise)}/${encodeURIComponent(system)}`
+    `/menus/${encodeURIComponent(userShineray)}/${encodeURIComponent(enterpriseShineray)}/${encodeURIComponent(systemShineray)}`
   );
   return data;
 };
@@ -100,13 +101,13 @@ export const revertirSerieAsignada = async (payload) => {
 };
 
 // SERIES MÁS ANTIGUAS (comparativa por serie)
-export const getSeriesAntiguasPorSerie = async ({ numero_serie, empresa,bodega }) => {
+export const getSeriesAntiguasPorSerie = async ({ numero_serie, empresa, bodega }) => {
   if (!numero_serie || !String(numero_serie).trim()) {
     throw new Error("El parámetro 'numero_serie' es requerido.");
   }
 
   const { data } = await api.get("/logistica/series_antiguas_por_serie", {
-  
+
     params: {
       numero_serie: String(numero_serie).trim(),
       empresa: Number(empresa),
@@ -271,3 +272,176 @@ export const updateReserva = async (empresa, cod_reserva, payload) => {
   return data;
 };
 
+
+
+// =====================
+// RUTAS (catálogo maestro)
+// =====================
+
+// GET /rutas — listar con filtros y paginación
+export const listRutas = async ({ empresa, id, nombre, page = 1, page_size = 50 } = {}) => {
+  const { data } = await api.get("/logistica/rutas", {
+    params: {
+      empresa,
+      id,
+      nombre,
+      page,
+      page_size,
+    },
+  });
+  return data; // { count, next, previous, results: [...] }
+};
+
+// GET /rutas/{empresa}/{cod_ruta} — detalle
+export const getRuta = async ({ empresa, cod_ruta }) => {
+  if (empresa == null || cod_ruta == null) throw new Error("empresa y cod_ruta son requeridos");
+  const { data } = await api.get(`/logistica/rutas/${encodeURIComponent(empresa)}/${encodeURIComponent(cod_ruta)}`);
+  return data;
+};
+
+// POST /rutas — crear
+// payload: { empresa:number, nombre?:string }
+export const createRuta = async (payload) => {
+  console.log("createRuta payload:", payload);
+  const { data } = await api.post("/logistica/rutas", payload);
+  return data; // { cod_ruta, empresa, id, nombre }
+};
+
+// PUT /rutas/{empresa}/{cod_ruta} — actualizar
+// payload permitido: { nombre?:string }
+export const updateRuta = async ({ empresa, cod_ruta, ...payload }) => {
+  if (empresa == null || cod_ruta == null) throw new Error("empresa y cod_ruta son requeridos");
+  const { data } = await api.put(
+    `/logistica/rutas/${encodeURIComponent(empresa)}/${encodeURIComponent(cod_ruta)}`,
+    payload
+  );
+  return data;
+};
+
+// =====================
+// DIRECCIÓN–RUTA (ST_DIRECCION_RUTA)
+// =====================
+
+// POST /direccion-rutas/search — paginado y filtros
+// payload: { empresa?, cod_cliente?, cod_ruta?, page?, page_size? }
+export const searchDirRutas = async (payload) => {
+  const { data } = await api.post("/logistica/direccion-rutas/search", payload);
+  return data; // { count, next, previous, results: [...] }
+};
+
+// POST /direccion-rutas/detail — detalle por PK compuesta
+// payload: { empresa, cod_cliente, cod_direccion, cod_ruta }
+export const detailDirRuta = async (payload) => {
+  const { data } = await api.post("/logistica/direccion-rutas/detail", payload);
+  return data;
+};
+
+// POST /direccion-rutas — crear vínculo
+// payload: { empresa, cod_cliente, cod_direccion, cod_ruta }
+export const createDirRuta = async (payload) => {
+  const { data } = await api.post("/logistica/direccion-rutas", payload);
+  return data;
+};
+
+// POST /direccion-rutas/delete — eliminar vínculo (idempotente)
+// payload: { empresa, cod_cliente, cod_direccion, cod_ruta }
+export const deleteDirRuta = async (payload) => {
+  const { status } = await api.post("/logistica/direccion-rutas/delete", payload);
+  return status; // 204 esperado
+};
+
+// =====================
+// TRANSPORTISTA–RUTA (ST_TRANSPORTISTA_RUTA)
+// =====================
+
+// POST /transportista-ruta/search — paginado y filtros
+// payload: { empresa?, cod_transportista?, cod_ruta?, page?, page_size? }
+export const searchTRuta = async (payload = {}) => {
+  const { data } = await api.post("/logistica/transportista-ruta/search", payload);
+  console.log(data);
+  return data; // { count, next, previous, results: [...] }
+};
+
+// POST /transportista-ruta/detail — detalle por (codigo, empresa)
+// payload: { empresa, codigo }
+export const detailTRuta = async (payload) => {
+  const { data } = await api.post("/logistica/transportista-ruta/detail", payload);
+  return data;
+};
+
+// POST /transportista-ruta — crear vínculo
+// payload: { empresa, cod_transportista, cod_ruta }
+export const createTRuta = async (payload) => {
+  const { data } = await api.post("/logistica/transportista-ruta", payload);
+  return data; // { empresa, codigo, cod_transportista, cod_ruta, ... }
+};
+
+// POST /transportista-ruta/update — actualizar vínculo
+// payload: { empresa, codigo, cod_transportista?, cod_ruta? }
+export const updateTRuta = async (payload) => {
+  const { data } = await api.post("/logistica/transportista-ruta/update", payload);
+  return data;
+};
+
+// POST /transportista-ruta/delete — eliminar vínculo (idempotente)
+// payload: { empresa, codigo }
+export const deleteTRuta = async (payload) => {
+  const { status } = await api.post("/logistica/transportista-ruta/delete", payload);
+  return status; // 204 esperado
+};
+
+//GET CLIENTES CON DIRECCIONES
+
+export const getClientesConDirecciones = async ({
+  empresa,
+  page = 1,
+  page_size = 2000,
+  cod_cliente_like,
+  nombre_like,
+} = {}) => {
+  const { data } = await api.get("/logistica/clientes_con_direcciones", {
+    params: {
+      empresa,
+      page,
+      page_size,
+      cod_cliente_like,
+      nombre_like,
+    },
+  });
+  return data;
+};
+
+export const getDireccionesCliente = async ({
+  cod_cliente,
+  empresa,
+  page = 1,
+  page_size = 2000,
+} = {}) => {
+  if (!cod_cliente || !String(cod_cliente).trim()) {
+    throw new Error("El parámetro 'cod_cliente' es requerido.");
+  }
+
+  const { data } = await api.get("/logistica/clientes_direcciones", {
+    params: {
+      cod_cliente: String(cod_cliente).trim(),
+      empresa,
+      page,
+      page_size,
+    },
+  });
+  return data;
+};
+
+//Transportistas activos
+// Función para obtener la lista de transportistas de una empresa
+// GET /get_transportistas_moto?empresa=20
+export const getTransportistas = async (empresa) => {
+  // Acepta number | string. Forzamos a número si es posible.
+  const pnEmpresa = empresa != null ? Number(empresa) : undefined;
+
+  const { data } = await api.get("/get_transportistas_moto", {
+    params: { empresa: pnEmpresa },
+  });
+
+  return data; // arreglo de transportistas activos
+};

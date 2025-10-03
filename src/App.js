@@ -73,6 +73,7 @@ import Menus from "./components/Menus";
 import Details from "./components/Details";
 import Dispatch from "./components/Dispatch";
 import ReservasPedidosAdmin from "./components/logistica/reservation";
+import RutasAdmin from "./components/logistica/rutas";
 import Asignacion from "./components/Asignacion";
 import Presupuesto from "./components/Presupuesto";
 import Formule from "./components/Formule";
@@ -459,6 +460,16 @@ function App() {
                 element={
                   <Protected isLoggedIn={authorizedSystems.includes("LOG")}>
                     <ReservasPedidosAdmin />
+                  </Protected>
+                }
+              />
+
+              <Route
+                exact
+                path="/logistica/rutas"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("LOG")}>
+                    <RutasAdmin />
                   </Protected>
                 }
               />
