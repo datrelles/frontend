@@ -96,6 +96,7 @@ import { CreditoDirectoManager } from "./components/ventas/approveCredit";
 import { SellManagerB2B } from "./components/ventas/b2bCaseManager";
 import { AdminTallerUsuarios } from "./components/garantias/adminTallerUsuarios/adminTallerUsuarios";
 import { OpagoManager } from "./components/garantias/laborCase/laborCase";
+import { TransporteMotos } from "./components/logistica/transportistas";
 import CatChasis from "./components/marketing/catalogos/modelos/catChasis";
 import CatDimensionesPeso from "./components/marketing/catalogos/modelos/catDimensionesPeso";
 import CatElectronica from "./components/marketing/catalogos/modelos/catElectronica";
@@ -136,6 +137,7 @@ import Pedidos from "./components/mayoreo/pedidos";
 ///////////////////////////////////////////////////
 import FrmActivaciones from "./components/formularios/frm_activaciones";
 import FrmPromotoria from "./components/formularios/frm_visita_promotoria";
+import CDEAdmin from "./components/logistica/manageDesp";
 
 ///SellManagerB2B
 const API = process.env.REACT_APP_API;
@@ -474,6 +476,25 @@ function App() {
                 }
               />
 
+              <Route
+                exact
+                path="/logistica/admin"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("LOG")}>
+                    <CDEAdmin />
+                  </Protected>
+                }
+              />
+
+              <Route
+                exact
+                path="/logistica/transport"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("LOG")}>
+                    <TransporteMotos />
+                  </Protected>
+                }
+              />
 
 
               <Route

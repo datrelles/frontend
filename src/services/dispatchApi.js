@@ -445,3 +445,139 @@ export const getTransportistas = async (empresa) => {
 
   return data; // arreglo de transportistas activos
 };
+
+
+// =====================
+// >>> NUEVO: DESPACHOS FINAL (VT_DESPACHO_FINAL)
+// =====================
+
+/**
+ * POST /despachos/search
+ * Busca en la vista VT_DESPACHO_FINAL con filtros y paginación.
+ * @param {Object} payload - Campos según DespachoSearchIn:
+ * {
+ *   empresa: number (requerido),
+ *   cod_ruta?: number,
+ *   cod_tipo_pedido?: string,
+ *   cod_pedido?: string,
+ *   cod_tipo_orden?: string,
+ *   cod_orden?: string,
+ *   cod_cliente?: string,
+ *   cod_producto?: string,
+ *   cadena?: "RETAIL"|"MAYOREO",
+ *   fac_con?: "CONSIGNACION"|"FACTURACION",
+ *   transportista?: string,
+ *   destino?: string,
+ *   ruta?: string,
+ *   bod_destino?: string,
+ *   modelo?: string,
+ *   numero_serie?: string,
+ *   en_despacho?: 0|1,
+ *   despachada?: 0|1,
+ *   date_field?: "fecha_est_desp"|"fecha_despacho"|"fecha_envio"|"fecha_entrega",
+ *   fecha_desde?: string|Date, // se normaliza a YYYY-MM-DD
+ *   fecha_hasta?: string|Date, // se normaliza a YYYY-MM-DD
+ *   page?: number,
+ *   page_size?: number,
+ *   ordering?: string // ej: "-fecha_est_desp,cod_orden"
+ * }
+ * @returns {Promise<{count:number,next:number|null,previous:number|null,results:Array}>}
+ */
+export const searchDespachos = async (payload = {}) => {
+  // Normaliza fechas si vienen como Date
+  const body = {
+    ...payload,
+    fecha_desde: toISODate(payload.fecha_desde),
+    fecha_hasta: toISODate(payload.fecha_hasta),
+    // Si te gusta construir ordering desde objetos:
+    ordering: buildOrdering(payload.ordering),
+  };
+  const { data } = await api.post("/logistica/despachos/search", body);
+  return data;
+};
+
+// =====================
+// >>> NUEVO: CDE (Cabecera Despacho-Entrega)
+// =====================
+
+/**
+ * POST /cdespacho-entrega
+ * Crea una cabecera CDE.
+ * payload: { empresa:number, cod_transportista:string, cod_ruta:number, ...opcionales }
+ */
+export const createCDE = async (payload) => {
+  const { data } = await api.post("/logistica/cdespacho-entrega", payload);
+  return data; // { empresa, cde_codigo, cod_transportista, cod_ruta, ... }
+};
+
+/**
+ * PATCH /cdespacho-entrega/:empresa/:cde_codigo
+ * Actualiza parcialmente una cabecera CDE.
+ * payload: { fecha?, usuario?, cod_ruta?, observacion?, cod_persona?, cod_tipo_persona?, cod_transportista?, finalizado? }
+ */
+export const updateCDE = async (empresa, cde_codigo, payload) => {
+  const { data } = await api.patch(
+    `/logistica/cdespacho-entrega/${encodeURIComponent(empresa)}/${encodeURIComponent(cde_codigo)}`,
+    {
+      ...payload,
+      // Si envías fecha como Date, normaliza:
+      ...(payload?.fecha ? { fecha: toISODate(payload.fecha) } : {}),
+    }
+  );
+  return data;
+};
+
+/**
+ * POST /cdespacho-entrega/search
+ * Lista/pagina CDE con filtros.
+ * payload: { page?, page_size?, empresa?, cde_codigo?, cod_ruta?, cod_persona?, cod_tipo_persona?, cod_transportista?, finalizado? }
+ */
+export const searchCDE = async (payload = {}) => {
+  const { data } = await api.post("/logistica/cdespacho-entrega/search", payload);
+  return data; // { count,next,previous,results:[...] }
+};
+
+// =====================
+// >>> NUEVO: DDE (Detalle Despacho-Entrega)
+// =====================
+
+/**
+ * POST /ddespacho-entrega
+ * Crea un detalle de CDE.
+ * payload: { empresa:number, cde_codigo:number, cod_ddespacho?:number, cod_producto?:string, numero_serie?:string, fecha?:string|Date, observacion?:string }
+ */
+export const createDDE = async (payload) => {
+  const body = {
+    ...payload,
+    ...(payload?.fecha ? { fecha: toISODate(payload.fecha) } : {}),
+  };
+  const { data } = await api.post("/logistica/ddespacho-entrega", body);
+  return data; // { empresa,cde_codigo,secuencia,cod_ddespacho,cod_producto,numero_serie,fecha,observacion }
+};
+
+/**
+ * POST /ddespacho-entrega/list
+ * Lista detalles por CDE con paginación.
+ * payload: { empresa:number, cde_codigo:number, page?:number, per_page?:number }
+ */
+export const listDDE = async (payload) => {
+  const { data } = await api.post("/logistica/ddespacho-entrega/list", payload);
+  return data; // { page, per_page, total, pages, data:[...] }
+};
+
+/**
+ * PATCH /ddespacho-entrega/:empresa/:cde_codigo/:secuencia
+ * Actualiza parcialmente un detalle DDE.
+ * payload: { cod_ddespacho?, cod_producto?, numero_serie?, fecha?, observacion? }
+ */
+export const updateDDE = async (empresa, cde_codigo, secuencia, payload) => {
+  const body = {
+    ...payload,
+    ...(payload?.fecha ? { fecha: toISODate(payload.fecha) } : {}),
+  };
+  const { data } = await api.patch(
+    `/logistica/ddespacho-entrega/${encodeURIComponent(empresa)}/${encodeURIComponent(cde_codigo)}/${encodeURIComponent(secuencia)}`,
+    body
+  );
+  return data;
+};
