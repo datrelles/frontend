@@ -138,7 +138,8 @@ import Pedidos from "./components/mayoreo/pedidos";
 import FrmActivaciones from "./components/formularios/frm_activaciones";
 import FrmPromotoria from "./components/formularios/frm_visita_promotoria";
 import CDEAdmin from "./components/logistica/manageDesp";
-
+import DespachosControl from "./components/logistica/manageDespEntrega";
+import CDEMobile from "./components/logistica/manageDespMobile";
 ///SellManagerB2B
 const API = process.env.REACT_APP_API;
 function App() {
@@ -495,6 +496,27 @@ function App() {
                   </Protected>
                 }
               />
+
+              <Route
+                exact
+                path="/logistica/dispatch"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("LOG")}>
+                    <DespachosControl />
+                  </Protected>
+                }
+              />
+
+                <Route
+                exact
+                path="/logistica/despmovil"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("LOG")}>
+                    <CDEMobile />
+                  </Protected>
+                }
+              />
+
 
 
               <Route

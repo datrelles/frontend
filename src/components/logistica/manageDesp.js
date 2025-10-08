@@ -3,16 +3,19 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import {
   Box, Button, Dialog, DialogTitle, DialogContent, DialogActions, Grid, Stack, Typography,
-  TextField, Paper, IconButton, CircularProgress, Chip, MenuItem, Select, InputLabel, FormControl, LinearProgress
+  TextField, Paper, IconButton, CircularProgress, Chip, MenuItem, Select, InputLabel, FormControl, LinearProgress,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, TablePagination, InputAdornment
 } from "@mui/material";
 import Backdrop from "@mui/material/Backdrop";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-import SearchIcon from "@mui/icons-material/Search";
 import ListAltIcon from "@mui/icons-material/ListAlt";
+import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
+import SearchIcon from "@mui/icons-material/Search";
 import Autocomplete from "@mui/material/Autocomplete";
 import MUIDataTable from "mui-datatables";
 import Navbar0 from "../Navbar0";
@@ -22,7 +25,7 @@ import { useAuthContext } from "../../context/authContext";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// APIs — mismas rutas de services que tu proyecto
+// APIs
 import {
   setAuthToken,
   getMenus,
@@ -32,23 +35,12 @@ import {
   searchDespachos,
   // Selectores
   listRutas, searchTRuta,
+  // NUEVOS
+  generarGuiasDespacho,
+  deleteDDE,
 } from "../../services/dispatchApi";
 
 // ====== helpers ======
-const toISODate = (d) => {
-  if (!d) return "";
-  if (Object.prototype.toString.call(d) === "[object Date]" && !isNaN(d)) {
-    return d.toISOString().slice(0, 10);
-  }
-  return String(d).slice(0, 10);
-};
-const lastNDays = (n) => {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  return d;
-};
-
-// Tema tabla (igual que ejemplo)
 const getMuiTableTheme = () =>
   createTheme({
     components: {
@@ -76,17 +68,26 @@ const getMuiTableTheme = () =>
           },
         },
       },
-      MuiTable: {
-        styleOverrides: { root: { borderCollapse: "collapse" } },
-      },
-      MuiTableHead: {
-        styleOverrides: { root: { borderBottom: "5px solid #ddd" } },
-      },
-      MuiToolbar: {
-        styleOverrides: { regular: { minHeight: "10px" } },
-      },
+      MuiTable: { styleOverrides: { root: { borderCollapse: "collapse" } } },
+      MuiTableHead: { styleOverrides: { root: { borderBottom: "5px solid #ddd" } } },
+      MuiToolbar: { styleOverrides: { regular: { minHeight: "10px" } } },
     },
   });
+
+// Quita acentos y baja a minúsculas
+const norm = (s) =>
+  (String(s ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase());
+
+// Clave estable por fila (para selección persistente al filtrar/paginar)
+const rowKey = (r) => {
+  const dd = r?.cod_ddespacho ?? "NOID";
+  const pr = r?.cod_producto ?? "NOPROD";
+  const ns = r?.numero_serie ?? "NOSERIE";
+  return `${dd}__${pr}__${ns}`;
+};
 
 export default function CDEAdmin() {
   // ====== Auth & token ======
@@ -164,12 +165,11 @@ export default function CDEAdmin() {
   const [savingCDE, setSavingCDE] = useState(false);
   const [rowEditCDE, setRowEditCDE] = useState(null);
 
-  // --- NUEVO: selectores de Ruta y Transportista (sin direcciones)
+  // Selectores Ruta/Transportista
   const [rutasQuery, setRutasQuery] = useState("");
   const [loadingRutas, setLoadingRutas] = useState(false);
   const [rutasOpts, setRutasOpts] = useState([]);
   const [rutaSel, setRutaSel] = useState(null);
-
   const [transpOpts, setTranspOpts] = useState([]);
   const [transpSel, setTranspSel] = useState(null);
   const [loadingTransp, setLoadingTransp] = useState(false);
@@ -311,6 +311,26 @@ export default function CDEAdmin() {
     }
   };
 
+  // ====== NUEVO: GENERAR GUÍAS (por CDE)
+  const [generatingCDE, setGeneratingCDE] = useState(null); // cde_codigo en proceso
+
+  const handleGenerarGuias = async (row) => {
+    try {
+      setGeneratingCDE(row?.cde_codigo);
+      const resp = await generarGuiasDespacho({
+        empresa: Number(enterpriseShineray || row?.empresa),
+        despacho: Number(row?.cde_codigo),
+      });
+      const guias = Array.isArray(resp?.guias) ? resp.guias : [];
+      toast.success(`GUÍAS GENERADAS para CDE ${row?.cde_codigo}. Total: ${guias.length}`);
+      if (resp?.out_raw) console.log("GENERAR_GUIAS out_raw:", resp.out_raw);
+    } catch (e) {
+      toast.error(e?.message || "No se pudo generar guías.");
+    } finally {
+      setGeneratingCDE(null);
+    }
+  };
+
   // ======================
   // DETALLES (DDE)
   // ======================
@@ -321,12 +341,7 @@ export default function CDEAdmin() {
   const [ddePage, setDdePage] = useState(1);
   const [ddePageSize, setDdePageSize] = useState(50);
   const [loadingDDE, setLoadingDDE] = useState(false);
-
-  const openDDE = (row) => {
-    setCdeSel(row);
-    setOpenDDEModal(true);
-    setDdePage(1);
-  };
+  const [deletingSeq, setDeletingSeq] = useState(null); // NUEVO: secuencia en desasignación
 
   const cargarDDE = async (opts = {}) => {
     if (!cdeSel) return;
@@ -356,8 +371,7 @@ export default function CDEAdmin() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openDDEModal, cdeSel]);
 
-  // Crear DDE
-  const [savingDDE, setSavingDDE] = useState(false);
+  // Crear DDE (individual) — se mantiene el estado porque se precarga desde el diálogo de selección
   const [formAddDDE, setFormAddDDE] = useState({
     cod_ddespacho: "",
     cod_producto: "",
@@ -366,42 +380,7 @@ export default function CDEAdmin() {
     observacion: "",
   });
 
-  const handleCrearDDE = async () => {
-    if (!cdeSel) return;
-    const hasDispatch = String(formAddDDE.cod_ddespacho || "").trim() !== "";
-    const hasProdOrSerie =
-      String(formAddDDE.cod_producto || "").trim() !== "" ||
-      String(formAddDDE.numero_serie || "").trim() !== "";
-    if (!hasDispatch && !hasProdOrSerie) {
-      return toast.warning("Ingresa cod_ddespacho o (cod_producto y/o numero_serie).");
-    }
-    try {
-      setSavingDDE(true);
-      const payload = {
-        empresa: Number(cdeSel.empresa),
-        cde_codigo: Number(cdeSel.cde_codigo),
-        ...Object.fromEntries(
-          Object.entries(formAddDDE).filter(([_, v]) => String(v ?? "").trim() !== "")
-        ),
-      };
-      await createDDE(payload);
-      toast.success("Detalle creado.");
-      setFormAddDDE({
-        cod_ddespacho: "",
-        cod_producto: "",
-        numero_serie: "",
-        fecha: "",
-        observacion: "",
-      });
-      await cargarDDE({ page: 1 });
-    } catch (e) {
-      toast.error(e?.message || "No se pudo crear el detalle.");
-    } finally {
-      setSavingDDE(false);
-    }
-  };
-
-  // Editar DDE
+  // Editar DDE (se conserva por si lo reutilizamos)
   const [dlgEditarDDE, setDlgEditarDDE] = useState(false);
   const [rowEditDDE, setRowEditDDE] = useState(null);
   const [savingEditDDE, setSavingEditDDE] = useState(false);
@@ -450,44 +429,148 @@ export default function CDEAdmin() {
   };
 
   // ======================
-  // Buscar Despachos (para prellenar cod_ddespacho)
+  // Diálogo "Agregar DETALLE" — lista VT_DESPACHO_FINAL con búsqueda local
   // ======================
-  const [openDespSearch, setOpenDespSearch] = useState(false);
+  const [openDespDialog, setOpenDespDialog] = useState(false);
   const [loadingDesp, setLoadingDesp] = useState(false);
   const [despRows, setDespRows] = useState([]);
-  const [despCount, setDespCount] = useState(0);
-  const [despFilters, setDespFilters] = useState({
-    empresa: enterpriseShineray || 20
-  });
 
-  const buscarDespachos = async () => {
-    try {
-      setLoadingDesp(true);
-      const resp = await searchDespachos({
-        ...despFilters,
-        empresa: Number(despFilters.empresa),
-      });
-      setDespRows(Array.isArray(resp?.results) ? resp.results : []);
-      setDespCount(Number(resp?.count || 0));
-    } catch (e) {
-      toast.error(e?.message || "No se pudo buscar despachos.");
-    } finally {
-      setLoadingDesp(false);
+  // búsqueda local (cod_pedido, cliente)
+  const [searchSelQuery, setSearchSelQuery] = useState("");
+
+  // selección persistente
+  const [selectedKeys, setSelectedKeys] = useState(new Set());
+
+  // paginación local
+  const [selPage, setSelPage] = useState(0);
+  const [selRowsPerPage, setSelRowsPerPage] = useState(10);
+
+  const openAgregarDetalleDialog = () => {
+    setSelectedKeys(new Set());
+    setSearchSelQuery("");
+    setDespRows([]);
+    setSelPage(0);
+    setOpenDespDialog(true);
+  };
+
+  useEffect(() => {
+    const fetchDesp = async () => {
+      if (!openDespDialog || !cdeSel) return;
+      try {
+        setLoadingDesp(true);
+        // Filtro back-end:
+        const payload = {
+          empresa: Number(cdeSel?.empresa ?? enterpriseShineray ?? 20),
+          despachada: 0,
+          en_despacho: 0,
+          cod_ruta: Number(cdeSel?.cod_ruta ?? 0),
+          page: 1,
+          page_size: 100,
+        };
+        const resp = await searchDespachos(payload);
+
+        // Mostrar SOLO registros con cod_ddespacho
+        const rows = (Array.isArray(resp?.results) ? resp.results : []).filter(
+          (r) => r?.cod_ddespacho !== null && r?.cod_ddespacho !== undefined && String(r?.cod_ddespacho).trim() !== ""
+        );
+
+        setDespRows(rows);
+      } catch (e) {
+        toast.error(e?.message || "No se pudo cargar la lista de despachos.");
+      } finally {
+        setLoadingDesp(false);
+      }
+    };
+    fetchDesp();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openDespDialog]);
+
+  // Filtrado local por cod_pedido y cliente
+  const filteredDespRows = useMemo(() => {
+    const q = norm(searchSelQuery);
+    if (!q) return despRows;
+    return despRows.filter(r =>
+      norm(r?.cod_pedido).includes(q) || norm(r?.cliente).includes(q)
+    );
+  }, [despRows, searchSelQuery]);
+
+  // Resetear a primera página al cambiar el filtro
+  useEffect(() => { setSelPage(0); }, [searchSelQuery]);
+
+  const isSelected = (key) => selectedKeys.has(key);
+
+  const handleToggleRow = (key) => {
+    setSelectedKeys(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const handleToggleAllPage = (checked, pageRows) => {
+    setSelectedKeys(prev => {
+      const next = new Set(prev);
+      for (const r of pageRows) {
+        const k = rowKey(r);
+        if (checked) next.add(k);
+        else next.delete(k);
+      }
+      return next;
+    });
+  };
+
+  const handleSelPageChange = (_e, newPage) => setSelPage(newPage);
+  const handleSelRowsPerPage = (e) => { setSelRowsPerPage(parseInt(e.target.value, 10)); setSelPage(0); };
+
+  const handleConfirmSeleccionados = async () => {
+    if (!cdeSel) return;
+    if (selectedKeys.size === 0) {
+      toast.info("Selecciona al menos un registro.");
+      return;
     }
+    const selectedInOrder = despRows.filter(r => selectedKeys.has(rowKey(r)));
+
+    let ok = 0, fail = 0;
+    for (const row of selectedInOrder) {
+      const cod_ddespacho = row?.cod_ddespacho;
+      const cod_producto = row?.cod_producto ?? "";
+      const numero_serie = row?.numero_serie ?? "";
+      if (!cod_ddespacho) { fail++; continue; }
+      try {
+        await createDDE({
+          cod_producto,
+          numero_serie,
+          observacion: "Agregado desde selección",
+          empresa: Number(cdeSel.empresa),
+          cde_codigo: Number(cdeSel.cde_codigo),
+          cod_ddespacho,
+        });
+        ok++;
+      } catch {
+        fail++;
+      }
+    }
+
+    toast.success(`Agregados: ${ok}. Fallidos: ${fail}.`);
+    setOpenDespDialog(false);
+    setSelectedKeys(new Set());
+    await cargarDDE({ page: 1 });
   };
 
   const pickDespToForm = (row) => {
     setFormAddDDE((f) => ({
       ...f,
-      cod_ddespacho: row?.cod_ddespacho ?? row?.cod_orden ?? "",
+      cod_ddespacho: row?.cod_ddespacho ?? "",
+      cod_producto: row?.cod_producto ?? "",
+      numero_serie: row?.numero_serie ?? "",
     }));
-    toast.info("Código de despacho precargado en el formulario del detalle.");
+    toast.info("Datos precargados en el formulario del detalle.");
   };
 
-  // ===== Columns / DataTable =====
+  // ===== Columns / DataTable principal =====
   const cdeColumns = useMemo(
     () => [
-      { name: "empresa", label: "Empresa" },
       { name: "cde_codigo", label: "CDE" },
       {
         name: "cod_ruta",
@@ -495,7 +578,7 @@ export default function CDEAdmin() {
         options: {
           customBodyRenderLite: (idx) => {
             const r = cdeRows[idx];
-            return `${r.cod_ruta ?? ""} — ${r.nombre_ruta ?? "-"}`;
+            return `${r.nombre_ruta ?? "-"}`;
           },
         },
       },
@@ -505,7 +588,7 @@ export default function CDEAdmin() {
         options: {
           customBodyRenderLite: (idx) => {
             const r = cdeRows[idx];
-            return `${r.cod_transportista ?? ""} — ${r.nombre_transportista ?? "-"}`;
+            return `${r.nombre_transportista ?? "-"}`;
           },
         },
       },
@@ -530,6 +613,7 @@ export default function CDEAdmin() {
           sort: false, filter: false,
           customBodyRenderLite: (idx) => {
             const row = cdeRows[idx];
+            const isGenerating = generatingCDE === row?.cde_codigo;
             return (
               <Stack direction="row" spacing={1}>
                 <Button
@@ -539,7 +623,7 @@ export default function CDEAdmin() {
                   onClick={() => { setCdeSel(row); setOpenDDEModal(true); }}
                   sx={{ textTransform: "none", borderColor: "firebrick", color: "firebrick" }}
                 >
-                  Detalles
+                  Detalle
                 </Button>
                 <Button
                   size="small"
@@ -550,6 +634,15 @@ export default function CDEAdmin() {
                 >
                   Editar
                 </Button>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={() => handleGenerarGuias(row)}
+                  disabled={isGenerating}
+                  sx={{ textTransform: "none", bgcolor: "firebrick", ":hover": { bgcolor: "#8f1a1a" } }}
+                >
+                  {isGenerating ? <CircularProgress size={16} sx={{ color: "#fff" }} /> : "GENERAR"}
+                </Button>
               </Stack>
             );
           },
@@ -557,7 +650,7 @@ export default function CDEAdmin() {
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [cdeRows]
+    [cdeRows, generatingCDE]
   );
 
   const cdeOptions = {
@@ -583,7 +676,7 @@ export default function CDEAdmin() {
 
   // Backdrop global
   const busy =
-    loadingCDE || savingCDE || loadingDDE || savingDDE || savingEditDDE || loadingDesp;
+    loadingCDE || savingCDE || loadingDDE || savingEditDDE || loadingDesp;
 
   // ===== Render =====
   return (
@@ -600,7 +693,7 @@ export default function CDEAdmin() {
       >
         <Stack spacing={0}>
           <Typography variant="h6" sx={{ fontWeight: 250 }}>
-            Administración de CDE (Cabeceras de Despacho–Entrega)
+            Administración de  Despacho–Entrega
           </Typography>
         </Stack>
 
@@ -619,47 +712,6 @@ export default function CDEAdmin() {
       {/* Controles de filtros + paginación */}
       <Paper variant="outlined" sx={{ p: 2, mb: 0 }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={2.2}>
-            <TextField
-              size="small" fullWidth type="number"
-              label="Empresa"
-              value={fEmpresa}
-              onChange={(e) => setFEmpresa(Number(e.target.value || 0))}
-            />
-          </Grid>
-          <Grid item xs={12} md={2.2}>
-            <TextField
-              size="small" fullWidth
-              label="Cod. Ruta"
-              value={fCodRuta}
-              onChange={(e) => setFCodRuta(e.target.value.replace(/\D+/g, ""))}
-              inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
-            />
-          </Grid>
-          <Grid item xs={12} md={2.6}>
-            <TextField
-              size="small" fullWidth
-              label="Cod. Transportista (≤14)"
-              value={fCodTransportista}
-              onChange={(e) => setFCodTransportista(e.target.value.slice(0, 14))}
-              inputProps={{ maxLength: 14 }}
-            />
-          </Grid>
-          <Grid item xs={12} md={2.4}>
-            <FormControl size="small" fullWidth>
-              <InputLabel id="finalizado-label">Finalizado</InputLabel>
-              <Select
-                labelId="finalizado-label" label="Finalizado"
-                value={fFinalizado}
-                onChange={(e) => setFFinalizado(e.target.value)}
-              >
-                <MenuItem value="">(Todos)</MenuItem>
-                <MenuItem value={0}>No</MenuItem>
-                <MenuItem value={1}>Sí</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-
           <Grid item xs={12} md="auto">
             <Stack direction="row" spacing={1} alignItems="center">
               <Button
@@ -802,53 +854,6 @@ export default function CDEAdmin() {
         </DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2}>
-            <TextField label="Empresa" value={rowEditCDE?.empresa ?? ""} size="small" fullWidth InputProps={{ readOnly: true }} />
-            <TextField label="CDE" value={rowEditCDE?.cde_codigo ?? ""} size="small" fullWidth InputProps={{ readOnly: true }} />
-
-            <TextField
-              label="Fecha (YYYY-MM-DD)"
-              size="small" fullWidth
-              value={formEditar.fecha}
-              onChange={(e) => setFormEditar((s) => ({ ...s, fecha: e.target.value }))}
-            />
-            <TextField
-              label="Usuario"
-              size="small" fullWidth
-              value={formEditar.usuario}
-              onChange={(e) => setFormEditar((s) => ({ ...s, usuario: e.target.value }))}
-            />
-            <TextField
-              label="Cod. Ruta (int)"
-              size="small" fullWidth
-              value={formEditar.cod_ruta}
-              onChange={(e) => setFormEditar((s) => ({ ...s, cod_ruta: e.target.value.replace(/\D+/g, "") }))}
-              inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
-            />
-            <TextField
-              label="Observación"
-              size="small" fullWidth
-              value={formEditar.observacion}
-              onChange={(e) => setFormEditar((s) => ({ ...s, observacion: e.target.value }))}
-            />
-            <TextField
-              label="Cod. Persona"
-              size="small" fullWidth
-              value={formEditar.cod_persona}
-              onChange={(e) => setFormEditar((s) => ({ ...s, cod_persona: e.target.value }))}
-            />
-            <TextField
-              label="Tipo Persona"
-              size="small" fullWidth
-              value={formEditar.cod_tipo_persona}
-              onChange={(e) => setFormEditar((s) => ({ ...s, cod_tipo_persona: e.target.value }))}
-            />
-            <TextField
-              label="Cod. Transportista (≤14)"
-              size="small" fullWidth
-              value={formEditar.cod_transportista}
-              onChange={(e) => setFormEditar((s) => ({ ...s, cod_transportista: e.target.value.slice(0, 14) }))}
-              inputProps={{ maxLength: 14 }}
-            />
             <FormControl size="small" fullWidth>
               <InputLabel id="finalizado-edit">Finalizado</InputLabel>
               <Select
@@ -880,155 +885,22 @@ export default function CDEAdmin() {
       {/* ====== Modal: Detalles (DDE) ====== */}
       <Dialog open={openDDEModal} onClose={() => setOpenDDEModal(false)} maxWidth="lg" fullWidth>
         <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          Detalles — CDE {cdeSel ? `${cdeSel.cde_codigo} (Emp ${cdeSel.empresa})` : ""}
+          SERIES ASIGNADAS
           <IconButton onClick={() => setOpenDDEModal(false)} size="small"><CloseIcon /></IconButton>
         </DialogTitle>
         <DialogContent dividers>
-          {/* Alta de DDE */}
-          <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>Agregar detalle</Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={2.4}>
-                <TextField
-                  label="cod_ddespacho" size="small" fullWidth
-                  value={formAddDDE.cod_ddespacho}
-                  onChange={(e) => setFormAddDDE((s) => ({ ...s, cod_ddespacho: e.target.value }))}
-                />
-              </Grid>
-              <Grid item xs={12} md={2.4}>
-                <TextField
-                  label="cod_producto" size="small" fullWidth
-                  value={formAddDDE.cod_producto}
-                  onChange={(e) => setFormAddDDE((s) => ({ ...s, cod_producto: e.target.value }))}
-                />
-              </Grid>
-              <Grid item xs={12} md={2.4}>
-                <TextField
-                  label="numero_serie" size="small" fullWidth
-                  value={formAddDDE.numero_serie}
-                  onChange={(e) => setFormAddDDE((s) => ({ ...s, numero_serie: e.target.value }))}
-                />
-              </Grid>
-              <Grid item xs={12} md={2.4}>
-                <TextField
-                  label="fecha (YYYY-MM-DD)" size="small" fullWidth
-                  value={formAddDDE.fecha}
-                  onChange={(e) => setFormAddDDE((s) => ({ ...s, fecha: e.target.value }))}
-                />
-              </Grid>
-              <Grid item xs={12} md={2.4}>
-                <TextField
-                  label="observación" size="small" fullWidth
-                  value={formAddDDE.observacion}
-                  onChange={(e) => setFormAddDDE((s) => ({ ...s, observacion: e.target.value }))}
-                />
-              </Grid>
-              <Grid item xs={12} md="auto">
-                <Button
-                  variant="contained"
-                  onClick={handleCrearDDE}
-                  disabled={savingDDE}
-                  startIcon={savingDDE ? <CircularProgress size={16} /> : <AddCircleOutlineIcon />}
-                  sx={{ bgcolor: "firebrick", ":hover": { bgcolor: "#8f1a1a" } }}
-                >
-                  {savingDDE ? "Guardando..." : "Agregar"}
-                </Button>
-              </Grid>
-              <Grid item xs={12} md="auto">
-                <Button
-                  variant="outlined"
-                  onClick={() => setOpenDespSearch((v) => !v)}
-                  startIcon={<SearchIcon />}
-                  sx={{ borderColor: "firebrick", color: "firebrick" }}
-                >
-                  {openDespSearch ? "Ocultar despachos" : "Buscar despachos"}
-                </Button>
-              </Grid>
-            </Grid>
-
-            {/* Buscador de Despachos */}
-            {openDespSearch && (
-              <Box sx={{ mt: 2 }}>
-                <Grid container spacing={2} alignItems="center">
-                  <Grid item xs={12} md={2}>
-                    <TextField
-                      label="Empresa" size="small" fullWidth type="number"
-                      value={despFilters.empresa}
-                      onChange={(e) =>
-                        setDespFilters((s) => ({ ...s, empresa: Number(e.target.value || 0) }))
-                      }
-                    />
-                  </Grid>
-                
-                  <Grid item xs={12} md="auto">
-                    <Button
-                      variant="outlined"
-                      onClick={buscarDespachos}
-                      startIcon={loadingDesp ? <CircularProgress size={16} /> : <SearchIcon />}
-                      disabled={loadingDesp}
-                      sx={{ borderColor: "firebrick", color: "firebrick" }}
-                    >
-                      {loadingDesp ? "Buscando..." : "Buscar"}
-                    </Button>
-                  </Grid>
-                </Grid>
-
-                {loadingDesp && <LinearProgress sx={{ mt: 1 }} />}
-
-                <Box sx={{ mt: 1, maxHeight: 260, overflow: "auto" }}>
-                  <ThemeProvider theme={getMuiTableTheme()}>
-                    <MUIDataTable
-                      title={""}
-                      data={despRows}
-                      columns={[
-                        { name: "cod_pedido", label: "Pedido" },
-                        { name: "cod_orden", label: "Orden" },
-                        { name: "ruc_cliente", label: "Cliente" },
-                        { name: "ruta", label: "Ruta" },
-                        { name: "destino", label: "Destino" },
-                        {
-                          name: "acciones",
-                          label: "Usar",
-                          options: {
-                            sort: false, filter: false,
-                            customBodyRenderLite: (idx) => {
-                              const row = despRows[idx];
-                              return (
-                                <Button
-                                  size="small"
-                                  onClick={() => pickDespToForm(row)}
-                                  variant="outlined"
-                                  sx={{ textTransform: "none", borderColor: "firebrick", color: "firebrick" }}
-                                >
-                                  Usar
-                                </Button>
-                              );
-                            },
-                          },
-                        },
-                      ]}
-                      options={{
-                        selectableRows: "none",
-                        rowsPerPage: 10,
-                        elevation: 0,
-                        responsive: "standard",
-                        download: false,
-                        print: false,
-                        filter: false,
-                        search: false,
-                        textLabels: {
-                          body: { noMatch: loadingDesp ? "Cargando..." : "Sin resultados" },
-                          pagination: { next: "Siguiente", previous: "Anterior", rowsPerPage: "Filas por página:", displayRows: "de" },
-                        },
-                      }}
-                    />
-                  </ThemeProvider>
-                </Box>
-              </Box>
-            )}
-          </Paper>
-
-          {/* Tabla DDE */}
+          {/* Acciones superiores */}
+          <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+            <Button
+              variant="outlined"
+              startIcon={<PlaylistAddIcon />}
+              onClick={openAgregarDetalleDialog}
+              sx={{ borderColor: "firebrick", color: "firebrick" }}
+            >
+              Agregar series
+            </Button>
+          </Stack>
+          {/* Tabla DDE (principal) */}
           <ThemeProvider theme={getMuiTableTheme()}>
             <MUIDataTable
               title={""}
@@ -1047,15 +919,30 @@ export default function CDEAdmin() {
                     sort: false, filter: false,
                     customBodyRenderLite: (idx) => {
                       const row = ddeRows[idx];
+                      const isDeleting = deletingSeq === row?.secuencia;
                       return (
                         <Button
                           size="small"
                           variant="outlined"
-                          startIcon={<EditIcon />}
-                          onClick={() => openEditarDDE(row)}
+                          startIcon={isDeleting ? <CircularProgress size={14} /> : <DeleteOutlineIcon />}
+                          onClick={async () => {
+                            if (!cdeSel) return;
+                            const ok = window.confirm(`¿Desasignar la serie ${row?.numero_serie} (seq ${row?.secuencia})?`);
+                            if (!ok) return;
+                            try {
+                              setDeletingSeq(row?.secuencia);
+                              await deleteDDE(Number(cdeSel.empresa), Number(cdeSel.cde_codigo), Number(row?.secuencia));
+                              toast.success("Serie desasignada.");
+                              await cargarDDE({ page: ddePage });
+                            } catch (e) {
+                              toast.error(e?.message || "No se pudo desasignar.");
+                            } finally {
+                              setDeletingSeq(null);
+                            }
+                          }}
                           sx={{ textTransform: "none", borderColor: "firebrick", color: "firebrick" }}
                         >
-                          Editar
+                          Desasignar
                         </Button>
                       );
                     },
@@ -1119,51 +1006,170 @@ export default function CDEAdmin() {
         </DialogActions>
       </Dialog>
 
-      {/* Editar DDE */}
-      <Dialog open={dlgEditarDDE} onClose={closeEditarDDE} maxWidth="sm" fullWidth>
+      {/* Diálogo de selección con TABLA MUI estándar + BÚSQUEDA (pedido/cliente) */}
+      <Dialog
+        open={openDespDialog}
+        onClose={() => setOpenDespDialog(false)}
+        maxWidth="xl"
+        fullWidth
+        PaperProps={{
+          sx: {
+            width: "85vw",
+            maxWidth: "85vw",
+          },
+        }}
+      >
         <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          Editar detalle — Secuencia {rowEditDDE?.secuencia ?? ""}
-          <IconButton onClick={closeEditarDDE} size="small" disabled={savingEditDDE}><CloseIcon /></IconButton>
+          Seleccionar registros de VT_DESPACHO_FINAL
+          <IconButton onClick={() => setOpenDespDialog(false)} size="small"><CloseIcon /></IconButton>
         </DialogTitle>
         <DialogContent dividers>
-          <Stack spacing={2}>
+          {/* Buscador local por cod_pedido y cliente */}
+          <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
             <TextField
-              label="cod_ddespacho" size="small" fullWidth
-              value={formEditDDE.cod_ddespacho}
-              onChange={(e) => setFormEditDDE((s) => ({ ...s, cod_ddespacho: e.target.value }))}
-            />
-            <TextField
-              label="cod_producto" size="small" fullWidth
-              value={formEditDDE.cod_producto}
-              onChange={(e) => setFormEditDDE((s) => ({ ...s, cod_producto: e.target.value }))}
-            />
-            <TextField
-              label="numero_serie" size="small" fullWidth
-              value={formEditDDE.numero_serie}
-              onChange={(e) => setFormEditDDE((s) => ({ ...s, numero_serie: e.target.value }))}
-            />
-            <TextField
-              label="fecha (YYYY-MM-DD)" size="small" fullWidth
-              value={formEditDDE.fecha}
-              onChange={(e) => setFormEditDDE((s) => ({ ...s, fecha: e.target.value }))}
-            />
-            <TextField
-              label="observación" size="small" fullWidth
-              value={formEditDDE.observacion}
-              onChange={(e) => setFormEditDDE((s) => ({ ...s, observacion: e.target.value }))}
+              size="small"
+              fullWidth
+              placeholder="Buscar por pedido o cliente..."
+              value={searchSelQuery}
+              onChange={(e) => setSearchSelQuery(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
             />
           </Stack>
+
+          {loadingDesp && <LinearProgress sx={{ mb: 1 }} />}
+
+          <Paper variant="outlined">
+            <TableContainer sx={{ maxHeight: 540 }}>
+              <Table size="small" stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    <TableCell padding="checkbox" sx={{ backgroundColor: "firebrick", color: "#fff" }}>
+                      {/* Checkbox seleccionar página */}
+                      <Checkbox
+                        size="small"
+                        sx={{ color: "#fff" }}
+                        indeterminate={
+                          (() => {
+                            const start = selPage * selRowsPerPage;
+                            const end = Math.min(filteredDespRows.length, start + selRowsPerPage);
+                            const pageItems = filteredDespRows.slice(start, end);
+                            const selectedCount = pageItems.reduce((acc, it) => acc + (selectedKeys.has(rowKey(it)) ? 1 : 0), 0);
+                            return selectedCount > 0 && selectedCount < pageItems.length;
+                          })()
+                        }
+                        checked={
+                          (() => {
+                            const start = selPage * selRowsPerPage;
+                            const end = Math.min(filteredDespRows.length, start + selRowsPerPage);
+                            const pageItems = filteredDespRows.slice(start, end);
+                            return pageItems.length > 0 && pageItems.every(it => selectedKeys.has(rowKey(it)));
+                          })()
+                        }
+                        onChange={(e) => {
+                          const start = selPage * selRowsPerPage;
+                          const end = Math.min(filteredDespRows.length, start + selRowsPerPage);
+                          const pageItems = filteredDespRows.slice(start, end);
+                          handleToggleAllPage(e.target.checked, pageItems);
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ backgroundColor: "firebrick", color: "#fff", fontWeight: "bold" }}>Pedido</TableCell>
+                    <TableCell sx={{ backgroundColor: "firebrick", color: "#fff", fontWeight: "bold" }}>Orden</TableCell>
+                    <TableCell sx={{ backgroundColor: "firebrick", color: "#fff", fontWeight: "bold" }}>Cliente</TableCell>
+                    <TableCell sx={{ backgroundColor: "firebrick", color: "#fff", fontWeight: "bold" }}>Ruta</TableCell>
+                    <TableCell sx={{ backgroundColor: "firebrick", color: "#fff", fontWeight: "bold" }}>Destino</TableCell>
+                    <TableCell sx={{ backgroundColor: "firebrick", color: "#fff", fontWeight: "bold" }}>cod_ddespacho</TableCell>
+                    <TableCell sx={{ backgroundColor: "firebrick", color: "#fff", fontWeight: "bold" }}>cod_producto</TableCell>
+                    <TableCell sx={{ backgroundColor: "firebrick", color: "#fff", fontWeight: "bold" }}>numero_serie</TableCell>
+                    <TableCell sx={{ backgroundColor: "firebrick", color: "#fff", fontWeight: "bold" }} align="center">Usar</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredDespRows
+                    .slice(selPage * selRowsPerPage, selPage * selRowsPerPage + selRowsPerPage)
+                    .map((row) => {
+                      const key = rowKey(row);
+                      const selected = isSelected(key);
+                      return (
+                        <TableRow
+                          key={key}
+                          hover
+                          selected={selected}
+                          sx={{ cursor: "pointer" }}
+                          onClick={(e) => {
+                            if (e.target.closest?.("button")) return;
+                            handleToggleRow(key);
+                          }}
+                        >
+                          <TableCell padding="checkbox">
+                            <Checkbox
+                              size="small"
+                              checked={selected}
+                              onChange={() => handleToggleRow(key)}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </TableCell>
+                          <TableCell>{row?.cod_pedido}</TableCell>
+                          <TableCell>{row?.cod_orden}</TableCell>
+                          <TableCell>{row?.cliente}</TableCell>
+                          <TableCell>{row?.ruta}</TableCell>
+                          <TableCell>{row?.destino}</TableCell>
+                          <TableCell>{row?.cod_ddespacho}</TableCell>
+                          <TableCell>{row?.cod_producto}</TableCell>
+                          <TableCell>{row?.numero_serie}</TableCell>
+                          <TableCell align="center">
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={(e) => { e.stopPropagation(); pickDespToForm(row); }}
+                              sx={{ textTransform: "none", borderColor: "firebrick", color: "firebrick" }}
+                            >
+                              Usar
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+
+                  {(!loadingDesp && filteredDespRows.length === 0) && (
+                    <TableRow>
+                      <TableCell colSpan={10} align="center" sx={{ py: 3, color: "#888" }}>
+                        Sin resultados
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            <TablePagination
+              component="div"
+              rowsPerPageOptions={[5, 10, 20, 50]}
+              count={filteredDespRows.length}
+              rowsPerPage={selRowsPerPage}
+              page={selPage}
+              onPageChange={handleSelPageChange}
+              onRowsPerPageChange={handleSelRowsPerPage}
+              labelRowsPerPage="Filas por página:"
+            />
+          </Paper>
         </DialogContent>
         <DialogActions>
-          <Button variant="outlined" onClick={closeEditarDDE} disabled={savingEditDDE}>Cancelar</Button>
+          <Button variant="outlined" onClick={() => setOpenDespDialog(false)}>Cancelar</Button>
           <Button
             variant="contained"
-            onClick={handleGuardarEdicionDDE}
-            disabled={savingEditDDE}
-            startIcon={savingEditDDE ? <CircularProgress size={16} /> : null}
+            onClick={handleConfirmSeleccionados}
+            disabled={selectedKeys.size === 0}
+            startIcon={<PlaylistAddIcon />}
             sx={{ bgcolor: "firebrick", ":hover": { bgcolor: "#8f1a1a" } }}
           >
-            {savingEditDDE ? "Guardando..." : "Guardar cambios"}
+            Confirmar ({selectedKeys.size})
           </Button>
         </DialogActions>
       </Dialog>

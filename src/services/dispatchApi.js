@@ -486,11 +486,7 @@ export const getTransportistas = async (empresa) => {
 export const searchDespachos = async (payload = {}) => {
   // Normaliza fechas si vienen como Date
   const body = {
-    ...payload,
-    fecha_desde: toISODate(payload.fecha_desde),
-    fecha_hasta: toISODate(payload.fecha_hasta),
-    // Si te gusta construir ordering desde objetos:
-    ordering: buildOrdering(payload.ordering),
+    ...payload
   };
   const { data } = await api.post("/logistica/despachos/search", body);
   return data;
@@ -547,6 +543,7 @@ export const searchCDE = async (payload = {}) => {
  * payload: { empresa:number, cde_codigo:number, cod_ddespacho?:number, cod_producto?:string, numero_serie?:string, fecha?:string|Date, observacion?:string }
  */
 export const createDDE = async (payload) => {
+  console.log("Creating DDE:", payload);
   const body = {
     ...payload,
     ...(payload?.fecha ? { fecha: toISODate(payload.fecha) } : {}),
@@ -580,4 +577,157 @@ export const updateDDE = async (empresa, cde_codigo, secuencia, payload) => {
     body
   );
   return data;
+};
+
+// =====================
+// GENERAR GUÍAS (PROC KS_DESPACHOS.GENERAR_GUIAS_FINALES)
+// =====================
+/**
+ * POST /despachos/generar-guias
+ * payload: { empresa: number, despacho: number }
+ * Respuesta: { empresa, despacho, guias: string[], out_raw: string }
+ */
+export const generarGuiasDespacho = async ({ empresa, despacho }) => {
+  if (empresa == null || despacho == null) {
+    throw new Error("empresa y despacho son requeridos");
+  }
+  const { data } = await api.post("logistica/despachos/generar-guias", {
+    empresa: Number(empresa),
+    despacho: Number(despacho),
+  });
+  return data;
+};
+
+// =====================
+// TG_USUARIO_VEND (usuarios-vend)
+// =====================
+/**
+ * Crear usuario-vendedor
+ * POST /usuarios-vend
+ */
+export const tguvCreate = async (payload) => {
+  const { data } = await api.post("/usuarios-vend", payload);
+  return data;
+};
+
+/**
+ * Buscar usuarios-vend (paginado/filtros)
+ * POST /usuarios-vend/search
+ * Respuesta: { page, per_page, total, pages, data: [...] }
+ */
+export const tguvSearch = async (payload = {}) => {
+  const { data } = await api.post("/usuarios-vend/search", payload);
+  return data;
+};
+
+/**
+ * Actualizar (PUT/PATCH) un registro específico por PK compuesta
+ * /usuarios-vend/:cod_persona/:cod_tipo_persona/:cod_agencia/:empresa/:usuario_oracle
+ */
+export const tguvUpdate = async (
+  { cod_persona, cod_tipo_persona, cod_agencia, empresa, usuario_oracle },
+  payload,
+  { method = "PATCH" } = {}
+) => {
+  if (
+    !cod_persona ||
+    !cod_tipo_persona ||
+    cod_agencia == null ||
+    empresa == null ||
+    !usuario_oracle
+  ) {
+    throw new Error(
+      "cod_persona, cod_tipo_persona, cod_agencia, empresa y usuario_oracle son requeridos"
+    );
+  }
+
+  const url = `/usuarios-vend/${encodeURIComponent(cod_persona)}/${encodeURIComponent(
+    cod_tipo_persona
+  )}/${encodeURIComponent(cod_agencia)}/${encodeURIComponent(empresa)}/${encodeURIComponent(
+    usuario_oracle
+  )}`;
+
+  const m = String(method).toUpperCase() === "PUT" ? "put" : "patch";
+  const { data } = await api[m](url, payload);
+  return data;
+};
+
+// =====================
+// ST_CDESPACHO UPDATE
+// =====================
+/**
+ * PUT/PATCH /cdespacho/:empresa/:cod_despacho
+ */
+export const updateCDespacho = async (empresa, cod_despacho, payload, { method = "PATCH" } = {}) => {
+  if (empresa == null || cod_despacho == null) {
+    throw new Error("empresa y cod_despacho son requeridos");
+  }
+
+  const url = `/cdespacho/${encodeURIComponent(empresa)}/${encodeURIComponent(cod_despacho)}`;
+
+  const norm = (d) => (typeof toISODate === "function" ? toISODate(d) : d);
+  const body = { ...payload };
+  if (body?.fecha_agrega instanceof Date) body.fecha_agrega = norm(body.fecha_agrega);
+  if (body?.fecha_est_desp instanceof Date) body.fecha_est_desp = norm(body.fecha_est_desp);
+  if (body?.fecha_entrega instanceof Date) body.fecha_entrega = norm(body.fecha_entrega);
+
+  const m = String(method).toUpperCase() === "PUT" ? "put" : "patch";
+  const { data } = await api[m](url, body);
+  return data;
+};
+
+// =====================
+// ST_DDESPACHO UPDATE
+// =====================
+/**
+ * PUT/PATCH /ddespacho/:empresa/:cod_despacho/:cod_ddespacho
+ */
+export const updateDDespacho = async (
+  empresa,
+  cod_despacho,
+  cod_ddespacho,
+  payload,
+  { method = "PATCH" } = {}
+) => {
+  if (empresa == null || cod_despacho == null || cod_ddespacho == null) {
+    throw new Error("empresa, cod_despacho y cod_ddespacho son requeridos");
+  }
+
+  const url = `/ddespacho/${encodeURIComponent(empresa)}/${encodeURIComponent(
+    cod_despacho
+  )}/${encodeURIComponent(cod_ddespacho)}`;
+
+  const body = { ...payload };
+  if (body?.fecha_despacho instanceof Date) {
+    body.fecha_despacho =
+      typeof toISODate === "function" ? toISODate(body.fecha_despacho) : body.fecha_despacho;
+  }
+
+  const m = String(method).toUpperCase() === "PUT" ? "put" : "patch";
+  const { data } = await api[m](url, body);
+  return data;
+};
+
+
+// =====================
+// DDE: DELETE /ddespacho-entrega/:empresa/:cde_codigo/:secuencia
+// =====================
+export const deleteDDE = async (empresa, cde_codigo, secuencia) => {
+  if (empresa == null || cde_codigo == null || secuencia == null) {
+    throw new Error("empresa, cde_codigo y secuencia son requeridos");
+  }
+
+  try {
+    const { data } = await api.delete(
+      `/logistica/ddespacho-entrega/${encodeURIComponent(empresa)}/${encodeURIComponent(
+        cde_codigo
+      )}/${encodeURIComponent(secuencia)}`
+    );
+    return data; // { detail: "Eliminado" }
+  } catch (err) {
+    // El backend devuelve { detail: "..."} en 404/409. Lo exponemos como mensaje.
+    const detail = err?.response?.data?.detail;
+    if (detail) throw new Error(detail);
+    throw err;
+  }
 };

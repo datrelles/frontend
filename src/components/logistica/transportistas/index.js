@@ -231,7 +231,7 @@ export const TransporteMotos = () => {
   useEffect(() => {
     const menu = async () => {
       try {
-        const data = await getMenus(userShineray, enterpriseShineray, 'VE', jwt)
+        const data = await getMenus(userShineray, enterpriseShineray, 'LOG', jwt)
         setMenus(data)
 
       }
