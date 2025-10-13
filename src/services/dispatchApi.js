@@ -735,7 +735,7 @@ export const deleteDDE = async (empresa, cde_codigo, secuencia) => {
 };
 
 
-export const getListOfVendors = async (empresa, cod_agencia) => {
+export const getListOfVendors = async (empresa, cod_agencia, userShineray) => {
   if (empresa == null || cod_agencia == null) {
     throw new Error("empresa y cod_agencia son requeridos");
   }
@@ -743,6 +743,7 @@ export const getListOfVendors = async (empresa, cod_agencia) => {
     params: {
       empresa: Number(empresa),
       cod_agencia: Number(cod_agencia),
+      user_shineray: String(userShineray || ""),
     },
   });
   return data;
