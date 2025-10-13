@@ -496,7 +496,7 @@ export default function CDEAdmin() {
   useEffect(() => {
     const LoadgetListOfVendors = async () => {
       try {
-        const data = await getListOfVendors(enterpriseShineray, branchShineray);
+        const data = await getListOfVendors(enterpriseShineray, branchShineray, userShineray);
         setListOfVendors(data);
       } catch (error) {
         console.error("Error fetching vendors:", error);
