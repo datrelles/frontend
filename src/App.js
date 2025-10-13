@@ -137,7 +137,7 @@ import Pedidos from "./components/mayoreo/pedidos";
 ///////////////////////////////////////////////////
 import FrmActivaciones from "./components/formularios/frm_activaciones";
 import FrmPromotoria from "./components/formularios/frm_visita_promotoria";
-import CDEAdmin from "./components/logistica/manageDesp";
+import CDEAdmin from "./components/logistica/manageCreateEnv";
 import DespachosControl from "./components/logistica/manageDespEntrega";
 import CDEMobile from "./components/logistica/manageDespMobile";
 ///SellManagerB2B
@@ -479,7 +479,7 @@ function App() {
 
               <Route
                 exact
-                path="/logistica/admin"
+                path="/logistica/generate/envio"
                 element={
                   <Protected isLoggedIn={authorizedSystems.includes("LOG")}>
                     <CDEAdmin />

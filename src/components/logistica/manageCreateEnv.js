@@ -34,7 +34,7 @@ import {
   listDDE, createDDE, updateDDE,
   searchDespachos,
   // Selectores
-  listRutas, searchTRuta,
+  listRutas, searchTRuta, getListOfVendors,
   // NUEVOS
   generarGuiasDespacho,
   deleteDDE,
@@ -76,10 +76,10 @@ const getMuiTableTheme = () =>
 
 // Quita acentos y baja a minúsculas
 const norm = (s) =>
-  (String(s ?? "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase());
+(String(s ?? "")
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .toLowerCase());
 
 // Clave estable por fila (para selección persistente al filtrar/paginar)
 const rowKey = (r) => {
@@ -91,7 +91,7 @@ const rowKey = (r) => {
 
 export default function CDEAdmin() {
   // ====== Auth & token ======
-  const { jwt, enterpriseShineray, userShineray } = useAuthContext();
+  const { jwt, enterpriseShineray, userShineray, branchShineray } = useAuthContext();
   useEffect(() => { setAuthToken(jwt); }, [jwt]);
 
   // ====== Menús / Navbar ======
@@ -122,6 +122,7 @@ export default function CDEAdmin() {
   const [fCodRuta, setFCodRuta] = useState("");
   const [fCodTransportista, setFCodTransportista] = useState("");
   const [fFinalizado, setFFinalizado] = useState("");
+  const [vendorSel, setVendorSel] = useState(null);
 
   const loadCDE = async (opts = {}) => {
     if (!fEmpresa) return;
@@ -233,6 +234,7 @@ export default function CDEAdmin() {
     setRutasQuery("");
     setRutasOpts([]);
     setTranspOpts([]);
+    setVendorSel(null);
     setDlgCrearCDE(true);
   };
   const closeCrearCDE = () => { if (!savingCDE) setDlgCrearCDE(false); };
@@ -242,6 +244,7 @@ export default function CDEAdmin() {
     if (!emp) return toast.warning("Empresa requerida.");
     if (!rutaSel?.cod_ruta) return toast.warning("Selecciona la Ruta.");
     if (!transpSel?.cod_transportista) return toast.warning("Selecciona el Transportista.");
+    if (!vendorSel?.cod_persona_vendor) return toast.warning("Selecciona el Vendedor (Vendor).");
 
     try {
       setSavingCDE(true);
@@ -249,12 +252,16 @@ export default function CDEAdmin() {
         empresa: emp,
         cod_transportista: String(transpSel.cod_transportista),
         cod_ruta: Number(rutaSel.cod_ruta),
+        usuario: userShineray,
+        cod_persona: String(vendorSel.cod_persona_vendor),
+        cod_tipo_persona: "VEN"
+
       });
       toast.success(`CDE creada (código: ${res?.cde_codigo ?? "?"}).`);
       setDlgCrearCDE(false);
       await loadCDE({ page: 1 });
     } catch (e) {
-      toast.error(e?.message || "No se pudo crear la cabecera.");
+      toast.error(e?.message || "No se pudo crear el cabecera.");
     } finally {
       setSavingCDE(false);
     }
@@ -305,7 +312,7 @@ export default function CDEAdmin() {
       setDlgEditarCDE(false);
       await loadCDE({ page: cdePage });
     } catch (e) {
-      toast.error(e?.message || "No se pudo actualizar la cabecera.");
+      toast.error(e?.message || "No se pudo actualizar el Envio.");
     } finally {
       setSavingCDE(false);
     }
@@ -341,7 +348,8 @@ export default function CDEAdmin() {
   const [ddePage, setDdePage] = useState(1);
   const [ddePageSize, setDdePageSize] = useState(50);
   const [loadingDDE, setLoadingDDE] = useState(false);
-  const [deletingSeq, setDeletingSeq] = useState(null); // NUEVO: secuencia en desasignación
+  const [deletingSeq, setDeletingSeq] = useState(null);
+  const [listOfVendors, setListOfVendors] = useState([]);
 
   const cargarDDE = async (opts = {}) => {
     if (!cdeSel) return;
@@ -484,6 +492,18 @@ export default function CDEAdmin() {
     fetchDesp();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openDespDialog]);
+
+  useEffect(() => {
+    const LoadgetListOfVendors = async () => {
+      try {
+        const data = await getListOfVendors(enterpriseShineray, branchShineray);
+        setListOfVendors(data);
+      } catch (error) {
+        console.error("Error fetching vendors:", error);
+      }
+    };
+    LoadgetListOfVendors();
+  }, []);
 
   // Filtrado local por cod_pedido y cliente
   const filteredDespRows = useMemo(() => {
@@ -704,7 +724,7 @@ export default function CDEAdmin() {
             onClick={openCrearCDE}
             sx={{ bgcolor: "firebrick", ":hover": { bgcolor: "#8f1a1a" } }}
           >
-            Nueva cabecera
+            Nuevo Envio
           </Button>
         </Stack>
       </Box>
@@ -760,16 +780,27 @@ export default function CDEAdmin() {
       {/* Crear CDE */}
       <Dialog open={dlgCrearCDE} onClose={closeCrearCDE} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          Crear cabecera CDE
+          Crear Envio
           <IconButton onClick={closeCrearCDE} size="small" disabled={savingCDE}><CloseIcon /></IconButton>
         </DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2}>
-            <TextField
-              label="Empresa"
-              size="small" type="number" fullWidth
-              value={formCrear.empresa}
-              onChange={(e) => setFormCrear((s) => ({ ...s, empresa: Number(e.target.value || 0) }))}
+
+            {/* Selector de Vendedor (listOfVendors) */}
+            <Autocomplete
+              options={Array.isArray(listOfVendors) ? listOfVendors : []}
+              value={vendorSel}
+              onChange={(_, val) => setVendorSel(val)}
+              isOptionEqualToValue={(op, val) => op?.cod_persona_vendor === val?.cod_persona_vendor}
+              getOptionLabel={(o) => (o ? `${o.cod_persona_vendor ?? ""} — ${o.nombre ?? ""}` : "")}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Vendedor"
+                  size="small"
+                  placeholder="Selecciona un vendedor..."
+                />
+              )}
             />
 
             {/* Selector de Ruta (por nombre) */}
@@ -783,7 +814,7 @@ export default function CDEAdmin() {
               isOptionEqualToValue={(op, val) =>
                 op?.cod_ruta === val?.cod_ruta && op?.empresa === val?.empresa
               }
-              getOptionLabel={(o) => (o ? `${o.cod_ruta ?? ""} — ${o.nombre ?? ""}` : "")}
+              getOptionLabel={(o) => (o ? `${o.nombre ?? ""}` : "")}
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -1087,7 +1118,6 @@ export default function CDEAdmin() {
                     <TableCell sx={{ backgroundColor: "firebrick", color: "#fff", fontWeight: "bold" }}>cod_ddespacho</TableCell>
                     <TableCell sx={{ backgroundColor: "firebrick", color: "#fff", fontWeight: "bold" }}>cod_producto</TableCell>
                     <TableCell sx={{ backgroundColor: "firebrick", color: "#fff", fontWeight: "bold" }}>numero_serie</TableCell>
-                    <TableCell sx={{ backgroundColor: "firebrick", color: "#fff", fontWeight: "bold" }} align="center">Usar</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -1124,14 +1154,7 @@ export default function CDEAdmin() {
                           <TableCell>{row?.cod_producto}</TableCell>
                           <TableCell>{row?.numero_serie}</TableCell>
                           <TableCell align="center">
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              onClick={(e) => { e.stopPropagation(); pickDespToForm(row); }}
-                              sx={{ textTransform: "none", borderColor: "firebrick", color: "firebrick" }}
-                            >
-                              Usar
-                            </Button>
+
                           </TableCell>
                         </TableRow>
                       );

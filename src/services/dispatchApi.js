@@ -502,6 +502,8 @@ export const searchDespachos = async (payload = {}) => {
  * payload: { empresa:number, cod_transportista:string, cod_ruta:number, ...opcionales }
  */
 export const createCDE = async (payload) => {
+  
+  console.log("Creating CDE with payload:", payload);
   const { data } = await api.post("/logistica/cdespacho-entrega", payload);
   return data; // { empresa, cde_codigo, cod_transportista, cod_ruta, ... }
 };
@@ -730,4 +732,18 @@ export const deleteDDE = async (empresa, cde_codigo, secuencia) => {
     if (detail) throw new Error(detail);
     throw err;
   }
+};
+
+
+export const getListOfVendors = async (empresa, cod_agencia) => {
+  if (empresa == null || cod_agencia == null) {
+    throw new Error("empresa y cod_agencia son requeridos");
+  }
+  const { data } = await api.get("/order_mot/vendedores_agencia", {
+    params: {
+      empresa: Number(empresa),
+      cod_agencia: Number(cod_agencia),
+    },
+  });
+  return data;
 };
