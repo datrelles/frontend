@@ -1336,6 +1336,22 @@ export const getTransportistasEcommerce = async (jwt, empresa) => {
   }
 };
 
+// Función para obtener la lista de transportistas de una empresa
+export const getTransportistasMotos = async (jwt, empresa) => {
+  try {
+    const response = await axios.get(`${API}/get_transportistas_moto?empresa=${empresa}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error obteniendo transportistas:", error);
+    throw error;
+  }
+};
+
+
 // Aprobacion Credito Directo:
 
 export const getCabCreditoDirecto = async (jwt) => {
