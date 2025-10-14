@@ -1,10 +1,10 @@
 // src/components/logistica/DespachosControl.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import {
   Box, Button, Dialog, DialogTitle, DialogContent, DialogActions, Grid, Stack, Typography,
   TextField, Paper, IconButton, CircularProgress, Chip, MenuItem, Select, InputLabel, FormControl,
-  LinearProgress, Tooltip
+  LinearProgress, Tooltip, Table, TableHead, TableRow, TableCell, TableBody
 } from "@mui/material";
 import Backdrop from "@mui/material/Backdrop";
 import CloseIcon from "@mui/icons-material/Close";
@@ -17,11 +17,13 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DoNotDisturbAltIcon from "@mui/icons-material/DoNotDisturbAlt";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import AssignmentLateIcon from "@mui/icons-material/AssignmentLate";
-import ReportGmailerrorredIcon from "@mui/icons-material/ReportGmailerrorred";
+import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import Autocomplete from "@mui/material/Autocomplete";
 import MUIDataTable from "mui-datatables";
 import Navbar0 from "../Navbar0";
 import { useAuthContext } from "../../context/authContext";
+import * as XLSX from "xlsx";
 
 // Toastify
 import { ToastContainer, toast } from "react-toastify";
@@ -34,7 +36,9 @@ import {
   searchDespachos,
   listRutas,
   searchTRuta,
-  updateCDespacho
+  updateCDespacho,
+  getDireccionesCliente,
+  updateDDespacho
 } from "../../services/dispatchApi";
 
 // ====== MUI table theme ======
@@ -136,6 +140,13 @@ export default function DespachosControl() {
 
   // Empresa
   const [empresa, setEmpresa] = useState(enterpriseShineray || 20);
+
+  // ====== Excel (.xlsx) ======
+  const fileInputRef = useRef(null);
+  const [excelDlgOpen, setExcelDlgOpen] = useState(false);
+  const [excelMatches, setExcelMatches] = useState([]); // elementos que serán actualizados
+  const [excelParseErrors, setExcelParseErrors] = useState([]);
+  const [updatingExcel, setUpdatingExcel] = useState(false);
 
   // Cargar data
   const loadData = async (opts = {}) => {
@@ -249,7 +260,7 @@ export default function DespachosControl() {
     );
   }, [rows, mode, q, dateField, dateFrom, dateTo]);
 
-  // ====== Diálogo Editar (sólo ruta, transportista, despachada) ======
+  // ====== Diálogo Editar (sólo ruta, transportista, despachada, dirección cliente) ======
   const [dlgEdit, setDlgEdit] = useState(false);
   const [rowEdit, setRowEdit] = useState(null);
   const [savingEdit, setSavingEdit] = useState(false);
@@ -267,6 +278,11 @@ export default function DespachosControl() {
 
   // Despachada (0/1)
   const [esDespachada, setEsDespachada] = useState("");
+
+  // Direcciones del cliente
+  const [loadingDirs, setLoadingDirs] = useState(false);
+  const [dirsOpts, setDirsOpts] = useState([]);
+  const [dirSel, setDirSel] = useState(null);
 
   // Cargar rutas con debounce cuando el diálogo está abierto
   useEffect(() => {
@@ -317,17 +333,69 @@ export default function DespachosControl() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dlgEdit, rutaSel, empresa]);
 
+  // Cargar direcciones del cliente al abrir el diálogo (usa enterpriseShineray y ruc_cliente)
+  useEffect(() => {
+    if (!dlgEdit) return;
+
+    let cancel = false;
+    (async () => {
+      try {
+        const codCliente = rowEdit?.ruc_cliente;
+        if (!codCliente) {
+          setDirsOpts([]);
+          setDirSel(null);
+          toast.warning("Este registro no tiene 'ruc_cliente'; no es posible listar direcciones.");
+          return;
+        }
+
+        setLoadingDirs(true);
+        const data = await getDireccionesCliente({
+          cod_cliente: String(codCliente).trim(),
+          empresa: Number(enterpriseShineray || empresa),
+          page: 1,
+          page_size: 2000,
+        });
+
+        const items = Array.isArray(data?.results) ? data.results : [];
+        if (!cancel) {
+          setDirsOpts(items);
+          // Preseleccionar si el row tiene cod_direccion_cli ya asignado
+          const currentCod = rowEdit?.cod_direccion_cli;
+          if (currentCod) {
+            const found = items.find(d => Number(d?.cod_direccion) === Number(currentCod));
+            setDirSel(found || null);
+          } else {
+            setDirSel(null);
+          }
+        }
+      } catch (e) {
+        if (!cancel) toast.error(e?.message || "No se pudieron cargar direcciones del cliente.");
+      } finally {
+        if (!cancel) setLoadingDirs(false);
+      }
+    })();
+
+    return () => { cancel = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dlgEdit, rowEdit, enterpriseShineray]);
+
   const openEdit = (row) => {
     setRowEdit(row);
     setRutaSel(row?.cod_ruta ? { cod_ruta: row.cod_ruta, empresa, nombre: row?.ruta } : null);
     setTranspSel(null);
     setRutasQuery("");
     setTranspOpts([]);
+
     setEsDespachada(
       typeof row?.despachada !== "undefined" && row?.despachada !== null
         ? Number(row.despachada)
         : ""
     );
+
+    // Reset de direcciones
+    setDirsOpts([]);
+    setDirSel(null);
+
     setDlgEdit(true);
   };
 
@@ -344,14 +412,18 @@ export default function DespachosControl() {
     if (!rowEdit?.cod_despacho) {
       return toast.warning("Este registro no tiene 'cod_despacho' para actualizar.");
     }
+
     const payload = {};
     if (rutaSel?.cod_ruta) payload.cod_ruta = Number(rutaSel.cod_ruta);
     if (transpSel?.cod_transportista) payload.cod_transportista = String(transpSel.cod_transportista);
     if (esDespachada !== "") payload.es_despachada = Number(esDespachada);
+    if (dirSel?.cod_direccion) payload.cod_direccion_cli = Number(dirSel.cod_direccion);
+
     if (Object.keys(payload).length === 0) {
       toast.info("No hay cambios para guardar.");
       return;
     }
+
     try {
       setSavingEdit(true);
       const res = await updateCDespacho(
@@ -370,89 +442,176 @@ export default function DespachosControl() {
     }
   };
 
+  // ====== DESCARGAR MODELO XLSX ======
+  const handleDownloadTemplate = () => {
+    // Estructura: encabezados y una fila vacía
+    const aoa = [
+      ["SERIE", "DESPACHADA"],
+      ["", ""],
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Modelo");
+    XLSX.writeFile(wb, "modelo_despachos.xlsx");
+    toast.info("Se descargó el modelo Excel. Llénalo y vuelve a cargarlo.");
+  };
+
+  // ====== PARSE XLSX/CSV ======
+  const parseWorkbook = (wb) => {
+    const firstSheetName = wb.SheetNames?.[0];
+    if (!firstSheetName) return { records: [], errors: ["El archivo no contiene hojas."] };
+
+    const ws = wb.Sheets[firstSheetName];
+    // sheet_to_json con header por encabezados reales
+    const json = XLSX.utils.sheet_to_json(ws, { defval: "" }); // [{SERIE:..., DESPACHADA:...}, ...]
+    const errors = [];
+    const records = [];
+
+    // Detectar headers con tolerancia de mayúsculas/acentos
+    const normalizeKey = (k) => norm(k);
+    const mapRow = (row) => {
+      // Buscar keys existentes equivalentes
+      const keys = Object.keys(row);
+      const keySerie = keys.find(k => normalizeKey(k) === "serie");
+      const keyDesp = keys.find(k => normalizeKey(k) === "despachada");
+      return {
+        serie: keySerie ? String(row[keySerie] ?? "").trim() : "",
+        desp: keyDesp != null ? String(row[keyDesp] ?? "").trim() : "",
+      };
+    };
+
+    json.forEach((r, idx) => {
+      const { serie, desp } = mapRow(r);
+      const line = idx + 2; // considerando encabezado en línea 1
+      if (!serie && !desp) return; // fila vacía
+      if (!serie) {
+        errors.push(`Línea ${line}: SERIE vacío.`);
+        return;
+      }
+      // Aceptar 1/0, "1"/"0", también valores numéricos
+      const v = String(desp).trim();
+      if (!(v === "0" || v === "1")) {
+        errors.push(`Línea ${line}: DESPACHADA debe ser 0 o 1.`);
+        return;
+      }
+      records.push({ SERIE: serie, DESPACHADA: v });
+    });
+
+    return { records, errors };
+  };
+
+  // ====== CLICK CARGAR EXCEL ======
+  const handleClickUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  // ====== ON CHANGE FILE ======
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // reset para permitir re-subir el mismo archivo
+    if (!file) return;
+
+    const name = file.name.toLowerCase();
+    if (!(/\.(xlsx|xls|csv)$/i.test(name))) {
+      toast.error("Sube un archivo Excel (.xlsx, .xls) o CSV.");
+      return;
+    }
+
+    try {
+      const data = await file.arrayBuffer();
+      const wb = XLSX.read(data, { type: "array" }); // auto-detecta xlsx/xls/csv
+      const { records, errors } = parseWorkbook(wb);
+
+      const actives = records
+        .filter(r => r.DESPACHADA === "1")
+        .map(r => ({ serie: String(r.SERIE || "").trim() }))
+        .filter(r => r.serie);
+
+      if (actives.length === 0) {
+        setExcelParseErrors(errors || []);
+        toast.warning("No se encontraron series con DESPACHADA = 1.");
+        return;
+      }
+
+      // Cruce con rows en memoria: numero_serie match y estado en_despacho=0 y despachada=0 y con cod_despacho
+      const rowsBySerie = new Map();
+      for (const r of rows) {
+        const key = String(r?.numero_serie ?? "").trim();
+        if (key) rowsBySerie.set(key, r);
+      }
+
+      const matches = [];
+      const issues = [...(errors || [])];
+
+      for (const a of actives) {
+        const found = rowsBySerie.get(a.serie);
+        if (found) {
+          const okState = Number(found.en_despacho) === 0 && Number(found.despachada) === 0;
+          const hasCod = !!found.cod_despacho;
+          if (okState && hasCod) {
+            matches.push({
+              serie: a.serie,
+              cod_despacho: found.cod_despacho,
+              cliente: found.cliente,
+              pedido: found.cod_pedido,
+              orden: found.cod_orden,
+              ruta: found.ruta,
+              cod_ddespacho: found.cod_ddespacho,
+            });
+          } else {
+            issues.push(
+              `Serie ${a.serie}: no cumple estado (en_despacho y despachada deben ser 0) o falta cod_despacho.`
+            );
+          }
+        } else {
+          issues.push(`Serie ${a.serie}: no existe en los registros actuales.`);
+        }
+      }
+
+      setExcelParseErrors(issues);
+      setExcelMatches(matches);
+      if (matches.length === 0) {
+        toast.warning("No hay series elegibles para actualizar.");
+        return;
+      }
+      setExcelDlgOpen(true);
+    } catch (err) {
+      toast.error(err?.message || "Error al leer el archivo.");
+    }
+  };
+
+  // ====== ACTUALIZAR SERIES DESDE DIALOG ======
+  const handleConfirmExcelUpdate = async () => {
+    if (excelMatches.length === 0) return;
+    setUpdatingExcel(true);
+    let ok = 0, fail = 0;
+    for (const item of excelMatches) {
+      try {
+        await updateDDespacho(
+          Number(empresa),
+          Number(item.cod_despacho),
+          Number(item.cod_ddespacho),
+          { despachada: 1, usr_agrega: userShineray || undefined },
+          { method: "PATCH" }
+        );
+        ok++;
+      } catch (e) {
+        fail++;
+      }
+    }
+
+    setUpdatingExcel(false);
+    setExcelDlgOpen(false);
+
+    if (ok) toast.success(`Series actualizadas: ${ok}`);
+    if (fail) toast.error(`Series con error: ${fail}`);
+    await loadData({ page });
+  };
+
   // ====== Columnas ======
   const columns = useMemo(
     () => [
-      {
-        name: "en_despacho",
-        label: "EN_DESPACHO",
-        options: {
-          customBodyRenderLite: (idx) => {
-            const r = filteredRows[idx];
-            const val = Number(r?.en_despacho) === 1;
-            return val
-              ? <Chip size="small" color="info" icon={<LocalShippingIcon />} label="Sí" />
-              : <Chip size="small" color="default" icon={<DoNotDisturbAltIcon />} label="No" />;
-          },
-        },
-      },
-      {
-        name: "despachada",
-        label: "DESPACHADA",
-        options: {
-          customBodyRenderLite: (idx) => {
-            const r = filteredRows[idx];
-            const val = Number(r?.despachada) === 1;
-            return val
-              ? <Chip size="small" color="success" icon={<CheckCircleIcon />} label="Sí" />
-              : <Chip size="small" color="warning" icon={<AssignmentLateIcon />} label="No" />;
-          },
-        },
-      },
-      { name: "cod_pedido", label: "COD_PEDIDO" },
-      { name: "fac_con", label: "FAC_CON" },
-      { name: "cod_orden", label: "COD_ORDEN" },
-      {
-        name: "cod_guia_des",
-        label: "COD_GUIA_DES",
-        options: {
-          customBodyRenderLite: (idx) => filteredRows[idx]?.cod_guia_des ?? "-",
-        },
-      },
-      {
-        name: "cod_guia_envio",
-        label: "COD_GUIA_ENVIO",
-        options: {
-          customBodyRenderLite: (idx) => {
-            const v = filteredRows[idx]?.cod_guia_envio;
-            return v ? v : <Chip size="small" color="warning" label="SIN GUÍA" />;
-          },
-        },
-      },
-      { name: "cadena", label: "CADENA" },
-      { name: "ruta", label: "RUTA" },
-      { name: "transportista", label: "TRANSPORTISTA" },
-      { name: "ruc_cliente", label: "RUC_CLIENTE" },
-      { name: "cliente", label: "CLIENTE" },
-      { name: "destino", label: "DESTINO" },
-      {
-        name: "fecha_agrega",
-        label: "FECHA_AGREGA",
-        options: { customBodyRenderLite: (i) => fmtDate(filteredRows[i]?.fecha_agrega) },
-      },
-      {
-        name: "fecha_est_desp",
-        label: "FECHA_EST_DESP",
-        options: { customBodyRenderLite: (i) => fmtDate(filteredRows[i]?.fecha_est_desp) },
-      },
-      {
-        name: "fecha_despacho",
-        label: "FECHA_DESPACHO",
-        options: { customBodyRenderLite: (i) => fmtDate(filteredRows[i]?.fecha_despacho) },
-      },
-      {
-        name: "fecha_envio",
-        label: "FECHA_ENVIO",
-        options: { customBodyRenderLite: (i) => fmtDate(filteredRows[i]?.fecha_envio) },
-      },
-      { name: "bod_destino", label: "BOD_DESTINO" },
-      { name: "producto", label: "PRODUCTO" },
-      { name: "cod_producto", label: "COD_PRODUCTO" },
-      { name: "nombre", label: "NOMBRE" },
-      { name: "modelo", label: "MODELO" },
-      { name: "numero_serie", label: "NUMERO_SERIE" },
-      { name: "cod_color", label: "COD_COLOR" },
-      {
+          {
         name: "acciones",
         label: "ACCIONES",
         options: {
@@ -484,6 +643,86 @@ export default function DespachosControl() {
           },
         },
       },
+
+      {
+        name: "en_despacho",
+        label: "EN_DESPACHO",
+        options: {
+          customBodyRenderLite: (idx) => {
+            const r = filteredRows[idx];
+            const val = Number(r?.en_despacho) === 1;
+            return val
+              ? <Chip size="small" color="info" icon={<LocalShippingIcon />} label="Sí" />
+              : <Chip size="small" color="default" icon={<DoNotDisturbAltIcon />} label="No" />;
+          },
+        },
+      },
+      {
+        name: "despachada",
+        label: "DESPACHADA",
+        options: {
+          customBodyRenderLite: (idx) => {
+            const r = filteredRows[idx];
+            const val = Number(r?.despachada) === 1;
+            return val
+              ? <Chip size="small" color="success" icon={<CheckCircleIcon />} label="Sí" />
+              : <Chip size="small" color="warning" icon={<AssignmentLateIcon />} label="No" />;
+          },
+        },
+      },
+      { name: "cod_pedido", label: "COD PEDIDO" },
+      { name: "cod_orden", label: "COD ORDEN" },
+      {
+        name: "cod_guia_des",
+        label: "COD GUIA DESPACHO",
+        options: {
+          customBodyRenderLite: (idx) => filteredRows[idx]?.cod_guia_des ?? "-",
+        },
+      },
+      {
+        name: "cod_guia_envio",
+        label: "COD GUIA ENVIO",
+        options: {
+          customBodyRenderLite: (idx) => {
+            const v = filteredRows[idx]?.cod_guia_envio;
+            return v ? v : <Chip size="small" color="warning" label="SIN GUÍA" />;
+          },
+        },
+      },
+      { name: "cadena", label: "CADENA" },
+      { name: "cliente", label: "CLIENTE" },
+      { name: "destino", label: "DESTINO" },
+      { name: "ruta", label: "RUTA" },
+      { name: "transportista", label: "TRANSPORTISTA" },
+      { name: "ruc_cliente", label: "RUC " },
+      { name: "fac_con", label: "TIPO" },
+      {
+        name: "fecha_agrega",
+        label: "FECHA AGREGADO",
+        options: { customBodyRenderLite: (i) => fmtDate(filteredRows[i]?.fecha_agrega) },
+      },
+      {
+        name: "fecha_est_desp",
+        label: "FECHA ESTIMADA DESP",
+        options: { customBodyRenderLite: (i) => fmtDate(filteredRows[i]?.fecha_est_desp) },
+      },
+      {
+        name: "fecha_despacho",
+        label: "FECHA DESPACHO",
+        options: { customBodyRenderLite: (i) => fmtDate(filteredRows[i]?.fecha_despacho) },
+      },
+      {
+        name: "fecha_envio",
+        label: "FECHA ENVIO",
+        options: { customBodyRenderLite: (i) => fmtDate(filteredRows[i]?.fecha_envio) },
+      },
+      { name: "bod_destino", label: "BOD DESTINO" },
+      { name: "producto", label: "PRODUCTO" },
+      { name: "cod_producto", label: "COD PRODUCTO" },
+      { name: "nombre", label: "NOMBRE" },
+      { name: "modelo", label: "MODELO" },
+      { name: "numero_serie", label: "NUMERO_SERIE" },
+      { name: "cod_color", label: "COD COLOR" }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [filteredRows]
@@ -509,7 +748,7 @@ export default function DespachosControl() {
   };
 
   // Backdrop global
-  const busy = loading || savingEdit || loadingRutas || loadingTransp;
+  const busy = loading || savingEdit || loadingRutas || loadingTransp || loadingDirs || updatingExcel;
 
   // ===== Render =====
   return (
@@ -526,11 +765,38 @@ export default function DespachosControl() {
       >
         <Stack spacing={0}>
           <Typography variant="h6" sx={{ fontWeight: 250 }}>
-            Panel de Control de Despachos (VT_DESPACHO_FINAL)
+            Panel de Control de Despachos
           </Typography>
           <Typography variant="body2" sx={{ color: "#666" }}>
-            Empresa: {empresa}
+            Carga masiva de “Despachada” vía Excel (.xlsx).
           </Typography>
+        </Stack>
+
+        {/* NUEVOS BOTONES: Descargar/Cargar Excel */}
+        <Stack direction="row" spacing={1}>
+          <Button
+            variant="outlined"
+            startIcon={<CloudDownloadIcon />}
+            onClick={handleDownloadTemplate}
+            sx={{ borderColor: "firebrick", color: "firebrick", textTransform: "none" }}
+          >
+            Descargar modelo Excel
+          </Button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            style={{ display: "none" }}
+            accept=".xlsx,.xls,.csv"
+            onChange={handleFileChange}
+          />
+          <Button
+            variant="contained"
+            startIcon={<CloudUploadIcon />}
+            onClick={handleClickUpload}
+            sx={{ bgcolor: "firebrick", ":hover": { bgcolor: "#8f1a1a" }, textTransform: "none" }}
+          >
+            Cargar Excel
+          </Button>
         </Stack>
       </Box>
 
@@ -625,7 +891,6 @@ export default function DespachosControl() {
               }}
             />
           </Grid>
-
 
           {/* Paginación simple y recarga */}
           <Grid item xs={12} md="auto">
@@ -748,6 +1013,40 @@ export default function DespachosControl() {
                 )}
               />
 
+              {/* Dirección del cliente */}
+              <Autocomplete
+                options={dirsOpts}
+                loading={loadingDirs}
+                value={dirSel}
+                onChange={(_, val) => setDirSel(val)}
+                disabled={!rowEdit?.ruc_cliente}
+                isOptionEqualToValue={(op, val) => Number(op?.cod_direccion) === Number(val?.cod_direccion)}
+                getOptionLabel={(o) =>
+                  o ? `[${o.cod_direccion}] ${o.direccion ?? ""} — ${o.ciudad ?? ""}` : ""
+                }
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Dirección del cliente"
+                    size="small"
+                    placeholder={
+                      rowEdit?.ruc_cliente
+                        ? "Selecciona la dirección para el despacho"
+                        : "No hay ruc_cliente en el registro"
+                    }
+                    InputProps={{
+                      ...params.InputProps,
+                      endAdornment: (
+                        <>
+                          {loadingDirs ? <CircularProgress size={16} /> : null}
+                          {params.InputProps.endAdornment}
+                        </>
+                      ),
+                    }}
+                  />
+                )}
+              />
+
               {/* Despachada 0/1 */}
               <FormControl size="small" fullWidth>
                 <InputLabel id="despachada-edit">Despachada</InputLabel>
@@ -774,6 +1073,76 @@ export default function DespachosControl() {
             sx={{ bgcolor: "firebrick", ":hover": { bgcolor: "#8f1a1a" } }}
           >
             {savingEdit ? "Guardando..." : "Guardar cambios"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* === Diálogo de confirmación de actualización por Excel === */}
+      <Dialog open={excelDlgOpen} onClose={() => !updatingExcel && setExcelDlgOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          Confirmar actualización de series (DESPACHADA = 1)
+          <IconButton onClick={() => !updatingExcel && setExcelDlgOpen(false)} size="small" disabled={updatingExcel}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2}>
+            {excelParseErrors?.length > 0 && (
+              <Paper variant="outlined" sx={{ p: 1, borderColor: "#f44336" }}>
+                <Typography variant="subtitle2" sx={{ color: "#f44336", mb: 1 }}>
+                  Observaciones del archivo:
+                </Typography>
+                <ul style={{ margin: 0, paddingInlineStart: 18 }}>
+                  {excelParseErrors.map((e, i) => <li key={i}><Typography variant="caption">{e}</Typography></li>)}
+                </ul>
+              </Paper>
+            )}
+
+            <Typography variant="body2">
+              Series elegibles para actualizar (<b>{excelMatches.length}</b>):
+            </Typography>
+
+            <Table size="small" stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Serie</TableCell>
+                  <TableCell>Cod. Despacho</TableCell>
+                  <TableCell>Cliente</TableCell>
+                  <TableCell>Pedido</TableCell>
+                  <TableCell>Orden</TableCell>
+                  <TableCell>Ruta</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {excelMatches.map((m, i) => (
+                  <TableRow key={`${m.cod_despacho}-${m.serie}-${i}`}>
+                    <TableCell>{m.serie}</TableCell>
+                    <TableCell>{m.cod_despacho}</TableCell>
+                    <TableCell>{m.cliente}</TableCell>
+                    <TableCell>{m.pedido}</TableCell>
+                    <TableCell>{m.orden}</TableCell>
+                    <TableCell>{m.ruta}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {excelMatches.length === 0 && (
+              <Typography variant="body2" color="text.secondary">No hay elementos para actualizar.</Typography>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="outlined" onClick={() => setExcelDlgOpen(false)} disabled={updatingExcel}>
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={updatingExcel ? <CircularProgress size={16} /> : <CheckCircleIcon />}
+            onClick={handleConfirmExcelUpdate}
+            disabled={updatingExcel || excelMatches.length === 0}
+            sx={{ bgcolor: "firebrick", ":hover": { bgcolor: "#8f1a1a" } }}
+          >
+            {updatingExcel ? "Actualizando..." : "Actualizar series"}
           </Button>
         </DialogActions>
       </Dialog>

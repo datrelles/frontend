@@ -665,7 +665,7 @@ export const updateCDespacho = async (empresa, cod_despacho, payload, { method =
     throw new Error("empresa y cod_despacho son requeridos");
   }
 
-  const url = `/cdespacho/${encodeURIComponent(empresa)}/${encodeURIComponent(cod_despacho)}`;
+  const url = `logistica/cdespacho/${encodeURIComponent(empresa)}/${encodeURIComponent(cod_despacho)}`;
 
   const norm = (d) => (typeof toISODate === "function" ? toISODate(d) : d);
   const body = { ...payload };
@@ -695,7 +695,7 @@ export const updateDDespacho = async (
     throw new Error("empresa, cod_despacho y cod_ddespacho son requeridos");
   }
 
-  const url = `/ddespacho/${encodeURIComponent(empresa)}/${encodeURIComponent(
+  const url = `logistica/ddespacho/${encodeURIComponent(empresa)}/${encodeURIComponent(
     cod_despacho
   )}/${encodeURIComponent(cod_ddespacho)}`;
 
