@@ -697,6 +697,8 @@ export default function CDEAdmin() {
   // Backdrop global
   const busy =
     loadingCDE || savingCDE || loadingDDE || savingEditDDE || loadingDesp;
+  
+  const isCDEFinalizado = Number(cdeSel?.finalizado) === 1;
 
   // ===== Render =====
   return (
@@ -723,6 +725,7 @@ export default function CDEAdmin() {
             startIcon={<AddCircleOutlineIcon />}
             onClick={openCrearCDE}
             sx={{ bgcolor: "firebrick", ":hover": { bgcolor: "#8f1a1a" } }}
+            
           >
             Nuevo Envio
           </Button>
@@ -927,8 +930,9 @@ export default function CDEAdmin() {
               startIcon={<PlaylistAddIcon />}
               onClick={openAgregarDetalleDialog}
               sx={{ borderColor: "firebrick", color: "firebrick" }}
+              disabled={isCDEFinalizado}
             >
-              Agregar series
+              {isCDEFinalizado ? "CDE finalizado" : "Agregar series"}
             </Button>
           </Stack>
           {/* Tabla DDE (principal) */}
@@ -972,6 +976,7 @@ export default function CDEAdmin() {
                             }
                           }}
                           sx={{ textTransform: "none", borderColor: "firebrick", color: "firebrick" }}
+                          disabled={isCDEFinalizado}
                         >
                           Desasignar
                         </Button>
