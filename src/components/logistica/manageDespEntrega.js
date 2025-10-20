@@ -84,6 +84,32 @@ const norm = (s) =>
 const fmtDate = (d) => (d ? String(d).slice(0, 10) : "-");
 const toISO = (d) => (d ? String(d).slice(0, 10) : null);
 
+// Convierte un valor de fecha Excel (serial numérico o string) a YYYY-MM-DD
+const toISOFromExcel = (val) => {
+  if (val == null || val === "") return null;
+  // Si viene como número (serial Excel)
+  if (typeof val === "number" && !isNaN(val)) {
+    // Excel serial date -> ms desde 1970: (val - 25569) días * 86400s * 1000ms
+    const ms = Math.round((val - 25569) * 86400 * 1000);
+    const d = new Date(ms);
+    if (isNaN(d.getTime())) return null;
+    // Aseguramos ISO en local (sin tz) YYYY-MM-DD
+    return d.toISOString().slice(0, 10);
+  }
+  // Si viene como string, intentamos parsear
+  const s = String(val).trim();
+  // Normalizamos separadores
+  const clean = s.replace(/\//g, "-");
+  // Si viene como YYYY-MM-DD o similar, tomamos los primeros 10
+  const candidate = clean.slice(0, 10);
+  // Validación simple YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(candidate)) return candidate;
+  // Intento con Date.parse
+  const d = new Date(clean);
+  if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10);
+  return null;
+};
+
 // Filtros de estado
 const MODES = {
   TODOS: "TODOS",
@@ -141,12 +167,19 @@ export default function DespachosControl() {
   // Empresa
   const [empresa, setEmpresa] = useState(enterpriseShineray || 20);
 
-  // ====== Excel (.xlsx) ======
+  // ====== Excel (.xlsx) - Despachada ======
   const fileInputRef = useRef(null);
   const [excelDlgOpen, setExcelDlgOpen] = useState(false);
   const [excelMatches, setExcelMatches] = useState([]); // elementos que serán actualizados
   const [excelParseErrors, setExcelParseErrors] = useState([]);
   const [updatingExcel, setUpdatingExcel] = useState(false);
+
+  // ====== Excel (.xlsx) - Entregas ======
+  const fileEntregaRef = useRef(null);
+  const [excelEntregaDlgOpen, setExcelEntregaDlgOpen] = useState(false);
+  const [excelEntregaMatches, setExcelEntregaMatches] = useState([]);
+  const [excelEntregaErrors, setExcelEntregaErrors] = useState([]);
+  const [updatingEntrega, setUpdatingEntrega] = useState(false);
 
   // Cargar data
   const loadData = async (opts = {}) => {
@@ -260,7 +293,7 @@ export default function DespachosControl() {
     );
   }, [rows, mode, q, dateField, dateFrom, dateTo]);
 
-  // ====== Diálogo Editar (sólo ruta, transportista, despachada, dirección cliente) ======
+  // ====== Diálogo Editar (ruta, transportista, despachada, dirección cliente) ======
   const [dlgEdit, setDlgEdit] = useState(false);
   const [rowEdit, setRowEdit] = useState(null);
   const [savingEdit, setSavingEdit] = useState(false);
@@ -333,7 +366,7 @@ export default function DespachosControl() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dlgEdit, rutaSel, empresa]);
 
-  // Cargar direcciones del cliente al abrir el diálogo (usa enterpriseShineray y ruc_cliente)
+  // Cargar direcciones del cliente al abrir el diálogo
   useEffect(() => {
     if (!dlgEdit) return;
 
@@ -359,7 +392,6 @@ export default function DespachosControl() {
         const items = Array.isArray(data?.results) ? data.results : [];
         if (!cancel) {
           setDirsOpts(items);
-          // Preseleccionar si el row tiene cod_direccion_cli ya asignado
           const currentCod = rowEdit?.cod_direccion_cli;
           if (currentCod) {
             const found = items.find(d => Number(d?.cod_direccion) === Number(currentCod));
@@ -392,7 +424,6 @@ export default function DespachosControl() {
         : ""
     );
 
-    // Reset de direcciones
     setDirsOpts([]);
     setDirSel(null);
 
@@ -442,9 +473,8 @@ export default function DespachosControl() {
     }
   };
 
-  // ====== DESCARGAR MODELO XLSX ======
+  // ====== DESCARGAR MODELO XLSX (DESPACHADA) ======
   const handleDownloadTemplate = () => {
-    // Estructura: encabezados y una fila vacía
     const aoa = [
       ["SERIE", "DESPACHADA"],
       ["", ""],
@@ -456,21 +486,18 @@ export default function DespachosControl() {
     toast.info("Se descargó el modelo Excel. Llénalo y vuelve a cargarlo.");
   };
 
-  // ====== PARSE XLSX/CSV ======
+  // ====== PARSE XLSX/CSV (DESPACHADA) ======
   const parseWorkbook = (wb) => {
     const firstSheetName = wb.SheetNames?.[0];
     if (!firstSheetName) return { records: [], errors: ["El archivo no contiene hojas."] };
 
     const ws = wb.Sheets[firstSheetName];
-    // sheet_to_json con header por encabezados reales
-    const json = XLSX.utils.sheet_to_json(ws, { defval: "" }); // [{SERIE:..., DESPACHADA:...}, ...]
+    const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
     const errors = [];
     const records = [];
 
-    // Detectar headers con tolerancia de mayúsculas/acentos
     const normalizeKey = (k) => norm(k);
     const mapRow = (row) => {
-      // Buscar keys existentes equivalentes
       const keys = Object.keys(row);
       const keySerie = keys.find(k => normalizeKey(k) === "serie");
       const keyDesp = keys.find(k => normalizeKey(k) === "despachada");
@@ -482,13 +509,12 @@ export default function DespachosControl() {
 
     json.forEach((r, idx) => {
       const { serie, desp } = mapRow(r);
-      const line = idx + 2; // considerando encabezado en línea 1
-      if (!serie && !desp) return; // fila vacía
+      const line = idx + 2;
+      if (!serie && !desp) return;
       if (!serie) {
         errors.push(`Línea ${line}: SERIE vacío.`);
         return;
       }
-      // Aceptar 1/0, "1"/"0", también valores numéricos
       const v = String(desp).trim();
       if (!(v === "0" || v === "1")) {
         errors.push(`Línea ${line}: DESPACHADA debe ser 0 o 1.`);
@@ -500,15 +526,15 @@ export default function DespachosControl() {
     return { records, errors };
   };
 
-  // ====== CLICK CARGAR EXCEL ======
+  // ====== CLICK CARGAR EXCEL (DESPACHADA) ======
   const handleClickUpload = () => {
     fileInputRef.current?.click();
   };
 
-  // ====== ON CHANGE FILE ======
+  // ====== ON CHANGE FILE (DESPACHADA) ======
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
-    e.target.value = ""; // reset para permitir re-subir el mismo archivo
+    e.target.value = "";
     if (!file) return;
 
     const name = file.name.toLowerCase();
@@ -519,7 +545,7 @@ export default function DespachosControl() {
 
     try {
       const data = await file.arrayBuffer();
-      const wb = XLSX.read(data, { type: "array" }); // auto-detecta xlsx/xls/csv
+      const wb = XLSX.read(data, { type: "array" });
       const { records, errors } = parseWorkbook(wb);
 
       const actives = records
@@ -533,7 +559,6 @@ export default function DespachosControl() {
         return;
       }
 
-      // Cruce con rows en memoria: numero_serie match y estado en_despacho=0 y despachada=0 y con cod_despacho
       const rowsBySerie = new Map();
       for (const r of rows) {
         const key = String(r?.numero_serie ?? "").trim();
@@ -580,7 +605,7 @@ export default function DespachosControl() {
     }
   };
 
-  // ====== ACTUALIZAR SERIES DESDE DIALOG ======
+  // ====== ACTUALIZAR SERIES DESDE DIALOG (DESPACHADA) ======
   const handleConfirmExcelUpdate = async () => {
     if (excelMatches.length === 0) return;
     setUpdatingExcel(true);
@@ -608,10 +633,174 @@ export default function DespachosControl() {
     await loadData({ page });
   };
 
+  // ====== NUEVO: DESCARGAR MODELO XLSX (ENTREGAS) ======
+  const handleDownloadEntregaTemplate = () => {
+    const aoa = [
+      ["SERIE", "FECHA_ENTREGA", "OBSERVACION_ENTREGA"],
+      ["", "YYYY-MM-DD", ""],
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Entregas");
+    XLSX.writeFile(wb, "modelo_entregas.xlsx");
+    toast.info("Se descargó el modelo de Entregas. Llénalo y vuelve a cargarlo.");
+  };
+
+  // ====== NUEVO: PARSE XLSX/CSV (ENTREGAS) ======
+  const parseWorkbookEntregas = (wb) => {
+    const firstSheetName = wb.SheetNames?.[0];
+    if (!firstSheetName) return { records: [], errors: ["El archivo no contiene hojas."] };
+
+    const ws = wb.Sheets[firstSheetName];
+    const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
+    const errors = [];
+    const records = [];
+
+    const normalizeKey = (k) => norm(k);
+    const mapRow = (row) => {
+      const keys = Object.keys(row);
+      const kSerie = keys.find(k => normalizeKey(k) === "serie");
+      const kFecha = keys.find(k => normalizeKey(k) === "fecha_entrega");
+      const kObs = keys.find(k => normalizeKey(k) === "observacion_entrega");
+      return {
+        serie: kSerie ? String(row[kSerie] ?? "").trim() : "",
+        fecha: kFecha != null ? row[kFecha] : "",
+        obs: kObs != null ? String(row[kObs] ?? "").trim() : "",
+      };
+    };
+
+    json.forEach((r, idx) => {
+      const { serie, fecha, obs } = mapRow(r);
+      const line = idx + 2;
+      if (!serie && !fecha && !obs) return; // fila totalmente vacía
+      if (!serie) {
+        errors.push(`Línea ${line}: SERIE vacío.`);
+        return;
+      }
+      const iso = toISOFromExcel(fecha);
+      if (!iso) {
+        errors.push(`Línea ${line}: FECHA_ENTREGA inválida (use YYYY-MM-DD o fecha válida de Excel).`);
+        return;
+      }
+      records.push({ SERIE: serie, FECHA_ENTREGA: iso, OBSERVACION_ENTREGA: obs || "" });
+    });
+
+    return { records, errors };
+  };
+
+  // ====== NUEVO: CLICK CARGAR EXCEL (ENTREGAS) ======
+  const handleClickUploadEntregas = () => {
+    fileEntregaRef.current?.click();
+  };
+
+  // ====== NUEVO: ON CHANGE FILE (ENTREGAS) ======
+  const handleFileChangeEntregas = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    const name = file.name.toLowerCase();
+    if (!(/\.(xlsx|xls|csv)$/i.test(name))) {
+      toast.error("Sube un archivo Excel (.xlsx, .xls) o CSV.");
+      return;
+    }
+
+    try {
+      const data = await file.arrayBuffer();
+      const wb = XLSX.read(data, { type: "array" });
+      const { records, errors } = parseWorkbookEntregas(wb);
+
+      if (records.length === 0) {
+        setExcelEntregaErrors(errors || []);
+        toast.warning("No se encontraron registros válidos para entrega.");
+        return;
+      }
+
+      const rowsBySerie = new Map();
+      for (const r of rows) {
+        const key = String(r?.numero_serie ?? "").trim();
+        if (key) rowsBySerie.set(key, r);
+      }
+
+      const matches = [];
+      const issues = [...(errors || [])];
+
+      for (const rec of records) {
+        const found = rowsBySerie.get(rec.SERIE);
+        if (found) {
+          const okState = true//Number(found.en_despacho) === 0 && Number(found.despachada) === 0;
+          const hasCod = !!found.cod_despacho;
+          if (okState && hasCod) {
+            matches.push({
+              serie: rec.SERIE,
+              fecha_entrega: rec.FECHA_ENTREGA,
+              observacion_entrega: rec.OBSERVACION_ENTREGA,
+              cod_despacho: found.cod_despacho,
+              cliente: found.cliente,
+              pedido: found.cod_pedido,
+              orden: found.cod_orden,
+              ruta: found.ruta,
+              cod_ddespacho: found.cod_ddespacho,
+            });
+          } else {
+            issues.push(
+              `Serie ${rec.SERIE}: no cumple estado (en_despacho y despachada deben ser 0) o falta cod_despacho.`
+            );
+          }
+        } else {
+          issues.push(`Serie ${rec.SERIE}: no existe en los registros actuales.`);
+        }
+      }
+
+      setExcelEntregaErrors(issues);
+      setExcelEntregaMatches(matches);
+      if (matches.length === 0) {
+        toast.warning("No hay series elegibles para actualizar entrega.");
+        return;
+      }
+      setExcelEntregaDlgOpen(true);
+    } catch (err) {
+      toast.error(err?.message || "Error al leer el archivo de entregas.");
+    }
+  };
+
+  // ====== NUEVO: ACTUALIZAR DESDE DIALOG (ENTREGAS) ======
+  const handleConfirmEntregaUpdate = async () => {
+    if (excelEntregaMatches.length === 0) return;
+    setUpdatingEntrega(true);
+    let ok = 0, fail = 0;
+
+    for (const item of excelEntregaMatches) {
+      try {
+        await updateDDespacho(
+          Number(empresa),
+          Number(item.cod_despacho),
+          Number(item.cod_ddespacho),
+          {
+            fecha_entrega: item.fecha_entrega,
+            observacion_entrega: item.observacion_entrega,
+            usr_agrega: userShineray || undefined
+          },
+          { method: "PATCH" }
+        );
+        ok++;
+      } catch (e) {
+        fail++;
+      }
+    }
+
+    setUpdatingEntrega(false);
+    setExcelEntregaDlgOpen(false);
+
+    if (ok) toast.success(`Entregas actualizadas: ${ok}`);
+    if (fail) toast.error(`Registros con error: ${fail}`);
+    await loadData({ page });
+  };
+
   // ====== Columnas ======
   const columns = useMemo(
     () => [
-          {
+      {
         name: "acciones",
         label: "ACCIONES",
         options: {
@@ -748,7 +937,7 @@ export default function DespachosControl() {
   };
 
   // Backdrop global
-  const busy = loading || savingEdit || loadingRutas || loadingTransp || loadingDirs || updatingExcel;
+  const busy = loading || savingEdit || loadingRutas || loadingTransp || loadingDirs || updatingExcel || updatingEntrega;
 
   // ===== Render =====
   return (
@@ -768,19 +957,20 @@ export default function DespachosControl() {
             Panel de Control de Despachos
           </Typography>
           <Typography variant="body2" sx={{ color: "#666" }}>
-            Carga masiva de “Despachada” vía Excel (.xlsx).
+            Carga masiva de “Despachada” y datos de “Entrega” vía Excel (.xlsx).
           </Typography>
         </Stack>
 
-        {/* NUEVOS BOTONES: Descargar/Cargar Excel */}
-        <Stack direction="row" spacing={1}>
+        {/* BOTONES: Descargar/Cargar Excel (Despachada) + (Entregas) */}
+        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+          {/* Modelo Despachada */}
           <Button
             variant="outlined"
             startIcon={<CloudDownloadIcon />}
             onClick={handleDownloadTemplate}
             sx={{ borderColor: "firebrick", color: "firebrick", textTransform: "none" }}
           >
-            Descargar modelo Excel
+            Modelo Despachada
           </Button>
           <input
             type="file"
@@ -795,12 +985,37 @@ export default function DespachosControl() {
             onClick={handleClickUpload}
             sx={{ bgcolor: "firebrick", ":hover": { bgcolor: "#8f1a1a" }, textTransform: "none" }}
           >
-            Cargar Excel
+            Cargar Despachada
+          </Button>
+
+          {/* NUEVOS: Modelo Entregas */}
+          <Button
+            variant="outlined"
+            startIcon={<CloudDownloadIcon />}
+            onClick={handleDownloadEntregaTemplate}
+            sx={{ borderColor: "firebrick", color: "firebrick", textTransform: "none" }}
+          >
+            Modelo Entregas
+          </Button>
+          <input
+            type="file"
+            ref={fileEntregaRef}
+            style={{ display: "none" }}
+            accept=".xlsx,.xls,.csv"
+            onChange={handleFileChangeEntregas}
+          />
+          <Button
+            variant="contained"
+            startIcon={<CloudUploadIcon />}
+            onClick={handleClickUploadEntregas}
+            sx={{ bgcolor: "firebrick", ":hover": { bgcolor: "#8f1a1a" }, textTransform: "none" }}
+          >
+            Cargar Entregas
           </Button>
         </Stack>
       </Box>
 
-      {/* Controles: filtros por estado, buscador, fechas y paginación/recarga */}
+      {/* Controles: filtros por estado, buscador, paginación/recarga */}
       <Paper variant="outlined" sx={{ p: 2, mb: 0 }}>
         <Grid container spacing={2} alignItems="center">
           {/* Botonera de estados */}
@@ -985,7 +1200,7 @@ export default function DespachosControl() {
                 )}
               />
 
-              {/* Transportista para la ruta seleccionada */}
+              {/* Transportista */}
               <Autocomplete
                 options={transpOpts}
                 loading={loadingTransp}
@@ -1077,7 +1292,7 @@ export default function DespachosControl() {
         </DialogActions>
       </Dialog>
 
-      {/* === Diálogo de confirmación de actualización por Excel === */}
+      {/* === Diálogo de confirmación de actualización por Excel (Despachada) === */}
       <Dialog open={excelDlgOpen} onClose={() => !updatingExcel && setExcelDlgOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           Confirmar actualización de series (DESPACHADA = 1)
@@ -1143,6 +1358,80 @@ export default function DespachosControl() {
             sx={{ bgcolor: "firebrick", ":hover": { bgcolor: "#8f1a1a" } }}
           >
             {updatingExcel ? "Actualizando..." : "Actualizar series"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* === NUEVO: Diálogo de confirmación de actualización por Excel (Entregas) === */}
+      <Dialog open={excelEntregaDlgOpen} onClose={() => !updatingEntrega && setExcelEntregaDlgOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          Confirmar actualización de Entregas (fecha & observación)
+          <IconButton onClick={() => !updatingEntrega && setExcelEntregaDlgOpen(false)} size="small" disabled={updatingEntrega}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2}>
+            {excelEntregaErrors?.length > 0 && (
+              <Paper variant="outlined" sx={{ p: 1, borderColor: "#f44336" }}>
+                <Typography variant="subtitle2" sx={{ color: "#f44336", mb: 1 }}>
+                  Observaciones del archivo:
+                </Typography>
+                <ul style={{ margin: 0, paddingInlineStart: 18 }}>
+                  {excelEntregaErrors.map((e, i) => <li key={i}><Typography variant="caption">{e}</Typography></li>)}
+                </ul>
+              </Paper>
+            )}
+
+            <Typography variant="body2">
+              Registros elegibles para actualizar (<b>{excelEntregaMatches.length}</b>):
+            </Typography>
+
+            <Table size="small" stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Serie</TableCell>
+                  <TableCell>Cod. Despacho</TableCell>
+                  <TableCell>Cliente</TableCell>
+                  <TableCell>Pedido</TableCell>
+                  <TableCell>Orden</TableCell>
+                  <TableCell>Ruta</TableCell>
+                  <TableCell>Fecha Entrega</TableCell>
+                  <TableCell>Observación</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {excelEntregaMatches.map((m, i) => (
+                  <TableRow key={`${m.cod_despacho}-${m.serie}-${i}`}>
+                    <TableCell>{m.serie}</TableCell>
+                    <TableCell>{m.cod_despacho}</TableCell>
+                    <TableCell>{m.cliente}</TableCell>
+                    <TableCell>{m.pedido}</TableCell>
+                    <TableCell>{m.orden}</TableCell>
+                    <TableCell>{m.ruta}</TableCell>
+                    <TableCell>{m.fecha_entrega}</TableCell>
+                    <TableCell>{m.observacion_entrega}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {excelEntregaMatches.length === 0 && (
+              <Typography variant="body2" color="text.secondary">No hay elementos para actualizar.</Typography>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="outlined" onClick={() => setExcelEntregaDlgOpen(false)} disabled={updatingEntrega}>
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={updatingEntrega ? <CircularProgress size={16} /> : <CheckCircleIcon />}
+            onClick={handleConfirmEntregaUpdate}
+            disabled={updatingEntrega || excelEntregaMatches.length === 0}
+            sx={{ bgcolor: "firebrick", ":hover": { bgcolor: "#8f1a1a" } }}
+          >
+            {updatingEntrega ? "Actualizando..." : "Actualizar entregas"}
           </Button>
         </DialogActions>
       </Dialog>
