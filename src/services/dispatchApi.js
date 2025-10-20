@@ -3,10 +3,38 @@ import axios from "axios";
 // =====================
 // Instancia base de axios
 // =====================
+
+function toISODate(input) {
+  if (!input) return null;
+
+  try {
+    // Si ya es string en formato correcto, la devolvemos tal cual
+    if (typeof input === "string" && /^\d{4}-\d{2}-\d{2}$/.test(input)) {
+      return input;
+    }
+
+    // Si es un objeto Date, lo formateamos
+    const d = input instanceof Date ? input : new Date(input);
+    if (isNaN(d.getTime())) return null;
+
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  } catch (err) {
+    console.error("Error en toISODate:", err);
+    return null;
+  }
+}
+
+
 const api = axios.create({
   baseURL: process.env.REACT_APP_API,
   timeout: 150000,
 });
+
+
 
 // Setter del token
 export const setAuthToken = (jwt) => {
