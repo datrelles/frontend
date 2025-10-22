@@ -1,29 +1,24 @@
-
-
 import React, {useEffect, useMemo, useState} from 'react';
 import {
     TextField, Button, Grid, Typography,
-    Select,  Box, Snackbar,
-    Alert, IconButton, InputLabel,
-    FormControl, Autocomplete, TableContainer, Table, TableHead, TableRow, TableCell, TableBody
+    Box, Snackbar,  Alert, Autocomplete
 } from '@mui/material';
 import {useAuthContext} from "../../context/authContext";
 import {SnackbarProvider} from "notistack";
 import API from "../../services/modulo_formularios";
 import {toast} from "react-toastify";
 import LoadingCircle from "../contabilidad/loader";
-import AddIcon from "@material-ui/icons/Add";
+import AddIcon from "@mui/icons-material/Add";
 import {LocalizationProvider} from '@mui/x-date-pickers/LocalizationProvider';
 import {AdapterDayjs} from '@mui/x-date-pickers/AdapterDayjs';
 import {DatePicker} from '@mui/x-date-pickers/DatePicker';
-import SearchIcon from "@material-ui/icons/Search";
+import SearchIcon from "@mui/icons-material/Search";
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import Paper from "@mui/material/Paper";
-import DeleteIcon from '@mui/icons-material/Delete';
 import CollapsibleTable from "./CollapsibleTable";
 import IngresoModelosTabs from "./IngresoModelosTabs";
-import TablaResumenMarcas from "./TablaResumenMarcas";
+import {TablaResumenMarcas} from "./TablaResumenMarcas";
 
 const FrmPromotoria= () => {
     const {jwt, userShineray, enterpriseShineray, systemShineray} = useAuthContext();
@@ -32,11 +27,10 @@ const FrmPromotoria= () => {
         [jwt, userShineray, enterpriseShineray, systemShineray]
     );
 
-    const [menus, setMenus] = useState([]);
     const [loading] = useState(false);
+    const [menus, setMenus] = useState([]);
     const [fromDate, setFromDate] = useState(null);
     const [toDate, setToDate] = useState(null);
-    const [mostrarFormulario, setMostrarFormulario] = useState(false);
     const [modoEdicion, setModoEdicion] = useState(false);
     const [indexEditar, setIndexEditar] = useState(null);
     const [mostrarTabla, setMostrarTabla] = useState(false);
@@ -48,22 +42,20 @@ const FrmPromotoria= () => {
     const [direcciones, setDirecciones] = useState([]);
     const [loadingDirs, setLoadingDirs] = useState(false);
     const [alerta, setAlerta] = useState({open: false, msg: '', severity: 'info'});
+    const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
     const [promotorActual, setPromotorActual] = useState(null);
     const [cargandoPromotor, setCargandoPromotor] = useState(true);
 
     const [buscarDistribuidorId, setBuscarDistribuidorId] = useState('');
     const [buscarDistribuidorNombre, setBuscarDistribuidorNombre] = useState('');
-
     const todayISO = () => dayjs().format('YYYY-MM-DD');
 
     const [loadingTabla, setLoadingTabla] = useState(false);
-
     const [modelosPorSegmento, setModelosPorSegmento] = useState([]);
     const [cantidades, setCantidades] = useState({});
-
-    const [mostrarResumen, setMostrarResumen] = useState(false);
     const [guardadoPromotoria, setGuardadoPromotoria] = useState(false);
+    const [formularios, setFormularios] = useState([]);
 
     const cargarVisitaPromotoriaIniciales = async (codPromotor) => {
         try {
@@ -85,10 +77,9 @@ const FrmPromotoria= () => {
         }
     };
 
-
-
     const [form, setForm] = useState({
         fecha: todayISO(),
+        cod_form: '',
         promotorId: '',
         distribuidorId: '',
         codTienda: '',
@@ -105,11 +96,12 @@ const FrmPromotoria= () => {
         telefono1: '',
         correo_electronico: '',
         prom_venta_tienda: '',
-        resumenMarcas: {}
+        total_motos_shi: '',
+        cod_promotoria: '',
+        total_mot_piso: '',
+        modelos_segmento: [],
+        marcas_segmento: [],
     });
-
-    const [formularios, setFormularios] = useState([]);
-
 
     const getMenus = async () => {
         try {
@@ -138,8 +130,6 @@ const FrmPromotoria= () => {
         })();
     }, []);
 
-
-
     useEffect(() => {
         getMenus();
         fetchPromotores();
@@ -157,109 +147,105 @@ const FrmPromotoria= () => {
     }, [form.promotor, form.distribuidorId]);
 
 
-
     const handleChange = (campo) => (event) => {
         const value = event.target.value.toUpperCase();
         setForm({...form, [campo]: value});
     };
 
-    function buildPromotoriaPayload(form, empresa, cantidades) {
+    function buildPromotoriaPayload(form, empresa, cantidades, isUpdate = false) {
         const safeInt = (v) =>
             v === '' || v === null || v === undefined || Number.isNaN(Number(v))
                 ? null
                 : parseInt(String(v), 10);
 
-        const modelos_segmento = Object.values(cantidades.modelos || {}).map(m => ({
-            cod_segmento: safeInt(m.cod_segmento),
-            cod_linea: safeInt(m.cod_linea),
-            cod_modelo_comercial: safeInt(m.cod_modelo_comercial),
+        const modelos_segmento = Object.values(cantidades.modelos || {}).map(m => {
+            const match = segmentosCatalogo.find(
+                (s) =>
+                    Number(s.codigo_segmento) === Number(m.cod_segmento) &&
+                    Number(s.codigo_modelo_comercial) === Number(m.cod_modelo_comercial) &&
+                    Number(s.codigo_marca) === Number(m.cod_marca)
+            );
+
+            return {
+                cod_segmento: safeInt(match?.codigo_segmento || m.cod_segmento),
+                cod_linea: safeInt(match?.codigo_linea || m.cod_linea),
+                cod_modelo_comercial: safeInt(match?.codigo_modelo_comercial || m.cod_modelo_comercial),
+                cod_marca: safeInt(match?.codigo_marca || m.cod_marca),
+                cantidad: safeInt(m.cantidad) || 0,
+            };
+        });
+
+        const marcas_segmento = (form.marcas_segmento || []).map(m => ({
             cod_marca: safeInt(m.cod_marca),
+            nombre_segmento: (m.nombre_segmento || "").toUpperCase().trim(),
             cantidad: safeInt(m.cantidad) || 0,
         }));
 
-        // const marcas_segmento = Object.values(cantidades.marcas || {}).map(m => ({
-        //     cod_marca: safeInt(m.cod_marca),
-        //     cantidad: safeInt(m.cantidad) || 0,
-        //     nombre_segmento: m.nombre_segmento,
-        // }));
-
-        const marcas_segmento = [];
-
-        if (cantidades.modelos) {
-            const agrupado = {};
-
-            Object.values(cantidades.modelos).forEach(m => {
-                const cod_marca = safeInt(m.cod_marca);
-                const nombre_segmento = m.nombre_segmento || '';
-                const key = `${cod_marca}-${nombre_segmento}`;
-
-                if (!agrupado[key]) {
-                    agrupado[key] = {
-                        cod_marca,
-                        nombre_segmento,
-                        cantidad: 0,
-                    };
-                }
-                agrupado[key].cantidad += safeInt(m.cantidad) || 0;
-            });
-
-            for (const k in agrupado) {
-                marcas_segmento.push(agrupado[k]);
-            }
-        }
-
-
-        return {
-            empresa: safeInt(empresa),
-            cod_promotor: String(form.promotor ?? '').trim(),
+        let payload = {
             cod_cliente: String(form.distribuidorId ?? '').trim(),
             cod_tienda: safeInt(form.codTienda),
-            total_vendedores: safeInt(form.total_vendedores) || 0,
+            //total_vendedores: safeInt(form.total_vendedores) || 0,
             modelos_segmento,
             marcas_segmento,
         };
-    }
 
+        if (!isUpdate) {
+            // Solo en insert
+            payload = {
+                ...payload,
+                empresa: safeInt(empresa),
+                cod_promotor: String(form.promotor ?? '').trim(),
+            };
+        }
+
+        return payload;
+    }
 
 
     const handleSubmit = async () => {
         const required = ['promotor', 'distribuidorId', 'codTienda'];
         const missing = required.filter(f => !form[f] && form[f] !== 0);
         if (missing.length) {
-            setAlerta({ open: true, msg: 'Por favor completa todos los campos obligatorios.', severity: 'warning' });
+            setAlerta({
+                open: true,
+                msg: 'Por favor completa todos los campos obligatorios.',
+                severity: 'warning'
+            });
             return;
         }
 
-        const payload = buildPromotoriaPayload(form, enterpriseShineray, cantidades);
+        const payload = buildPromotoriaPayload(
+            form,
+            enterpriseShineray,
+            cantidades,
+            modoEdicion
+        );
 
         try {
             if (modoEdicion) {
-                await APIService.updatePromotoria(form.cod_promotoria, payload);
+                await APIService.updatePromotoria(form.cod_form, payload);
             } else {
                 await APIService.postPromotoria(enterpriseShineray, payload);
             }
 
-            const params = {};
-            if (fromDate && toDate) {
-                params.fecha_inicio = dayjs(fromDate).format('YYYY-MM-DD');
-                params.fecha_fin = dayjs(toDate).format('YYYY-MM-DD');
-            }
-            if (buscarDistribuidorId) {
-                params.cod_cliente = String(buscarDistribuidorId);
-            }
 
-            const resp = await APIService.getPromotoria(enterpriseShineray, params);
-            const data = Array.isArray(resp) ? resp : (resp?.data ?? []);
-            const rows = data.map(it => obtenerPromotoria(it));
+            const promotorId = form.cod_promotor || form.promotor;
+            const registros = await APIService.getPromotoria(enterpriseShineray, {
+                cod_promotor: String(promotorId),
+            });
+            const rows = (Array.isArray(registros) ? registros : (registros?.data ?? []))
+                .map(it => obtenerPromotoria(it));
             setFormularios(rows);
-
 
             setGuardadoPromotoria(true);
             setAlerta({
                 open: true,
-                msg: modoEdicion ? 'Formulario actualizado con éxito.' : 'Formulario guardado con éxito.',
-                severity: 'success'
+                msg: modoEdicion
+                    ? 'Formulario actualizado con éxito.'
+                    : 'Formulario guardado con éxito.',
+                severity: 'success',
             });
+
             limpiarFormulario();
             setMostrarFormulario(false);
             setMostrarTabla(true);
@@ -284,17 +270,22 @@ const FrmPromotoria= () => {
             distribuidorId: '',
             codTienda: '',
             tiendaNombre: '',
-            jefeTienda: '',
+            responsable: '',
             correoTienda: '',
             telefonoTienda: '',
-            total_vendedores: '',
-            totalModelosPiso: '',
-            totalShineray: '',
+            //total_vendedores: '',
+            total_motos_piso: '',
+            total_motos_shi: '',
+            total_por_marca: '',
             segmento: '',
             marca: '',
             modelo: '',
             cantidadModelos: '',
+            modelos_segmento: [],
+            marcas_segmento: [],
+            telefono1: '',
         }));
+        setCantidades({ modelos: {}, marcas: {} });
         setModoEdicion(false);
         setIndexEditar(null);
     };
@@ -354,22 +345,25 @@ const FrmPromotoria= () => {
 
     };
 
-
     const fetchMarcas = async () => {
         try {
-
             const response = await APIService.getMarcas();
             const formattedMarcas = response.map((p) => ({
                 id: p.codigo_marca,
                 nombre_marca: `${p.nombre_marca}`,
             }));
             setMarcas(formattedMarcas);
-
         } catch (error) {
-            console.error("Error al obtener promotores:", error);
-            toast.error(error.message || "No se pudo cargar promotores");
+            console.error("Error al obtener marcas:", error);
+            toast.error(error.message || "No se pudo cargar marcas");
         }
     };
+
+    const getNombreMarca = (cod_marca) => {
+        const marca = marcas.find((m) => String(m.id) === String(cod_marca));
+        return marca ? marca.nombre_marca : "";
+    };
+
 
     const fetchSegmentos = async () => {
         try {
@@ -385,7 +379,6 @@ const FrmPromotoria= () => {
             toast.error(error.message || "No se pudo cargar segmentos");
         }
     };
-
 
     useEffect(() => {
         const fetchModeloSegmentos = async () => {
@@ -526,43 +519,86 @@ const FrmPromotoria= () => {
             }));
     }, [direcciones, form.ciudad]);
 
-
-
     dayjs.extend(utc);
 
-    const obtenerPromotoria = (item) => {
-        const safe = (val) => {
-            if (val == null) return '';
-            if (typeof val === 'object') {
-                if (val.nombres || val.apellido_paterno || val.apellido_materno) {
-                    return [val.nombres, val.apellido_paterno, val.apellido_materno]
-                        .filter(Boolean)
-                        .join(' ')
-                        .trim();
-                }
-                if (val.nombre) return String(val.nombre).trim();
-                if (val.label) return String(val.label).trim();
-                if (val.ciudad) return String(val.ciudad).trim();
-                return JSON.stringify(val); // fallback (no recomendable en producción)
+    const [segmentosCatalogo, setSegmentosCatalogo] = useState([]);
+
+    useEffect(() => {
+        const fetchSegmentos = async () => {
+            try {
+                const response = await APIService.getModeloSegmentos();
+                setSegmentosCatalogo(response || []);
+            } catch (error) {
+                console.error("Error al obtener catálogo de segmentos:", error);
+                toast.error(error.message || "No se pudo cargar catálogo de segmentos");
             }
-            return String(val).trim();
         };
 
+        fetchMarcas();
+        fetchSegmentos();
+    }, []);
+
+    const safe = (val) => {
+        if (val == null) return "";
+        if (typeof val === "object") {
+            if (val.nombres || val.apellido_paterno || val.apellido_materno) {
+                return [val.nombres, val.apellido_paterno, val.apellido_materno]
+                    .filter(Boolean)
+                    .join(" ")
+                    .trim();
+            }
+            if (val.nombre) return String(val.nombre).trim();
+            if (val.label) return String(val.label).trim();
+            if (val.ciudad) return String(val.ciudad).trim();
+            return JSON.stringify(val);
+        }
+        return String(val).trim();
+    };
+
+
+
+    const obtenerPromotoria = (item) => {
         return {
             cod_form: safe(item.cod_form),
             promotor: safe(item.promotor),
+            audit_fecha_ing: item.audit_fecha_ing ? dayjs(item.audit_fecha_ing).format('DD/MM/YYYY') : '',
             distribuidor: safe(item.cliente),
+            cod_promotor: safe(item.cod_promotor),
+            cod_cliente: safe(item.cod_cliente),
+            cod_tienda: safe(item.cod_tienda),
             ciudad: safe(item.bodega?.ciudad || item.tienda?.ciudad),
             tienda: safe(item.bodega?.nombre || item.tienda?.nombre),
-            jefeTienda: safe(item.bodega?.responsable),
+            responsable: safe(item.bodega?.responsable),
             correoTienda: safe(item.bodega?.correo_electronico),
             telefonoTienda: safe(item.bodega?.telefono1),
-            promedioVenta: safe(item.bodega?.prom_venta_tienda),
-            total_vendedores: safe(item.total_vendedores),
-            totalMotosPiso: safe(item.total_mot_piso),
-            motosShineray: safe(item.total_mot_shineray),
-            modelos_segmento: item.modelos_segmento || [],
-            marcas_segmento: item.marcas_segmento || [],
+            participacion: safe(item.participacion),
+            total_motos_piso: safe(item.total_motos_piso),
+            total_motos_shi: safe(item.total_motos_shi),
+
+            marcas_segmento: (item.marcas_segmento || []).map((m) => ({
+                ...m,
+                cantidad: Number(m.cantidad) || 0,
+                nombre_segmento: (m.nombre_segmento || "").toUpperCase().trim(),
+                nombre_marca: getNombreMarca(m.cod_marca) || "",
+            })),
+
+            // 🔹 Modelos segmento enriquecidos con catálogo
+            modelos_segmento: (item.modelos_segmento || []).map((m) => {
+                const modeloRelacionado = segmentosCatalogo.find(
+                    (s) =>
+                        Number(s.codigo_segmento) === Number(m.cod_segmento) &&
+                        Number(s.codigo_modelo_comercial) === Number(m.cod_modelo_comercial)
+                );
+
+                return {
+                    ...m,
+                    cantidad: Number(m.cantidad) || 0,
+                    nombre_segmento: (modeloRelacionado?.nombre_segmento || "")
+                        .toUpperCase()
+                        .trim(),
+                    nombre_modelo: modeloRelacionado?.nombre_modelo || "",
+                };
+            }),
         };
     };
 
@@ -599,7 +635,45 @@ const FrmPromotoria= () => {
         };
     }, [direcciones, form.codTienda]);
 
-    console.log("form", form);
+    useEffect(() => {
+        // Total de todas las motos piso
+        const totalPiso =
+            Object.values(cantidades.modelos || {}).reduce((acc, m) => acc + (Number(m.cantidad) || 0), 0) +
+            (form.marcas_segmento || []).reduce((acc, m) => acc + (Number(m.cantidad) || 0), 0);
+
+        const totalMassline =
+            Object.values(cantidades.modelos || {}).reduce((acc, m) => {
+                return ["3", "18", "22"].includes(String(m.cod_marca))
+                    ? acc + (Number(m.cantidad) || 0)
+                    : acc;
+            }, 0) +
+            (form.marcas_segmento || []).reduce((acc, m) => {
+                return ["3", "18", "22"].includes(String(m.cod_marca))
+                    ? acc + (Number(m.cantidad) || 0)
+                    : acc;
+            }, 0);
+
+        setForm(prev => ({
+            ...prev,
+            total_motos_piso: totalPiso,
+            total_motos_shi: totalMassline,
+        }));
+    }, [cantidades, form.marcas_segmento, setForm]);
+
+
+    // Calcular % participación dinámicamente
+    useEffect(() => {
+        setForm((prev) => {
+            const piso = Number(prev.total_motos_piso) || 0;
+            const shi = Number(prev.total_motos_shi) || 0;
+
+            return {
+                ...prev,
+                participacion: piso > 0 ? (shi / piso) * 100 : 0,
+            };
+        });
+    }, [form.total_motos_piso, form.total_motos_shi]);
+
 
     return (
         <>{loading ? (<LoadingCircle/>) : (
@@ -780,8 +854,6 @@ const FrmPromotoria= () => {
                                                                 clienteId,
                                                                 v.id
                                                             );
-                                                            console.log("Respuesta getTiendas:", data);
-
                                                             if (data) {
                                                                 setForm(prev => ({
                                                                     ...prev,
@@ -790,8 +862,6 @@ const FrmPromotoria= () => {
                                                                     correoTienda: data.bodega?.correo_electronico || '',
                                                                     prom_venta_tienda: data.prom_venta_tienda || ''
                                                                 }));
-
-
                                                             }
                                                         } catch (error) {
                                                             console.error("Error cargando info tienda:", error);
@@ -809,7 +879,6 @@ const FrmPromotoria= () => {
                                                         }));
                                                     }
                                                 }}
-
                                                 isOptionEqualToValue={(a, b) => `${a.id}` === `${b?.id ?? b}`}
                                                 renderInput={(params) => <TextField {...params} label="Tienda" />}
                                             />
@@ -838,21 +907,33 @@ const FrmPromotoria= () => {
                                                 InputProps={{ readOnly: true }}
                                             />
                                         </Grid>
-                                        <Grid item xs={12} md={2}>
+                                        <Grid item xs={12} md={1}>
                                             <TextField
-                                                label="Promedio Venta"
-                                                value={form.prom_venta_tienda || ''}
+                                                label="T. MOTOS PISO"
+                                                type="number"
+                                                value={form.total_motos_piso ?? ''}
+                                                onChange={handleChange('total_motos_piso')}
                                                 fullWidth
                                                 InputProps={{ readOnly: true }}
                                             />
                                         </Grid>
                                         <Grid item xs={12} md={1}>
                                             <TextField
-                                                label="# Vendedores"
+                                                label="T. MOTOS SHINERAY"
                                                 type="number"
-                                                value={form.total_vendedores ?? ''}
-                                                onChange={handleChange('total_vendedores')}
+                                                value={form.total_motos_shi ?? ''}
+                                                onChange={handleChange('total_motos_shi')}
                                                 fullWidth
+                                                InputProps={{ readOnly: true }}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} md={1}>
+                                            <TextField
+                                                label="% PARTICIPACIÓN SHINERAY"
+                                                type="number"
+                                                value={form.participacion ? form.participacion.toFixed(2) : ''}
+                                                fullWidth
+                                                InputProps={{ readOnly: true }}
                                             />
                                         </Grid>
                                         <Grid item xs={12} md={6}>
@@ -888,22 +969,11 @@ const FrmPromotoria= () => {
                                                                 limpiarFormulario();
                                                                 setMostrarFormulario(false);
                                                                 setModoEdicion(false);
+                                                                setMostrarTabla(true);
                                                             }}
                                                         >
                                                             Cancelar
                                                         </Button>
-
-                                                        {/*<Button*/}
-                                                        {/*    variant="contained"*/}
-                                                        {/*    sx={{ backgroundColor: 'green', '&:hover': { backgroundColor: 'darkgreen' } }}*/}
-                                                        {/*    onClick={() => {*/}
-                                                        {/*        limpiarFormulario();*/}
-                                                        {/*        setMostrarFormulario(false);*/}
-                                                        {/*        setMostrarResumen(true);*/}
-                                                        {/*    }}*/}
-                                                        {/*>*/}
-                                                        {/*    Siguiente*/}
-                                                        {/*</Button>*/}
                                                     </Box>
                                                 </Grid>
 
@@ -913,38 +983,21 @@ const FrmPromotoria= () => {
                                 </Paper>
                             </>
                         )}
-                        {guardadoPromotoria && (
-                            <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-                                <Button
-                                    variant="contained"
-                                    sx={{ backgroundColor: 'green', '&:hover': { backgroundColor: 'darkgreen' } }}
-                                    onClick={() => {
-                                        limpiarFormulario();
-                                        setMostrarFormulario(false);
-                                        setMostrarTabla(false);
-                                        setMostrarResumen(true);
-                                        setGuardadoPromotoria(false);
-                                    }}
-                                >
-                                    Siguiente
-                                </Button>
-                            </Box>
-                        )}
-
                         {mostrarTabla && (
                             <Box sx={{ mt: 5, width: "100%", px: 2 }}>
-                                <CollapsibleTable cabeceras={formularios}  />
-
+                                <CollapsibleTable
+                                    cabeceras={formularios}
+                                    modeloSegmentos={modelos}
+                                    APIService={APIService}
+                                    setForm={setForm}
+                                    setModoEdicion={setModoEdicion}
+                                    setMostrarFormulario={setMostrarFormulario}
+                                    setMostrarTabla={setMostrarTabla}
+                                    setCantidades={setCantidades}
+                                    getNombreMarca={getNombreMarca}
+                                />
                             </Box>
                         )}
-                        {/*{mostrarResumen && (*/}
-                        {/*    <TablaResumenMarcas*/}
-                        {/*        modelosPorSegmento={modelosPorSegmento}*/}
-                        {/*        cantidades={cantidades}*/}
-                        {/*        form={form}*/}
-                        {/*        setForm={setForm}*/}
-                        {/*    />*/}
-                        {/*)}*/}
                     </Box>
                     <Snackbar open={alerta.open} autoHideDuration={3000}
                               onClose={() => setAlerta({...alerta, open: false})}>

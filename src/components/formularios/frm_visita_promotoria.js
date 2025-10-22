@@ -13,7 +13,7 @@ import LoadingCircle from "../contabilidad/loader";
 import {useAuthContext} from "../../context/authContext";
 import FrmActivaciones from "../formularios/frm_activaciones";
 import FrmPromotoria from "../formularios/frm_promotoria";
-import {Grid} from "@material-ui/core";
+import {Grid} from "@mui/material";
 
 const up = (s) => (s ?? '').toString().toUpperCase();
 const clean = (s) => {
@@ -54,9 +54,7 @@ const VisitaPromotoria = () => {
     const [loadingDirs, setLoadingDirs] = useState(false);
     const [promotorActual, setPromotorActual] = useState(null);
     const [cargandoPromotor, setCargandoPromotor] = useState(true);
-    const [canalRaw, setCanalRaw] = useState("");
     const [usuarioOracle, setUsuarioOracle] = useState("");
-    const [cargandoCanal, setCargandoCanal] = useState(true);
 
     useEffect(() => {
         window.__api = APIService;
@@ -149,7 +147,6 @@ const VisitaPromotoria = () => {
             }
         }
 
-
         // Material POP desactualizado → Otros
         if (f.pop_material_desactualizado?.includes("Otros") && !clean(f.otros_pop_material)) {
             faltan.push('otros_pop_material');
@@ -160,6 +157,7 @@ const VisitaPromotoria = () => {
         if (!num(f.conoc_prod) && up(f.conoc_prod) !== 'N/A') faltan.push('conoc_prod');
         if (!num(f.conoc_garan) && up(f.conoc_garan) !== 'N/A') faltan.push('conoc_garan');
         if (!num(f.conoc_shibot) && up(f.conoc_shibot) !== 'N/A') faltan.push('conoc_shibot');
+
         // Ubicación de talleres (RadioSiNo)
         if (bool01(f.ubi_talleres) == null) {
             faltan.push('ubi_talleres');
@@ -734,7 +732,7 @@ const VisitaPromotoria = () => {
                                 <Button
                                     variant="outlined"
                                     onClick={() => setMostrarSegundo(true)}
-                                    disabled={!guardada}
+                                    //disabled={!guardada}
                                 >
                                     Siguiente
                                 </Button>

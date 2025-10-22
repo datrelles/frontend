@@ -23,7 +23,7 @@ import {DatePicker} from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 import {makeStyles} from "@mui/styles";
 import RefreshIcon from '@mui/icons-material/Refresh';
-import AddIcon from "@material-ui/icons/Add";
+import AddIcon from "@mui/icons-material/Add";
 import Stack from "@mui/material/Stack";
 import {getTableOptions, getMuiTheme } from "../../muiTableConfig";
 import GlobalLoading from "../../selectoresDialog/GlobalLoading";
