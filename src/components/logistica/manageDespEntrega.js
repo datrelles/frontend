@@ -25,11 +25,9 @@ import Navbar0 from "../Navbar0";
 import { useAuthContext } from "../../context/authContext";
 import * as XLSX from "xlsx";
 
-// Toastify
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// APIs
 import {
   setAuthToken,
   getMenus,
@@ -41,7 +39,6 @@ import {
   updateDDespacho
 } from "../../services/dispatchApi";
 
-// ====== MUI table theme ======
 const getMuiTableTheme = () =>
   createTheme({
     components: {
@@ -76,47 +73,94 @@ const getMuiTableTheme = () =>
   });
 
 const norm = (s) =>
-  (String(s ?? "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase());
+(String(s ?? "")
+  .trim()
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .toLowerCase());
 
-const fmtDate = (d) => (d ? String(d).slice(0, 10) : "-");
-const toISO = (d) => (d ? String(d).slice(0, 10) : null);
+// ---------- Fechas ----------
+const pad2 = (n) => String(n).padStart(2, "0");
 
-// Convierte un valor de fecha Excel (serial numérico o string) a YYYY-MM-DD
+const parseAnyDateTime = (val) => {
+  if (val == null || val === "") return null;
+  if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
+
+  // Excel serial
+  if (typeof val === "number" && !isNaN(val)) {
+    const ms = Math.round((val - 25569) * 86400 * 1000);
+    const d = new Date(ms);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  const s = String(val).trim();
+
+  // DD/MM/YYYY [HH:mm[:ss]]
+  const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?$/);
+  if (m) {
+    const [, dd, mm, yyyy, HH = "00", MM = "00", SS = "00"] = m;
+    const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd), Number(HH), Number(MM), Number(SS));
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  // ISO u otros
+  const d2 = new Date(s.replace(" ", "T"));
+  return isNaN(d2.getTime()) ? null : d2;
+};
+
+const fmtDateTime = (val) => {
+  const d = parseAnyDateTime(val);
+  if (!d) return "-";
+  const y = d.getFullYear();
+  const m = pad2(d.getMonth() + 1);
+  const day = pad2(d.getDate());
+  const hh = pad2(d.getHours());
+  const mm = pad2(d.getMinutes());
+  return `${y}-${m}-${day} ${hh}:${mm}`;
+};
+
+const toISODate = (val) => {
+  const d = parseAnyDateTime(val);
+  if (!d) return null;
+  const y = d.getFullYear();
+  const m = pad2(d.getMonth() + 1);
+  const day = pad2(d.getDate());
+  return `${y}-${m}-${day}`;
+};
+
+const todayISO = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+};
+const daysAgoISO = (n) => {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+};
+
 const toISOFromExcel = (val) => {
   if (val == null || val === "") return null;
-  // Si viene como número (serial Excel)
   if (typeof val === "number" && !isNaN(val)) {
-    // Excel serial date -> ms desde 1970: (val - 25569) días * 86400s * 1000ms
     const ms = Math.round((val - 25569) * 86400 * 1000);
     const d = new Date(ms);
     if (isNaN(d.getTime())) return null;
-    // Aseguramos ISO en local (sin tz) YYYY-MM-DD
     return d.toISOString().slice(0, 10);
   }
-  // Si viene como string, intentamos parsear
   const s = String(val).trim();
-  // Normalizamos separadores
   const clean = s.replace(/\//g, "-");
-  // Si viene como YYYY-MM-DD o similar, tomamos los primeros 10
   const candidate = clean.slice(0, 10);
-  // Validación simple YYYY-MM-DD
   if (/^\d{4}-\d{2}-\d{2}$/.test(candidate)) return candidate;
-  // Intento con Date.parse
   const d = new Date(clean);
   if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10);
   return null;
 };
 
-// Filtros de estado
 const MODES = {
   TODOS: "TODOS",
-  EN_DESPACHO: "EN_DESPACHO",      // en_despacho:1, despachada:0
-  POR_DESPACHAR: "POR_DESPACHAR",  // en_despacho:0, despachada:0, cod_guia_des != null
-  SIN_GUIA: "SIN_GUIA",            // cod_guia_des == null y en_despacho:0, despachada:0
-  DESPACHADO: "DESPACHADO",        // en_despacho:1, despachada:1
+  EN_DESPACHO: "EN_DESPACHO",
+  POR_DESPACHAR: "POR_DESPACHAR",
+  SIN_GUIA: "SIN_GUIA",
+  DESPACHADO: "DESPACHADO",
 };
 
 const DATE_FIELDS = {
@@ -127,12 +171,14 @@ const DATE_FIELDS = {
   FECHA_ENVIO: "fecha_envio",
 };
 
+// Clave estable para selección robusta
+const rowKey = (r) =>
+  `${r?.cod_despacho ?? "nd"}-${r?.cod_ddespacho ?? r?.numero_serie ?? "ns"}`;
+
 export default function DespachosControl() {
-  // ====== Auth & token ======
   const { jwt, enterpriseShineray, userShineray } = useAuthContext();
   useEffect(() => { setAuthToken(jwt); }, [jwt]);
 
-  // ====== Menús / Navbar ======
   const [menus, setMenus] = useState([]);
   useEffect(() => {
     const loadMenus = async () => {
@@ -146,42 +192,49 @@ export default function DespachosControl() {
     loadMenus();
   }, [enterpriseShineray, userShineray, jwt]);
 
-  // ====== Estado de consulta principal ======
   const [rows, setRows] = useState([]);
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(100);
   const [loading, setLoading] = useState(false);
 
-  // Búsqueda rápida
   const [q, setQ] = useState("");
-
-  // Filtro por modo
   const [mode, setMode] = useState(MODES.TODOS);
 
-  // Filtros por fecha
+  // Fechas (enviadas al backend y usadas localmente)
   const [dateField, setDateField] = useState(DATE_FIELDS.TODAS);
-  const [dateFrom, setDateFrom] = useState(""); // yyyy-mm-dd
-  const [dateTo, setDateTo] = useState("");     // yyyy-mm-dd
+  const [dateFrom, setDateFrom] = useState(daysAgoISO(30));
+  const [dateTo, setDateTo] = useState(todayISO());
 
-  // Empresa
   const [empresa, setEmpresa] = useState(enterpriseShineray || 20);
 
-  // ====== Excel (.xlsx) - Despachada ======
   const fileInputRef = useRef(null);
   const [excelDlgOpen, setExcelDlgOpen] = useState(false);
-  const [excelMatches, setExcelMatches] = useState([]); // elementos que serán actualizados
+  const [excelMatches, setExcelMatches] = useState([]);
   const [excelParseErrors, setExcelParseErrors] = useState([]);
   const [updatingExcel, setUpdatingExcel] = useState(false);
 
-  // ====== Excel (.xlsx) - Entregas ======
   const fileEntregaRef = useRef(null);
   const [excelEntregaDlgOpen, setExcelEntregaDlgOpen] = useState(false);
   const [excelEntregaMatches, setExcelEntregaMatches] = useState([]);
   const [excelEntregaErrors, setExcelEntregaErrors] = useState([]);
   const [updatingEntrega, setUpdatingEntrega] = useState(false);
 
-  // Cargar data
+  const countAsignPorDespacho = useMemo(() => {
+    const m = new Map();
+    for (const r of rows) {
+      const cod = r?.cod_despacho;
+      if (cod == null) continue;
+      if (r?.cod_ddespacho != null) {
+        m.set(cod, (m.get(cod) || 0) + 1);
+      }
+    }
+    return m;
+  }, [rows]);
+
+  // Selección robusta por clave estable
+  const [selectedKeys, setSelectedKeys] = useState(() => new Set());
+
   const loadData = async (opts = {}) => {
     if (!empresa) return;
     try {
@@ -192,12 +245,16 @@ export default function DespachosControl() {
         empresa: Number(empresa),
         page: _page,
         page_size: _pageSize,
+        fecha_desde: dateFrom || undefined,
+        fecha_hasta: dateTo || undefined,
       };
       const data = await searchDespachos(payload);
       setRows(Array.isArray(data?.results) ? data.results : []);
       setCount(Number(data?.count || 0));
       setPage(_page);
       setPageSize(_pageSize);
+      // (opcional) limpiar selección al recargar
+      // setSelectedKeys(new Set());
     } catch (e) {
       toast.error(e?.message || "No se pudo cargar la lista de despachos.");
     } finally {
@@ -210,12 +267,10 @@ export default function DespachosControl() {
       setEmpresa(enterpriseShineray);
       loadData({ page: 1 });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enterpriseShineray]);
+  }, [enterpriseShineray]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const totalPages = Math.max(1, Math.ceil(count / pageSize));
 
-  // ====== Util de filtro por rango de fechas ======
   const inRange = (iso, from, to) => {
     if (!iso) return false;
     if (from && iso < from) return false;
@@ -223,11 +278,9 @@ export default function DespachosControl() {
     return true;
   };
 
-  // ====== Filtro por modo + búsqueda + fechas ======
   const filteredRows = useMemo(() => {
     let arr = rows;
 
-    // Filtros por modo
     switch (mode) {
       case MODES.EN_DESPACHO:
         arr = arr.filter(r => Number(r?.en_despacho) === 1 && Number(r?.despachada) === 0);
@@ -254,31 +307,23 @@ export default function DespachosControl() {
         break;
     }
 
-    // Filtro por fecha(s)
     const from = dateFrom || "";
     const to = dateTo || "";
     if (from || to) {
       arr = arr.filter(r => {
-        const fa = toISO(r?.fecha_agrega);
-        const fe = toISO(r?.fecha_est_desp);
-        const fd = toISO(r?.fecha_despacho);
-        const fv = toISO(r?.fecha_envio);
-
+        const fa = toISODate(r?.fecha_agrega);
+        const fe = toISODate(r?.fecha_est_desp);
+        const fd = toISODate(r?.fecha_despacho);
+        const fv = toISODate(r?.fecha_envio);
         if (dateField === DATE_FIELDS.TODAS) {
-          return (
-            inRange(fa, from, to) ||
-            inRange(fe, from, to) ||
-            inRange(fd, from, to) ||
-            inRange(fv, from, to)
-          );
+          return inRange(fa, from, to) || inRange(fe, from, to) || inRange(fd, from, to) || inRange(fv, from, to);
         } else {
-          const iso = toISO(r?.[dateField]);
+          const iso = toISODate(r?.[dateField]);
           return inRange(iso, from, to);
         }
       });
     }
 
-    // Búsqueda rápida
     const nq = norm(q);
     if (!nq) return arr;
 
@@ -289,35 +334,93 @@ export default function DespachosControl() {
       norm(r?.numero_serie).includes(nq) ||
       norm(r?.ruta).includes(nq) ||
       norm(r?.destino).includes(nq) ||
-      norm(r?.ruc_cliente).includes(nq)
+      norm(r?.ruc_cliente).includes(nq) ||
+      norm(r?.cod_guia_des).includes(nq)
     );
   }, [rows, mode, q, dateField, dateFrom, dateTo]);
 
-  // ====== Diálogo Editar (ruta, transportista, despachada, dirección cliente) ======
+  // Si cambia el conjunto visible, mantenemos solo claves que sigan visibles
+  useEffect(() => {
+    const visible = new Set((filteredRows || []).map(rowKey));
+    let changed = false;
+    const next = new Set();
+    selectedKeys.forEach((k) => {
+      if (visible.has(k)) next.add(k);
+      else changed = true;
+    });
+    if (changed) setSelectedKeys(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredRows]);
+
+  // Exportar Excel filtrado
+  const handleDownloadFilteredExcel = () => {
+    try {
+      const data = (filteredRows || []).map((r) => ({
+        "COD DESPACHO": r?.cod_despacho ?? "",
+        "COD DDESPACHO": r?.cod_ddespacho ?? "",
+        "EN_DESPACHO": Number(r?.en_despacho) === 1 ? "SI" : "NO",
+        "DESPACHADA": Number(r?.despachada) === 1 ? "SI" : "NO",
+        "COD PEDIDO": r?.cod_pedido ?? "",
+        "COD ORDEN": r?.cod_orden ?? "",
+        "COD GUIA DESPACHO": r?.cod_guia_des ?? "",
+        "COD GUIA ENVIO": r?.cod_guia_envio ?? "",
+        "CADENA": r?.cadena ?? "",
+        "CLIENTE": r?.cliente ?? "",
+        "DESTINO": r?.destino ?? "",
+        "RUTA": r?.ruta ?? "",
+        "TRANSPORTISTA": r?.transportista ?? "",
+        "RUC": r?.ruc_cliente ?? "",
+        "TIPO": r?.fac_con ?? "",
+        "FECHA AGREGADO": fmtDateTime(r?.fecha_agrega),
+        "FECHA EST DESP": fmtDateTime(r?.fecha_est_desp),
+        "FECHA DESPACHO": fmtDateTime(r?.fecha_despacho),
+        "FECHA ENVIO": fmtDateTime(r?.fecha_envio),
+        "BOD DESTINO": r?.bod_destino ?? "",
+        "PRODUCTO": r?.producto ?? "",
+        "COD PRODUCTO": r?.cod_producto ?? "",
+        "NOMBRE": r?.nombre ?? "",
+        "MODELO": r?.modelo ?? "",
+        "NUMERO_SERIE": r?.numero_serie ?? "",
+        "COD COLOR": r?.cod_color ?? "",
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Filtrado");
+
+      const now = new Date();
+      const fname = `despachos_filtrado_${now.getFullYear()}-${String(
+        now.getMonth() + 1
+      ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}_${String(
+        now.getHours()
+      ).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}.xlsx`;
+
+      XLSX.writeFile(wb, fname);
+      toast.success(`Excel generado (${data.length} filas).`);
+    } catch (e) {
+      toast.error(e?.message || "No se pudo generar el Excel del filtrado.");
+    }
+  };
+
   const [dlgEdit, setDlgEdit] = useState(false);
   const [rowEdit, setRowEdit] = useState(null);
   const [savingEdit, setSavingEdit] = useState(false);
 
-  // Rutas selector
   const [rutasQuery, setRutasQuery] = useState("");
   const [loadingRutas, setLoadingRutas] = useState(false);
   const [rutasOpts, setRutasOpts] = useState([]);
   const [rutaSel, setRutaSel] = useState(null);
 
-  // Transportistas por ruta
   const [loadingTransp, setLoadingTransp] = useState(false);
   const [transpOpts, setTranspOpts] = useState([]);
   const [transpSel, setTranspSel] = useState(null);
 
-  // Despachada (0/1)
   const [esDespachada, setEsDespachada] = useState("");
 
-  // Direcciones del cliente
   const [loadingDirs, setLoadingDirs] = useState(false);
   const [dirsOpts, setDirsOpts] = useState([]);
   const [dirSel, setDirSel] = useState(null);
 
-  // Cargar rutas con debounce cuando el diálogo está abierto
   useEffect(() => {
     if (!dlgEdit) return;
     let cancel = false;
@@ -338,10 +441,8 @@ export default function DespachosControl() {
       }
     }, 300);
     return () => { cancel = true; clearTimeout(h); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dlgEdit, rutasQuery, empresa]);
 
-  // Cuando se elige una ruta, cargar transportistas de esa ruta
   useEffect(() => {
     if (!dlgEdit) return;
     if (!rutaSel?.cod_ruta) { setTranspOpts([]); setTranspSel(null); return; }
@@ -363,13 +464,10 @@ export default function DespachosControl() {
       }
     })();
     return () => { cancel = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dlgEdit, rutaSel, empresa]);
 
-  // Cargar direcciones del cliente al abrir el diálogo
   useEffect(() => {
     if (!dlgEdit) return;
-
     let cancel = false;
     (async () => {
       try {
@@ -408,8 +506,7 @@ export default function DespachosControl() {
     })();
 
     return () => { cancel = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dlgEdit, rowEdit, enterpriseShineray]);
+  }, [dlgEdit, rowEdit, enterpriseShineray, empresa]);
 
   const openEdit = (row) => {
     setRowEdit(row);
@@ -417,16 +514,13 @@ export default function DespachosControl() {
     setTranspSel(null);
     setRutasQuery("");
     setTranspOpts([]);
-
     setEsDespachada(
       typeof row?.despachada !== "undefined" && row?.despachada !== null
         ? Number(row.despachada)
         : ""
     );
-
     setDirsOpts([]);
     setDirSel(null);
-
     setDlgEdit(true);
   };
 
@@ -434,12 +528,9 @@ export default function DespachosControl() {
 
   const handleSaveEdit = async () => {
     if (!rowEdit) return;
-
-    // Restricción: sólo editar si en_despacho=0 y despachada=0
     if (!(Number(rowEdit?.en_despacho) === 0 && Number(rowEdit?.despachada) === 0)) {
       return toast.warning("Solo se puede editar cuando EN_DESPACHO y DESPACHADA están en 0.");
     }
-
     if (!rowEdit?.cod_despacho) {
       return toast.warning("Este registro no tiene 'cod_despacho' para actualizar.");
     }
@@ -473,7 +564,6 @@ export default function DespachosControl() {
     }
   };
 
-  // ====== DESCARGAR MODELO XLSX (DESPACHADA) ======
   const handleDownloadTemplate = () => {
     const aoa = [
       ["SERIE", "DESPACHADA"],
@@ -486,7 +576,6 @@ export default function DespachosControl() {
     toast.info("Se descargó el modelo Excel. Llénalo y vuelve a cargarlo.");
   };
 
-  // ====== PARSE XLSX/CSV (DESPACHADA) ======
   const parseWorkbook = (wb) => {
     const firstSheetName = wb.SheetNames?.[0];
     if (!firstSheetName) return { records: [], errors: ["El archivo no contiene hojas."] };
@@ -526,12 +615,10 @@ export default function DespachosControl() {
     return { records, errors };
   };
 
-  // ====== CLICK CARGAR EXCEL (DESPACHADA) ======
   const handleClickUpload = () => {
     fileInputRef.current?.click();
   };
 
-  // ====== ON CHANGE FILE (DESPACHADA) ======
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     e.target.value = "";
@@ -605,7 +692,6 @@ export default function DespachosControl() {
     }
   };
 
-  // ====== ACTUALIZAR SERIES DESDE DIALOG (DESPACHADA) ======
   const handleConfirmExcelUpdate = async () => {
     if (excelMatches.length === 0) return;
     setUpdatingExcel(true);
@@ -633,7 +719,6 @@ export default function DespachosControl() {
     await loadData({ page });
   };
 
-  // ====== NUEVO: DESCARGAR MODELO XLSX (ENTREGAS) ======
   const handleDownloadEntregaTemplate = () => {
     const aoa = [
       ["SERIE", "FECHA_ENTREGA", "OBSERVACION_ENTREGA"],
@@ -646,7 +731,6 @@ export default function DespachosControl() {
     toast.info("Se descargó el modelo de Entregas. Llénalo y vuelve a cargarlo.");
   };
 
-  // ====== NUEVO: PARSE XLSX/CSV (ENTREGAS) ======
   const parseWorkbookEntregas = (wb) => {
     const firstSheetName = wb.SheetNames?.[0];
     if (!firstSheetName) return { records: [], errors: ["El archivo no contiene hojas."] };
@@ -672,7 +756,7 @@ export default function DespachosControl() {
     json.forEach((r, idx) => {
       const { serie, fecha, obs } = mapRow(r);
       const line = idx + 2;
-      if (!serie && !fecha && !obs) return; // fila totalmente vacía
+      if (!serie && !fecha && !obs) return;
       if (!serie) {
         errors.push(`Línea ${line}: SERIE vacío.`);
         return;
@@ -688,12 +772,10 @@ export default function DespachosControl() {
     return { records, errors };
   };
 
-  // ====== NUEVO: CLICK CARGAR EXCEL (ENTREGAS) ======
   const handleClickUploadEntregas = () => {
     fileEntregaRef.current?.click();
   };
 
-  // ====== NUEVO: ON CHANGE FILE (ENTREGAS) ======
   const handleFileChangeEntregas = async (e) => {
     const file = e.target.files?.[0];
     e.target.value = "";
@@ -728,7 +810,7 @@ export default function DespachosControl() {
       for (const rec of records) {
         const found = rowsBySerie.get(rec.SERIE);
         if (found) {
-          const okState = true//Number(found.en_despacho) === 0 && Number(found.despachada) === 0;
+          const okState = true;
           const hasCod = !!found.cod_despacho;
           if (okState && hasCod) {
             matches.push({
@@ -743,9 +825,7 @@ export default function DespachosControl() {
               cod_ddespacho: found.cod_ddespacho,
             });
           } else {
-            issues.push(
-              `Serie ${rec.SERIE}: no cumple estado (en_despacho y despachada deben ser 0) o falta cod_despacho.`
-            );
+            issues.push(`Serie ${rec.SERIE}: no cumple estado requerido o falta cod_despacho.`);
           }
         } else {
           issues.push(`Serie ${rec.SERIE}: no existe en los registros actuales.`);
@@ -764,7 +844,6 @@ export default function DespachosControl() {
     }
   };
 
-  // ====== NUEVO: ACTUALIZAR DESDE DIALOG (ENTREGAS) ======
   const handleConfirmEntregaUpdate = async () => {
     if (excelEntregaMatches.length === 0) return;
     setUpdatingEntrega(true);
@@ -797,7 +876,45 @@ export default function DespachosControl() {
     await loadData({ page });
   };
 
-  // ====== Columnas ======
+  const handleBulkMandarADespachar = async (rowsToProcess = []) => {
+    if (mode !== MODES.POR_DESPACHAR) {
+      toast.info("Esta acción solo está disponible en el filtro: Por despachar.");
+      return;
+    }
+    if (!rowsToProcess?.length) {
+      toast.info("Selecciona al menos una fila para mandar a despachar.");
+      return;
+    }
+
+    let ok = 0, fail = 0, skipped = 0;
+
+    for (const r of rowsToProcess) {
+      try {
+        const can = Number(r?.en_despacho) === 0 && Number(r?.despachada) === 0 && r?.cod_despacho && r?.cod_ddespacho;
+        if (!can) { skipped++; continue; }
+
+        await updateDDespacho(
+          Number(empresa),
+          Number(r.cod_despacho),
+          Number(r.cod_ddespacho),
+          { despachada: 1, usr_agrega: userShineray || undefined },
+          { method: "PATCH" }
+        );
+        ok++;
+      } catch (e) {
+        fail++;
+      }
+    }
+
+    if (ok) toast.success(`Mandados a despachar: ${ok}`);
+    if (skipped) toast.info(`Omitidos por estado/datos: ${skipped}`);
+    if (fail) toast.error(`Con error: ${fail}`);
+
+    await loadData({ page });
+
+    setSelectedKeys(new Set());
+  };
+
   const columns = useMemo(
     () => [
       {
@@ -835,7 +952,7 @@ export default function DespachosControl() {
 
       {
         name: "en_despacho",
-        label: "EN_DESPACHO",
+        label: "EN DESP",
         options: {
           customBodyRenderLite: (idx) => {
             const r = filteredRows[idx];
@@ -859,18 +976,16 @@ export default function DespachosControl() {
           },
         },
       },
-      { name: "cod_pedido", label: "COD PEDIDO" },
-      { name: "cod_orden", label: "COD ORDEN" },
+      { name: "cod_pedido", label: "PEDIDO" },
+      { name: "cod_orden", label: "ORDEN" },
       {
         name: "cod_guia_des",
-        label: "COD GUIA DESPACHO",
-        options: {
-          customBodyRenderLite: (idx) => filteredRows[idx]?.cod_guia_des ?? "-",
-        },
+        label: "GUIA DESPACHO",
+        options: { customBodyRenderLite: (idx) => filteredRows[idx]?.cod_guia_des ?? "-" },
       },
       {
         name: "cod_guia_envio",
-        label: "COD GUIA ENVIO",
+        label: "GUIA ENVIO",
         options: {
           customBodyRenderLite: (idx) => {
             const v = filteredRows[idx]?.cod_guia_envio;
@@ -878,47 +993,79 @@ export default function DespachosControl() {
           },
         },
       },
-      { name: "cadena", label: "CADENA" },
+
       { name: "cliente", label: "CLIENTE" },
       { name: "destino", label: "DESTINO" },
-      { name: "ruta", label: "RUTA" },
-      { name: "transportista", label: "TRANSPORTISTA" },
-      { name: "ruc_cliente", label: "RUC " },
-      { name: "fac_con", label: "TIPO" },
-      {
+            {
         name: "fecha_agrega",
         label: "FECHA AGREGADO",
-        options: { customBodyRenderLite: (i) => fmtDate(filteredRows[i]?.fecha_agrega) },
+        options: { customBodyRenderLite: (i) => fmtDateTime(filteredRows[i]?.fecha_agrega) },
       },
       {
         name: "fecha_est_desp",
         label: "FECHA ESTIMADA DESP",
-        options: { customBodyRenderLite: (i) => fmtDate(filteredRows[i]?.fecha_est_desp) },
+        options: { customBodyRenderLite: (i) => fmtDateTime(filteredRows[i]?.fecha_est_desp) },
       },
       {
         name: "fecha_despacho",
         label: "FECHA DESPACHO",
-        options: { customBodyRenderLite: (i) => fmtDate(filteredRows[i]?.fecha_despacho) },
+        options: { customBodyRenderLite: (i) => fmtDateTime(filteredRows[i]?.fecha_despacho) },
       },
+      { name: "ruta", label: "RUTA" },
+      { name: "transportista", label: "TRANSPORTISTA" },
+      { name: "ruc_cliente", label: "RUC " },
+      { name: "fac_con", label: "TIPO" },
+      { name: "cadena", label: "CADENA" },
       {
         name: "fecha_envio",
         label: "FECHA ENVIO",
-        options: { customBodyRenderLite: (i) => fmtDate(filteredRows[i]?.fecha_envio) },
+        options: { customBodyRenderLite: (i) => fmtDateTime(filteredRows[i]?.fecha_envio) },
       },
       { name: "bod_destino", label: "BOD DESTINO" },
       { name: "producto", label: "PRODUCTO" },
       { name: "cod_producto", label: "COD PRODUCTO" },
       { name: "nombre", label: "NOMBRE" },
       { name: "modelo", label: "MODELO" },
+      {
+        name: "c_env",
+        label: "C/Ped",
+        options: {
+          sort: true,
+          customBodyRenderLite: (idx) => Number(filteredRows[idx]?.cantidad_x_enviar ?? 0),
+        },
+      },
+      {
+        name: "c_asign",
+        label: "C/Asig",
+        options: {
+          sort: true,
+          customBodyRenderLite: (idx) => {
+            const r = filteredRows[idx];
+            return countAsignPorDespacho.get(r?.cod_despacho) || 0;
+          },
+        },
+      },
+      {
+        name: "c_pend",
+        label: "C/Pend",
+        options: {
+          sort: true,
+          customBodyRenderLite: (idx) => {
+            const r = filteredRows[idx];
+            const env = Number(r?.cantidad_x_enviar ?? 0);
+            const asign = countAsignPorDespacho.get(r?.cod_despacho) || 0;
+            return Math.max(0, env - asign);
+          },
+        },
+      },
       { name: "numero_serie", label: "NUMERO_SERIE" },
       { name: "cod_color", label: "COD COLOR" }
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [filteredRows]
+    [filteredRows, countAsignPorDespacho]
   );
 
   const options = {
-    selectableRows: "none",
+    selectableRows: "multiple",
     rowsPerPage: 20,
     elevation: 0,
     responsive: "standard",
@@ -928,6 +1075,29 @@ export default function DespachosControl() {
     filter: false,
     search: true,
     searchPlaceholder: "Buscar en cliente/pedido/orden/serie/ruta/destino…",
+
+    // Selección robusta: mapear claves ↔ dataIndex visibles
+    rowsSelected: useMemo(() => {
+      const indexByKey = new Map((filteredRows || []).map((r, i) => [rowKey(r), i]));
+      const idxs = [];
+      selectedKeys.forEach((k) => {
+        const i = indexByKey.get(k);
+        if (typeof i === "number") idxs.push(i);
+      });
+      return idxs;
+    }, [filteredRows, selectedKeys]),
+
+    // ✔ Usar dataIndex (estable frente a ordenamiento/paginación interna)
+    onRowSelectionChange: (_cur, allSelected) => {
+      const keys = new Set(
+        (allSelected || [])
+          .map((s) => filteredRows?.[s?.dataIndex])
+          .filter(Boolean)
+          .map(rowKey)
+      );
+      setSelectedKeys(keys);
+    },
+
     textLabels: {
       body: { noMatch: loading ? "Cargando..." : "Sin resultados" },
       pagination: { next: "Siguiente", previous: "Anterior", rowsPerPage: "Filas por página:", displayRows: "de" },
@@ -936,15 +1106,18 @@ export default function DespachosControl() {
     },
   };
 
-  // Backdrop global
-  const busy = loading || savingEdit || loadingRutas || loadingTransp || loadingDirs || updatingExcel || updatingEntrega;
+  const busy =
+    loading || savingEdit || loadingRutas || loadingTransp || loadingDirs || updatingExcel || updatingEntrega;
 
-  // ===== Render =====
+  const canBulkDispatch = useMemo(
+    () => mode === MODES.POR_DESPACHAR && selectedKeys.size > 0,
+    [mode, selectedKeys]
+  );
+
   return (
     <Box sx={{ mt: 18 }}>
       <Navbar0 menus={menus} />
 
-      {/* Header */}
       <Box
         sx={{
           px: 3, mb: 1,
@@ -961,9 +1134,7 @@ export default function DespachosControl() {
           </Typography>
         </Stack>
 
-        {/* BOTONES: Descargar/Cargar Excel (Despachada) + (Entregas) */}
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-          {/* Modelo Despachada */}
           <Button
             variant="outlined"
             startIcon={<CloudDownloadIcon />}
@@ -988,7 +1159,6 @@ export default function DespachosControl() {
             Cargar Despachada
           </Button>
 
-          {/* NUEVOS: Modelo Entregas */}
           <Button
             variant="outlined"
             startIcon={<CloudDownloadIcon />}
@@ -1012,15 +1182,58 @@ export default function DespachosControl() {
           >
             Cargar Entregas
           </Button>
+
+          <Button
+            variant="outlined"
+            startIcon={<CloudDownloadIcon />}
+            onClick={handleDownloadFilteredExcel}
+            sx={{ borderColor: "firebrick", color: "firebrick", textTransform: "none" }}
+          >
+            Exportar filtrado
+          </Button>
+
+          <Button
+            variant="contained"
+            disabled={!canBulkDispatch}
+            onClick={async () => {
+              if (mode !== MODES.POR_DESPACHAR) {
+                toast.info("Esta acción solo está disponible en el filtro: Por despachar.");
+                return;
+              }
+              // Construir filas seleccionadas desde las claves
+              const mapByKey = new Map((filteredRows || []).map((r) => [rowKey(r), r]));
+              const toProcess = [];
+              selectedKeys.forEach((k) => {
+                const r = mapByKey.get(k);
+                if (r) toProcess.push(r);
+              });
+              if (!toProcess.length) {
+                toast.info("Selecciona al menos una fila para mandar a despachar.");
+                return;
+              }
+              await handleBulkMandarADespachar(toProcess);
+            }}
+            sx={{ bgcolor: "firebrick", ":hover": { bgcolor: "#8f1a1a" }, textTransform: "none" }}
+          >
+            Marcar como despachado{selectedKeys.size > 1 ? ` (${selectedKeys.size})` : ""}
+          </Button>
         </Stack>
       </Box>
 
-      {/* Controles: filtros por estado, buscador, paginación/recarga */}
-      <Paper variant="outlined" sx={{ p: 2, mb: 0 }}>
+      <Paper variant="outlined" sx={{ p:1, mb: 0 }}>
         <Grid container spacing={2} alignItems="center">
-          {/* Botonera de estados */}
-          <Grid item xs={12} md>
-            <Stack direction="row" spacing={1} flexWrap="wrap">
+          {/* 40%: Botones de modo */}
+          <Grid
+            item
+            xs={12}
+            md
+            sx={{
+              flexBasis: { md: "40%" },
+              maxWidth: { md: "40%" },
+              flexGrow: 0,
+            }}
+          >
+            <Stack direction="row" spacing={1} flexWrap="wrap" alignItems="center">
               <Button
                 size="small"
                 variant={mode === MODES.TODOS ? "contained" : "outlined"}
@@ -1029,7 +1242,7 @@ export default function DespachosControl() {
                 sx={{
                   bgcolor: mode === MODES.TODOS ? "firebrick" : "transparent",
                   color: mode === MODES.TODOS ? "#fff" : "firebrick",
-                  borderColor: "firebrick"
+                  borderColor: "firebrick",
                 }}
               >
                 Todos
@@ -1043,7 +1256,7 @@ export default function DespachosControl() {
                 sx={{
                   bgcolor: mode === MODES.EN_DESPACHO ? "firebrick" : "transparent",
                   color: mode === MODES.EN_DESPACHO ? "#fff" : "firebrick",
-                  borderColor: "firebrick"
+                  borderColor: "firebrick",
                 }}
               >
                 En despacho
@@ -1057,7 +1270,7 @@ export default function DespachosControl() {
                 sx={{
                   bgcolor: mode === MODES.POR_DESPACHAR ? "firebrick" : "transparent",
                   color: mode === MODES.POR_DESPACHAR ? "#fff" : "firebrick",
-                  borderColor: "firebrick"
+                  borderColor: "firebrick",
                 }}
               >
                 Por despachar
@@ -1071,7 +1284,7 @@ export default function DespachosControl() {
                 sx={{
                   bgcolor: mode === MODES.SIN_GUIA ? "firebrick" : "transparent",
                   color: mode === MODES.SIN_GUIA ? "#fff" : "firebrick",
-                  borderColor: "firebrick"
+                  borderColor: "firebrick",
                 }}
               >
                 Sin guía
@@ -1085,7 +1298,7 @@ export default function DespachosControl() {
                 sx={{
                   bgcolor: mode === MODES.DESPACHADO ? "firebrick" : "transparent",
                   color: mode === MODES.DESPACHADO ? "#fff" : "firebrick",
-                  borderColor: "firebrick"
+                  borderColor: "firebrick",
                 }}
               >
                 Despachado
@@ -1093,68 +1306,115 @@ export default function DespachosControl() {
             </Stack>
           </Grid>
 
-          {/* Buscador rápido */}
-          <Grid item xs={12} md={4}>
-            <TextField
-              size="small"
-              fullWidth
-              placeholder="Buscar por cliente, pedido, orden, serie, ruta, destino, RUC…"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              InputProps={{
-                startAdornment: <SearchIcon fontSize="small" sx={{ mr: 1, color: "#666" }} />,
-              }}
-            />
-          </Grid>
-
-          {/* Paginación simple y recarga */}
-          <Grid item xs={12} md="auto">
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Button
-                size="small" variant="outlined" startIcon={<ArrowBackIosNewIcon />}
-                disabled={loading || page <= 1}
-                onClick={() => loadData({ page: Math.max(1, page - 1) })}
-                sx={{ borderColor: "firebrick", color: "firebrick" }}
-              >
-                Anterior
-              </Button>
-              <Typography variant="body2">
-                Página {page} de {totalPages}
-              </Typography>
-              <Button
-                size="small" variant="outlined" endIcon={<ArrowForwardIosIcon />}
-                disabled={loading || page >= totalPages}
-                onClick={() => loadData({ page: Math.min(totalPages, page + 1) })}
-                sx={{ borderColor: "firebrick", color: "firebrick" }}
-              >
-                Siguiente
-              </Button>
-            </Stack>
-          </Grid>
-          <Grid item xs={12} md="auto">
-            <Button
-              variant="outlined"
-              onClick={() => loadData({ page: 1 })}
-              disabled={loading}
-              startIcon={loading ? <CircularProgress size={16} /> : <RefreshIcon />}
-              sx={{ borderColor: "firebrick", color: "firebrick" }}
+          {/* 60%: Búsqueda, fechas, paginación y recargar */}
+          <Grid
+            item
+            xs={12}
+            md
+            sx={{
+              flexBasis: { md: "60%" },
+              maxWidth: { md: "60%" },
+              flexGrow: 1,
+            }}
+          >
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-evenly"
+              spacing={2}
+              sx={{ width: "100%", flexWrap: "nowrap", overflowX: "auto" }}
             >
-              {loading ? "Actualizando..." : "Recargar"}
-            </Button>
+              {/* Búsqueda + Fechas + Botón Buscar */}
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0 , p:1 }}>
+                <TextField
+                  size="small"
+                  placeholder="Buscar .."
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  sx={{ width: 220 }}
+                  InputProps={{
+                    startAdornment: (
+                      <SearchIcon fontSize="small" sx={{ mr: 1, color: "#666" }} />
+                    ),
+                  }}
+                />
+                <TextField
+                  label="Desde"
+                  type="date"
+                  size="small"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                />
+                <TextField
+                  label="Hasta"
+                  type="date"
+                  size="small"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                />
+                <Button
+                  variant="contained"
+                  startIcon={<SearchIcon />}
+                  onClick={() => loadData({ page: 1 })}
+                  sx={{ bgcolor: "firebrick", ":hover": { bgcolor: "#8f1a1a" }, whiteSpace: "nowrap" }}
+                >
+                  Buscar
+                </Button>
+              </Stack>
+
+              {/* Paginación + Recargar */}
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<ArrowBackIosNewIcon />}
+                  disabled={loading || page <= 1}
+                  onClick={() => loadData({ page: Math.max(1, page - 1) })}
+                  sx={{ borderColor: "firebrick", color: "firebrick" }}
+                >
+                  Anterior
+                </Button>
+                <Typography variant="body2">
+                  Página {page} de {totalPages}
+                </Typography>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  endIcon={<ArrowForwardIosIcon />}
+                  disabled={loading || page >= totalPages}
+                  onClick={() => loadData({ page: Math.min(totalPages, page + 1) })}
+                  sx={{ borderColor: "firebrick", color: "firebrick" }}
+                >
+                  Siguiente
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  onClick={() => loadData({ page: 1 })}
+                  disabled={loading}
+                  startIcon={loading ? <CircularProgress size={16} /> : <RefreshIcon />}
+                  sx={{ borderColor: "firebrick", color: "firebrick", whiteSpace: "nowrap" }}
+                >
+                  {loading ? "Actualizando..." : "Recargar"}
+                </Button>
+              </Stack>
+            </Stack>
+
           </Grid>
         </Grid>
 
         {loading && <LinearProgress sx={{ mt: 1 }} />}
       </Paper>
 
-      {/* Tabla principal */}
+
       <div style={{ margin: "25px" }}>
         <ThemeProvider theme={getMuiTableTheme()}>
           <MUIDataTable title={""} data={filteredRows} columns={columns} options={options} />
         </ThemeProvider>
       </div>
 
-      {/* === Diálogo Editar === */}
       <Dialog open={dlgEdit} onClose={closeEdit} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           Editar despacho
@@ -1169,7 +1429,6 @@ export default function DespachosControl() {
                 <b>Orden:</b> {rowEdit?.cod_orden ?? "-"}
               </Typography>
 
-              {/* Ruta */}
               <Autocomplete
                 options={rutasOpts}
                 loading={loadingRutas}
@@ -1200,7 +1459,6 @@ export default function DespachosControl() {
                 )}
               />
 
-              {/* Transportista */}
               <Autocomplete
                 options={transpOpts}
                 loading={loadingTransp}
@@ -1228,7 +1486,6 @@ export default function DespachosControl() {
                 )}
               />
 
-              {/* Dirección del cliente */}
               <Autocomplete
                 options={dirsOpts}
                 loading={loadingDirs}
@@ -1262,7 +1519,6 @@ export default function DespachosControl() {
                 )}
               />
 
-              {/* Despachada 0/1 */}
               <FormControl size="small" fullWidth>
                 <InputLabel id="despachada-edit">Despachada</InputLabel>
                 <Select
@@ -1292,7 +1548,6 @@ export default function DespachosControl() {
         </DialogActions>
       </Dialog>
 
-      {/* === Diálogo de confirmación de actualización por Excel (Despachada) === */}
       <Dialog open={excelDlgOpen} onClose={() => !updatingExcel && setExcelDlgOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           Confirmar actualización de series (DESPACHADA = 1)
@@ -1362,7 +1617,6 @@ export default function DespachosControl() {
         </DialogActions>
       </Dialog>
 
-      {/* === NUEVO: Diálogo de confirmación de actualización por Excel (Entregas) === */}
       <Dialog open={excelEntregaDlgOpen} onClose={() => !updatingEntrega && setExcelEntregaDlgOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           Confirmar actualización de Entregas (fecha & observación)
@@ -1436,12 +1690,10 @@ export default function DespachosControl() {
         </DialogActions>
       </Dialog>
 
-      {/* Backdrop global */}
       <Backdrop open={busy} sx={{ color: "#fff", zIndex: (t) => t.zIndex.modal + 1 }}>
         <CircularProgress color="inherit" />
       </Backdrop>
 
-      {/* Toasts */}
       <ToastContainer position="bottom-right" autoClose={3000} />
     </Box>
   );
