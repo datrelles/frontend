@@ -64,12 +64,16 @@ import Reports31 from "./components/Reports31";
 import Reports32 from "./components/Reports32";
 import Reports33 from "./components/Reports33";
 import Reports34 from "./components/Reports34";
+import Reports35 from "./components/Reports35";
+
 
 
 import Settings from "./components/Settings";
 import Menus from "./components/Menus";
 import Details from "./components/Details";
 import Dispatch from "./components/Dispatch";
+import ReservasPedidosAdmin from "./components/logistica/reservation";
+import RutasAdmin from "./components/logistica/rutas";
 import Asignacion from "./components/Asignacion";
 import Presupuesto from "./components/Presupuesto";
 import Formule from "./components/Formule";
@@ -92,6 +96,7 @@ import { CreditoDirectoManager } from "./components/ventas/approveCredit";
 import { SellManagerB2B } from "./components/ventas/b2bCaseManager";
 import { AdminTallerUsuarios } from "./components/garantias/adminTallerUsuarios/adminTallerUsuarios";
 import { OpagoManager } from "./components/garantias/laborCase/laborCase";
+import { TransporteMotos } from "./components/logistica/transportistas";
 import CatChasis from "./components/marketing/catalogos/modelos/catChasis";
 import CatDimensionesPeso from "./components/marketing/catalogos/modelos/catDimensionesPeso";
 import CatElectronica from "./components/marketing/catalogos/modelos/catElectronica";
@@ -117,7 +122,7 @@ import CatSegmento from "./components/marketing/catalogos/modelos/catSegmento";
 import ModeloVersion from "./components/marketing/catalogos/modelos/modeloVersion";
 import BenchModelos from "./components/marketing/benchModelo/benchModelos";
 import BenchRepuestos from "./components/marketing/benchRepuesto/benchRepuestos";
-import  RepCompatible from "./components/marketing/benchRepuesto/repCompatible";
+import RepCompatible from "./components/marketing/benchRepuesto/repCompatible";
 import Procesos from "./components/formulas/procesos";
 import Formulas from "./components/formulas/formulas";
 import Parametros from "./components/formulas/parametros";
@@ -132,7 +137,9 @@ import Pedidos from "./components/mayoreo/pedidos";
 ///////////////////////////////////////////////////
 import FrmActivaciones from "./components/formularios/frm_activaciones";
 import FrmPromotoria from "./components/formularios/frm_visita_promotoria";
-
+import CDEAdmin from "./components/logistica/manageCreateEnv";
+import DespachosControl from "./components/logistica/manageDespEntrega";
+import CDEMobile from "./components/logistica/manageDespMobile";
 ///SellManagerB2B
 const API = process.env.REACT_APP_API;
 function App() {
@@ -449,6 +456,69 @@ function App() {
                   </Protected>
                 }
               />
+
+              <Route
+                exact
+                path="/reservations"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("LOG")}>
+                    <ReservasPedidosAdmin />
+                  </Protected>
+                }
+              />
+
+              <Route
+                exact
+                path="/logistica/rutas"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("LOG")}>
+                    <RutasAdmin />
+                  </Protected>
+                }
+              />
+
+              <Route
+                exact
+                path="/logistica/generate/envio"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("LOG")}>
+                    <CDEAdmin />
+                  </Protected>
+                }
+              />
+
+              <Route
+                exact
+                path="/logistica/transport"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("LOG")}>
+                    <TransporteMotos />
+                  </Protected>
+                }
+              />
+
+              <Route
+                exact
+                path="/logistica/dispatch"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("LOG")}>
+                    <DespachosControl />
+                  </Protected>
+                }
+              />
+
+                <Route
+                exact
+                path="/logistica/despmovil"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("LOG")}>
+                    <CDEMobile />
+                  </Protected>
+                }
+              />
+
+
+
               <Route
                 exact
                 path="/newNegociacion"
@@ -806,6 +876,15 @@ function App() {
                 element={
                   <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
                     <Reports34 />
+                  </Protected>
+                }
+              />
+              <Route
+                exact
+                path="/reports35"
+                element={
+                  <Protected isLoggedIn={authorizedSystems.includes("PBI")}>
+                    <Reports35 />
                   </Protected>
                 }
               />
@@ -1196,10 +1275,10 @@ function App() {
                   </Protected>
                 }
               ></Route>
-              <Route exact path="/nuevo_bench" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatClCanalModelo/></Protected>}/>
-              <Route exact path="/compatibilidad_repuesto" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><RepCompatible/></Protected>}/>
-              <Route exact path="/frm_activaciones" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><FrmActivaciones/></Protected>}/>
-              <Route exact path="/frm_visPromotoria" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><FrmPromotoria/></Protected>}/>
+              <Route exact path="/nuevo_bench" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><CatClCanalModelo /></Protected>} />
+              <Route exact path="/compatibilidad_repuesto" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><RepCompatible /></Protected>} />
+              <Route exact path="/frm_activaciones" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><FrmActivaciones /></Protected>} />
+              <Route exact path="/frm_visPromotoria" element={<Protected isLoggedIn={authorizedSystems.includes('MKT')}><FrmPromotoria /></Protected>} />
               <Route
                 exact
                 path="/sell-out"
