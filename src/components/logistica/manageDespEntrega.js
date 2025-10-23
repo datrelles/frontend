@@ -195,7 +195,7 @@ export default function DespachosControl() {
   const [rows, setRows] = useState([]);
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(100);
+  const [pageSize, setPageSize] = useState(2000);
   const [loading, setLoading] = useState(false);
 
   const [q, setQ] = useState("");
@@ -328,6 +328,7 @@ export default function DespachosControl() {
     if (!nq) return arr;
 
     return arr.filter(r =>
+      norm(r?.transportista).includes(nq) ||
       norm(r?.cliente).includes(nq) ||
       norm(r?.cod_pedido).includes(nq) ||
       norm(r?.cod_orden).includes(nq) ||
@@ -1066,7 +1067,7 @@ export default function DespachosControl() {
 
   const options = {
     selectableRows: "multiple",
-    rowsPerPage: 20,
+    rowsPerPage: 50,
     elevation: 0,
     responsive: "standard",
     download: false,
