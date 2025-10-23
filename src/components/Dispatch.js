@@ -101,6 +101,9 @@ export default function DispatchMobile() {
   const [fromDate, setFromDate] = useState(dayjs().subtract(1, "month"));
   const [toDate, setToDate] = useState(dayjs());
 
+  // NUEVO: filtro por dirección (valor seleccionado)
+  const [direccionFilter, setDireccionFilter] = useState("");
+
   // detalle
   const [open, setOpen] = useState(false);
   const [current, setCurrent] = useState(null);
@@ -200,6 +203,20 @@ export default function DispatchMobile() {
     const n = Number(v);
     return Number.isFinite(n) ? n : 0;
   };
+
+  // >>> NUEVO AJUSTE: opciones de Dirección SOLO con pendientes > 0
+  const direccionOptions = useMemo(() => {
+    const set = new Set();
+    for (const d of Array.isArray(dispatchs) ? dispatchs : []) {
+      const pendiente = toNum(d?.CANTIDAD_PENDIENTE);
+      if (pendiente > 0) {
+        const dir = (d?.DIRECCION ?? "").toString().trim();
+        if (dir) set.add(dir);
+      }
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "es"));
+  }, [dispatchs]);
+  // <<< NUEVO AJUSTE
 
   const preprocessDispatchs = useCallback((arr) => {
     return (Array.isArray(arr) ? arr : []).map(d => {
@@ -345,6 +362,9 @@ export default function DispatchMobile() {
     if (activeTab === "DES") base = base.filter(d => d._DISPATCH_COMPLETE === true);
     if (bodega !== "ALL") base = base.filter(d => d._BODEGA === bodega);
 
+    // Filtro de Dirección (opcional)
+    if (direccionFilter) base = base.filter(d => (d?.DIRECCION ?? "").toString().trim() === direccionFilter);
+
     const q = norm(search);
     const tokens = q.split(" ").filter(Boolean);
     const hasAll = (str) => tokens.every(t => str.includes(t));
@@ -376,11 +396,11 @@ export default function DispatchMobile() {
     const seen = new Set();
     const out = [];
     for (const d of [...matchesPed, ...matchesCli]) {
-      const key = `${d.COD_PEDIDO}-${d.COD_ORDEN}-${d.COD_DIRECCION ?? ""}`; // AUMENTAR unicidad
+      const key = `${d.COD_PEDIDO}-${d.COD_ORDEN}-${d.COD_DIRECCION ?? ""}`;
       if (!seen.has(key)) { seen.add(key); out.push(d); }
     }
     return out;
-  }, [dispatchs, activeTab, bodega, search, changeSearch]);
+  }, [dispatchs, activeTab, bodega, direccionFilter, search, changeSearch]);
 
   // Handlers select
   const onOpenFilters = useCallback(() => setFiltersOpen(true), []);
@@ -992,6 +1012,23 @@ export default function DispatchMobile() {
                   minDate={fromDate}
                   disableFuture
                 />
+
+                {/* Selector de Dirección basado en pedidos con pendientes > 0 */}
+                <FormControl fullWidth size="small">
+                  <InputLabel id="direccion-label">Dirección</InputLabel>
+                  <Select
+                    labelId="direccion-label"
+                    id="direccion-select"
+                    label="Dirección"
+                    value={direccionFilter}
+                    onChange={(e) => setDireccionFilter(e.target.value)}
+                  >
+                    <MenuItem value="">Todas</MenuItem>
+                    {direccionOptions.map((dir) => (
+                      <MenuItem key={dir} value={dir}>{dir}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </Stack>
             </LocalizationProvider>
             <Stack direction="row" spacing={1} sx={{ mt: 3, justifyContent: "flex-end" }}>
