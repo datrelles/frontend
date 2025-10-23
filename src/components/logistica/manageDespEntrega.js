@@ -301,7 +301,7 @@ export default function DespachosControl() {
         );
         break;
       case MODES.DESPACHADO:
-        arr = arr.filter(r => Number(r?.en_despacho) === 1 && Number(r?.despachada) === 1);
+        arr = arr.filter(r => Number(r?.despachada) === 1);
         break;
       default:
         break;

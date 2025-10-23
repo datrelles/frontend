@@ -604,9 +604,9 @@ export default function RutasAdmin() {
   };
 
   const trColumns = [
-    { name: "cod_transportista", label: "Transportista (≤14)" },
-    { name: "cod_ruta", label: "Cod. Ruta (int)" },
-    { name: "nombre_transportista", label: "Nombre Ruta" },
+    { name: "cod_transportista", label: "cod" },
+    { name: "cod_ruta", label: "Cod. Ruta" },
+    { name: "nombre_transportista", label: "Nombre Transportista" },
     {
       name: "acciones",
       label: "Acciones",
