@@ -221,12 +221,12 @@ export default class API {
     });
 
 
-    updatePromotoria = this.#errorHandler(async (cod_promotoria, data) => {
-        return await axios.put(`${this.#URL}/promotoria/${cod_promotoria}`, data, this.#headers);
+    updatePromotoria = this.#errorHandler(async (cod_form, data) => {
+        return await axios.put(`${this.#URL}/formularios-promotoria/${cod_form}`, data, this.#headers);
     })
 
 
-    // ------------------------- MODULO ADMINISTRACIION (MOSTRAR TODAS LAS ENCUESTAS POR PROMOTOR)
+    // ------------------------- MODULO ADMINISTRACIÓN (MOSTRAR TODAS LAS ENCUESTAS POR PROMOTOR)
 
     getEncuestas = this.#errorHandler(async (empresa) => {
         return axios.get(`${this.#URL}/empresas/${empresa}/encuestas`,

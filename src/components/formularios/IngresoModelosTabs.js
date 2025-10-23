@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import {
     Box, Tabs, Tab, Table, TableHead,
-    TableRow, TableCell, TableBody, TableContainer,
-    Paper, TextField, Typography,
+    TableRow, TableCell, TableBody,
+   TextField, Typography,
 } from "@mui/material";
 
 const IngresoModelosTabs = ({ modelosPorSegmento, cantidades, setCantidades }) => {
@@ -20,6 +20,7 @@ const IngresoModelosTabs = ({ modelosPorSegmento, cantidades, setCantidades }) =
                     nombre_segmento: segmento.nombre_segmento,
                     cantidad: valor
                 }
+
             };
 
             // Agrupar por marca + segmento

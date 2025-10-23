@@ -18,7 +18,7 @@ import DialogActions from "@mui/material/DialogActions";
 import * as XLSX from "xlsx";
 import RefreshIcon from '@mui/icons-material/Refresh';
 import GlobalLoading from "../../selectoresDialog/GlobalLoading";
-import AddIcon from "@material-ui/icons/Add";
+import AddIcon from "@mui/icons-material/Add";
 import Stack from "@mui/material/Stack";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import {getTableOptions, getMuiTheme} from "../../muiTableConfig";

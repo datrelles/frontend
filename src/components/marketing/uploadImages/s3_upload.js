@@ -4,8 +4,8 @@ import { Button } from "@mui/material";
 import {useAuthContext} from "../../../context/authContext";
 import {toast} from "react-toastify";
 import Box from "@mui/material/Box";
-import SaveIcon from "@material-ui/icons/Save";
-import AddIcon from "@material-ui/icons/Add";
+import SaveIcon from '@mui/icons-material/Save';
+import AddIcon from "@mui/icons-material/Add";
 
 const API = process.env.REACT_APP_API;
 

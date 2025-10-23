@@ -14,12 +14,12 @@ import Navbar0 from "../Navbar0";
 import ButtonGroup from "@mui/material/ButtonGroup";
 import LoadingCircle from "../contabilidad/loader";
 import EditIcon from '@mui/icons-material/Edit';
-import AddIcon from "@material-ui/icons/Add";
-import NotificationsIcon from "@material-ui/icons/Notifications";
+import AddIcon from "@mui/icons-material/Add";
+import NotificationsIcon from "@mui/icons-material/Notifications";
 import {LocalizationProvider} from '@mui/x-date-pickers/LocalizationProvider';
 import {AdapterDayjs} from '@mui/x-date-pickers/AdapterDayjs';
 import {DatePicker} from '@mui/x-date-pickers/DatePicker';
-import SearchIcon from "@material-ui/icons/Search";
+import SearchIcon from "@mui/icons-material/Search";
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import {getMuiTheme, getTableOptions} from "../marketing/muiTableConfig";
@@ -28,6 +28,8 @@ import {ThemeProvider} from "@mui/material/styles";
 import Paper from "@mui/material/Paper";
 import {DesktopTimePicker} from '@mui/x-date-pickers/DesktopTimePicker';
 import { Chip } from "@mui/material";
+import ActivacionPDFButton from "./ActivacionPDFButton";
+import logoShineray from "../../img/Logo-Shineray-Blanco.png";
 
 
 const FrmActivaciones = () => {
@@ -197,16 +199,16 @@ const FrmActivaciones = () => {
             setAlerta({open: true, msg: 'Por favor completa todos los campos obligatorios.', severity: 'warning'});
             return;
         }
-        if (form.tienda?.toUpperCase() === "SIN NOMBRE") {
-            setAlerta({
-                open: true,
-                msg: "No se puede guardar la activación porque la tienda no tiene nombre. Por favor notifícalo.",
-                severity: "error"
-            });
-            return;
+
+        let tiendaFinal = form.tienda;
+        if (!tiendaFinal || tiendaFinal.toUpperCase() === "SIN NOMBRE") {
+            const t = direcciones.find(d => d.id === form.codTienda);
+            tiendaFinal = t?.direccion || "SIN NOMBRE"; // fallback
         }
 
-        const payload = buildActivacionPayload(form, enterpriseShineray);
+        const payload = buildActivacionPayload({...form, tienda: tiendaFinal}, enterpriseShineray);
+
+        //const payload = buildActivacionPayload(form, enterpriseShineray);
         payload.fecha_act = String(form.fecha || dayjs().format('YYYY-MM-DD')).trim();
 
         try {
@@ -372,41 +374,49 @@ const FrmActivaciones = () => {
                 customBodyRenderLite: (dataIndex) => {
                     const row = activaciones[dataIndex];
                     return (
-                        <Tooltip title="Editar">
-                            <IconButton
-                                color="primary"
-                                onClick={() => {
-                                    setForm(prev => ({
-                                        ...prev,
-                                        cod_activacion: row.cod_activacion,
-                                        promotor: row.cod_promotor || prev.promotor,
-                                        distribuidorId: row.cod_cliente || '',
-                                        distribuidorNombre: row.distribuidor || '',
-                                        ciudad: row.ciudad || '',
-                                        codTienda: row.cod_tienda || '',
-                                        tienda: row.tienda || '',
-                                        tiendaNombre: '',
-                                        tipoActivacion: row.cod_item_act || '',
-                                        codProveedor: row.cod_proveedor || '',
-                                        fecha: row.fechaISO || prev.fecha,
-                                        horaInicio: row.horaInicio || '',
-                                        horaFinal: row.horaFinal || '',
-                                        horas: row.horas || '',
-                                        motos: row.motos ?? '',
-                                        canal: row.canal || '',
-                                    }));
-                                    fetchDirecciones(
-                                        (row.cod_promotor || form.promotor),
-                                        row.cod_cliente
-                                    );
-                                    setMostrarFormulario(true);
-                                    setModoEdicion(true);
-                                    setIndexEditar(dataIndex);
+                        <>
+                            <Tooltip title="Editar">
+                                <IconButton
+                                    color="primary"
+                                    onClick={() => {
+                                        setForm(prev => ({
+                                            ...prev,
+                                            cod_activacion: row.cod_activacion,
+                                            promotor: row.cod_promotor || prev.promotor,
+                                            distribuidorId: row.cod_cliente || '',
+                                            distribuidorNombre: row.distribuidor || '',
+                                            ciudad: row.ciudad || '',
+                                            codTienda: row.cod_tienda || '',
+                                            tienda: row.tienda || '',
+                                            tiendaNombre: '',
+                                            tipoActivacion: row.cod_item_act || '',
+                                            codProveedor: row.cod_proveedor || '',
+                                            fecha: row.fechaISO || prev.fecha,
+                                            horaInicio: row.horaInicio || '',
+                                            horaFinal: row.horaFinal || '',
+                                            horas: row.horas || '',
+                                            motos: row.motos ?? '',
+                                            canal: row.canal || '',
+                                        }));
+                                        fetchDirecciones(
+                                            (row.cod_promotor || form.promotor),
+                                            row.cod_cliente
+                                        );
+                                        setMostrarFormulario(true);
+                                        setModoEdicion(true);
+                                        setIndexEditar(dataIndex);
+                                    }}
+                                >
+                                    <EditIcon />
+                                </IconButton>
+                            </Tooltip>
+                            <ActivacionPDFButton
+                                activacion={row}
+                                logos={{
+                                    shineray: logoShineray,
                                 }}
-                            >
-                                <EditIcon/>
-                            </IconButton>
-                        </Tooltip>
+                            />
+                        </>
                     );
                 },
             },
@@ -414,10 +424,9 @@ const FrmActivaciones = () => {
     ];
 
     const camposPlantillaModelo = [
-        "cod_activacion", "fecha",
-        "horaInicio", "horaFinal",
+        "cod_activacion", "fecha", "horaInicio", "horaFinal",
         "horas", "canal", "ciudad", "distribuidor", "tienda",
-        "motos", "tipoActivacion", "promotor",
+        "motos", "tipoActivacion", "promotor","estado"
     ];
     const tableOptions = getTableOptions(activaciones, camposPlantillaModelo, "Actualizar_activaciones_shineray_bultaco.xlsx");
 
@@ -520,19 +529,33 @@ const FrmActivaciones = () => {
             setLoadingDirs(true);
             const raw = await APIService.getCuidades(cod_promotor, cod_cliente);
             const list = Array.isArray(raw) ? raw : (raw?.data ?? []);
+
             const formatted = list.map(d => {
-                const ciudad = String(d.ciudad ?? '').toUpperCase().trim();
                 const nombreRaw = d?.bodega?.nombre?.trim() || String(d.nombre ?? '').trim();
-                const display = (nombreRaw || 'SIN NOMBRE').toUpperCase();
+                let display = '';
+                let sinNombreReal = false;
+
+                if (nombreRaw) {
+                    display = nombreRaw.toUpperCase();
+                } else if (d.direccion) {
+                    display = d.direccion.toUpperCase();
+                    sinNombreReal = true;
+                } else {
+                    display = 'SIN NOMBRE';
+                    sinNombreReal = true;
+                }
+
                 return {
                     id: String(d.cod_direccion),
                     cod_direccion: String(d.cod_direccion),
-                    ciudad,
-                    nombre: nombreRaw,
+                    ciudad: d.ciudad,
+                    nombre: nombreRaw || d.direccion || 'SIN NOMBRE',
                     direccion: d.direccion ?? '',
                     label: display,
+                    sinNombreReal,
                 };
             });
+
             setDirecciones(formatted);
         } catch (e) {
             toast.error(e?.message || 'No se pudieron cargar las direcciones');
@@ -561,6 +584,7 @@ const FrmActivaciones = () => {
                 label: d.label,
                 nombre: d.nombre,
                 ciudad: d.ciudad,
+                sinNombreReal: d.sinNombreReal,
             }));
     }, [direcciones, form.ciudad]);
 
@@ -604,7 +628,8 @@ const FrmActivaciones = () => {
             distribuidor: [item?.cliente?.nombre, item?.cliente?.apellido1].filter(Boolean).join(' ').trim(),
             canal: getCanal(item),
             ciudad: item?.tienda?.ciudad || item?.ciudad || '',
-            tienda: item?.bodega?.nombre?.trim() || "SIN NOMBRE",
+            tienda: item?.bodega?.nombre?.trim() || item?.tienda?.nombre?.trim() || item?.tienda?.direccion?.trim() || "SIN NOMBRE",
+            // tienda: item?.bodega?.nombre?.trim() || "SIN NOMBRE",
             fecha: fUTC ? fUTC.format('DD/MM/YYYY') : '',
             fechaISO: fUTC ? fUTC.format('YYYY-MM-DD') : '',
             horaInicio: item.hora_inicio || '',
@@ -620,9 +645,10 @@ const FrmActivaciones = () => {
             cod_promotor: String(item.cod_promotor ?? '').trim(),
             estado: mapEstado(item.estado),
             cod_estado: Number(item.estado),
+
+            audit_fecha_ing: item.audit_fecha_ing || null,
         };
     };
-
 
     const getEstadoChip = (estado) => {
         switch (estado) {
@@ -880,16 +906,18 @@ const FrmActivaciones = () => {
                                                                 ...prev,
                                                                 codTienda: v.id,
                                                                 tienda: v.label,
+                                                                sinNombreReal: v.sinNombreReal,
+                                                                notificado: false, //
                                                             }));
                                                         } else {
-                                                            setForm(prev => ({...prev, codTienda: '', tienda: ''}));
+                                                            setForm(prev => ({ ...prev, codTienda: '', tienda: '', sinNombreReal: false, notificado: false }));
                                                         }
                                                     }}
                                                     isOptionEqualToValue={(a, b) => `${a.id}` === `${b?.id ?? b}`}
                                                     renderInput={(params) => <TextField {...params} label="Tienda" />}
                                                     fullWidth
                                                 />
-                                                {form.tienda?.toUpperCase() === "SIN NOMBRE" && (
+                                                {form.sinNombreReal && (
                                                     <Tooltip title="Notificar tienda sin nombre">
                                                         <IconButton
                                                             color="error"
@@ -902,6 +930,7 @@ const FrmActivaciones = () => {
                                                                     );
                                                                     console.log("Respuesta backend:", resp);
                                                                     toast.success("Notificación enviada correctamente");
+                                                                    setForm(prev => ({ ...prev, notificado: true }));
                                                                 } catch (e) {
                                                                     console.error("Error al notificar:", e?.response || e);
                                                                     toast.error(e?.response?.data?.mensaje || "Error al enviar notificación");
@@ -1031,9 +1060,10 @@ const FrmActivaciones = () => {
                                                     variant="contained"
                                                     sx={{
                                                         backgroundColor: 'firebrick',
-                                                        '&:hover': {backgroundColor: 'darkred'}
+                                                        '&:hover': { backgroundColor: 'darkred' }
                                                     }}
                                                     onClick={handleSubmit}
+                                                    disabled={form.sinNombreReal && !form.notificado}
                                                 >
                                                     {modoEdicion ? 'Actualizar Activación' : 'Guardar'}
                                                 </Button>
@@ -1043,6 +1073,7 @@ const FrmActivaciones = () => {
                                                         limpiarFormulario();
                                                         setMostrarFormulario(false);
                                                         setModoEdicion(false);
+                                                        setMostrarTabla(true);
                                                     }}
                                                 >
                                                     Cancelar

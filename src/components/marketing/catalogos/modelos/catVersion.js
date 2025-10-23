@@ -21,7 +21,7 @@ import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import {getTableOptions, getMuiTheme } from "../../muiTableConfig";
 import * as XLSX from "xlsx";
-import AddIcon from "@material-ui/icons/Add";
+import AddIcon from "@mui/icons-material/Add";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Stack from "@mui/material/Stack";
 
