@@ -62,13 +62,35 @@ const FrmActivaciones = () => {
     const [buscarDistribuidorNombre, setBuscarDistribuidorNombre] = useState('');
     const [loadingTabla, setLoadingTabla] = useState(false);
 
-    const cargarActivacionesIniciales = async (codPromotor) => {
+
+    const [rolUsuario, setRolUsuario] = useState(null);
+    const [esSupervisor, setEsSupervisor] = useState(false);
+
+    const cargarActivacionesIniciales = async (codPromotor, rolParam = null, esSupervisorParam = null) => {
         try {
             setLoadingTabla(true);
 
-            const params = {
-                cod_promotor: codPromotor
-            };
+            let rol = rolParam;
+            let esSup = esSupervisorParam;
+
+            if (!rol) {
+                const result = await obtenerRolUsuario();
+                rol = result.rol;
+                esSup = result.esSupervisor;
+            }
+
+            let params = {};
+
+            if (rol === 'SUPER_MAY' || rol === 'SUPER_RET') {
+
+                const codCanal = rol === 'SUPER_MAY' ? 1 : 2;
+                params.cod_canal = codCanal;
+
+            } else {
+                params.cod_promotor = codPromotor;
+
+            }
+
             const resp = await APIService.getActivaciones(enterpriseShineray, params);
             const data = Array.isArray(resp) ? resp : (resp?.data ?? []);
             const tiposDict = mapTipoById(tipoActivaciones);
@@ -126,16 +148,18 @@ const FrmActivaciones = () => {
     useEffect(() => {
         (async () => {
             try {
+
+                const { rol, esSupervisor: esSup } = await obtenerRolUsuario();
+
                 const p = await APIService.getPromotorActual();
                 setPromotorActual(p);
                 const codPromotor = String(p.identificacion || '').trim();
 
                 setForm(prev => ({...prev, promotor: codPromotor}));
                 await fetchClientesPromotor(codPromotor);
-                await cargarActivacionesIniciales(codPromotor);
+                await cargarActivacionesIniciales(codPromotor, rol, esSup);
             } catch (e) {
-                console.error(e);
-                toast.error(e.message || 'No se pudo obtener el promotor del usuario');
+                toast.error(e.message || 'No se pudo obtener el promotor');
             } finally {
                 setCargandoPromotor(false);
             }
@@ -181,7 +205,7 @@ const FrmActivaciones = () => {
             hora_fin: String(form.horaFinal ?? '').trim(),
             fecha_act: String(form.fecha ?? '').trim(),
             num_exhi_motos: safeInt(form.motos),
-            ...(modoEdicion
+            ...(modoEdicion && esSupervisor
                     ? { estado: { estado: form.estado, observacion: form.observacion || "SN" } }
                     : {}
             )
@@ -207,8 +231,6 @@ const FrmActivaciones = () => {
         }
 
         const payload = buildActivacionPayload({...form, tienda: tiendaFinal}, enterpriseShineray);
-
-        //const payload = buildActivacionPayload(form, enterpriseShineray);
         payload.fecha_act = String(form.fecha || dayjs().format('YYYY-MM-DD')).trim();
 
         try {
@@ -233,7 +255,7 @@ const FrmActivaciones = () => {
             setTimeout(() => window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'}), 50);
 
         } catch (error) {
-            console.error('Error al guardar/actualizar activación:', error);
+
             const msg = error?.response?.data?.mensaje || error?.message || (modoEdicion ? 'Error al actualizar.' : 'Error al guardar.');
             setAlerta({open: true, msg, severity: 'error'});
         }
@@ -379,6 +401,7 @@ const FrmActivaciones = () => {
                                 <IconButton
                                     color="primary"
                                     onClick={() => {
+
                                         setForm(prev => ({
                                             ...prev,
                                             cod_activacion: row.cod_activacion,
@@ -397,6 +420,8 @@ const FrmActivaciones = () => {
                                             horas: row.horas || '',
                                             motos: row.motos ?? '',
                                             canal: row.canal || '',
+                                            estado: row.cod_estado ?? 0,
+                                            observacion: '',
                                         }));
                                         fetchDirecciones(
                                             (row.cod_promotor || form.promotor),
@@ -629,7 +654,6 @@ const FrmActivaciones = () => {
             canal: getCanal(item),
             ciudad: item?.tienda?.ciudad || item?.ciudad || '',
             tienda: item?.bodega?.nombre?.trim() || item?.tienda?.nombre?.trim() || item?.tienda?.direccion?.trim() || "SIN NOMBRE",
-            // tienda: item?.bodega?.nombre?.trim() || "SIN NOMBRE",
             fecha: fUTC ? fUTC.format('DD/MM/YYYY') : '',
             fechaISO: fUTC ? fUTC.format('YYYY-MM-DD') : '',
             horaInicio: item.hora_inicio || '',
@@ -645,8 +669,8 @@ const FrmActivaciones = () => {
             cod_promotor: String(item.cod_promotor ?? '').trim(),
             estado: mapEstado(item.estado),
             cod_estado: Number(item.estado),
-
             audit_fecha_ing: item.audit_fecha_ing || null,
+            estados: item.estados || null,
         };
     };
 
@@ -695,6 +719,33 @@ const FrmActivaciones = () => {
         }
     }, [selectedDistribuidorForm]);
 
+
+    const obtenerRolUsuario = async () => {
+
+        try {
+
+            const response = await APIService.getCanalPromotor(userShineray);
+            const data = response?.data || response;
+
+            const rol = data?.canal || data?.cod_rol || data?.rol;
+
+            setRolUsuario(rol);
+
+            const esSupervisor = rol === 'SUPER_MAY' || rol === 'SUPER_RET';
+            setEsSupervisor(esSupervisor);
+
+            let codCanal = null;
+            if (rol === 'SUPER_MAY' || rol === 'PROM_MAY') {
+                codCanal = 1; // Mayoreo
+            } else if (rol === 'SUPER_RET' || rol === 'PROM_RET') {
+                codCanal = 2; // Retail
+            }
+
+            return { rol, esSupervisor, codCanal };
+        } catch (error) {
+            return { rol: null, esSupervisor: false, codCanal: null };
+        }
+    };
 
     return (
         <>{loading ? (<LoadingCircle/>) : (
@@ -1026,7 +1077,7 @@ const FrmActivaciones = () => {
                                                 disablePortal
                                             />
                                         </Grid>
-                                        {modoEdicion && (
+                                        {modoEdicion && esSupervisor && (
                                             <>
                                                 <Grid item xs={12} md={2}>
                                                     <FormControl fullWidth variant="outlined" size="medium">

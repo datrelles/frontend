@@ -1,8 +1,9 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {
     TextField, Button, Grid, Typography,
-    Box, Snackbar,  Alert, Autocomplete
+    Box, Snackbar,  Alert, Autocomplete, IconButton, Tooltip
 } from '@mui/material';
+import NotificationsIcon from "@mui/icons-material/Notifications";
 import {useAuthContext} from "../../context/authContext";
 import {SnackbarProvider} from "notistack";
 import API from "../../services/modulo_formularios";
@@ -101,6 +102,8 @@ const FrmPromotoria= () => {
         total_mot_piso: '',
         modelos_segmento: [],
         marcas_segmento: [],
+        sinNombreReal: false,
+        notificado: false,
     });
 
     const getMenus = async () => {
@@ -478,14 +481,27 @@ const FrmPromotoria= () => {
             const formatted = list.map(d => {
                 const ciudad = String(d.ciudad ?? '').toUpperCase().trim();
                 const nombreRaw = d?.bodega?.nombre?.trim() || String(d.nombre ?? '').trim();
-                const display = (nombreRaw || 'SIN NOMBRE').toUpperCase();
+                let display = '';
+                let sinNombreReal = false;
+
+                if (nombreRaw) {
+                    display = nombreRaw.toUpperCase();
+                } else if (d.direccion) {
+                    display = d.direccion.toUpperCase();
+                    sinNombreReal = true;
+                } else {
+                    display = 'SIN NOMBRE';
+                    sinNombreReal = true;
+                }
+
                 return {
                     id: String(d.cod_direccion),
                     cod_direccion: String(d.cod_direccion),
                     ciudad,
-                    nombre: nombreRaw,
+                    nombre: nombreRaw || d.direccion || 'SIN NOMBRE',
                     direccion: d.direccion ?? '',
                     label: display,
+                    sinNombreReal,
                 };
             });
             setDirecciones(formatted);
@@ -516,6 +532,7 @@ const FrmPromotoria= () => {
                 label: d.label,
                 nombre: d.nombre,
                 ciudad: d.ciudad,
+                sinNombreReal: d.sinNombreReal,
             }));
     }, [direcciones, form.ciudad]);
 
@@ -836,52 +853,83 @@ const FrmPromotoria= () => {
                                             />
                                         </Grid>
                                         <Grid item xs={12} md={2}>
-                                            <Autocomplete
-                                                options={tiendasPorCiudad}
-                                                getOptionLabel={(o) => o?.label ?? ''}
-                                                value={tiendaSel}
-                                                onChange={async (_, v) => {
-                                                    if (v && typeof v === 'object') {
-                                                        setForm(prev => ({
-                                                            ...prev,
-                                                            codTienda: v.id,
-                                                            tienda: v.label,
-                                                        }));
-                                                        try {
-                                                            const clienteId = form.distribuidorId;
-                                                            const data = await APIService.getTiendas(
-                                                                enterpriseShineray,
-                                                                clienteId,
-                                                                v.id
-                                                            );
-                                                            if (data) {
-                                                                setForm(prev => ({
-                                                                    ...prev,
+                                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                <Autocomplete
+                                                    options={tiendasPorCiudad}
+                                                    getOptionLabel={(o) => o?.label ?? ''}
+                                                    value={tiendaSel}
+                                                    onChange={async (_, v) => {
+                                                        if (v && typeof v === 'object') {
+                                                            setForm(prev => ({
+                                                                ...prev,
+                                                                codTienda: v.id,
+                                                                tienda: v.label,
+                                                                sinNombreReal: v.sinNombreReal,
+                                                                notificado: false,
+                                                            }));
+                                                            try {
+                                                                const clienteId = form.distribuidorId;
+                                                                const data = await APIService.getTiendas(
+                                                                    enterpriseShineray,
+                                                                    clienteId,
+                                                                    v.id
+                                                                );
+                                                                if (data) {
+                                                                    setForm(prev => ({
+                                                                        ...prev,
                                                                         responsable: data.bodega?.responsable || '',
-                                                                    telefono1: data.bodega?.telefono1 || '',
-                                                                    correoTienda: data.bodega?.correo_electronico || '',
-                                                                    prom_venta_tienda: data.prom_venta_tienda || ''
-                                                                }));
+                                                                        telefono1: data.bodega?.telefono1 || '',
+                                                                        correoTienda: data.bodega?.correo_electronico || '',
+                                                                        prom_venta_tienda: data.prom_venta_tienda || ''
+                                                                    }));
+                                                                }
+                                                            } catch (error) {
+                                                                console.error("Error cargando info tienda:", error);
+                                                                toast.error("No se pudo cargar info de la tienda");
                                                             }
-                                                        } catch (error) {
-                                                            console.error("Error cargando info tienda:", error);
-                                                            toast.error("No se pudo cargar info de la tienda");
+                                                        } else {
+                                                            setForm(prev => ({
+                                                                ...prev,
+                                                                codTienda: '',
+                                                                tienda: '',
+                                                                responsable: '',
+                                                                telefono1: '',
+                                                                correoTienda: '',
+                                                                prom_venta_tienda: '',
+                                                                sinNombreReal: false,
+                                                                notificado: false,
+                                                            }));
                                                         }
-                                                    } else {
-                                                        setForm(prev => ({
-                                                            ...prev,
-                                                            codTienda: '',
-                                                            tienda: '',
-                                                            responsable: '',
-                                                            telefono1: '',
-                                                            correoTienda: '',
-                                                            prom_venta_tienda: ''
-                                                        }));
-                                                    }
-                                                }}
-                                                isOptionEqualToValue={(a, b) => `${a.id}` === `${b?.id ?? b}`}
-                                                renderInput={(params) => <TextField {...params} label="Tienda" />}
-                                            />
+                                                    }}
+                                                    isOptionEqualToValue={(a, b) => `${a.id}` === `${b?.id ?? b}`}
+                                                    renderInput={(params) => <TextField {...params} label="Tienda" />}
+                                                    fullWidth
+                                                />
+                                                {form.sinNombreReal && (
+                                                    <Tooltip title="Notificar tienda sin nombre">
+                                                        <IconButton
+                                                            color="error"
+                                                            onClick={async () => {
+                                                                try {
+                                                                    const resp = await APIService.postNotificarTiendaSinNombre(
+                                                                        enterpriseShineray,
+                                                                        form.distribuidorId,
+                                                                        form.codTienda
+                                                                    );
+                                                                    console.log("Respuesta backend:", resp);
+                                                                    toast.success("Notificación enviada correctamente");
+                                                                    setForm(prev => ({ ...prev, notificado: true }));
+                                                                } catch (e) {
+                                                                    console.error("Error al notificar:", e?.response || e);
+                                                                    toast.error(e?.response?.data?.mensaje || "Error al enviar notificación");
+                                                                }
+                                                            }}
+                                                        >
+                                                            <NotificationsIcon />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                )}
+                                            </Box>
                                         </Grid>
                                         <Grid item xs={12} md={4}>
                                             <TextField
@@ -960,6 +1008,7 @@ const FrmPromotoria= () => {
                                                             variant="contained"
                                                             sx={{ backgroundColor: 'firebrick', '&:hover': { backgroundColor: 'darkred' } }}
                                                             onClick={handleSubmit}
+                                                            disabled={form.sinNombreReal && !form.notificado}
                                                         >
                                                             {modoEdicion ? 'Actualizar promotoría' : 'Guardar'}
                                                         </Button>
